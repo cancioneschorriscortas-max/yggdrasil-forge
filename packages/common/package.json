@@ -1,0 +1,44 @@
+{
+  "name": "@yggdrasil-forge/common",
+  "version": "0.0.0",
+  "description": "Shared constants, types, and utilities for Yggdrasil Forge",
+  "license": "MIT",
+  "author": "Agarfal",
+  "homepage": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git",
+    "directory": "packages/common"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
+}

@@ -4,5 +4,5 @@
     "noEmit": true
   },
   "include": [],
-  "references": []
+  "references": [{ "path": "./packages/common" }, { "path": "./packages/core" }]
 }

@@ -268,6 +268,26 @@ As reglas activadas en `biome.json` impoñen disciplinas que hai que respetar de
 
 Estas reglas detectan problemas reais. Non se desactivan; o código adáptase.
 
+### 1.3.3 Patrón obrigatorio: lint:fix + format despois de pegar configuración
+
+Cando un executor pega contido manual en ficheiros de configuración (`package.json`, `tsconfig.json`, `biome.json`, `vitest.config.ts`, etc.), Biome detectará case sempre desviacións de formato (indentación, comillas, líneas finais, ordenación de claves).
+
+**Patrón obrigatorio tras editar configuración manualmente:**
+
+```bash
+pnpm lint:fix      # Corrixe automaticamente o que se poida
+pnpm format        # Formatea (idempotente)
+```
+
+Despois verificar:
+
+```bash
+pnpm lint          # Debe pasar
+pnpm format:check  # Debe pasar
+```
+
+Os executores deben facer isto **antes** de tentar commit. O hook pre-commit corrixiríao automaticamente, pero é mellor facelo explícito para entender o que se modificou.
+
 ### 1.4 Convención de commits
 
 Usar **Conventional Commits**:
