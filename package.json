@@ -14,9 +14,12 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
+    "format:check": "biome format .",
     "typecheck": "turbo run typecheck",
     "dev": "turbo run dev",
     "clean": "turbo run clean && rm -rf node_modules",
@@ -27,10 +30,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
+    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/ui": "^4.1.5",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.3",
     "turbo": "^2.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.5"
   },
   "packageManager": "pnpm@11.0.9",
   "engines": {

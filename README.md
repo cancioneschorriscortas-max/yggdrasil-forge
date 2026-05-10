@@ -2,6 +2,9 @@
 
 > The world tree from which all skill trees grow.
 
+[![CI](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A comprehensive skill tree engine and visual editor for the web.
 
 ## Status

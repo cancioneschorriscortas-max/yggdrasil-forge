@@ -7,6 +7,18 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- Vitest configured at workspace root with v8 coverage provider
+- Smoke tests to verify Vitest installation
+- GitHub Actions CI workflow (lint, format, typecheck, test)
+- PR title validation workflow (enforces Conventional Commits)
+- CI and License badges in README
+- New scripts: `test:ui`, `test:coverage`, `format:check`
+
+### Changed
+- Renamed `docs/BRIEFINGS` to `docs/briefings` (kebab-case convention)
+- Refined `turbo.json` with stream UI and test:watch task
+
+### Added
 - Initial monorepo structure
 - .gitattributes for cross-platform LF line endings
 - .npmrc with hoisted node-linker (Windows compatibility)
