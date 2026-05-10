@@ -8,8 +8,8 @@ For now, please open an issue to discuss any contribution before submitting a pu
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm 9+
+- Node.js 22+
+- pnpm 11+
 
 ### Setup
 
@@ -23,4 +23,11 @@ pnpm install
 
 We use [Conventional Commits](https://www.conventionalcommits.org/):
 
-
+```
+feat(core): add new feature
+fix(react): fix a bug
+docs: update documentation
+refactor(core): improve code structure
+test(core): add tests
+chore: maintenance tasks
+```

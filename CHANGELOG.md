@@ -8,5 +8,9 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 - Initial monorepo structure
+- .gitattributes for cross-platform LF line endings
+- .npmrc with hoisted node-linker (Windows compatibility)
+- Turborepo telemetry disabled by default
+- Approved build scripts for @biomejs/biome via pnpm allowBuilds
 - TypeScript, Biome, and Turborepo configuration
 - License (MIT) and contribution guidelines
