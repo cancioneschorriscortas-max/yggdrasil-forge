@@ -1,0 +1,31 @@
+{
+  "name": "yggdrasil-forge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Comprehensive skill tree engine and visual editor for the web",
+  "license": "MIT",
+  "author": "Agarfal",
+  "homepage": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "turbo run typecheck",
+    "dev": "turbo run dev",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

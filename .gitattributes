@@ -1,0 +1,20 @@
+# Forzar LF en todos os ficheiros de texto, en todos os sistemas operativos
+* text=auto eol=lf
+
+# Ficheiros binarios explícitos (non tocar)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Scripts shell sempre LF
+*.sh text eol=lf
