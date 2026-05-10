@@ -239,6 +239,34 @@ Decisións obrigatorias integradas no proxecto:
 - **Trailing commas:** sempre (multi-línea)
 - **Líneas máx:** 100 caracteres
 - **Arquivos:** UTF-8, LF (non CRLF)
+- **Naming de directorios:** **kebab-case** (`docs/briefings/`, `packages/multi-tenancy/`). Evitar maiúsculas: causan problemas case-sensitive en Linux/Mac aínda que Windows non se queixe.
+- **Naming de ficheiros TypeScript de clases:** PascalCase (`TreeEngine.ts`, `UnlockResolver.ts`)
+- **Naming de ficheiros TypeScript de utilidades/funcións:** camelCase (`deepClone.ts`, `resolveLocalized.ts`)
+- **Naming de ficheiros de tipos puros:** camelCase (`node.ts`, `unlock.ts`, `events.ts`)
+
+### 1.3.1 Versionado selectivo de .vscode/
+
+Os ficheiros `extensions.json`, `settings.json` e `launch.json` están versionados (decisión de equipo, todos os contributors herdan o setup). Outros ficheiros de `.vscode/` (state, history, caches locais) NON se versionan. Patrón en `.gitignore`:
+
+```
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+```
+
+### 1.3.2 Reglas de Biome estritas — disciplinas que impoñen
+
+As reglas activadas en `biome.json` impoñen disciplinas que hai que respetar dende o primeiro día:
+
+- **`noConsole`:** non usar `console.log()` en código de produción. Usar `console.info`, `console.warn`, `console.error` (permitidos) ou un sistema de logging apropiado.
+- **`useNodejsImportProtocol`:** importacións de Node.js core deben usar prefixo `node:` (`import { readFile } from 'node:fs/promises'`).
+- **`useImportType` / `useExportType`:** importar/exportar tipos con `type` cuando sexan só tipos (`import type { TreeDef } from './types'`).
+- **`noUnusedImports` / `noUnusedVariables`:** cero tolerancia. Eliminar antes de commit.
+- **`noExplicitAny`:** prohibido `any` salvo casos extremos con comentario xustificativo.
+- **`Number.parseInt` (non `parseInt`):** usar versión namespaced para claridade.
+
+Estas reglas detectan problemas reais. Non se desactivan; o código adáptase.
 
 ### 1.4 Convención de commits
 
