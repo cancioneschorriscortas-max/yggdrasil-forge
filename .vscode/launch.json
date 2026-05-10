@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug current TS file",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${file}",
+      "runtimeArgs": ["--import", "tsx"],
+      "runtimeExecutable": "node"
+    }
+  ]
+}
