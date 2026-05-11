@@ -1,0 +1,47 @@
+{
+  "name": "@yggdrasil-forge/devtools",
+  "version": "0.0.0",
+  "description": "Browser devtools extension support for Yggdrasil Forge",
+  "license": "MIT",
+  "author": "Agarfal",
+  "homepage": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git",
+    "directory": "packages/devtools"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "typescript": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

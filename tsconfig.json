@@ -4,5 +4,25 @@
     "noEmit": true
   },
   "include": [],
-  "references": [{ "path": "./packages/common" }, { "path": "./packages/core" }]
+  "references": [
+    { "path": "./packages/common" },
+    { "path": "./packages/core" },
+    { "path": "./packages/themes" },
+    { "path": "./packages/react" },
+    { "path": "./packages/storage" },
+    { "path": "./packages/i18n" },
+    { "path": "./packages/analytics" },
+    { "path": "./packages/search" },
+    { "path": "./packages/diff" },
+    { "path": "./packages/exporters" },
+    { "path": "./packages/importers" },
+    { "path": "./packages/webhooks" },
+    { "path": "./packages/stats" },
+    { "path": "./packages/validators" },
+    { "path": "./packages/heatmap" },
+    { "path": "./packages/multitenancy" },
+    { "path": "./packages/devtools" },
+    { "path": "./packages/neo4j" },
+    { "path": "./packages/cli" }
+  ]
 }

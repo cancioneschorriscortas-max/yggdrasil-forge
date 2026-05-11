@@ -6,6 +6,22 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+
+### Added
+- Configured `pnpm catalog` for shared devDependencies (tsup, vitest, etc.)
+- Configured `@changesets/cli` with hybrid versioning (4 core packages linked, others independent)
+- Created GitHub Actions release workflow (preparation, requires NPM_TOKEN to activate)
+- Created `scripts/create-package.mjs` for consistent package scaffolding
+- Created 15 placeholder packages following the standard template:
+  - Core (linked): themes, react
+  - Independent: storage, i18n, analytics, search, diff, exporters, importers,
+    webhooks, stats, validators, heatmap, multitenancy, devtools, neo4j, cli
+
+### Changed
+- Refactored `common` and `core` packages to use catalog references
+
+
+
 ### Added
 - Created `@yggdrasil-forge/common` package (placeholder)
 - Created `@yggdrasil-forge/core` package (placeholder, depends on common)
@@ -41,3 +57,4 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 - Renamed `docs/BRIEFINGS` to `docs/briefings` (kebab-case convention)
 - Refined `turbo.json` with stream UI and test:watch task
 - TypeScript: enabled `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `incremental`
+

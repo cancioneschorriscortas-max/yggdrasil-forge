@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/[email protected]/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "cancioneschorriscortas-max/yggdrasil-forge" }
+  ],
+  "commit": false,
+  "fixed": [],
+  "linked": [
+    [
+      "@yggdrasil-forge/common",
+      "@yggdrasil-forge/core",
+      "@yggdrasil-forge/react",
+      "@yggdrasil-forge/themes"
+    ]
+  ],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}

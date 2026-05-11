@@ -214,7 +214,28 @@ Decisións obrigatorias integradas no proxecto:
   ```
   Os paquetes aprobados quedan rexistrados en `pnpm-workspace.yaml`. **Os executores deben rexistrar e xustificar cada nova aprobación no CHANGELOG.**
 
+- **DevDependencies compartidas via `pnpm catalog`** — co `node-linker=hoisted` activado, devDependencies declaradas só no workspace root NON son visibles desde os paquetes fillos. Para evitar ter que declarar `tsup`, `vitest`, etc. en cada un dos 15+ paquetes, úsase `pnpm catalog` (introducido en pnpm 9): centraliza versións e cada paquete referénciaas con `catalog:`. Implementación en sub-fase 0.5.
+
 **Os executores futuros NON deben revertir estas decisións.** Se atopan problemas relacionados, repórtano ao director, non improvisan solucións alternativas.
+
+### 1.1.2 Patrón obrigatorio: lint:fix + format despois de crear/pegar ficheiros
+
+Cando un executor:
+- Pega contido manual en ficheiros de configuración
+- Crea novos ficheiros de código
+
+...Biome detectará case sempre desviacións de formato (CRLF en Windows, indentación, comillas, líneas finais, ordenación de claves).
+
+**Patrón obrigatorio ANTES de calquera commit:**
+
+```bash
+pnpm lint:fix      # Corrixe automaticamente o que se poida
+pnpm format        # Formatea (idempotente)
+pnpm lint          # Verificación final (debe pasar)
+pnpm format:check  # Verificación final (debe pasar)
+```
+
+O hook pre-commit corrixiríao automaticamente, pero é mellor facelo explícito para entender o que se modificou e evitar commits parciais.
 
 ### 1.2 Idiomas
 

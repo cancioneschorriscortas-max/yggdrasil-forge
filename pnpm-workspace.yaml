@@ -2,6 +2,17 @@ packages:
   - 'packages/*'
   - 'apps/*'
   - 'examples/*'
+
+# Catálogo de versións compartidas para devDependencies do monorepo.
+# Os paquetes refírense con `catalog:` no canto da versión literal.
+catalog:
+  tsup: ^8.3.0
+  vitest: ^4.1.0
+  '@vitest/coverage-v8': ^4.1.0
+  typescript: ^5.4.0
+
+# Build scripts aprobados (pnpm 11 require aprobación explícita).
 allowBuilds:
   '@biomejs/biome': true
   esbuild: true
+  # Engadir aquí calquera novo build script aprobado.

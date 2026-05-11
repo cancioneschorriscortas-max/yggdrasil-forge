@@ -36,13 +36,16 @@
     "@yggdrasil-forge/common": "workspace:*",
     "immer": "^10.1.1"
   },
+  "devDependencies": {
+    "tsup": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "typescript": "catalog:"
+  },
   "publishConfig": {
     "access": "public"
   },
   "engines": {
     "node": ">=22"
-  },
-  "devDependencies": {
-    "tsup": "^8.5.1"
   }
 }
