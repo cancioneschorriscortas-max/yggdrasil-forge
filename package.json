@@ -26,7 +26,11 @@
     "fresh": "pnpm clean && pnpm install",
     "validate": "pnpm lint && pnpm typecheck && pnpm test",
     "check-env": "node scripts/check-env.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changeset": "changeset",
+"changeset:status": "changeset status",
+"changeset:version": "changeset version",
+"changeset:publish": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
