@@ -6,7 +6,10 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
-
+### Fixed
+- lint-staged now processes the entire repo with Biome instead of file-by-file (fixes Windows command line length limit)
+- Release workflow no longer attempts to publish to npm without NPM_TOKEN configured (avoids spurious red runs)
+- Turbo `test` task now declares explicit empty outputs (silences warning)
 ### Added
 - Configured `pnpm catalog` for shared devDependencies (tsup, vitest, etc.)
 - Configured `@changesets/cli` with hybrid versioning (4 core packages linked, others independent)
