@@ -1,6 +1,6 @@
 # @yggdrasil-forge/common
 
-Shared constants, error codes, and types for the Yggdrasil Forge monorepo.
+Shared constants, error codes, locales, and i18n helpers for the Yggdrasil Forge monorepo.
 
 ## Status
 
@@ -12,13 +12,35 @@ Shared constants, error codes, and types for the Yggdrasil Forge monorepo.
 pnpm add @yggdrasil-forge/common
 ```
 
-## Usage
+## Exports
 
-```typescript
-import { VERSION, PROJECT_NAME } from '@yggdrasil-forge/common'
-```
+### Constants
+
+- `PROJECT_NAME` — Canonical project name
+- `VERSION` — Current package version
+- `SCHEMA_VERSION` — Current TreeDef schema version
+
+### Locales
+
+- `SUPPORTED_LOCALES` — Officially supported locales (`gl`, `es`, `en`)
+- `DEFAULT_LOCALE` — Default locale (`en`)
+- `FALLBACK_LOCALE` — Fallback locale (`en`)
+- `isSupportedLocale(value)` — Type guard
+
+### i18n
+
+- `LocalizedString` — Type for translatable strings
+- `resolveLocalized(value, locale, fallback?)` — Resolve a translation
+- `interpolate(template, values)` — Substitute `{variable}` placeholders
+
+### Errors
+
+- `ErrorCode` — Enum of all error codes
+- `YggdrasilError` — Base error class
+- `isYggdrasilError(value)` — Type guard
+- `getErrorMessage(code, locale, context?)` — Get localized error message
+- `ERROR_MESSAGES` — Raw localized messages
 
 ## License
 
 MIT
-<-  — The master architecture document. Single source of truth for all architectural 0.5.1 test marker -->

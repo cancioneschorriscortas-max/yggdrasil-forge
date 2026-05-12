@@ -6,24 +6,20 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- `@yggdrasil-forge/common`: real content (constants, locales, i18n, errors)
+  - `Locale`, `SupportedLocale`, `SUPPORTED_LOCALES`, `DEFAULT_LOCALE`, `FALLBACK_LOCALE`, `isSupportedLocale`
+  - `LocalizedString`, `resolveLocalized`, `interpolate`
+  - `ErrorCode` enum (30+ codes covering engine, validation, storage, plugins, etc.)
+  - `YggdrasilError` class with `code`, `context`, `cause`, `toJSON()`
+  - `isYggdrasilError` type guard
+  - `getErrorMessage` with localized messages in gl/es/en for all error codes
+- 100% test coverage in `@yggdrasil-forge/common`
+
 ### Fixed
 - lint-staged now processes the entire repo with Biome instead of file-by-file (fixes Windows command line length limit)
 - Release workflow no longer attempts to publish to npm without NPM_TOKEN configured (avoids spurious red runs)
 - Turbo `test` task now declares explicit empty outputs (silences warning)
-### Added
-- Configured `pnpm catalog` for shared devDependencies (tsup, vitest, etc.)
-- Configured `@changesets/cli` with hybrid versioning (4 core packages linked, others independent)
-- Created GitHub Actions release workflow (preparation, requires NPM_TOKEN to activate)
-- Created `scripts/create-package.mjs` for consistent package scaffolding
-- Created 15 placeholder packages following the standard template:
-  - Core (linked): themes, react
-  - Independent: storage, i18n, analytics, search, diff, exporters, importers,
-    webhooks, stats, validators, heatmap, multitenancy, devtools, neo4j, cli
-
-### Changed
-- Refactored `common` and `core` packages to use catalog references
-
-
 
 ### Added
 - Created `@yggdrasil-forge/common` package (placeholder)
@@ -53,6 +49,14 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 - Refined Biome configuration with stricter rules
 - Refined TypeScript configuration with extra safety options
 - Additional npm scripts: `lint:fix`, `test:watch`, `fresh`, `validate`
+- Configured `pnpm catalog` for shared devDependencies (tsup, vitest, etc.)
+- Configured `@changesets/cli` with hybrid versioning (4 core packages linked, others independent)
+- Created GitHub Actions release workflow (preparation, requires NPM_TOKEN to activate)
+- Created `scripts/create-package.mjs` for consistent package scaffolding
+- Created 15 placeholder packages following the standard template:
+  - Core (linked): themes, react
+  - Independent: storage, i18n, analytics, search, diff, exporters, importers,
+    webhooks, stats, validators, heatmap, multitenancy, devtools, neo4j, cli
 
 ### Changed
 - Removed root-level `__tests__/smoke.test.ts` (replaced by per-package smoke tests)
@@ -60,4 +64,4 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 - Renamed `docs/BRIEFINGS` to `docs/briefings` (kebab-case convention)
 - Refined `turbo.json` with stream UI and test:watch task
 - TypeScript: enabled `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `incremental`
-
+- Refactored `common` and `core` packages to use catalog references

@@ -1,15 +1,30 @@
-// ── INICIO: @yggdrasil-forge/common ──
-// Constantes, error codes, tipos compartidos para todo o monorepo.
-// Os contidos reais engadiranse na sub-fase 1.1.
+// ── INICIO: @yggdrasil-forge/common public API ──
+// Constantes, error codes, locales, i18n helpers compartidos por todo o monorepo.
 
-/**
- * Versión actual do paquete.
- * Sincronízase coa versión do package.json mediante o build.
- */
-export const VERSION = '0.0.0'
+// Constantes globais
+export { PROJECT_NAME, VERSION, SCHEMA_VERSION } from './constants.js'
 
-/**
- * Nome canónico do proxecto.
- */
-export const PROJECT_NAME = 'Yggdrasil Forge'
-// ── FIN: @yggdrasil-forge/common ──
+// Locales
+export {
+  type Locale,
+  type SupportedLocale,
+  SUPPORTED_LOCALES,
+  DEFAULT_LOCALE,
+  FALLBACK_LOCALE,
+  isSupportedLocale,
+} from './locales.js'
+
+// i18n
+export { type LocalizedString, resolveLocalized, interpolate } from './i18n.js'
+
+// Errors
+export {
+  ErrorCode,
+  ERROR_MESSAGES,
+  type SerializedError,
+  type YggdrasilErrorOptions,
+  YggdrasilError,
+  isYggdrasilError,
+  getErrorMessage,
+} from './errors/index.js'
+// ── FIN: @yggdrasil-forge/common public API ──
