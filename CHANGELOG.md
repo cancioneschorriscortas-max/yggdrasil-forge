@@ -7,6 +7,20 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: foundational type definitions
+  - `Result<T, E>` with helpers (`ok`, `err`, `isOk`, `isErr`, `unwrap`, `unwrapOr`)
+  - `NodeDef`, `NodeInstance`, `NodeType`, `NodeState`, `Position`, `StateChange`
+  - `freezeNodeDef(def)` for recursive Object.freeze of node definitions
+  - `EdgeDef`, `EdgeType`, `EdgeStyle`
+  - `TreeDef`, `TreeState`, `GroupDef`, `StatDef`, `LayoutConfig`
+  - `RichContent`, `NodeContent`
+  - Re-exports of `ErrorCode`, `YggdrasilError`, `isYggdrasilError`, `getErrorMessage` from `@yggdrasil-forge/common`
+- `test:coverage` script in package.json template (and in `common` + `core` retroactively)
+
+### Changed
+- `scripts/create-package.mjs` now includes `test:coverage` in scaffolded packages
+
+### Added
 - `@yggdrasil-forge/common`: real content (constants, locales, i18n, errors)
   - `Locale`, `SupportedLocale`, `SUPPORTED_LOCALES`, `DEFAULT_LOCALE`, `FALLBACK_LOCALE`, `isSupportedLocale`
   - `LocalizedString`, `resolveLocalized`, `interpolate`

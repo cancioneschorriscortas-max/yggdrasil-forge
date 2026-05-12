@@ -1,0 +1,1086 @@
+diff --git a/.changeset/core-foundational-types.md b/.changeset/core-foundational-types.md
+new file mode 100644
+index 0000000..d58dc6f
+--- /dev/null
++++ b/.changeset/core-foundational-types.md
+@@ -0,0 +1,5 @@
++---
++"@yggdrasil-forge/core": minor
++---
++
++Add foundational types: Result, NodeDef, EdgeDef, TreeDef, RichContent. Re-export error utilities from common.
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 70256de..223e517 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -6,6 +6,20 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
+ 
+ ## [Unreleased]
+ 
++### Added
++- `@yggdrasil-forge/core`: foundational type definitions
++  - `Result<T, E>` with helpers (`ok`, `err`, `isOk`, `isErr`, `unwrap`, `unwrapOr`)
++  - `NodeDef`, `NodeInstance`, `NodeType`, `NodeState`, `Position`, `StateChange`
++  - `freezeNodeDef(def)` for recursive Object.freeze of node definitions
++  - `EdgeDef`, `EdgeType`, `EdgeStyle`
++  - `TreeDef`, `TreeState`, `GroupDef`, `StatDef`, `LayoutConfig`
++  - `RichContent`, `NodeContent`
++  - Re-exports of `ErrorCode`, `YggdrasilError`, `isYggdrasilError`, `getErrorMessage` from `@yggdrasil-forge/common`
++- `test:coverage` script in package.json template (and in `common` + `core` retroactively)
++
++### Changed
++- `scripts/create-package.mjs` now includes `test:coverage` in scaffolded packages
++
+ ### Added
+ - `@yggdrasil-forge/common`: real content (constants, locales, i18n, errors)
+   - `Locale`, `SupportedLocale`, `SUPPORTED_LOCALES`, `DEFAULT_LOCALE`, `FALLBACK_LOCALE`, `isSupportedLocale`
+diff --git a/packages/common/package.json b/packages/common/package.json
+index c37ec70..3e61a58 100644
+--- a/packages/common/package.json
++++ b/packages/common/package.json
+@@ -29,6 +29,7 @@
+     "dev": "tsup --watch",
+     "test": "vitest run",
+     "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "typecheck": "tsc --noEmit",
+     "clean": "rm -rf dist .turbo *.tsbuildinfo"
+   },
+diff --git a/packages/core/README.md b/packages/core/README.md
+index 1ac5146..af1d041 100644
+--- a/packages/core/README.md
++++ b/packages/core/README.md
+@@ -6,24 +6,57 @@ The core engine of Yggdrasil Forge — a comprehensive skill tree engine for the
+ 
+ 🚧 **Early development.** Public API not yet stable.
+ 
++Currently exports type definitions only. Engine classes (TreeEngine, UnlockResolver,
++etc.) will be added in upcoming sub-phases.
++
+ ## Installation
+ 
+ ```bash
+ pnpm add @yggdrasil-forge/core
+ ```
+ 
+-## Usage
++## What's available
++
++### Result type
+ 
+ ```typescript
+-import { greet } from '@yggdrasil-forge/core'
++import { ok, err, type Result } from '@yggdrasil-forge/core'
++```
++
++### Node and Tree types
++
++```typescript
++import type {
++  NodeDef,
++  NodeInstance,
++  NodeType,
++  NodeState,
++  EdgeDef,
++  TreeDef,
++  TreeState,
++} from '@yggdrasil-forge/core'
++```
+ 
+-console.info(greet())
++### Content types
++
++```typescript
++import type { RichContent, NodeContent } from '@yggdrasil-forge/core'
++```
++
++### Errors (re-exported from common)
++
++```typescript
++import {
++  ErrorCode,
++  YggdrasilError,
++  getErrorMessage,
++} from '@yggdrasil-forge/core'
+ ```
+ 
+ ## Documentation
+ 
+-See the [master architecture document](../../docs/architecture/MASTER.md) for design details.
++See the [master architecture document](../../docs/architecture/MASTER.md).
+ 
+ ## License
+ 
+-MIT
+\ No newline at end of file
++MIT
+diff --git a/packages/core/__tests__/smoke.test.ts b/packages/core/__tests__/smoke.test.ts
+deleted file mode 100644
+index ec7d9cd..0000000
+--- a/packages/core/__tests__/smoke.test.ts
++++ /dev/null
+@@ -1,17 +0,0 @@
+-// ── INICIO: smoke test para @yggdrasil-forge/core ──
+-import { describe, expect, it } from 'vitest'
+-import { VERSION, greet } from '../src/index.js'
+-
+-describe('@yggdrasil-forge/core', () => {
+-  it('should export VERSION', () => {
+-    expect(VERSION).toBe('0.0.0')
+-  })
+-
+-  it('should greet correctly', () => {
+-    const greeting = greet()
+-    expect(greeting).toContain('Yggdrasil Forge')
+-    expect(greeting).toContain('core v0.0.0')
+-    expect(greeting).toContain('common v0.0.0')
+-  })
+-})
+-// ── FIN: smoke test ──
+diff --git a/packages/core/__tests__/types/exports.test.ts b/packages/core/__tests__/types/exports.test.ts
+new file mode 100644
+index 0000000..75e5ba8
+--- /dev/null
++++ b/packages/core/__tests__/types/exports.test.ts
+@@ -0,0 +1,34 @@
++// ── INICIO: tests de exports ──
++// Verifica que os tipos públicos exportan o que esperamos.
++// Os tipos puros non se poden probar en runtime — só verificamos que
++// as funcións/constantes existen.
++
++import { describe, expect, it } from 'vitest'
++import * as core from '../../src/index.js'
++
++describe('@yggdrasil-forge/core public exports', () => {
++  it('exports VERSION', () => {
++    expect(core.VERSION).toBe('0.0.0')
++  })
++
++  it('exports Result helpers', () => {
++    expect(typeof core.ok).toBe('function')
++    expect(typeof core.err).toBe('function')
++    expect(typeof core.isOk).toBe('function')
++    expect(typeof core.isErr).toBe('function')
++    expect(typeof core.unwrap).toBe('function')
++    expect(typeof core.unwrapOr).toBe('function')
++  })
++
++  it('exports freezeNodeDef', () => {
++    expect(typeof core.freezeNodeDef).toBe('function')
++  })
++
++  it('re-exports error utilities from common', () => {
++    expect(core.ErrorCode).toBeDefined()
++    expect(typeof core.YggdrasilError).toBe('function') // class
++    expect(typeof core.isYggdrasilError).toBe('function')
++    expect(typeof core.getErrorMessage).toBe('function')
++  })
++})
++// ── FIN: tests de exports ──
+diff --git a/packages/core/__tests__/types/node.test.ts b/packages/core/__tests__/types/node.test.ts
+new file mode 100644
+index 0000000..4b26d33
+--- /dev/null
++++ b/packages/core/__tests__/types/node.test.ts
+@@ -0,0 +1,82 @@
++// ── INICIO: tests de Node ──
++import { describe, expect, it } from 'vitest'
++import { type NodeDef, freezeNodeDef } from '../../src/types/index.js'
++
++describe('freezeNodeDef', () => {
++  it('freezes a basic node', () => {
++    const node: NodeDef = {
++      id: 'x',
++      type: 'small',
++      label: 'X',
++    }
++    const frozen = freezeNodeDef(node)
++    expect(Object.isFrozen(frozen)).toBe(true)
++  })
++
++  it('freezes nested arrays', () => {
++    const node: NodeDef = {
++      id: 'x',
++      type: 'small',
++      label: 'X',
++      tags: ['a', 'b', 'c'],
++      exclusions: ['y', 'z'],
++    }
++    const frozen = freezeNodeDef(node)
++    expect(Object.isFrozen(frozen.tags)).toBe(true)
++    expect(Object.isFrozen(frozen.exclusions)).toBe(true)
++  })
++
++  it('freezes nested objects', () => {
++    const node: NodeDef = {
++      id: 'x',
++      type: 'small',
++      label: 'X',
++      position: { x: 0.5, y: 0.5 },
++      metadata: { autor: 'agarfal', centro: 'IES' },
++    }
++    const frozen = freezeNodeDef(node)
++    expect(Object.isFrozen(frozen.position)).toBe(true)
++    expect(Object.isFrozen(frozen.metadata)).toBe(true)
++  })
++
++  it('handles already frozen objects', () => {
++    const node: NodeDef = Object.freeze({
++      id: 'x',
++      type: 'small',
++      label: 'X',
++    })
++    const frozen = freezeNodeDef(node)
++    expect(frozen).toBe(node) // Same reference
++    expect(Object.isFrozen(frozen)).toBe(true)
++  })
++
++  it('freezes LocalizedString objects', () => {
++    const node: NodeDef = {
++      id: 'x',
++      type: 'small',
++      label: { gl: 'Ola', es: 'Hola', en: 'Hello' },
++    }
++    const frozen = freezeNodeDef(node)
++    expect(Object.isFrozen(frozen.label)).toBe(true)
++  })
++
++  it('preserves all node fields', () => {
++    const node: NodeDef = {
++      id: 'panadeiro_forno',
++      type: 'cluster',
++      label: { gl: 'Forno', es: 'Horno', en: 'Oven' },
++      icon: '🔥',
++      color: '#e8a547',
++      tier: 0,
++      maxTier: 5,
++      tags: ['cocina'],
++      position: { x: 0.5, y: 0.18 },
++    }
++    const frozen = freezeNodeDef(node)
++    expect(frozen.id).toBe('panadeiro_forno')
++    expect(frozen.type).toBe('cluster')
++    expect(frozen.tier).toBe(0)
++    expect(frozen.maxTier).toBe(5)
++  })
++})
++// ── FIN: tests de Node ──
+diff --git a/packages/core/__tests__/types/result.test.ts b/packages/core/__tests__/types/result.test.ts
+new file mode 100644
+index 0000000..13747a0
+--- /dev/null
++++ b/packages/core/__tests__/types/result.test.ts
+@@ -0,0 +1,61 @@
++// ── INICIO: tests de Result ──
++import { describe, expect, it } from 'vitest'
++import { err, isErr, isOk, ok, unwrap, unwrapOr } from '../../src/types/index.js'
++
++describe('Result helpers', () => {
++  describe('ok', () => {
++    it('builds a success result', () => {
++      const r = ok(42)
++      expect(r.ok).toBe(true)
++      expect(r.value).toBe(42)
++    })
++
++    it('builds with complex values', () => {
++      const r = ok({ name: 'foo', tags: ['a', 'b'] })
++      expect(r.ok).toBe(true)
++      expect(r.value.name).toBe('foo')
++    })
++  })
++
++  describe('err', () => {
++    it('builds a failure result', () => {
++      const e = new Error('boom')
++      const r = err(e)
++      expect(r.ok).toBe(false)
++      expect(r.error).toBe(e)
++    })
++  })
++
++  describe('isOk / isErr', () => {
++    it('distinguishes ok and err', () => {
++      const success = ok(1)
++      const failure = err(new Error('x'))
++      expect(isOk(success)).toBe(true)
++      expect(isOk(failure)).toBe(false)
++      expect(isErr(success)).toBe(false)
++      expect(isErr(failure)).toBe(true)
++    })
++  })
++
++  describe('unwrap', () => {
++    it('returns value on ok', () => {
++      expect(unwrap(ok('hello'))).toBe('hello')
++    })
++
++    it('throws error on err', () => {
++      const e = new Error('boom')
++      expect(() => unwrap(err(e))).toThrow('boom')
++    })
++  })
++
++  describe('unwrapOr', () => {
++    it('returns value on ok', () => {
++      expect(unwrapOr(ok(10), 0)).toBe(10)
++    })
++
++    it('returns fallback on err', () => {
++      expect(unwrapOr(err(new Error('x')), 99)).toBe(99)
++    })
++  })
++})
++// ── FIN: tests de Result ──
+diff --git a/packages/core/package.json b/packages/core/package.json
+index ef686a7..468c9a8 100644
+--- a/packages/core/package.json
++++ b/packages/core/package.json
+@@ -29,6 +29,7 @@
+     "dev": "tsup --watch",
+     "test": "vitest run",
+     "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
+     "typecheck": "tsc --noEmit",
+     "clean": "rm -rf dist .turbo *.tsbuildinfo"
+   },
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index 2279ce7..bb2330f 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -1,19 +1,13 @@
+-// ── INICIO: @yggdrasil-forge/core ──
++// ── INICIO: @yggdrasil-forge/core public API ──
+ // Motor principal de Yggdrasil Forge.
+-// O contido real engadirase nas sub-fases 1.x.
+-
+-import { VERSION as COMMON_VERSION, PROJECT_NAME } from '@yggdrasil-forge/common'
++// Actualmente expón só tipos. As clases (TreeEngine, etc.) engadiranse
++// nas sub-fases 1.5+.
+ 
+ /**
+  * Versión actual de @yggdrasil-forge/core.
+  */
+ export const VERSION = '0.0.0'
+ 
+-/**
+- * Devolve un saúdo de proba para verificar que o paquete está vivo.
+- * Eliminarase cando se introduzan os tipos e clases reais.
+- */
+-export function greet(): string {
+-  return `${PROJECT_NAME} core v${VERSION} (common v${COMMON_VERSION})`
+-}
+-// ── FIN: @yggdrasil-forge/core ──
++// Tipos públicos (re-exports completos de ./types)
++export * from './types/index.js'
++// ── FIN: @yggdrasil-forge/core public API ──
+diff --git a/packages/core/src/types/content.ts b/packages/core/src/types/content.ts
+new file mode 100644
+index 0000000..0cbf7fb
+--- /dev/null
++++ b/packages/core/src/types/content.ts
+@@ -0,0 +1,58 @@
++// ── INICIO: Rich content types ──
++// Contido enriquecido para tooltips, descricións detalladas e media.
++
++import type { LocalizedString } from '@yggdrasil-forge/common'
++
++/**
++ * Contido enriquecido que pode aparecer en tooltips, paneles de detalle,
++ * ou en calquera lugar que precise máis que texto plano.
++ *
++ * O tipo "custom" permite ao consumidor inxectar compoñentes propios.
++ */
++export type RichContent =
++  | { readonly type: 'text'; readonly value: LocalizedString }
++  | { readonly type: 'markdown'; readonly value: LocalizedString }
++  | { readonly type: 'html'; readonly value: LocalizedString; readonly sanitized?: boolean }
++  | {
++      readonly type: 'image'
++      readonly src: string
++      readonly alt?: LocalizedString
++      readonly width?: number
++      readonly height?: number
++    }
++  | {
++      readonly type: 'video'
++      readonly src: string
++      readonly poster?: string
++      readonly provider?: 'youtube' | 'vimeo' | 'mp4'
++    }
++  | { readonly type: 'audio'; readonly src: string }
++  | {
++      readonly type: 'link'
++      readonly href: string
++      readonly label: LocalizedString
++      readonly external?: boolean
++    }
++  | { readonly type: 'composite'; readonly items: readonly RichContent[] }
++  | {
++      readonly type: 'custom'
++      readonly componentId: string
++      readonly props?: Readonly<Record<string, unknown>>
++    }
++
++/**
++ * Conxunto de contidos asociados a un nodo para distintos contextos de presentación.
++ */
++export interface NodeContent {
++  /** Mostrado en tooltips ao pasar por riba do nodo. */
++  readonly tooltip?: RichContent
++  /** Mostrado en vista detallada (panel lateral, modal). */
++  readonly detail?: RichContent
++  /** Vista previa curta (hover rápido). */
++  readonly preview?: RichContent
++  /** Contido revelado só despois de desbloquear o nodo. */
++  readonly unlocked?: RichContent
++  /** Texto poético / atmosférico (estilo Oberón). */
++  readonly flavor?: LocalizedString
++}
++// ── FIN: Rich content types ──
+diff --git a/packages/core/src/types/edge.ts b/packages/core/src/types/edge.ts
+new file mode 100644
+index 0000000..4f11f83
+--- /dev/null
++++ b/packages/core/src/types/edge.ts
+@@ -0,0 +1,59 @@
++// ── INICIO: Edge types ──
++// Conexións entre nodos: dependencias, exclusións, camiños visuais.
++
++import type { LocalizedString } from '@yggdrasil-forge/common'
++
++/**
++ * Tipo semántico dunha conexión.
++ *
++ * - `dependency` — A require B (B debe estar desbloqueado para que A o sexa)
++ * - `soft_dependency` — A recomenda B (informativo, non obrigatorio)
++ * - `exclusion` — A e B son mutuamente excluíntes
++ * - `enhancement` — A potencia B se ambos están desbloqueados
++ * - `path` — Camiño visual sen semántica de dependencia
++ * - `cluster` — Pertenza a un cluster (agrupación visual)
++ * - `subtree_link` — Conexión a un nodo dentro dunha sub-árbore
++ */
++export type EdgeType =
++  | 'dependency'
++  | 'soft_dependency'
++  | 'exclusion'
++  | 'enhancement'
++  | 'path'
++  | 'cluster'
++  | 'subtree_link'
++
++/**
++ * Estilo visual dunha conexión (renderizado).
++ */
++export interface EdgeStyle {
++  readonly color?: string
++  readonly width?: number
++  /** Patrón de trazo: [5, 3] = 5px liña, 3px oco. */
++  readonly dashPattern?: readonly number[]
++  /** Aplicar efecto glow. */
++  readonly glow?: boolean
++  /** Liña animada (partículas, pulso). */
++  readonly animated?: boolean
++}
++
++/**
++ * Definición dunha conexión entre dous nodos.
++ *
++ * **Inmutable** (igual que NodeDef).
++ */
++export interface EdgeDef {
++  readonly id: string
++  readonly source: string
++  readonly target: string
++  readonly type: EdgeType
++  /** Aplicable nos dous sentidos (defecto: false). */
++  readonly bidirectional?: boolean
++  /** Etiqueta opcional sobre a conexión. */
++  readonly label?: LocalizedString
++  /** Peso/distancia para pathfinding (Dijkstra). */
++  readonly weight?: number
++  /** Estilo visual override. */
++  readonly style?: EdgeStyle
++}
++// ── FIN: Edge types ──
+diff --git a/packages/core/src/types/errors.ts b/packages/core/src/types/errors.ts
+new file mode 100644
+index 0000000..1c9588b
+--- /dev/null
++++ b/packages/core/src/types/errors.ts
+@@ -0,0 +1,13 @@
++// ── INICIO: Errors re-export ──
++// Re-exporta as utilidades de error de common para uso interno en core.
++// Os consumidores externos deben importar directamente de @yggdrasil-forge/common.
++
++export {
++  ErrorCode,
++  type SerializedError,
++  type YggdrasilErrorOptions,
++  YggdrasilError,
++  isYggdrasilError,
++  getErrorMessage,
++} from '@yggdrasil-forge/common'
++// ── FIN: Errors re-export ──
+diff --git a/packages/core/src/types/index.ts b/packages/core/src/types/index.ts
+new file mode 100644
+index 0000000..bea0445
+--- /dev/null
++++ b/packages/core/src/types/index.ts
+@@ -0,0 +1,47 @@
++// ── INICIO: types public API ──
++// Tipos públicos do paquete @yggdrasil-forge/core.
++// Esta é a 1ª onda (sub-fase 1.2). As ondas seguintes engadirán:
++// - unlock, resources, i18n, events, plugin (1.3)
++// - audit, changes, time, stats, auth, metrics (1.4)
++
++// Result
++export {
++  type Result,
++  ok,
++  err,
++  isOk,
++  isErr,
++  unwrap,
++  unwrapOr,
++} from './result.js'
++
++// Content
++export type { RichContent, NodeContent } from './content.js'
++
++// Node
++export type {
++  NodeType,
++  NodeState,
++  NodeDef,
++  NodeInstance,
++  StateChange,
++  Position,
++} from './node.js'
++export { freezeNodeDef } from './node.js'
++
++// Edge
++export type { EdgeType, EdgeDef, EdgeStyle } from './edge.js'
++
++// Tree
++export type { TreeDef, TreeState, GroupDef, StatDef, LayoutConfig } from './tree.js'
++
++// Errors (re-export from common)
++export {
++  ErrorCode,
++  type SerializedError,
++  type YggdrasilErrorOptions,
++  YggdrasilError,
++  isYggdrasilError,
++  getErrorMessage,
++} from './errors.js'
++// ── FIN: types public API ──
+diff --git a/packages/core/src/types/node.ts b/packages/core/src/types/node.ts
+new file mode 100644
+index 0000000..360351c
+--- /dev/null
++++ b/packages/core/src/types/node.ts
+@@ -0,0 +1,257 @@
++// ── INICIO: Node types ──
++// Tipos para nodos: definición (frozen) e instancia (mutable).
++
++import type { LocalizedString } from '@yggdrasil-forge/common'
++import type { NodeContent } from './content.js'
++
++/**
++ * Tipo semántico dun nodo.
++ *
++ * - `small` — Bonificación menor (estilo PoE small passive)
++ * - `notable` — Bonificación significativa
++ * - `keystone` — Cambia mecánicas fundamentais (con trade-off)
++ * - `mastery` — Desbloqueado tras investir N puntos nun cluster
++ * - `ascendancy` — Especialización de clase
++ * - `root` — Punto de inicio (coroa en Oberón)
++ * - `cluster` — Agrupador visual
++ * - `gateway` — Abre/pecha ramas
++ * - `milestone` — Marca de progreso (sen efecto mecánico)
++ * - `subtree_anchor` — Ancora a outra TreeDef (composición)
++ * - `custom` — Definido polo usuario
++ */
++export type NodeType =
++  | 'small'
++  | 'notable'
++  | 'keystone'
++  | 'mastery'
++  | 'ascendancy'
++  | 'root'
++  | 'cluster'
++  | 'gateway'
++  | 'milestone'
++  | 'subtree_anchor'
++  | 'custom'
++
++/**
++ * Estado actual dun nodo na árbore.
++ *
++ * - `locked` — Non cumpre prerrequisitos
++ * - `unlockable` — Cumpre prerrequisitos, pode desbloquearse
++ * - `in_progress` — Parcialmente completado (educativo: 60%)
++ * - `unlocked` — Desbloqueado (tier actual > 0)
++ * - `maxed` — Todos os rangos completados
++ * - `disabled` — Desactivado por exclusión ou regra dinámica
++ * - `expired` — Caducou (time-based mechanics)
++ */
++export type NodeState =
++  | 'locked'
++  | 'unlockable'
++  | 'in_progress'
++  | 'unlocked'
++  | 'maxed'
++  | 'disabled'
++  | 'expired'
++
++/**
++ * Posición 2D en coordenadas normalizadas (0-1) ou píxeles, segundo contexto.
++ */
++export interface Position {
++  readonly x: number
++  readonly y: number
++}
++
++/**
++ * Definición declarativa dun nodo.
++ *
++ * **Inmutable:** Object.freeze(). Para modificar, usar `engine.applyChanges()`
++ * que substituirá o NodeDef por outro novo (sec. 5.2 do MASTER).
++ *
++ * Os tipos avanzados (Cost, Effect, UnlockRule, TimeConstraints, StatContribution,
++ * ProgressSourceConfig) defínense en módulos posteriores (1.3, 1.4) e referéncianse
++ * como `unknown` por agora ata que estean dispoñibles.
++ */
++export interface NodeDef {
++  /** Identificador único do nodo dentro da súa árbore. */
++  readonly id: string
++
++  /** Tipo semántico do nodo. */
++  readonly type: NodeType
++
++  /** Etiqueta visible para o usuario (localizable). */
++  readonly label: LocalizedString
++
++  /** Descrición curta opcional. */
++  readonly description?: LocalizedString
++
++  /** Contido enriquecido para tooltips e paneles. */
++  readonly content?: NodeContent
++
++  /** Identificador de icona (URL, emoji, etc.). */
++  readonly icon?: string
++
++  /** Cor visual asociada ao nodo. */
++  readonly color?: string
++
++  /** Rango actual (para multi-tier nodes). */
++  readonly tier?: number
++
++  /** Rango máximo (default: 1). */
++  readonly maxTier?: number
++
++  /**
++   * Custo para desbloquear (1ª tier).
++   * Tipo concreto en 1.3 (resources.ts). Por agora: array de placeholder.
++   */
++  readonly cost?: readonly unknown[]
++
++  /**
++   * Custos escalados por tier (índice = tier - 1).
++   * Tipo concreto en 1.3.
++   */
++  readonly costPerTier?: readonly (readonly unknown[])[]
++
++  /**
++   * Efectos ao desbloquear (Effects DSL).
++   * Tipo concreto en 1.4 (effects.ts).
++   */
++  readonly effects?: readonly unknown[]
++
++  /**
++   * Regra de desbloqueo (prerrequisitos).
++   * Tipo concreto en 1.3 (unlock.ts).
++   */
++  readonly prerequisites?: unknown
++
++  /** IDs de nodos mutuamente excluíntes con este. */
++  readonly exclusions?: readonly string[]
++
++  /** Tags arbitrarias para filtrado, busca, agrupación. */
++  readonly tags?: readonly string[]
++
++  /** Palabras clave adicionais para busca (non visibles ao usuario). */
++  readonly searchKeywords?: readonly string[]
++
++  /** Metadata libre para o usuario. */
++  readonly metadata?: Readonly<Record<string, unknown>>
++
++  /** Posición no layout (manual ou calculada). */
++  readonly position?: Position
++
++  /** ID do grupo/cluster ao que pertence. */
++  readonly group?: string
++
++  /** Permite estado intermedio "in_progress" con porcentaxe. */
++  readonly supportsProgress?: boolean
++
++  /** Milestones de progreso (% como [25, 50, 75, 100]). */
++  readonly progressMilestones?: readonly number[]
++
++  /**
++   * Configuración de fonte externa de progreso.
++   * Tipo concreto en 1.4 (progress.ts).
++   */
++  readonly progressSource?: unknown
++
++  /** ID da sub-árbore que se abre dende este nodo. */
++  readonly subtreeId?: string
++
++  /**
++   * Overrides locais aplicados á sub-árbore ancorada.
++   * Tipo concreto cando TreeDef estea totalmente definido.
++   */
++  readonly subtreeOverrides?: unknown
++
++  /**
++   * Restricións temporais (caducidade, cooldown, etc.).
++   * Tipo concreto en 1.4 (time.ts).
++   */
++  readonly timeConstraints?: unknown
++
++  /**
++   * Contribucións a stats globais (StatComputer).
++   * Tipo concreto en 1.4 (stats.ts).
++   */
++  readonly statContributions?: readonly unknown[]
++}
++
++/**
++ * Instancia mutable dun nodo no estado activo do motor.
++ *
++ * Difire de NodeDef en que se actualiza con accións do usuario
++ * (unlock, lock, setProgress) e contén estado runtime.
++ */
++export interface NodeInstance {
++  /** Referencia ao NodeDef.id. */
++  id: string
++  /** Estado actual do nodo. */
++  state: NodeState
++  /** Tier actualmente desbloqueado (0 = locked, n = nivel n). */
++  currentTier: number
++  /** Porcentaxe de progreso (0-100), só se supportsProgress=true. */
++  progress?: number
++  /** Timestamp UTC de desbloqueo. */
++  unlockedAt?: number
++  /** Identificador de quen desbloqueou (multiplayer/multi-tenant). */
++  unlockedBy?: string
++  /** Timestamp UTC de caducidade efectiva. */
++  expiresAt?: number
++  /** Histórico de cambios de estado (audit local). */
++  history?: StateChange[]
++  /**
++   * Estado da sub-árbore aniñada se o nodo é subtree_anchor.
++   * Referencia circular: TreeState → NodeInstance → TreeState.
++   */
++  subtreeState?: unknown
++}
++
++/**
++ * Evento de cambio de estado para o histórico do nodo.
++ */
++export interface StateChange {
++  readonly from: NodeState
++  readonly to: NodeState
++  readonly timestamp: number
++  /** Causa do cambio: 'manual', 'cascade', 'respec', 'expired', etc. */
++  readonly reason?: string
++}
++
++/**
++ * Conxela un NodeDef recursivamente e devólveo tipado.
++ *
++ * Os arrays e obxectos aniñados tamén se conxelan para previr mutación accidental.
++ *
++ * @example
++ * const node = freezeNodeDef({ id: 'x', type: 'small', label: 'X' })
++ * // node está frozen; intentar mutar lanza TypeError en strict mode
++ */
++export function freezeNodeDef(def: NodeDef): NodeDef {
++  return deepFreeze(def)
++}
++
++/**
++ * Conxela recursivamente un valor. Implementación interna.
++ *
++ * Non se exporta — os consumidores deben usar `freezeNodeDef` ou outras
++ * funcións dedicadas.
++ */
++function deepFreeze<T>(value: T): T {
++  if (value === null || typeof value !== 'object') {
++    return value
++  }
++
++  if (Object.isFrozen(value)) {
++    return value
++  }
++
++  Object.freeze(value)
++
++  for (const key of Object.keys(value)) {
++    const child = (value as Record<string, unknown>)[key]
++    if (child !== null && typeof child === 'object') {
++      deepFreeze(child)
++    }
++  }
++
++  return value
++}
++// ── FIN: Node types ──
+diff --git a/packages/core/src/types/result.ts b/packages/core/src/types/result.ts
+new file mode 100644
+index 0000000..84a54e6
+--- /dev/null
++++ b/packages/core/src/types/result.ts
+@@ -0,0 +1,80 @@
++// ── INICIO: Result type ──
++// Tipo Result para operacións que poden fallar.
++// Inspirado en Rust: forza ao consumidor a manexar ambos casos.
++
++import type { YggdrasilError } from '@yggdrasil-forge/common'
++
++/**
++ * Resultado dunha operación: ou éxito con valor, ou fallo con error.
++ *
++ * @example
++ * async function loadConfig(): Promise<Result<Config>> {
++ *   try {
++ *     const data = await fs.readFile('config.json', 'utf-8')
++ *     return ok(JSON.parse(data))
++ *   } catch (cause) {
++ *     return err(new YggdrasilError(ErrorCode.STORAGE_READ_FAILED, 'Failed to load', { cause }))
++ *   }
++ * }
++ *
++ * const result = await loadConfig()
++ * if (!result.ok) {
++ *   console.error(result.error.code)
++ *   return
++ * }
++ * useConfig(result.value)
++ */
++export type Result<T, E = YggdrasilError> =
++  | { readonly ok: true; readonly value: T }
++  | { readonly ok: false; readonly error: E }
++
++/**
++ * Constrúe un Result con éxito.
++ */
++export function ok<T>(value: T): Result<T, never> {
++  return { ok: true, value }
++}
++
++/**
++ * Constrúe un Result con fallo.
++ */
++export function err<E>(error: E): Result<never, E> {
++  return { ok: false, error }
++}
++
++/**
++ * Type guard: verifica se un Result é exitoso.
++ */
++export function isOk<T, E>(
++  result: Result<T, E>,
++): result is { readonly ok: true; readonly value: T } {
++  return result.ok
++}
++
++/**
++ * Type guard: verifica se un Result é un erro.
++ */
++export function isErr<T, E>(
++  result: Result<T, E>,
++): result is { readonly ok: false; readonly error: E } {
++  return !result.ok
++}
++
++/**
++ * Extrae o valor dun Result exitoso, ou lanza o error se é fallo.
++ * Útil en tests ou cando o caller sabe que vai ser ok.
++ */
++export function unwrap<T, E extends Error>(result: Result<T, E>): T {
++  if (result.ok) {
++    return result.value
++  }
++  throw result.error
++}
++
++/**
++ * Extrae o valor dun Result exitoso, ou devolve un default se é fallo.
++ */
++export function unwrapOr<T, E>(result: Result<T, E>, fallback: T): T {
++  return result.ok ? result.value : fallback
++}
++// ── FIN: Result type ──
+diff --git a/packages/core/src/types/tree.ts b/packages/core/src/types/tree.ts
+new file mode 100644
+index 0000000..6414cb4
+--- /dev/null
++++ b/packages/core/src/types/tree.ts
+@@ -0,0 +1,116 @@
++// ── INICIO: Tree types ──
++// Definición global da árbore e estado runtime asociado.
++
++import type { LocalizedString } from '@yggdrasil-forge/common'
++import type { EdgeDef } from './edge.js'
++import type { NodeDef, NodeInstance, Position } from './node.js'
++
++/**
++ * Definición visual e funcional dun grupo / cluster de nodos.
++ */
++export interface GroupDef {
++  readonly id: string
++  readonly label: LocalizedString
++  readonly color?: string
++  readonly icon?: string
++  /** IDs de nodos explícitos no grupo (alternativa a node.group). */
++  readonly nodeIds?: readonly string[]
++  readonly position?: Position
++}
++
++/**
++ * Definición dun stat (variable global agregada polo StatComputer).
++ *
++ * O motor mantén un Record<statId, number> co valor actual calculado
++ * a partir das StatContributions dos nodos desbloqueados.
++ */
++export interface StatDef {
++  readonly id: string
++  readonly label: LocalizedString
++  /** Valor inicial cando ningún nodo contribúe. */
++  readonly initial?: number
++  /** Tope mínimo. */
++  readonly min?: number
++  /** Tope máximo. */
++  readonly max?: number
++  /** Formato preferido de presentación. */
++  readonly format?: 'number' | 'percent' | 'currency'
++}
++
++/**
++ * Configuración do layout para a árbore.
++ *
++ * O tipo concreto desenrolarase en 1.4. Por agora un placeholder estructurado.
++ */
++export interface LayoutConfig {
++  readonly type: string // 'radial' | 'tree' | 'constellation' | 'grid' | 'web' | 'linear' | 'sphere_grid' | 'custom'
++  /** Resto de campos específicos do layout type. */
++  readonly [key: string]: unknown
++}
++
++/**
++ * Definición declarativa completa dunha árbore.
++ *
++ * **Mutable a nivel motor:** `engine.applyChanges()` substitúe campos.
++ * **Inmutable como input:** se se pasa unha TreeDef ao constructor de TreeEngine,
++ * o motor non a muta directamente — fai unha copia interna e cambia esa.
++ */
++export interface TreeDef {
++  readonly id: string
++  /** Versión do esquema (sec. SCHEMA_VERSION de common). */
++  readonly schemaVersion: string
++  /** Versión do contido (semver libre, definido polo autor). */
++  readonly version: string
++  readonly label: LocalizedString
++  readonly description?: LocalizedString
++  readonly author?: string
++  /** ID do nodo raíz (coroa, punto de entrada). */
++  readonly rootNodeId?: string
++  readonly nodes: readonly NodeDef[]
++  readonly edges: readonly EdgeDef[]
++  readonly groups?: readonly GroupDef[]
++  /**
++   * Recursos da economía da árbore.
++   * Tipo concreto en 1.3 (resources.ts).
++   */
++  readonly resources?: readonly unknown[]
++  readonly stats?: readonly StatDef[]
++  /**
++   * Presuposto inicial de recursos.
++   * Tipo concreto en 1.3.
++   */
++  readonly startingBudget?: unknown
++  readonly layout: LayoutConfig
++  /** ID do tema visual. */
++  readonly theme?: string
++  /**
++   * Configuración de i18n específica desta árbore.
++   * Tipo concreto en 1.3 (i18n.ts engadirá I18nConfig en core).
++   */
++  readonly i18n?: unknown
++  readonly metadata?: Readonly<Record<string, unknown>>
++  /** Sub-árbores aniñadas, indexadas por id. */
++  readonly subtrees?: Readonly<Record<string, TreeDef>>
++}
++
++/**
++ * Estado runtime da árbore: instancias de nodos, budget actual, stats calculados.
++ *
++ * O motor mantén isto en memoria e persísteo via StorageAdapter.
++ */
++export interface TreeState {
++  /** Mapa de nodeId → instancia con estado actual. */
++  nodes: Record<string, NodeInstance>
++  /**
++   * Presuposto actual (recursos restantes).
++   * Tipo concreto en 1.3.
++   */
++  budget: unknown
++  /** Stats calculados polo StatComputer (cache reactivo). */
++  computedStats?: Record<string, number>
++  /** Metadata runtime libre. */
++  metadata?: Record<string, unknown>
++  /** Estado das sub-árbores aniñadas, indexado por subtreeId. */
++  subtreeStates?: Record<string, TreeState>
++}
++// ── FIN: Tree types ──
+diff --git a/packages/core/tsup.config.ts b/packages/core/tsup.config.ts
+index bab5dc7..99f4ef0 100644
+--- a/packages/core/tsup.config.ts
++++ b/packages/core/tsup.config.ts
+@@ -4,7 +4,13 @@ import { defineConfig } from 'tsup'
+ export default defineConfig({
+   entry: ['src/index.ts'],
+   format: ['esm', 'cjs'],
+-  dts: true,
++  dts: {
++    resolve: true,
++    compilerOptions: {
++      composite: false,
++      incremental: false,
++    },
++  },
+   sourcemap: true,
+   clean: true,
+   treeshake: true,
+@@ -12,5 +18,6 @@ export default defineConfig({
+   minify: false,
+   target: 'es2022',
+   external: ['@yggdrasil-forge/common', 'immer'],
++  tsconfig: 'tsconfig.json',
+ })
+ // ── FIN: tsup config ──
+diff --git a/scripts/create-package.mjs b/scripts/create-package.mjs
+index 8e96dea..0c306e8 100644
+--- a/scripts/create-package.mjs
++++ b/scripts/create-package.mjs
+@@ -65,6 +65,7 @@ const packageJson = {
+     dev: 'tsup --watch',
+     test: 'vitest run',
+     'test:watch': 'vitest',
++    'test:coverage': 'vitest run --coverage',
+     typecheck: 'tsc --noEmit',
+     clean: 'rm -rf dist .turbo *.tsbuildinfo',
+   },

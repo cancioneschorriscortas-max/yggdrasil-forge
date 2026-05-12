@@ -4,7 +4,13 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: ['src/index.ts'],
   format: ['esm', 'cjs'],
-  dts: true,
+  dts: {
+    resolve: true,
+    compilerOptions: {
+      composite: false,
+      incremental: false,
+    },
+  },
   sourcemap: true,
   clean: true,
   treeshake: true,
@@ -12,5 +18,6 @@ export default defineConfig({
   minify: false,
   target: 'es2022',
   external: ['@yggdrasil-forge/common', 'immer'],
+  tsconfig: 'tsconfig.json',
 })
 // ── FIN: tsup config ──

@@ -65,6 +65,7 @@ const packageJson = {
     dev: 'tsup --watch',
     test: 'vitest run',
     'test:watch': 'vitest',
+    'test:coverage': 'vitest run --coverage',
     typecheck: 'tsc --noEmit',
     clean: 'rm -rf dist .turbo *.tsbuildinfo',
   },
