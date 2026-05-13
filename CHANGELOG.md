@@ -17,6 +17,16 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
   - Re-exports of `ErrorCode`, `YggdrasilError`, `isYggdrasilError`, `getErrorMessage` from `@yggdrasil-forge/common`
 - `test:coverage` script in package.json template (and in `common` + `core` retroactively)
 
+- `@yggdrasil-forge/core`: wave 2 type definitions
+  - `Resource`, `Cost`, `Budget` (economy primitives)
+  - `I18nConfig` (per-tree i18n configuration)
+  - `UnlockCondition` (15 atomic types: node-based, resource-based, distance, tags, time, custom, etc.)
+  - `UnlockRule` (AND/OR/NOT combinators + atomic conditions)
+  - `UnlockCheck`, `UnlockExplanation`, `UnlockConditionEvaluation`
+  - `EventMap` (15 events: unlock, lock, stateChange, budgetChange, statChange, progressChange, respec, buildLoaded, subtreeEntered, treeChanged, nodeExpired, externalProgressSynced, pluginError, error, auditEntry)
+  - `Plugin`, `PluginAPI`, `PluginEngineHandle`, `PluginInstallResult`
+  - `Hooks` (beforeUnlock/afterUnlock/beforeLock/afterLock/beforeRespec/afterRespec/computeUnlockability/computeCost)
+  - `HookContext`, `ConditionEvaluator`, `PluginLogLevel`, `PluginPermission`
 ### Changed
 - `scripts/create-package.mjs` now includes `test:coverage` in scaffolded packages
 
@@ -71,6 +81,7 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
   - Core (linked): themes, react
   - Independent: storage, i18n, analytics, search, diff, exporters, importers,
     webhooks, stats, validators, heatmap, multitenancy, devtools, neo4j, cli
+
 
 ### Changed
 - Removed root-level `__tests__/smoke.test.ts` (replaced by per-package smoke tests)

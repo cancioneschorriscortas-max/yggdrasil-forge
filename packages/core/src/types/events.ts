@@ -1,0 +1,93 @@
+// ── INICIO: Event types ──
+// Sinaturas dos eventos emitidos polo TreeEngine.
+
+import type { YggdrasilError } from '@yggdrasil-forge/common'
+import type { NodeInstance, StateChange } from './node.js'
+
+/**
+ * Build (placeholder).
+ * Tipo concreto en 1.4 (build.ts).
+ */
+type BuildPlaceholder = unknown
+
+/**
+ * AuditEntry (placeholder).
+ * Tipo concreto en 1.4 (audit.ts).
+ */
+type AuditEntryPlaceholder = unknown
+
+/**
+ * TreeChange (placeholder).
+ * Tipo concreto en 1.4 (changes.ts).
+ */
+type TreeChangePlaceholder = unknown
+
+/**
+ * Mapa de eventos do TreeEngine.
+ *
+ * Cada chave é un nome de evento; cada valor é a sinatura do handler.
+ *
+ * Os consumidores usan `engine.on(event, handler)` con autocompletado tipado.
+ *
+ * @example
+ * const unsubscribe = engine.on('unlock', (nodeId, instance) => {
+ *   console.info(`Unlocked ${nodeId} at tier ${instance.currentTier}`)
+ * })
+ */
+export interface EventMap {
+  /** Un nodo desbloqueouse (manual ou por cascada). */
+  readonly unlock: (nodeId: string, instance: NodeInstance) => void
+
+  /** Un nodo bloqueouse (respec ou exclusión). */
+  readonly lock: (nodeId: string, instance: NodeInstance) => void
+
+  /** Cambio xenérico de estado dun nodo (calquera transición). */
+  readonly stateChange: (nodeId: string, change: StateChange) => void
+
+  /** Cambiou a cantidade dispoñible dun recurso. */
+  readonly budgetChange: (resourceId: string, oldAmount: number, newAmount: number) => void
+
+  /** Cambiou un stat calculado polo StatComputer. */
+  readonly statChange: (statId: string, oldValue: number, newValue: number) => void
+
+  /** Cambiou o progreso dun nodo (manual ou externo). */
+  readonly progressChange: (nodeId: string, percent: number) => void
+
+  /** Realizouse un respec, devolvendo puntos. */
+  readonly respec: (nodeIds: readonly string[]) => void
+
+  /** Cargouse unha build completa (importBuild, loadFromShareLink). */
+  readonly buildLoaded: (build: BuildPlaceholder) => void
+
+  /** O usuario entrou nunha sub-árbore. */
+  readonly subtreeEntered: (subtreeId: string) => void
+
+  /** A treeDef foi modificada vía applyChanges. */
+  readonly treeChanged: (changes: readonly TreeChangePlaceholder[]) => void
+
+  /** Un nodo expirou por time constraints. */
+  readonly nodeExpired: (nodeId: string) => void
+
+  /** Sincronizouse progreso dunha fonte externa. */
+  readonly externalProgressSynced: (nodeId: string, percent: number) => void
+
+  /** Un plugin emitiu un erro capturable. */
+  readonly pluginError: (pluginId: string, error: YggdrasilError) => void
+
+  /** Error xenérico capturable polo consumidor. */
+  readonly error: (error: YggdrasilError) => void
+
+  /** Nova entrada engadida ao audit log. */
+  readonly auditEntry: (entry: AuditEntryPlaceholder) => void
+}
+
+/**
+ * Nome dun evento válido (chave do EventMap).
+ */
+export type EventName = keyof EventMap
+
+/**
+ * Handler tipado para un evento concreto.
+ */
+export type EventHandler<K extends EventName> = EventMap[K]
+// ── FIN: Event types ──
