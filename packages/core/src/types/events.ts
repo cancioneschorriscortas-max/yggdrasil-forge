@@ -2,25 +2,10 @@
 // Sinaturas dos eventos emitidos polo TreeEngine.
 
 import type { YggdrasilError } from '@yggdrasil-forge/common'
+import type { AuditEntry } from './audit.js'
+import type { Build } from './build.js'
+import type { TreeChange } from './changes.js'
 import type { NodeInstance, StateChange } from './node.js'
-
-/**
- * Build (placeholder).
- * Tipo concreto en 1.4 (build.ts).
- */
-type BuildPlaceholder = unknown
-
-/**
- * AuditEntry (placeholder).
- * Tipo concreto en 1.4 (audit.ts).
- */
-type AuditEntryPlaceholder = unknown
-
-/**
- * TreeChange (placeholder).
- * Tipo concreto en 1.4 (changes.ts).
- */
-type TreeChangePlaceholder = unknown
 
 /**
  * Mapa de eventos do TreeEngine.
@@ -57,13 +42,13 @@ export interface EventMap {
   readonly respec: (nodeIds: readonly string[]) => void
 
   /** Cargouse unha build completa (importBuild, loadFromShareLink). */
-  readonly buildLoaded: (build: BuildPlaceholder) => void
+  readonly buildLoaded: (build: Build) => void
 
   /** O usuario entrou nunha sub-árbore. */
   readonly subtreeEntered: (subtreeId: string) => void
 
   /** A treeDef foi modificada vía applyChanges. */
-  readonly treeChanged: (changes: readonly TreeChangePlaceholder[]) => void
+  readonly treeChanged: (changes: readonly TreeChange[]) => void
 
   /** Un nodo expirou por time constraints. */
   readonly nodeExpired: (nodeId: string) => void
@@ -78,7 +63,7 @@ export interface EventMap {
   readonly error: (error: YggdrasilError) => void
 
   /** Nova entrada engadida ao audit log. */
-  readonly auditEntry: (entry: AuditEntryPlaceholder) => void
+  readonly auditEntry: (entry: AuditEntry) => void
 }
 
 /**

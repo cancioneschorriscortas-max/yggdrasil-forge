@@ -3,7 +3,9 @@
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { EdgeDef } from './edge.js'
+import type { I18nConfig } from './i18n.js'
 import type { NodeDef, NodeInstance, Position } from './node.js'
+import type { Budget, Resource } from './resources.js'
 
 /**
  * Definición visual e funcional dun grupo / cluster de nodos.
@@ -73,13 +75,13 @@ export interface TreeDef {
    * Recursos da economía da árbore.
    * Tipo concreto en 1.3 (resources.ts).
    */
-  readonly resources?: readonly unknown[]
+  readonly resources?: readonly Resource[]
   readonly stats?: readonly StatDef[]
   /**
    * Presuposto inicial de recursos.
    * Tipo concreto en 1.3.
    */
-  readonly startingBudget?: unknown
+  readonly startingBudget?: Budget
   readonly layout: LayoutConfig
   /** ID do tema visual. */
   readonly theme?: string
@@ -87,7 +89,7 @@ export interface TreeDef {
    * Configuración de i18n específica desta árbore.
    * Tipo concreto en 1.3 (i18n.ts engadirá I18nConfig en core).
    */
-  readonly i18n?: unknown
+  readonly i18n?: I18nConfig
   readonly metadata?: Readonly<Record<string, unknown>>
   /** Sub-árbores aniñadas, indexadas por id. */
   readonly subtrees?: Readonly<Record<string, TreeDef>>
@@ -105,7 +107,7 @@ export interface TreeState {
    * Presuposto actual (recursos restantes).
    * Tipo concreto en 1.3.
    */
-  budget: unknown
+  budget: Budget
   /** Stats calculados polo StatComputer (cache reactivo). */
   computedStats?: Record<string, number>
   /** Metadata runtime libre. */

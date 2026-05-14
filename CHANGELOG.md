@@ -7,6 +7,31 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: wave 3 type definitions
+  - `Effect` DSL with 10 effect types (modify_resource, modify_stat, modify_node_state, set_node_visibility, unlock_node, set_progress, trigger_event, conditional, composite, plugin)
+  - `TimeConstraints` with dual API (UTC ms absolutes/relatives + calendar with explicit timezone)
+  - `TimeManagerOptions`
+  - `StatContribution` with 7 operations (+/-/*//min/max/set), perTier, conditional contributions
+  - `StatExplanation` for debugging stat computations
+  - `AuthConfig` (none/bearer-static/bearer-provider/apikey-static/apikey-provider/basic/custom)
+  - `AuthProvider`, `AuthRequestHandler`
+  - `ProgressSourceConfig` (5 types: manual/remote/callback/event/computed)
+  - `ProgressHandler`, `ProgressHandlerContext`
+  - `Build`, `BuildShareLink`, `BuildSnapshot`
+  - `AuditEntry`, `AuditAction` (10 action types), `AuditFilter`
+  - `TreeChange` (12 change types including `rename_node_id` with auto-reference updates)
+  - `ModifyNodeChanges`, `ModifyEdgeChanges` (constrained partials excluding id/type)
+  - `EngineMetrics`
+
+### Changed
+- `NodeDef`: `unknown` placeholders replaced with concrete types (cost, costPerTier, effects, prerequisites, progressSource, subtreeOverrides, timeConstraints, statContributions)
+- `TreeDef`: `resources`, `startingBudget`, `i18n` now use concrete types
+- `TreeState.budget`: now `Budget`
+- `NodeInstance.subtreeState`: now `TreeState`
+- `EventMap`: `buildLoaded`, `treeChanged`, `auditEntry` now use concrete types
+
+
+### Added
 - `@yggdrasil-forge/core`: foundational type definitions
   - `Result<T, E>` with helpers (`ok`, `err`, `isOk`, `isErr`, `unwrap`, `unwrapOr`)
   - `NodeDef`, `NodeInstance`, `NodeType`, `NodeState`, `Position`, `StateChange`

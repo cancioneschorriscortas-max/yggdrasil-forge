@@ -3,6 +3,14 @@
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { NodeContent } from './content.js'
+import type { Effect } from './effects.js'
+import type { ProgressSourceConfig } from './progress.js'
+import type { Cost } from './resources.js'
+import type { StatContribution } from './stats.js'
+import type { TimeConstraints } from './time.js'
+import type { TreeState } from './tree.js'
+import type { TreeDef } from './tree.js'
+import type { UnlockRule } from './unlock.js'
 
 /**
  * Tipo semántico dun nodo.
@@ -102,25 +110,25 @@ export interface NodeDef {
    * Custo para desbloquear (1ª tier).
    * Tipo concreto en 1.3 (resources.ts). Por agora: array de placeholder.
    */
-  readonly cost?: readonly unknown[]
+  readonly cost?: readonly Cost[]
 
   /**
    * Custos escalados por tier (índice = tier - 1).
    * Tipo concreto en 1.3.
    */
-  readonly costPerTier?: readonly (readonly unknown[])[]
+  readonly costPerTier?: readonly (readonly Cost[])[]
 
   /**
    * Efectos ao desbloquear (Effects DSL).
    * Tipo concreto en 1.4 (effects.ts).
    */
-  readonly effects?: readonly unknown[]
+  readonly effects?: readonly Effect[]
 
   /**
    * Regra de desbloqueo (prerrequisitos).
    * Tipo concreto en 1.3 (unlock.ts).
    */
-  readonly prerequisites?: unknown
+  readonly prerequisites?: UnlockRule
 
   /** IDs de nodos mutuamente excluíntes con este. */
   readonly exclusions?: readonly string[]
@@ -150,7 +158,7 @@ export interface NodeDef {
    * Configuración de fonte externa de progreso.
    * Tipo concreto en 1.4 (progress.ts).
    */
-  readonly progressSource?: unknown
+  readonly progressSource?: ProgressSourceConfig
 
   /** ID da sub-árbore que se abre dende este nodo. */
   readonly subtreeId?: string
@@ -159,19 +167,19 @@ export interface NodeDef {
    * Overrides locais aplicados á sub-árbore ancorada.
    * Tipo concreto cando TreeDef estea totalmente definido.
    */
-  readonly subtreeOverrides?: unknown
+  readonly subtreeOverrides?: Partial<TreeDef>
 
   /**
    * Restricións temporais (caducidade, cooldown, etc.).
    * Tipo concreto en 1.4 (time.ts).
    */
-  readonly timeConstraints?: unknown
+  readonly timeConstraints?: TimeConstraints
 
   /**
    * Contribucións a stats globais (StatComputer).
    * Tipo concreto en 1.4 (stats.ts).
    */
-  readonly statContributions?: readonly unknown[]
+  readonly statContributions?: readonly StatContribution[]
 }
 
 /**
@@ -201,7 +209,7 @@ export interface NodeInstance {
    * Estado da sub-árbore aniñada se o nodo é subtree_anchor.
    * Referencia circular: TreeState → NodeInstance → TreeState.
    */
-  subtreeState?: unknown
+  subtreeState?: TreeState
 }
 
 /**

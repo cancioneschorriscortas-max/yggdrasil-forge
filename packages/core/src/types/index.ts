@@ -3,9 +3,9 @@
 //
 // Ondas:
 // - 1ª (1.2): Result, Node, Edge, Tree, RichContent, errors
-// - 2ª (1.3): unlock, resources, i18n, events, plugin  ← actual
-// - 3ª (1.4): audit, changes, time, stats, auth, metrics, progress
-//             + substitución dos `unknown` placeholders por tipos reais
+// - 2ª (1.3): unlock, resources, i18n, events, plugin
+// - 3ª (1.4): effects, time, stats, auth, progress, build, audit, changes, metrics
+//             + substitución de placeholders en Node/Tree/events
 
 // Result
 export {
@@ -70,6 +70,37 @@ export type {
   StorageAdapterPlaceholder,
   LayoutAlgorithmPlaceholder,
 } from './plugin.js'
+
+// Effects (1.4)
+export type { Effect, EffectResult } from './effects.js'
+
+// Time (1.4)
+export type { TimeConstraints, TimeManagerOptions } from './time.js'
+
+// Stats (1.4)
+export type { StatContribution, StatContributionOp, StatExplanation } from './stats.js'
+
+// Auth (1.4)
+export type { AuthConfig, AuthProvider, AuthRequestHandler } from './auth.js'
+
+// Progress (1.4)
+export type {
+  ProgressSourceConfig,
+  ProgressHandler,
+  ProgressHandlerContext,
+} from './progress.js'
+
+// Build (1.4)
+export type { Build, BuildShareLink, BuildSnapshot } from './build.js'
+
+// Audit (1.4)
+export type { AuditEntry, AuditAction, AuditFilter } from './audit.js'
+
+// Changes (1.4)
+export type { TreeChange, ModifyNodeChanges, ModifyEdgeChanges } from './changes.js'
+
+// Metrics (1.4)
+export type { EngineMetrics } from './metrics.js'
 
 // Errors (re-export from common)
 export {
