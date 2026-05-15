@@ -7,6 +7,18 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: `StateStore` class
+  - Holds mutable `treeDef` and `treeState` via Immer
+  - `update(producer)` and `applyTreeDefChange(producer)` for ergonomic mutations
+  - `replaceTreeDef`, `replaceTreeState` for full replacements
+  - Integrated cache versioning for 4 cache types (`layout`, `dependency`, `search`, `stats`)
+  - `getCacheVersion`, `invalidate`, `setCache`, `getCache` for cache lifecycle
+  - Subscription system: `subscribe`, `getSnapshot`, `getServerSnapshot` (React `useSyncExternalStore`-compatible)
+  - 100% test coverage
+
+
+
+### Added
 - `@yggdrasil-forge/core`: wave 3 type definitions
   - `Effect` DSL with 10 effect types (modify_resource, modify_stat, modify_node_state, set_node_visibility, unlock_node, set_progress, trigger_event, conditional, composite, plugin)
   - `TimeConstraints` with dual API (UTC ms absolutes/relatives + calendar with explicit timezone)
