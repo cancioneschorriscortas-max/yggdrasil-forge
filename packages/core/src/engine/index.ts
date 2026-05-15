@@ -13,4 +13,10 @@ export {
   type StateListener,
   type StateStoreOptions,
 } from './StateStore.js'
+export {
+  ChangeTracker,
+  analyzeChanges,
+  type ChangeAnalysis,
+  type ChangeConflict,
+} from './ChangeTracker.js'
 // ── FIN: engine public API ──

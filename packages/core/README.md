@@ -53,6 +53,29 @@ import {
 } from '@yggdrasil-forge/core'
 ```
 
+### StateStore
+
+```typescript
+import { StateStore } from '@yggdrasil-forge/core'
+```
+
+### ChangeTracker
+
+```typescript
+import { ChangeTracker, analyzeChanges } from '@yggdrasil-forge/core'
+
+const tracker = new ChangeTracker()
+const analysis = tracker.analyze([
+  { type: 'add_node', node: { id: 'a', type: 'small', label: 'A' } },
+  { type: 'modify_node', nodeId: 'b', changes: { color: '#fff' } },
+])
+
+console.info(analysis.affectedNodes)       // Set { 'a', 'b' }
+console.info(analysis.cachesToInvalidate)  // Set { 'layout', 'search', ... }
+console.info(analysis.internalConflicts)   // []
+console.info(analysis.renames)             // Map {}
+```
+
 ## Documentation
 
 See the [master architecture document](../../docs/architecture/MASTER.md).

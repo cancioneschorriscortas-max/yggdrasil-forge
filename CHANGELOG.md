@@ -7,6 +7,15 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: `ChangeTracker` class + `analyzeChanges` function
+  - Pure analysis of `TreeChange[]` (no mutation, no external state access)
+  - Selective cache invalidation per change type (layout / dependency / search / stats)
+  - Field-aware analysis of `modify_node` and `modify_edge` (only invalidates caches affected by the modified fields)
+  - Internal conflict detection: `duplicate_add_node`, `add_then_remove`, `remove_then_modify`, `modify_after_rename`, `rename_chain`, `rename_to_existing`, `duplicate_edge_id`
+  - Rename tracking (oldId → newId map)
+  - 100% test coverage
+
+### Added
 - `@yggdrasil-forge/core`: `StateStore` class
   - Holds mutable `treeDef` and `treeState` via Immer
   - `update(producer)` and `applyTreeDefChange(producer)` for ergonomic mutations
