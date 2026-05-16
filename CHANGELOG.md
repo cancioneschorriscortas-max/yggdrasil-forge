@@ -6,6 +6,19 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- `@yggdrasil-forge/core`: `ResourceManager` class
+  - `canAfford(costs, budget)` - boolean affordability check with cost aggregation
+  - `applyCost(costs, budget)` - atomic, immutable, returns `Result<Budget>`
+  - `refund(costs, budget)` - respects `refundable`, `refundPercent`, and `max` cap
+  - `getCostForTier(nodeDef, tier)` - costPerTier with flat-cost fallback
+  - `getTotalCost(nodeDef, fromTier, toTier)` - cumulative multi-tier cost
+  - 100% test coverage
+
+### Fixed
+- Added missing test coverage for `CycleDetector` cycle normalization rotation (resolves technical debt DT-4)
+
+
 ## [Unreleased]
 
 ### Added

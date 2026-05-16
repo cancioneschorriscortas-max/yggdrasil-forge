@@ -131,3 +131,25 @@ detector.findCycleContaining('a') // null
 Supports all 15 atomic conditions (node_unlocked, resource_min, tier_min,
 distance_max, tag_count, progress_min, subtree_completion, stat_min,
 time_after, time_before, custom, etc.) and all/any/none combinators.
+### ResourceManager
+
+```typescript
+import { ResourceManager } from '@yggdrasil-forge/core'
+
+const rm = new ResourceManager([
+  { id: 'xp', label: 'XP', refundable: true, refundPercent: 50 },
+])
+
+const budget = { resources: { xp: 100 } }
+
+rm.canAfford([{ resourceId: 'xp', amount: 30 }], budget) // true
+
+const result = rm.applyCost([{ resourceId: 'xp', amount: 30 }], budget)
+// result.ok === true, result.value.resources.xp === 70
+
+const refunded = rm.refund([{ resourceId: 'xp', amount: 30 }], budget)
+// refunded.resources.xp === 115  (50% of 30 = 15)
+
+rm.getCostForTier(nodeDef, 2)         // cost of reaching tier 2
+rm.getTotalCost(nodeDef, 0, 3)        // cumulative cost tiers 1..3
+```

@@ -29,4 +29,5 @@ export {
   type DependencyGraphOptions,
 } from './DependencyGraph.js'
 export { CycleDetector } from './CycleDetector.js'
+export { ResourceManager } from './ResourceManager.js'
 // ── FIN: engine public API ──

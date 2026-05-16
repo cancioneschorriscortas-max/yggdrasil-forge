@@ -93,6 +93,30 @@ describe('CycleDetector', () => {
       const cycles = new CycleDetector(g).findCycles()
       expect(cycles).toHaveLength(2)
     })
+
+    it('normalizes cycles starting from non-minimal node (rotation)', () => {
+      const g = graphOf(
+        ['c', 'a', 'b'],
+        [edge('e1', 'c', 'a'), edge('e2', 'a', 'b'), edge('e3', 'b', 'c')],
+      )
+      const cycles = new CycleDetector(g).findCycles()
+      expect(cycles).toHaveLength(1)
+    })
+
+    it('deduplicates two detections of the same cycle with different entry points', () => {
+      const g = graphOf(
+        ['start1', 'start2', 'a', 'b', 'c'],
+        [
+          edge('e1', 'start1', 'b'),
+          edge('e2', 'start2', 'c'),
+          edge('e3', 'a', 'b'),
+          edge('e4', 'b', 'c'),
+          edge('e5', 'c', 'a'),
+        ],
+      )
+      const cycles = new CycleDetector(g).findCycles()
+      expect(cycles).toHaveLength(1)
+    })
   })
 
   describe('findCycleContaining', () => {
