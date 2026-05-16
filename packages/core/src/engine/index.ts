@@ -19,4 +19,9 @@ export {
   type ChangeAnalysis,
   type ChangeConflict,
 } from './ChangeTracker.js'
+export {
+  UnlockResolver,
+  type DependencyGraphLike,
+  type UnlockResolverContext,
+} from './UnlockResolver.js'
 // ── FIN: engine public API ──

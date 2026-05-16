@@ -7,6 +7,16 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: `UnlockResolver` class
+  - Evaluates `UnlockRule` (all/any/none combinators + atomic conditions)
+  - Supports all 15 atomic condition types
+  - `evaluate(rule, ctx)` — fast boolean evaluation with short-circuit
+  - `evaluateCondition(condition, ctx)` — atomic evaluation
+  - `explain(rule, ctx)` — detailed explanation with localized reasons (gl/es/en)
+  - Stateless: receives `UnlockResolverContext` (treeDef, state, optional dependencyGraph, customEvaluators, locale)
+  - Localized error messages for missing dependency graph and unregistered custom evaluators
+  - 100% test coverage
+
 - `@yggdrasil-forge/core`: `ChangeTracker` class + `analyzeChanges` function
   - Pure analysis of `TreeChange[]` (no mutation, no external state access)
   - Selective cache invalidation per change type (layout / dependency / search / stats)
