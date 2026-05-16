@@ -108,7 +108,26 @@ for (const e of explanation.conditions) {
   console.info(e.satisfied, e.reason)
 }
 ```
+import { DependencyGraph, CycleDetector } from '@yggdrasil-forge/core'
 
+const graph = new DependencyGraph(
+  ['a', 'b', 'c'],
+  [
+    { id: 'e1', source: 'a', target: 'b', type: 'dependency' },
+    { id: 'e2', source: 'b', target: 'c', type: 'dependency' },
+  ],
+)
+
+graph.getDependencies('c')    // ['b']
+graph.getAllDependencies('c') // Set { 'b', 'a' }
+graph.distanceBetween('a', 'c') // 2
+graph.getShortestPath('a', 'c') // ['a', 'b', 'c']
+graph.getRoots()              // ['a']
+
+const detector = new CycleDetector(graph)
+detector.hasCycle()           // false
+detector.findCycles()         // []
+detector.findCycleContaining('a') // null
 Supports all 15 atomic conditions (node_unlocked, resource_min, tier_min,
 distance_max, tag_count, progress_min, subtree_completion, stat_min,
 time_after, time_before, custom, etc.) and all/any/none combinators.

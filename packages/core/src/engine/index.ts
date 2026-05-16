@@ -24,4 +24,9 @@ export {
   type DependencyGraphLike,
   type UnlockResolverContext,
 } from './UnlockResolver.js'
+export {
+  DependencyGraph,
+  type DependencyGraphOptions,
+} from './DependencyGraph.js'
+export { CycleDetector } from './CycleDetector.js'
 // ── FIN: engine public API ──

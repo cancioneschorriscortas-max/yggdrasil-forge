@@ -6,6 +6,22 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+## [Unreleased]
+
+### Added
+- `@yggdrasil-forge/core`: `DependencyGraph` class
+  - Configurable by edge type (default: `dependency`; optionally `soft_dependency`)
+  - `getDependencies`, `getDependents` (direct), `getAllDependencies`, `getAllDependents` (transitive closures)
+  - `getRoots`, `getLeaves`, `getNodeIds`, `hasNode`, `getOutgoing`
+  - `distanceBetween` (BFS, `Number.POSITIVE_INFINITY` if unreachable) — implements `DependencyGraphLike`
+  - `getShortestPath` (BFS with predecessor tracking)
+  - Handles bidirectional edges, self-loops, isolated nodes, disconnected graphs
+- `@yggdrasil-forge/core`: `CycleDetector` class
+  - `hasCycle` (fast DFS, short-circuits)
+  - `findCycles` (all cycles, deduplicated via canonical rotation key)
+  - `findCycleContaining` (cycle including a given node, for pedagogical error messages)
+  - 100% test coverage for both
+
 ### Added
 - `@yggdrasil-forge/core`: `UnlockResolver` class
   - Evaluates `UnlockRule` (all/any/none combinators + atomic conditions)
