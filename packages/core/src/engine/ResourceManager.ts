@@ -31,12 +31,25 @@ export class ResourceManager {
   }
 
   applyCost(costs: readonly Cost[], budget: Budget): Result<Budget> {
+    // Detectar custos negativos antes de agregar para reportar o valor real (DT-6)
+    const negativeCost = costs.find((c) => c.amount < 0)
+    if (negativeCost !== undefined) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.INVALID_COST,
+          getErrorMessage(ErrorCode.INVALID_COST, 'gl', {
+            amount: String(negativeCost.amount),
+          }),
+          { context: { amount: negativeCost.amount, resourceId: negativeCost.resourceId } },
+        ),
+      )
+    }
     const required = this.aggregateCosts(costs)
     if (required === null) {
       return err(
         new YggdrasilError(
           ErrorCode.INVALID_COST,
-          getErrorMessage(ErrorCode.INVALID_COST, 'gl', { amount: 'unknown' }),
+          getErrorMessage(ErrorCode.INVALID_COST, 'gl', { amount: 'valor-invalido' }),
         ),
       )
     }
