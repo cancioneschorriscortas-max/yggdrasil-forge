@@ -43,3 +43,8 @@ lerna-debug.log*
 
 # OS
 Thumbs.db
+
+# Executor scratch (nunca commitear scripts de execución)
+/*.py
+/scripts-exec/
+/tmp-exec/
