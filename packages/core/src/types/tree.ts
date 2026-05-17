@@ -2,6 +2,7 @@
 // Definición global da árbore e estado runtime asociado.
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
+import type { Locale } from '@yggdrasil-forge/common'
 import type { EdgeDef } from './edge.js'
 import type { I18nConfig } from './i18n.js'
 import type { NodeDef, NodeInstance, Position } from './node.js'
@@ -114,5 +115,9 @@ export interface TreeState {
   metadata?: Record<string, unknown>
   /** Estado das sub-árbores aniñadas, indexado por subtreeId. */
   subtreeStates?: Record<string, TreeState>
+}
+export interface TreeEngineOptions {
+  readonly locale?: Locale
+  readonly readOnly?: boolean
 }
 // ── FIN: Tree types ──

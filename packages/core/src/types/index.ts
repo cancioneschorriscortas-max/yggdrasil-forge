@@ -36,7 +36,14 @@ export { freezeNodeDef } from './node.js'
 export type { EdgeType, EdgeDef, EdgeStyle } from './edge.js'
 
 // Tree
-export type { TreeDef, TreeState, GroupDef, StatDef, LayoutConfig } from './tree.js'
+export type {
+  TreeDef,
+  TreeState,
+  GroupDef,
+  StatDef,
+  LayoutConfig,
+  TreeEngineOptions,
+} from './tree.js'
 
 // Resources (1.3)
 export type { Resource, Cost, Budget } from './resources.js'

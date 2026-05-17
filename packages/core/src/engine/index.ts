@@ -30,4 +30,5 @@ export {
 } from './DependencyGraph.js'
 export { CycleDetector } from './CycleDetector.js'
 export { ResourceManager } from './ResourceManager.js'
+export { TreeEngine } from './TreeEngine.js'
 // ── FIN: engine public API ──
