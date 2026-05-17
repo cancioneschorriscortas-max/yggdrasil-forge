@@ -7,6 +7,13 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `TreeEngine`: fachada pública do motor con constructor e getters síncronos (`getNodeState`, `getAllNodeStates`, `getBudget`, `getProgress`, `getTreeDef`, `getLocale`, `isReadOnly`, `getSnapshot`, `getServerSnapshot`, `subscribe`).
+- `TreeEngineOptions`: interface con campos `locale` e `readOnly`.
+
+### Fixed
+- DT-6: `ResourceManager` `INVALID_COST` agora reporta o importe real do custo negativo en vez de `unknown`.
+
+### Added
 - `INVALID_COST` (`YGG_V006`) error code with localized messages in Galician, Spanish, and English for invalid resource cost amounts.
 
 ### Changed
