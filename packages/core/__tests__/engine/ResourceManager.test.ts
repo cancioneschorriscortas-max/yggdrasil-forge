@@ -1,4 +1,4 @@
-import { isYggdrasilError } from '@yggdrasil-forge/common'
+import { ErrorCode, isYggdrasilError } from '@yggdrasil-forge/common'
 // -- INICIO: tests de ResourceManager --
 import { describe, expect, it } from 'vitest'
 import { ResourceManager } from '../../src/engine/index.js'
@@ -113,6 +113,7 @@ describe('ResourceManager', () => {
       expect(result.ok).toBe(false)
       if (!result.ok) {
         expect(isYggdrasilError(result.error)).toBe(true)
+        expect(result.error.code).toBe(ErrorCode.INSUFFICIENT_RESOURCES)
       }
     })
 
@@ -120,6 +121,20 @@ describe('ResourceManager', () => {
       const rm = new ResourceManager()
       const result = rm.applyCost([{ resourceId: 'xp', amount: -5 }], budgetOf({ xp: 100 }))
       expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_COST)
+      }
+    })
+
+    it('INVALID_COST error message is localized and non-empty', () => {
+      const rm = new ResourceManager()
+      const result = rm.applyCost([{ resourceId: 'xp', amount: -5 }], budgetOf({ xp: 100 }))
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_COST)
+        expect(result.error.message).toBeTruthy()
+        expect(result.error.message.length).toBeGreaterThan(0)
+      }
     })
 
     it('is atomic: nothing applied if any cost fails', () => {

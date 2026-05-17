@@ -7,17 +7,13 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
-- `@yggdrasil-forge/core`: `ResourceManager` class
-  - `canAfford(costs, budget)` - boolean affordability check with cost aggregation
-  - `applyCost(costs, budget)` - atomic, immutable, returns `Result<Budget>`
-  - `refund(costs, budget)` - respects `refundable`, `refundPercent`, and `max` cap
-  - `getCostForTier(nodeDef, tier)` - costPerTier with flat-cost fallback
-  - `getTotalCost(nodeDef, fromTier, toTier)` - cumulative multi-tier cost
-  - 100% test coverage
+- `INVALID_COST` (`YGG_V006`) error code with localized messages in Galician, Spanish, and English for invalid resource cost amounts.
+
+### Changed
+- `ResourceManager` now emits localized error messages via `getErrorMessage()` instead of hardcoded English strings.
 
 ### Fixed
-- Added missing test coverage for `CycleDetector` cycle normalization rotation (resolves technical debt DT-4)
-
+- Lint warning `useTemplate` in `ResourceManager` (DT-5).
 
 ## [Unreleased]
 

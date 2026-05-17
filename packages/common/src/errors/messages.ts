@@ -56,6 +56,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'La operación masiva falló en el nodo "{nodeId}": {reason}',
     en: 'Bulk operation failed at node "{nodeId}": {reason}',
   },
+  [ErrorCode.INVALID_COST]: {
+    gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
+    es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',
+    en: 'Invalid cost: amount must be non-negative (got {amount})',
+  },
   [ErrorCode.INVALID_TREE_DEF]: {
     gl: 'A definición da árbore é inválida: {details}',
     es: 'La definición del árbol es inválida: {details}',

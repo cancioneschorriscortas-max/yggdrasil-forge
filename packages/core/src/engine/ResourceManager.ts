@@ -2,7 +2,7 @@
 // Xestion da economia da arbore: budget, custos, refunds.
 // Inmutable: nunca muta o Budget recibido; devolve un novo.
 
-import { ErrorCode, YggdrasilError } from '@yggdrasil-forge/common'
+import { ErrorCode, YggdrasilError, getErrorMessage } from '@yggdrasil-forge/common'
 import type { Budget, Cost, NodeDef, Resource, Result } from '../types/index.js'
 import { err, ok } from '../types/index.js'
 
@@ -34,7 +34,10 @@ export class ResourceManager {
     const required = this.aggregateCosts(costs)
     if (required === null) {
       return err(
-        new YggdrasilError(ErrorCode.INVALID_NODE_DEF, 'Cost amounts must be non-negative'),
+        new YggdrasilError(
+          ErrorCode.INVALID_COST,
+          getErrorMessage(ErrorCode.INVALID_COST, 'gl', { amount: 'unknown' }),
+        ),
       )
     }
 
@@ -44,7 +47,11 @@ export class ResourceManager {
         return err(
           new YggdrasilError(
             ErrorCode.INSUFFICIENT_RESOURCES,
-            'Insufficient resource: need ' + amount + ', have ' + available,
+            getErrorMessage(ErrorCode.INSUFFICIENT_RESOURCES, 'gl', {
+              needed: String(amount),
+              resourceId,
+              available: String(available),
+            }),
           ),
         )
       }
