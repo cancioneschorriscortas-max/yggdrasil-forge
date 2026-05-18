@@ -7,6 +7,19 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `TreeEngine.unlock(nodeId)`: mutación async que valida prerequisites, exclusións e recursos, aplica custo atómico, cambia estado e emite eventos `unlock`, `stateChange`, `budgetChange`.
+- `TreeEngine.lock(nodeId)`: mutación async que reverte un nodo a `locked`, fai refund segundo `refundable`/`refundPercent`, e emite eventos `lock`, `stateChange`, `budgetChange`.
+- `TreeEngine.respec(nodeId?)`: mutación async de respec total ou parcial con detección de cascada de dependentes invalidados. Atómica: unha soa `StateStore.update`.
+- `TreeEngine.canUnlock(nodeId)`: comprobación síncrona pura que avalia prerequisites, exclusións e recursos sen mutar estado.
+- `TreeEngine.on/off`: subscrición tipada a eventos do `EventMap`.
+- Tipos exportados: `UnlockResult`, `LockResult`, `RespecResult`.
+
+### Fixed
+- DT-7: eliminada rama morta inalcanzable en `ResourceManager.applyCost` (bloque `if (required === null)` que nunca se executaba). Simplificado `aggregateCosts` para que nunca devolva `null`.
+
+## [Unreleased]
+
+### Added
 - `TreeEngine`: fachada pública do motor con constructor e getters síncronos (`getNodeState`, `getAllNodeStates`, `getBudget`, `getProgress`, `getTreeDef`, `getLocale`, `isReadOnly`, `getSnapshot`, `getServerSnapshot`, `subscribe`).
 - `TreeEngineOptions`: interface con campos `locale` e `readOnly`.
 
