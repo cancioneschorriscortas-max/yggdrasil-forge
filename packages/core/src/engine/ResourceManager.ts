@@ -17,10 +17,11 @@ export class ResourceManager {
   }
 
   canAfford(costs: readonly Cost[], budget: Budget): boolean {
-    const required = this.aggregateCosts(costs)
-    if (required === null) {
+    // Custo negativo → inválido; non se pode pagar
+    if (costs.some((c) => c.amount < 0)) {
       return false
     }
+    const required = this.aggregateCosts(costs)
     for (const [resourceId, amount] of required.entries()) {
       const available = budget.resources[resourceId] ?? 0
       if (available < amount) {
@@ -45,14 +46,6 @@ export class ResourceManager {
       )
     }
     const required = this.aggregateCosts(costs)
-    if (required === null) {
-      return err(
-        new YggdrasilError(
-          ErrorCode.INVALID_COST,
-          getErrorMessage(ErrorCode.INVALID_COST, 'gl', { amount: 'valor-invalido' }),
-        ),
-      )
-    }
 
     for (const [resourceId, amount] of required.entries()) {
       const available = budget.resources[resourceId] ?? 0
@@ -142,11 +135,12 @@ export class ResourceManager {
     return result
   }
 
-  private aggregateCosts(costs: readonly Cost[]): Map<string, number> | null {
+  private aggregateCosts(costs: readonly Cost[]): Map<string, number> {
     const aggregated = new Map<string, number>()
     for (const cost of costs) {
       if (cost.amount < 0) {
-        return null
+        // Os custos negativos detéctanse antes en applyCost; aquí ignorámolos
+        continue
       }
       const previous = aggregated.get(cost.resourceId) ?? 0
       aggregated.set(cost.resourceId, previous + cost.amount)
