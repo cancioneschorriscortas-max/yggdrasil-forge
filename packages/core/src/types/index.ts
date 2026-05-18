@@ -58,6 +58,9 @@ export type {
   UnlockCheck,
   UnlockExplanation,
   UnlockConditionEvaluation,
+  UnlockResult,
+  LockResult,
+  RespecResult,
 } from './unlock.js'
 
 // Events (1.3)

@@ -3,6 +3,7 @@
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { NodeState } from './node.js'
+import type { Cost } from './resources.js'
 
 /**
  * Condición atómica para desbloquear un nodo.
@@ -98,5 +99,34 @@ export interface UnlockConditionEvaluation {
   readonly condition: UnlockCondition
   readonly satisfied: boolean
   readonly reason: LocalizedString
+}
+
+// ── Tipos de resultado das mutacións (1.13) ──
+
+/**
+ * Resultado dunha operación unlock exitosa.
+ */
+export interface UnlockResult {
+  readonly nodeId: string
+  readonly newState: NodeState
+  readonly tier: number
+  readonly spent: readonly Cost[]
+}
+
+/**
+ * Resultado dunha operación lock exitosa.
+ */
+export interface LockResult {
+  readonly nodeId: string
+  readonly newState: NodeState
+  readonly refunded: readonly Cost[]
+}
+
+/**
+ * Resultado dunha operación respec exitosa.
+ */
+export interface RespecResult {
+  readonly nodeIds: readonly string[]
+  readonly refunded: readonly Cost[]
 }
 // ── FIN: Unlock conditions and rules ──
