@@ -56,6 +56,16 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'La operación masiva falló en el nodo "{nodeId}": {reason}',
     en: 'Bulk operation failed at node "{nodeId}": {reason}',
   },
+  [ErrorCode.INVALID_NODE_STATE]: {
+    gl: 'Estado de nodo inválido para a operación: "{nodeId}" ({details})',
+    es: 'Estado de nodo inválido para la operación: "{nodeId}" ({details})',
+    en: 'Invalid node state for operation: "{nodeId}" ({details})',
+  },
+  [ErrorCode.CHANGE_CONFLICT]: {
+    gl: 'Conflito interno na lista de cambios: {conflictType} ({details})',
+    es: 'Conflicto interno en la lista de cambios: {conflictType} ({details})',
+    en: 'Internal conflict in change list: {conflictType} ({details})',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

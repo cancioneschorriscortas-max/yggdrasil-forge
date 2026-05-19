@@ -52,3 +52,24 @@ export type TreeChange =
   | { readonly type: 'add_resource'; readonly resource: Resource }
   | { readonly type: 'modify_layout'; readonly changes: Partial<LayoutConfig> }
 // ── FIN: TreeChange types ──
+
+// ── INICIO: ApplyChangesResult ──
+/**
+ * Resultado de TreeEngine.applyChanges cando se aplica con éxito.
+ *
+ * Os campos derívanse de ChangeAnalysis (engine/ChangeTracker).
+ * cachesInvalidated típase como string[] e non como CacheType
+ * porque CacheType reside en engine/ e types/ non debe depender
+ * de engine/ (dirección de dependencia / risco de ciclo).
+ */
+export interface ApplyChangesResult {
+  /** Número de TreeChange aplicados. */
+  readonly applied: number
+  /** IDs de nodos cuxas NodeInstances foron reconciliadas. */
+  readonly affectedNodes: readonly string[]
+  /** Mapa oldId → newId dos renames aplicados. */
+  readonly renames: ReadonlyMap<string, string>
+  /** Tipos de cache invalidados (valores de CacheType). */
+  readonly cachesInvalidated: readonly string[]
+}
+// ── FIN: ApplyChangesResult ──

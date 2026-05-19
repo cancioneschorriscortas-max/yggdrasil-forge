@@ -107,7 +107,12 @@ export type { Build, BuildShareLink, BuildSnapshot } from './build.js'
 export type { AuditEntry, AuditAction, AuditFilter } from './audit.js'
 
 // Changes (1.4)
-export type { TreeChange, ModifyNodeChanges, ModifyEdgeChanges } from './changes.js'
+export type {
+  TreeChange,
+  ModifyNodeChanges,
+  ModifyEdgeChanges,
+  ApplyChangesResult,
+} from './changes.js'
 
 // Metrics (1.4)
 export type { EngineMetrics } from './metrics.js'

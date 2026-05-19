@@ -333,12 +333,12 @@ describe('lock', () => {
     expect(engine.getBudget().resources.xp).toBe(90)
   })
 
-  it('falla en nodo non desbloqueado → err INVALID_NODE_DEF', async () => {
+  it('falla en nodo non desbloqueado → err INVALID_NODE_STATE', async () => {
     const engine = new TreeEngine(makeSimpleTree())
     const result = await engine.lock('a')
     expect(result.ok).toBe(false)
     if (!result.ok) {
-      expect(result.error.code).toBe(ErrorCode.INVALID_NODE_DEF)
+      expect(result.error.code).toBe(ErrorCode.INVALID_NODE_STATE)
     }
   })
 

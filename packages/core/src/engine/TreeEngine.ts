@@ -3,7 +3,9 @@
 // e UnlockResolver. Expón getters síncronos (1.12) e mutacións async (1.13).
 
 import { ErrorCode, type Locale, YggdrasilError, getErrorMessage } from '@yggdrasil-forge/common'
+import { type Draft, castDraft } from 'immer'
 import type {
+  ApplyChangesResult,
   Budget,
   EventMap,
   EventName,
@@ -11,6 +13,8 @@ import type {
   NodeInstance,
   RespecResult,
   Result,
+  StateChange,
+  TreeChange,
   TreeDef,
   TreeEngineOptions,
   TreeState,
@@ -18,6 +22,7 @@ import type {
   UnlockResult,
 } from '../types/index.js'
 import { err, ok } from '../types/index.js'
+import { type ChangeAnalysis, type ChangeConflict, analyzeChanges } from './ChangeTracker.js'
 import { EventEmitter, type Unsubscribe } from './EventEmitter.js'
 import { ResourceManager } from './ResourceManager.js'
 import { StateStore } from './StateStore.js'
@@ -167,11 +172,19 @@ export class TreeEngine {
       })
     }
 
-    // Nodo desactivado ou expirado → non permitido
-    if (currentState === 'disabled' || currentState === 'expired') {
+    // Nodo expirado → non permitido (código específico NODE_EXPIRED)
+    if (currentState === 'expired') {
       return ok({
         allowed: false,
-        reason: getErrorMessage(ErrorCode.INVALID_NODE_DEF, this.locale, {
+        reason: getErrorMessage(ErrorCode.NODE_EXPIRED, this.locale, { nodeId }),
+      })
+    }
+
+    // Nodo desactivado → estado inválido para a operación (DT-8)
+    if (currentState === 'disabled') {
+      return ok({
+        allowed: false,
+        reason: getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
           nodeId,
           details: `estado actual: ${currentState}`,
         }),
@@ -418,13 +431,13 @@ export class TreeEngine {
     const currentNodeState = instance?.state ?? 'locked'
 
     // Só se pode lockear un nodo que estea unlocked ou maxed.
-    // Decisión: non hai ErrorCode específico para "nodo non desbloqueado";
-    // usamos INVALID_NODE_DEF con reason clara, que é o máis honesto.
+    // DT-8: o erro é de ESTADO do nodo (non da súa definición, que é
+    // válida). Úsase INVALID_NODE_STATE (YGG_E011), código específico.
     if (currentNodeState !== 'unlocked' && currentNodeState !== 'maxed') {
       return err(
         new YggdrasilError(
-          ErrorCode.INVALID_NODE_DEF,
-          getErrorMessage(ErrorCode.INVALID_NODE_DEF, this.locale, {
+          ErrorCode.INVALID_NODE_STATE,
+          getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
             nodeId,
             details: `non se pode lockear un nodo en estado "${currentNodeState}"`,
           }),
@@ -611,5 +624,503 @@ export class TreeEngine {
 
     return ok({ nodeIds: nodeIdsToLock, refunded: allCosts })
   }
+
+  // ── INICIO: applyChanges (sub-fase 1.14) ──
+  // Modifica a TreeDef en runtime de forma atómica (todo-ou-nada) e
+  // reconcilia as NodeInstances afectadas. Detección de conflitos
+  // internos delegada en analyzeChanges (NON se reimplementa aquí).
+  async applyChanges(changes: readonly TreeChange[]): Promise<Result<ApplyChangesResult>> {
+    // T3: modo só lectura → erro sen tocar nada.
+    if (this.readOnly) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.READ_ONLY_VIOLATION,
+          getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+
+    // T3: lista baleira → no-op explícito (non é erro).
+    if (changes.length === 0) {
+      return ok({
+        applied: 0,
+        affectedNodes: [],
+        renames: new Map<string, string>(),
+        cachesInvalidated: [],
+      })
+    }
+
+    // T3: análise (conflitos internos, caches, renames, afectados).
+    const analysis: ChangeAnalysis = analyzeChanges(changes)
+
+    // T3: conflitos internos → CHANGE_CONFLICT (decisión do arquitecto,
+    // YGG_E012). A mensaxe localizada describe o PRIMEIRO conflito; o
+    // context leva TODOS para telemetría/devtools.
+    if (analysis.internalConflicts.length > 0) {
+      const first = analysis.internalConflicts[0] as ChangeConflict
+      const details = this.describeConflict(first)
+      return err(
+        new YggdrasilError(
+          ErrorCode.CHANGE_CONFLICT,
+          getErrorMessage(ErrorCode.CHANGE_CONFLICT, this.locale, {
+            conflictType: first.type,
+            details,
+          }),
+          {
+            context: {
+              conflictType: first.type,
+              details,
+              internalConflicts: analysis.internalConflicts,
+            },
+          },
+        ),
+      )
+    }
+
+    // T4: validación estrutural contra a TreeDef ACTUAL. Atómico:
+    // valídase TODO antes de aplicar NADA. Non é validación profunda
+    // (ciclos/prerequisites son 1.17).
+    const treeDef = this.store.getTreeDef()
+    const nodeIds = new Set(treeDef.nodes.map((n) => n.id))
+    const edgeIds = new Set(treeDef.edges.map((e) => e.id))
+    const groupIds = new Set((treeDef.groups ?? []).map((g) => g.id))
+    const resourceIds = new Set((treeDef.resources ?? []).map((r) => r.id))
+    // Proxección dos ids segundo se vai aplicando (para detectar, p.ex.,
+    // add_node + add_edge que referencia ese nodo novo na mesma lista).
+    const projectedNodeIds = new Set(nodeIds)
+    const projectedEdgeIds = new Set(edgeIds)
+    const projectedGroupIds = new Set(groupIds)
+    const projectedResourceIds = new Set(resourceIds)
+
+    for (const change of changes) {
+      const invalid = this.validateChange(
+        change,
+        projectedNodeIds,
+        projectedEdgeIds,
+        projectedGroupIds,
+        projectedResourceIds,
+      )
+      if (invalid !== undefined) {
+        return err(invalid)
+      }
+    }
+
+    // T5: aplicación á TreeDef vía Immer, na orde dada. Cobre as 12
+    // variantes de TreeChange.
+    this.store.applyTreeDefChange((draft) => {
+      for (const change of changes) {
+        this.applyOneChange(draft, change)
+      }
+    })
+
+    // T6: reconciliación de NodeInstances (decisión 5.9).
+    const stateChanges: Array<{ nodeId: string; change: StateChange }> = []
+    const now = Date.now()
+    this.store.update((draft) => {
+      for (const change of changes) {
+        switch (change.type) {
+          case 'add_node': {
+            // Nodo engadido → NodeInstance inicial coherente.
+            const id = change.node.id
+            if (draft.nodes[id] === undefined) {
+              draft.nodes[id] = { id, state: 'locked', currentTier: 0 }
+            }
+            break
+          }
+          case 'remove_node': {
+            // Nodo eliminado → elimínase a súa NodeInstance.
+            if (draft.nodes[change.nodeId] !== undefined) {
+              delete draft.nodes[change.nodeId]
+            }
+            break
+          }
+          case 'rename_node_id': {
+            // Nodo renomeado → móvese a instancia conservando o estado.
+            const fromInst = draft.nodes[change.oldId]
+            if (fromInst !== undefined) {
+              const moved: NodeInstance = { ...fromInst, id: change.newId }
+              draft.nodes[change.newId] = moved
+              delete draft.nodes[change.oldId]
+            }
+            break
+          }
+          case 'modify_node': {
+            // Se maxTier baixa por debaixo do currentTier actual,
+            // axústase (clamp). Decisión 5.9.
+            const inst = draft.nodes[change.nodeId]
+            const newMax = change.changes.maxTier
+            if (inst !== undefined && typeof newMax === 'number' && inst.currentTier > newMax) {
+              inst.currentTier = newMax
+            }
+            break
+          }
+          default:
+            // edges/grupos/recursos/layout non tocan NodeInstances.
+            break
+        }
+      }
+    })
+
+    // Construír os StateChange para os nodos reconciliados que cambiaron
+    // (rename: o estado consérvase pero o id cambia; clamp: cambia tier).
+    // Emítese stateChange só onde hai cambio observable de estado.
+    for (const change of changes) {
+      if (change.type === 'rename_node_id') {
+        const inst = this.store.getState().nodes[change.newId]
+        if (inst !== undefined) {
+          stateChanges.push({
+            nodeId: change.newId,
+            change: { from: inst.state, to: inst.state, timestamp: now, reason: 'rename' },
+          })
+        }
+      }
+    }
+
+    // T7: invalidación de caches segundo a análise (subconxunto, non ALL
+    // á forza).
+    this.store.invalidate([...analysis.cachesToInvalidate])
+
+    // T7: eventos. treeChanged sempre tras aplicar OK; stateChange por
+    // nodo reconciliado con cambio observable.
+    this.events.emit('treeChanged', changes)
+    for (const sc of stateChanges) {
+      this.events.emit('stateChange', sc.nodeId, sc.change)
+    }
+
+    return ok({
+      applied: changes.length,
+      affectedNodes: [...analysis.affectedNodes],
+      renames: new Map(analysis.renames),
+      cachesInvalidated: [...analysis.cachesToInvalidate],
+    })
+  }
+
+  // ── Validación estrutural dun TreeChange contra ids proxectados ──
+  // Devolve un YggdrasilError se é inválido, ou undefined se é válido.
+  // Muta os conxuntos proxectados para reflectir o cambio (atómico a
+  // nivel de validación: simúlase a secuencia antes de aplicar nada).
+  private validateChange(
+    change: TreeChange,
+    nodeIds: Set<string>,
+    edgeIds: Set<string>,
+    groupIds: Set<string>,
+    resourceIds: Set<string>,
+  ): YggdrasilError | undefined {
+    switch (change.type) {
+      case 'add_node': {
+        if (nodeIds.has(change.node.id)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_NODE_STATE,
+            getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+              nodeId: change.node.id,
+              details: 'xa existe un nodo con ese id',
+            }),
+          )
+        }
+        nodeIds.add(change.node.id)
+        return undefined
+      }
+      case 'remove_node': {
+        if (!nodeIds.has(change.nodeId)) {
+          return new YggdrasilError(
+            ErrorCode.NODE_NOT_FOUND,
+            getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, {
+              nodeId: change.nodeId,
+            }),
+          )
+        }
+        nodeIds.delete(change.nodeId)
+        return undefined
+      }
+      case 'modify_node': {
+        if (!nodeIds.has(change.nodeId)) {
+          return new YggdrasilError(
+            ErrorCode.NODE_NOT_FOUND,
+            getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, {
+              nodeId: change.nodeId,
+            }),
+          )
+        }
+        return undefined
+      }
+      case 'rename_node_id': {
+        if (!nodeIds.has(change.oldId)) {
+          return new YggdrasilError(
+            ErrorCode.NODE_NOT_FOUND,
+            getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, {
+              nodeId: change.oldId,
+            }),
+          )
+        }
+        if (nodeIds.has(change.newId)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_NODE_STATE,
+            getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+              nodeId: change.newId,
+              details: 'xa existe un nodo con ese id (rename)',
+            }),
+          )
+        }
+        nodeIds.delete(change.oldId)
+        nodeIds.add(change.newId)
+        return undefined
+      }
+      case 'add_edge': {
+        if (edgeIds.has(change.edge.id)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_EDGE_DEF,
+            getErrorMessage(ErrorCode.INVALID_EDGE_DEF, this.locale, {
+              edgeId: change.edge.id,
+              details: 'xa existe unha edge con ese id',
+            }),
+          )
+        }
+        if (!nodeIds.has(change.edge.source)) {
+          return new YggdrasilError(
+            ErrorCode.NODE_NOT_FOUND,
+            getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, {
+              nodeId: change.edge.source,
+            }),
+          )
+        }
+        if (!nodeIds.has(change.edge.target)) {
+          return new YggdrasilError(
+            ErrorCode.NODE_NOT_FOUND,
+            getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, {
+              nodeId: change.edge.target,
+            }),
+          )
+        }
+        edgeIds.add(change.edge.id)
+        return undefined
+      }
+      case 'remove_edge': {
+        if (!edgeIds.has(change.edgeId)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_EDGE_DEF,
+            getErrorMessage(ErrorCode.INVALID_EDGE_DEF, this.locale, {
+              edgeId: change.edgeId,
+              details: 'non existe unha edge con ese id',
+            }),
+          )
+        }
+        edgeIds.delete(change.edgeId)
+        return undefined
+      }
+      case 'modify_edge': {
+        if (!edgeIds.has(change.edgeId)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_EDGE_DEF,
+            getErrorMessage(ErrorCode.INVALID_EDGE_DEF, this.locale, {
+              edgeId: change.edgeId,
+              details: 'non existe unha edge con ese id',
+            }),
+          )
+        }
+        return undefined
+      }
+      case 'add_group': {
+        if (groupIds.has(change.group.id)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_NODE_STATE,
+            getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+              nodeId: change.group.id,
+              details: 'xa existe un grupo con ese id',
+            }),
+          )
+        }
+        groupIds.add(change.group.id)
+        return undefined
+      }
+      case 'remove_group': {
+        if (!groupIds.has(change.groupId)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_NODE_STATE,
+            getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+              nodeId: change.groupId,
+              details: 'non existe un grupo con ese id',
+            }),
+          )
+        }
+        groupIds.delete(change.groupId)
+        return undefined
+      }
+      case 'modify_group': {
+        if (!groupIds.has(change.groupId)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_NODE_STATE,
+            getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+              nodeId: change.groupId,
+              details: 'non existe un grupo con ese id',
+            }),
+          )
+        }
+        return undefined
+      }
+      case 'add_resource': {
+        if (resourceIds.has(change.resource.id)) {
+          return new YggdrasilError(
+            ErrorCode.INVALID_NODE_STATE,
+            getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+              nodeId: change.resource.id,
+              details: 'xa existe un recurso con ese id',
+            }),
+          )
+        }
+        resourceIds.add(change.resource.id)
+        return undefined
+      }
+      case 'modify_layout':
+        // Non require validación de ids; aplícase sobre LayoutConfig.
+        return undefined
+      default:
+        // Exhaustividade: todas as variantes están cubertas arriba.
+        return undefined
+    }
+  }
+
+  // ── Aplica un TreeChange sobre o draft da TreeDef (Immer) ──
+  // draft é Draft<TreeDef>: Immer expón as propiedades como mutables.
+  // castDraft() reinterpreta os valores inmutables (NodeDef, EdgeDef…)
+  // como draft-compatibles sen copialos; é a API tipada de Immer para
+  // conviver con exactOptionalPropertyTypes (NON é un any).
+  private applyOneChange(draft: Draft<TreeDef>, change: TreeChange): void {
+    switch (change.type) {
+      case 'add_node': {
+        draft.nodes.push(castDraft(change.node))
+        break
+      }
+      case 'remove_node': {
+        const idx = draft.nodes.findIndex((n) => n.id === change.nodeId)
+        if (idx !== -1) {
+          draft.nodes.splice(idx, 1)
+        }
+        if (change.cascadeEdges === true) {
+          for (let i = draft.edges.length - 1; i >= 0; i--) {
+            const e = draft.edges[i]
+            if (e !== undefined && (e.source === change.nodeId || e.target === change.nodeId)) {
+              draft.edges.splice(i, 1)
+            }
+          }
+        }
+        break
+      }
+      case 'modify_node': {
+        const idx = draft.nodes.findIndex((n) => n.id === change.nodeId)
+        const target = idx === -1 ? undefined : draft.nodes[idx]
+        if (target !== undefined) {
+          draft.nodes[idx] = castDraft({ ...target, ...change.changes })
+        }
+        break
+      }
+      case 'rename_node_id': {
+        const idx = draft.nodes.findIndex((n) => n.id === change.oldId)
+        const target = idx === -1 ? undefined : draft.nodes[idx]
+        if (target !== undefined) {
+          draft.nodes[idx] = castDraft({ ...target, id: change.newId })
+        }
+        // Reapuntar edges que referencian o id antigo.
+        for (let i = 0; i < draft.edges.length; i++) {
+          const e = draft.edges[i]
+          if (e === undefined) {
+            continue
+          }
+          if (e.source === change.oldId || e.target === change.oldId) {
+            draft.edges[i] = castDraft({
+              ...e,
+              source: e.source === change.oldId ? change.newId : e.source,
+              target: e.target === change.oldId ? change.newId : e.target,
+            })
+          }
+        }
+        if (draft.rootNodeId === change.oldId) {
+          draft.rootNodeId = change.newId
+        }
+        break
+      }
+      case 'add_edge': {
+        draft.edges.push(castDraft(change.edge))
+        break
+      }
+      case 'remove_edge': {
+        const idx = draft.edges.findIndex((e) => e.id === change.edgeId)
+        if (idx !== -1) {
+          draft.edges.splice(idx, 1)
+        }
+        break
+      }
+      case 'modify_edge': {
+        const idx = draft.edges.findIndex((e) => e.id === change.edgeId)
+        const target = idx === -1 ? undefined : draft.edges[idx]
+        if (target !== undefined) {
+          draft.edges[idx] = castDraft({ ...target, ...change.changes })
+        }
+        break
+      }
+      case 'add_group': {
+        if (draft.groups === undefined) {
+          draft.groups = []
+        }
+        draft.groups.push(castDraft(change.group))
+        break
+      }
+      case 'remove_group': {
+        if (draft.groups !== undefined) {
+          const idx = draft.groups.findIndex((g) => g.id === change.groupId)
+          if (idx !== -1) {
+            draft.groups.splice(idx, 1)
+          }
+        }
+        break
+      }
+      case 'modify_group': {
+        if (draft.groups !== undefined) {
+          const idx = draft.groups.findIndex((g) => g.id === change.groupId)
+          const target = idx === -1 ? undefined : draft.groups[idx]
+          if (target !== undefined) {
+            draft.groups[idx] = castDraft({ ...target, ...change.changes })
+          }
+        }
+        break
+      }
+      case 'add_resource': {
+        if (draft.resources === undefined) {
+          draft.resources = []
+        }
+        draft.resources.push(castDraft(change.resource))
+        break
+      }
+      case 'modify_layout': {
+        draft.layout = castDraft({ ...draft.layout, ...change.changes })
+        break
+      }
+      default:
+        // Exhaustividade garantida pola union TreeChange.
+        break
+    }
+  }
+
+  // ── Descrición curta dun ChangeConflict para a mensaxe localizada ──
+  private describeConflict(conflict: ChangeConflict): string {
+    switch (conflict.type) {
+      case 'duplicate_add_node':
+        return `nodo "${conflict.nodeId}" engadido en posicións ${conflict.positions.join(', ')}`
+      case 'add_then_remove':
+        return `nodo "${conflict.nodeId}" engadido (pos ${conflict.addPosition}) e eliminado (pos ${conflict.removePosition})`
+      case 'remove_then_modify':
+        return `nodo "${conflict.nodeId}" eliminado (pos ${conflict.removePosition}) e modificado (pos ${conflict.modifyPosition})`
+      case 'modify_after_rename':
+        return `nodo "${conflict.oldId}" modificado tras renomear (pos rename ${conflict.renamePosition}, pos modify ${conflict.modifyPosition})`
+      case 'rename_chain':
+        return `cadea de renomeados: "${conflict.firstRename.oldId}"→"${conflict.firstRename.newId}" e "${conflict.secondRename.oldId}"→"${conflict.secondRename.newId}"`
+      case 'rename_to_existing':
+        return `renomeado a un id xa existente "${conflict.newId}" (pos ${conflict.conflictingPosition})`
+      case 'duplicate_edge_id':
+        return `edge "${conflict.edgeId}" duplicada en posicións ${conflict.positions.join(', ')}`
+      default:
+        return 'conflito interno na lista de cambios'
+    }
+  }
+  // ── FIN: applyChanges (sub-fase 1.14) ──
 }
 // ── FIN: TreeEngine ──

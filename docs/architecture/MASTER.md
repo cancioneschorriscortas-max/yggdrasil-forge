@@ -2364,6 +2364,105 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 
 ---
 
+# ANEXO A — ERRATAS, SINCRONIZACIÓN E DÉBEDA
+
+> Mantido polo director. Estado real fronte ao roadmap (sección 67).
+> Actualizado tras a decisión escalada da sub-fase 1.14.
+
+## A.1 — Sub-fase 1.11: redefinida
+
+Roadmap lista 1.11 = *"YggdrasilError + códigos + mensaxes localizadas"*;
+executouse en 1.1 (`common`, `1897fbf`). A rañura 1.11 reusouse como
+**consolidación**: DT-5 resolto, `ResourceManager` localizado,
+`INVALID_COST = 'YGG_V006'` engadido. Completada (`b1ee18d`, `3ee42ec`).
+Core: 315 tests.
+
+## A.2 — Renumeración efectiva da Fase 1
+
+| Roadmap | Estado real |
+|---|---|
+| 1.11 YggdrasilError | Feito en 1.1 |
+| 1.11 (rañura) | Consolidación. **Feito** |
+| 1.12 TreeEngine constructor + getters | **Feito** (`c3f8172`). 337 tests |
+| 1.13 TreeEngine unlock/lock/respec | **Feito** (`eb8fcd7`). 374 tests |
+| 1.14 TreeEngine applyChanges | **En curso** (decisión escalada resolta) |
+| 1.15 TreeEngine subscription + selectors | Pendente |
+| 1.16 AuditLogger | Pendente |
+| 1.17 JsonSerializer + Validator (Zod) | Pendente |
+| 1.18 Tests integración Fase 1 | Pendente |
+
+## A.3 — Rexistro de débeda técnica (DT)
+
+| ID | Descrición | Estado |
+|---|---|---|
+| DT-1 | deepClone fallback sen uso | Resolto (`a8a9d20`) |
+| DT-4 | Rama rotación CycleDetector sen test | Resolto (1.10) |
+| DT-5 | Warning lint `useTemplate` ResourceManager | Resolto (1.11) |
+| DT-6 | `INVALID_COST` interpola `'unknown'` | Resolto (1.12) |
+| DT-7 | `applyCost` rama morta + `'valor-invalido'` | Resolto (1.13, `7eec470`) |
+| DT-8 | `lock`/`canUnlock` usan `INVALID_NODE_DEF` para erros de estado | En resolución (1.14 T1): `INVALID_NODE_STATE = 'YGG_E011'`; `expired`→`NODE_EXPIRED` |
+
+## A.3.1 — Contrato de ErrorCode: ampliacións decididas
+
+A sección 7.16 enténdese ampliada cos códigos engadidos en execución, todos
+seguindo o principio "cada situación semántica → o seu código, na súa
+familia":
+
+| Código | Valor | Familia | Orixe | Motivo |
+|---|---|---|---|---|
+| `INVALID_COST` | `YGG_V006` | Validation | 1.11 | Custo negativo/inválido (antes reusaba INVALID_NODE_DEF) |
+| `INVALID_NODE_STATE` | `YGG_E011` | Engine | 1.14 (DT-8) | Estado de nodo inválido para a operación (antes reusaba INVALID_NODE_DEF) |
+| `CHANGE_CONFLICT` | `YGG_E012` | Engine | 1.14 (escalado) | Conflito interno na lista de TreeChange de applyChanges |
+
+**Decisión escalada 1.14 (resolta polo director):** o executor parou en T3
+segundo o protocolo de escalado (A.5) por non haber código para conflitos de
+`applyChanges`. Director aprobou `CHANGE_CONFLICT = 'YGG_E012'` (familia
+Engine; un conflito de lista de cambios non é validación de definición nin
+estado de nodo). Mensaxe gl/es/en con placeholders `{conflictType}`,
+`{details}`; o `YggdrasilError` leva o array completo `internalConflicts` no
+`context` (telemetría). O executor continuou 1.14 completa sen parar. Ciclo
+de escalado pechado: primeiro uso real e exitoso do protocolo A.5.
+
+## A.4 — Versionado / release (pre-MVP)
+
+`main` acumula changesets sen liberar. PR de release automático (#1) aberto:
+ao mergearse subiría versións, escribiría CHANGELOG e borraría changesets
+(o "vermello"/`deleted` é normal). **NON se mergea durante a Fase 1.**
+Déixase aberto e ignórase. Os executores NON o tocan.
+
+## A.5 — Patrón de risco do executor e a súa evolución
+
+- **1.10–1.12:** placeholders/códigos incorrectos sen reportar; cazábaos o
+  director.
+- **Mitigación (1.13):** anti-placeholder como grep verificable no reporte.
+- **1.13 resultado:** funcionou. DT-7 resolto de verdade; limitación
+  reportada honestamente (orixe de DT-8, obxección á decisión técnica, non
+  á ocultación).
+- **Protocolo de escalado (1.14):** ante decisión de **contrato/
+  arquitectura** non resolta no briefing, o executor PARA, abre
+  `🛑 DECISIÓN REQUERIDA DO ARQUITECTO` cunha pregunta+recomendación, e
+  detén o avance. O autor fai de ponte ao director.
+- **1.14 resultado:** primeiro uso real. O executor parou correctamente en
+  T3 e escalou `CHANGE_CONFLICT`. Director resolveu sen débeda. **O
+  protocolo de escalado funcionou á primeira.**
+
+## A.6 — Leccións de planificación do director
+
+- **1.12:** non cablear dependencias antes da sub-fase que as use
+  (`noUnusedLocals`). Aplicado desde 1.13.
+- **1.11:** conteo de tests verifícao o director no repo, exacto, sen `≥`.
+
+## A.7 — Protocolo director-executor: addenda consolidada
+
+Todo briefing inclúe **sección 0**: (a) scripts en `/tmp/ygg-exec/` con
+rutas `C:/Users/...`; (b) tests SEMPRE `--force`; (c) rama/método/orde
+decididos polo director; (d) anti-placeholder con grep no reporte; (e)
+escalado de decisións de contrato ao arquitecto vía autor, deténdose no
+punto bloqueado; (f) un script por operación con `assert`; commits
+separados por unidade lóxica.
+
+---
+
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (erratas/sincronización/débeda)**
