@@ -119,5 +119,15 @@ export interface TreeState {
 export interface TreeEngineOptions {
   readonly locale?: Locale
   readonly readOnly?: boolean
+  /**
+   * Configuración do rexistro de auditoría (AuditLogger).
+   * Por defecto desactivado: cero overhead cando non se usa.
+   */
+  readonly audit?: {
+    /** Activa o rexistro de accións. Default: false. */
+    readonly enabled?: boolean
+    /** Máximo de entradas en memoria (FIFO). Default: 1000. */
+    readonly maxEntries?: number
+  }
 }
 // ── FIN: Tree types ──

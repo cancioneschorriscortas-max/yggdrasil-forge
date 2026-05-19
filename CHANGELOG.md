@@ -7,6 +7,16 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `AuditLogger` (engine): rexistro de auditoría en memoria con `record`, `query`, `clear`, `size`. Desactivado por defecto (cero overhead); límite circular FIFO configurable (`maxEntries`, default 1000).
+- `TreeEngine.getAuditLog(filter?)`: devolve unha copia filtrada das entradas de auditoría (por `actor`, `action.type`, rango `from`/`to` inclusivo, `limit`). Máis recente primeiro. Síncrono.
+- `TreeEngine.clearAuditLog()`: baleira o rexistro de auditoría.
+- `TreeEngine.logAudit(action, opts?)`: API manual para rexistrar accións `custom` ou propias; no-op se audit desactivado; emite `auditEntry` cando crea entrada.
+- Rexistro automático tras as 4 mutacións exitosas (NON nos erros): `unlock` → `node_unlocked` (rollbackable), `lock` → `node_locked` (rollbackable), `respec` → `respec`, `applyChanges` → `tree_changed`. Cada rexistro emite o evento `auditEntry`.
+- `TreeEngineOptions.audit`: configuración opcional `{ enabled?: boolean (default false); maxEntries?: number (default 1000) }`.
+
+## [Unreleased]
+
+### Added
 - `Selector<T>` type: función pura `(state: TreeState) => T`.
 - `createSelector`: factoría de selectors memoizados estilo reselect, caché last-args (tamaño 1) con igualdade referencial das entradas; tipada con sobrecargas para 1-3 selectors de entrada + combinador (cero `any`).
 - `shallowEqual`: helper puro de comparación superficial (un nivel), para uso opcional como `equalityFn`. Non é o default; o default segue sendo `Object.is`.

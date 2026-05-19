@@ -6,6 +6,9 @@ import { ErrorCode, type Locale, YggdrasilError, getErrorMessage } from '@yggdra
 import { type Draft, castDraft } from 'immer'
 import type {
   ApplyChangesResult,
+  AuditAction,
+  AuditEntry,
+  AuditFilter,
   Budget,
   EventMap,
   EventName,
@@ -23,6 +26,7 @@ import type {
   UnlockResult,
 } from '../types/index.js'
 import { err, ok } from '../types/index.js'
+import { AuditLogger } from './AuditLogger.js'
 import { type ChangeAnalysis, type ChangeConflict, analyzeChanges } from './ChangeTracker.js'
 import { EventEmitter, type Unsubscribe } from './EventEmitter.js'
 import { ResourceManager } from './ResourceManager.js'
@@ -36,6 +40,8 @@ export class TreeEngine {
   private readonly events = new EventEmitter()
   private readonly resources: ResourceManager
   private readonly resolver = new UnlockResolver()
+  // Rexistro de auditoría. Desactivado por defecto (cero overhead).
+  private readonly audit: AuditLogger
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -43,6 +49,7 @@ export class TreeEngine {
     TreeEngine.validateTreeDef(treeDef, this.locale)
     this.store = new StateStore(treeDef)
     this.resources = new ResourceManager(treeDef.resources ?? [])
+    this.audit = new AuditLogger(options?.audit)
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -95,6 +102,40 @@ export class TreeEngine {
   off<K extends EventName>(event: K, handler: EventMap[K]): void {
     this.events.off(event, handler)
   }
+
+  // ── INICIO: API pública de auditoría (sub-fase 1.16) ──
+  // Delegación directa no AuditLogger interno. readOnly NON afecta:
+  // consultar/baleirar o log é válido sempre (as mutacións xa están
+  // bloqueadas noutro sitio).
+
+  /**
+   * Devolve unha copia das entradas de auditoría que cumpren o filtro.
+   * Síncrono. Se audit está desactivado devolve [].
+   */
+  getAuditLog(filter?: AuditFilter): AuditEntry[] {
+    return this.audit.query(filter)
+  }
+
+  /** Baleira o rexistro de auditoría. */
+  clearAuditLog(): void {
+    this.audit.clear()
+  }
+
+  /**
+   * Rexistro manual: permite ao consumidor anotar accións `custom` ou
+   * propias. Se audit está desactivado é un no-op. Emite `auditEntry`
+   * só se a entrada se creou realmente.
+   */
+  logAudit(
+    action: AuditAction,
+    opts?: { actor?: string; context?: Record<string, unknown>; rollbackable?: boolean },
+  ): void {
+    const entry = this.audit.record(action, opts)
+    if (entry !== null) {
+      this.events.emit('auditEntry', entry)
+    }
+  }
+  // ── FIN: API pública de auditoría ──
 
   // ── Getters síncronos (T3.c) ──
 
@@ -461,6 +502,15 @@ export class TreeEngine {
     })
     this.events.emit('unlock', nodeId, newInstance)
 
+    // Audit: rexistro tras a mutación exitosa (NON nos erros).
+    const auditEntry = this.audit.record(
+      { type: 'node_unlocked', nodeId, tier: targetTier },
+      { rollbackable: true },
+    )
+    if (auditEntry !== null) {
+      this.events.emit('auditEntry', auditEntry)
+    }
+
     return ok({ nodeId, newState: newNodeState, tier: targetTier, spent: costs })
   }
 
@@ -548,6 +598,12 @@ export class TreeEngine {
       reason: 'manual',
     })
     this.events.emit('lock', nodeId, newInstance)
+
+    // Audit: rexistro tras a mutación exitosa (NON nos erros).
+    const auditEntry = this.audit.record({ type: 'node_locked', nodeId }, { rollbackable: true })
+    if (auditEntry !== null) {
+      this.events.emit('auditEntry', auditEntry)
+    }
 
     return ok({ nodeId, newState: 'locked', refunded: costs })
   }
@@ -683,6 +739,16 @@ export class TreeEngine {
       }
     }
     this.events.emit('respec', nodeIdsToLock)
+
+    // Audit: rexistro tras a mutación exitosa (NON nos erros).
+    // Copia defensiva dos ids para illar o log de mutacións futuras.
+    const auditEntry = this.audit.record({
+      type: 'respec',
+      nodeIds: [...nodeIdsToLock],
+    })
+    if (auditEntry !== null) {
+      this.events.emit('auditEntry', auditEntry)
+    }
 
     return ok({ nodeIds: nodeIdsToLock, refunded: allCosts })
   }
@@ -847,6 +913,14 @@ export class TreeEngine {
     this.events.emit('treeChanged', changes)
     for (const sc of stateChanges) {
       this.events.emit('stateChange', sc.nodeId, sc.change)
+    }
+
+    // Audit: rexistro tras a mutación exitosa (NON nos erros).
+    // tree_changed déixase non-rollbackable (decisión do briefing:
+    // a reversión de cambios estruturais é fase posterior).
+    const auditEntry = this.audit.record({ type: 'tree_changed', changes })
+    if (auditEntry !== null) {
+      this.events.emit('auditEntry', auditEntry)
     }
 
     return ok({
