@@ -37,4 +37,18 @@ export {
 } from './AuditLogger.js'
 export { TreeEngine } from './TreeEngine.js'
 export { createSelector, shallowEqual } from './selectors.js'
+export {
+  treeDefSchema,
+  treeDefShapeSchema,
+  type InferredTreeDef,
+} from './treeDefSchema.js'
+export {
+  validateTreeDef,
+  type TreeDefValidationIssue,
+} from './TreeDefValidator.js'
+export {
+  JsonSerializer,
+  serialize,
+  deserialize,
+} from './JsonSerializer.js'
 // ── FIN: engine public API ──

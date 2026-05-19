@@ -29,9 +29,11 @@ import { err, ok } from '../types/index.js'
 import { AuditLogger } from './AuditLogger.js'
 import { type ChangeAnalysis, type ChangeConflict, analyzeChanges } from './ChangeTracker.js'
 import { EventEmitter, type Unsubscribe } from './EventEmitter.js'
+import { deserialize, serialize } from './JsonSerializer.js'
 import { ResourceManager } from './ResourceManager.js'
 import { StateStore } from './StateStore.js'
 import { UnlockResolver, type UnlockResolverContext } from './UnlockResolver.js'
+import type { InferredTreeDef } from './treeDefSchema.js'
 
 export class TreeEngine {
   private readonly store: StateStore
@@ -1258,5 +1260,74 @@ export class TreeEngine {
     }
   }
   // ── FIN: applyChanges (sub-fase 1.14) ──
+
+  // ── INICIO: serialización JSON (sub-fase 1.17) ──
+
+  /**
+   * Materializa un InferredTreeDef en un TreeDef nominal exacto.
+   *
+   * InferredTreeDef difiere de TreeDef SOLO en el artefacto de Zod 3 bajo
+   * exactOptionalPropertyTypes (`?:T|undefined` en opcionales). La conversión
+   * es puramente NOMINAL: el dato ya fue validado estructuralmente por
+   * `deserialize` (Zod + esquema) antes de llegar aquí, por lo que esto NO
+   * es una frontera de entrada no confiable, sino una conversión interna de
+   * dato ya validado (decisión del arquitecto, Opción 6, punto 4).
+   *
+   * Construcción SUPERFICIAL (primer nivel de TreeDef), omitiendo opcionales
+   * `undefined`. Suficiente porque StateStore guarda por referencia, Zod ya
+   * validó los anidados y ningún consumidor depende en runtime de la
+   * exactitud de opcionales anidados (decisión del arquitecto, Opción 6,
+   * punto 3). La equivalencia esquema↔TreeDef está blindada por el helper +
+   * test negativo de tipo de T7.
+   */
+  private static materializeTreeDef(value: InferredTreeDef): TreeDef {
+    // Conversión nominal interna de dato YA validado por deserialize (Zod +
+    // esquema). NO es frontera de entrada no confiable. Único `as` autorizado
+    // explícitamente por el arquitecto (Opción 6, punto 4), encapsulado aquí
+    // y solo aquí, blindado por el test de tipo de T7: si el esquema diverge
+    // de TreeDef en algo distinto del `?:T|undefined`, T7 rompe la
+    // compilación y este `as` no puede mentir silenciosamente.
+    return value as TreeDef
+  }
+
+  /**
+   * Construye un TreeEngine a partir de una cadena JSON.
+   *
+   * Deserializa + valida estructuralmente (JsonSerializer.deserialize:
+   * parse -> validación Zod -> comprobación de schemaVersion). Si todo es
+   * correcto, construye el engine; si no, devuelve el err SIN lanzar.
+   *
+   * NOTA: el constructor normal SÍ lanza (semántica intacta, decisión 5.5);
+   * este factory devuelve Result porque la entrada (JSON) es externa/no
+   * confiable. Las dos vías de validación son coherentes: deserialize hace
+   * la validación estructural completa antes de construir.
+   *
+   * @param json - Cadena JSON de fuente externa.
+   * @param options - Opciones del engine (locale, readOnly, audit).
+   * @returns ok(TreeEngine) si el JSON es válido; err(YggdrasilError) si no.
+   */
+  static fromJSON(json: string, options?: TreeEngineOptions): Result<TreeEngine> {
+    const locale = options?.locale ?? 'gl'
+    const result = deserialize(json, locale)
+    if (!result.ok) {
+      return result
+    }
+    const treeDef = TreeEngine.materializeTreeDef(result.value)
+    return ok(new TreeEngine(treeDef, options))
+  }
+
+  /**
+   * Serializa el TreeDef actual del engine a JSON determinista.
+   *
+   * Usa JsonSerializer.serialize (claves ordenadas de forma estable,
+   * incluye schemaVersion). Serializa SOLO la definición (TreeDef), nunca
+   * el estado de runtime. round-trip a nivel engine: fromJSON(e.toJSON())
+   * reconstruye un engine equivalente.
+   */
+  toJSON(): string {
+    return serialize(this.store.getTreeDef())
+  }
+
+  // ── FIN: serialización JSON (sub-fase 1.17) ──
 }
 // ── FIN: TreeEngine ──
