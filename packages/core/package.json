@@ -22,7 +22,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -35,13 +39,14 @@
   },
   "dependencies": {
     "@yggdrasil-forge/common": "workspace:*",
-    "immer": "^10.1.1"
+    "immer": "^10.1.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "tsup": "catalog:",
-    "vitest": "catalog:",
     "@vitest/coverage-v8": "catalog:",
-    "typescript": "catalog:"
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "publishConfig": {
     "access": "public"
