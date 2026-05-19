@@ -7,6 +7,15 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `Selector<T>` type: función pura `(state: TreeState) => T`.
+- `createSelector`: factoría de selectors memoizados estilo reselect, caché last-args (tamaño 1) con igualdade referencial das entradas; tipada con sobrecargas para 1-3 selectors de entrada + combinador (cero `any`).
+- `shallowEqual`: helper puro de comparación superficial (un nivel), para uso opcional como `equalityFn`. Non é o default; o default segue sendo `Object.is`.
+- `TreeEngine.select<T>(selector)`: lectura pura e síncrona dunha porción derivada do snapshot actual. As excepcións do selector propáganse (non se capturan).
+- `TreeEngine.subscribeWithSelector<T>(selector, listener, options?)`: subscríbese ao store global pero só chama a `listener(selected, previous)` cando o valor seleccionado cambia segundo `equalityFn` (default `Object.is`); soporta `fireImmediately`; devolve un `Unsubscribe`.
+
+## [Unreleased]
+
+### Added
 - `TreeEngine.unlock(nodeId)`: mutación async que valida prerequisites, exclusións e recursos, aplica custo atómico, cambia estado e emite eventos `unlock`, `stateChange`, `budgetChange`.
 - `TreeEngine.lock(nodeId)`: mutación async que reverte un nodo a `locked`, fai refund segundo `refundable`/`refundPercent`, e emite eventos `lock`, `stateChange`, `budgetChange`.
 - `TreeEngine.respec(nodeId?)`: mutación async de respec total ou parcial con detección de cascada de dependentes invalidados. Atómica: unha soa `StateStore.update`.

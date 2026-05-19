@@ -13,6 +13,7 @@ import type {
   NodeInstance,
   RespecResult,
   Result,
+  Selector,
   StateChange,
   TreeChange,
   TreeDef,
@@ -141,6 +142,67 @@ export class TreeEngine {
 
   subscribe(listener: () => void): () => void {
     return this.store.subscribe(listener)
+  }
+
+  // ── Selectors e subscrición selectiva (1.15) ──
+
+  /**
+   * Aplica un selector ao snapshot actual e devolve o valor derivado.
+   *
+   * Lectura pura e síncrona. Se o selector lanza, a excepción propágase
+   * ao chamante SEN capturarse (un selector que peta é bug do consumidor,
+   * non un erro de dominio).
+   */
+  select<T>(selector: Selector<T>): T {
+    // Intención: derivar unha porción do estado sen suscribirse a el.
+    return selector(this.store.getSnapshot())
+  }
+
+  /**
+   * Subscríbese ao estado pero só chama a `listener` cando o valor
+   * SELECCIONADO cambia (segundo `equalityFn`, por defecto `Object.is`).
+   *
+   * Apóiase na subscrición global de StateStore: en cada notificación
+   * recalcula o selector e compara co valor previo gardado neste closure.
+   *
+   * @param selector  Función pura que deriva o valor a observar.
+   * @param listener  Recibe `(selected, previous)` cando o valor cambia.
+   * @param options.equalityFn      Igualdade custom (default `Object.is`).
+   * @param options.fireImmediately Se `true`, chama `listener` unha vez
+   *                                no momento de subscribirse co valor
+   *                                actual (como `(current, current)`).
+   * @returns Función que cancela a subscrición ao store.
+   */
+  subscribeWithSelector<T>(
+    selector: Selector<T>,
+    listener: (selected: T, previous: T) => void,
+    options?: {
+      equalityFn?: (a: T, b: T) => boolean
+      fireImmediately?: boolean
+    },
+  ): Unsubscribe {
+    const eq = options?.equalityFn ?? Object.is
+    let prev = selector(this.store.getSnapshot())
+
+    if (options?.fireImmediately === true) {
+      listener(prev, prev)
+    }
+
+    const unsub = this.store.subscribe(() => {
+      const next = selector(this.store.getSnapshot())
+      if (eq(next, prev)) {
+        return
+      }
+      // Actualiza `prev` ANTES de chamar o listener: evita estado
+      // inconsistente se o listener volve a ler dentro do mesmo ciclo.
+      const previous = prev
+      prev = next
+      listener(next, previous)
+    })
+
+    return () => {
+      unsub()
+    }
   }
 
   // ── canUnlock: comprobación síncrona pura (T3) ──

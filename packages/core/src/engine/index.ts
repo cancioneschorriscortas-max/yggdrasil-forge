@@ -31,4 +31,5 @@ export {
 export { CycleDetector } from './CycleDetector.js'
 export { ResourceManager } from './ResourceManager.js'
 export { TreeEngine } from './TreeEngine.js'
+export { createSelector, shallowEqual } from './selectors.js'
 // ── FIN: engine public API ──

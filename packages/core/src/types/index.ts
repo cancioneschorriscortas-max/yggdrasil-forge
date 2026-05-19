@@ -45,6 +45,9 @@ export type {
   TreeEngineOptions,
 } from './tree.js'
 
+// Selector (1.15)
+export type { Selector } from './selector.js'
+
 // Resources (1.3)
 export type { Resource, Cost, Budget } from './resources.js'
 
