@@ -7,6 +7,12 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `treeDefSchema` (engine): esquema Zod que reflicte estruturalmente o tipo `TreeDef`. Só validación estrutural (NON regras pedagóxicas — iso é a Fase 8). Recursivo (`subtrees`) vía `z.lazy`. `InferredTreeDef` exportado (tipo do TreeDef tras validación runtime; difire de `TreeDef` só no artefacto `?:T|undefined` de Zod 3, equivalencia probada por test de tipo).
+- `TreeDefValidator.validateTreeDef(input, locale?)`: validación estrutural de entrada non confiable; devolve `Result<InferredTreeDef>`. En erro: `YggdrasilError(INVALID_TREE_DEF)` con `issues` serializables `{path, message}[]` no `context` e mensaxe localizada. Nunca lanza.
+- `JsonSerializer` (engine): `serialize(treeDef)` JSON determinista (claves ordenadas de forma estable, recursivo; inclúe `schemaVersion`; só a definición, sen estado runtime) e `deserialize(json, locale?)` (parse → validación → comprobación de `schemaVersion` contra `SCHEMA_VERSION` de common). `schemaVersion` non soportada → `SCHEMA_VERSION_UNSUPPORTED`; JSON malformado → `INVALID_TREE_DEF` controlado.
+- `TreeEngine.fromJSON(json, options?)`: factory estático que deserializa+valida e constrúe o engine; devolve `Result<TreeEngine>` SEN lanzar (a entrada é externa). O constructor normal mantén a súa semántica de throw intacta.
+- `TreeEngine.toJSON()`: serializa o `TreeDef` actual do engine de forma determinista (round-trip a nivel engine).
+- Dependencia `zod` (^3) engadida só a `@yggdrasil-forge/core`.
 - `AuditLogger` (engine): rexistro de auditoría en memoria con `record`, `query`, `clear`, `size`. Desactivado por defecto (cero overhead); límite circular FIFO configurable (`maxEntries`, default 1000).
 - `TreeEngine.getAuditLog(filter?)`: devolve unha copia filtrada das entradas de auditoría (por `actor`, `action.type`, rango `from`/`to` inclusivo, `limit`). Máis recente primeiro. Síncrono.
 - `TreeEngine.clearAuditLog()`: baleira o rexistro de auditoría.
