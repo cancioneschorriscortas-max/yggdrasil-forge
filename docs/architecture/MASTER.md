@@ -2367,102 +2367,135 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 # ANEXO A — ERRATAS, SINCRONIZACIÓN E DÉBEDA
 
 > Mantido polo director. Estado real fronte ao roadmap (sección 67).
-> Actualizado tras a decisión escalada da sub-fase 1.14.
+> **Actualizado tras o peche oficial da FASE 1 (commit `dc53f10`).**
+> Regra: unha sub-fase só se marca "Feito" cando o director a verifica
+> independentemente. Un bo reporte non substitúe a verificación.
 
-## A.1 — Sub-fase 1.11: redefinida
+## A.1–A.2 — FASE 1: PECHADA ✅
 
-Roadmap lista 1.11 = *"YggdrasilError + códigos + mensaxes localizadas"*;
-executouse en 1.1 (`common`, `1897fbf`). A rañura 1.11 reusouse como
-**consolidación**: DT-5 resolto, `ResourceManager` localizado,
-`INVALID_COST = 'YGG_V006'` engadido. Completada (`b1ee18d`, `3ee42ec`).
-Core: 315 tests.
+1.11 (roadmap) feito en 1.1. Rañura 1.11 = consolidación.
 
-## A.2 — Renumeración efectiva da Fase 1
+| Sub-fase | Estado | Commit | Tests |
+|---|---|---|---|
+| 1.12 constructor + getters | Feito | `c3f8172` | 337 |
+| 1.13 unlock/lock/respec | Feito | `eb8fcd7` | 374 |
+| 1.14 applyChanges | Feito | `b913aae`/`05db45f` | 390 |
+| 1.15 subscription + selectors | Feito | `c3410e2` | 420 |
+| 1.16 AuditLogger | Feito | `d91996e` | 449 |
+| 1.17 JsonSerializer + Validator | Feito | `25ffc6a` | 482 |
+| 1.18 Tests integración + cobertura | Feito | `dc53f10` | **538** |
+| **FASE 1 PECHADA** | ✅ | `dc53f10` | **538** |
 
-| Roadmap | Estado real |
-|---|---|
-| 1.11 YggdrasilError | Feito en 1.1 |
-| 1.11 (rañura) | Consolidación. **Feito** |
-| 1.12 TreeEngine constructor + getters | **Feito** (`c3f8172`). 337 tests |
-| 1.13 TreeEngine unlock/lock/respec | **Feito** (`eb8fcd7`). 374 tests |
-| 1.14 TreeEngine applyChanges | **En curso** (decisión escalada resolta) |
-| 1.15 TreeEngine subscription + selectors | Pendente |
-| 1.16 AuditLogger | Pendente |
-| 1.17 JsonSerializer + Validator (Zod) | Pendente |
-| 1.18 Tests integración Fase 1 | Pendente |
+**Seguinte:** Fase 2 (Effects + Stats + Time + ProgressManager).
 
-## A.3 — Rexistro de débeda técnica (DT)
+## A.3 — Débeda técnica
 
 | ID | Descrición | Estado |
 |---|---|---|
-| DT-1 | deepClone fallback sen uso | Resolto (`a8a9d20`) |
-| DT-4 | Rama rotación CycleDetector sen test | Resolto (1.10) |
-| DT-5 | Warning lint `useTemplate` ResourceManager | Resolto (1.11) |
-| DT-6 | `INVALID_COST` interpola `'unknown'` | Resolto (1.12) |
-| DT-7 | `applyCost` rama morta + `'valor-invalido'` | Resolto (1.13, `7eec470`) |
-| DT-8 | `lock`/`canUnlock` usan `INVALID_NODE_DEF` para erros de estado | En resolución (1.14 T1): `INVALID_NODE_STATE = 'YGG_E011'`; `expired`→`NODE_EXPIRED` |
+| DT-1,4,5,6,7,8 | (historial) | **Todas resoltas** |
+| DT-9 | infra: `__tests__` non typechean; type-tests en `src/*.type-test.ts` | Aberta, Fase hardening (non bloqueante) |
+| DT-10 | `unlock` multi-tier parcial: `canUnlock` bloquea reintentos sobre nodos `unlocked` aínda con `currentTier<maxTier`. Infraestrutura case toda implementada (currentTier+1, getCostForTier, maxed-en-maxTier); falta o salto de `unlocked→unlockable` para reintento. **Orixe:** briefing 1.13 dixo "multi-tier mínimo coherente" sen acoutar; quedou parcial. **Descuberta en integración (1.18)** | Aberta, sub-fase futura propia (decidir cando) |
 
-## A.3.1 — Contrato de ErrorCode: ampliacións decididas
+**0 débeda funcional silenciosa.** Toda débeda está documentada con
+orixe e plan.
 
-A sección 7.16 enténdese ampliada cos códigos engadidos en execución, todos
-seguindo o principio "cada situación semántica → o seu código, na súa
-familia":
+## A.3.1 — Contrato ErrorCode
 
-| Código | Valor | Familia | Orixe | Motivo |
-|---|---|---|---|---|
-| `INVALID_COST` | `YGG_V006` | Validation | 1.11 | Custo negativo/inválido (antes reusaba INVALID_NODE_DEF) |
-| `INVALID_NODE_STATE` | `YGG_E011` | Engine | 1.14 (DT-8) | Estado de nodo inválido para a operación (antes reusaba INVALID_NODE_DEF) |
-| `CHANGE_CONFLICT` | `YGG_E012` | Engine | 1.14 (escalado) | Conflito interno na lista de TreeChange de applyChanges |
+Engadidos en execución, todos seguindo "cada situación → o seu código":
 
-**Decisión escalada 1.14 (resolta polo director):** o executor parou en T3
-segundo o protocolo de escalado (A.5) por non haber código para conflitos de
-`applyChanges`. Director aprobou `CHANGE_CONFLICT = 'YGG_E012'` (familia
-Engine; un conflito de lista de cambios non é validación de definición nin
-estado de nodo). Mensaxe gl/es/en con placeholders `{conflictType}`,
-`{details}`; o `YggdrasilError` leva o array completo `internalConflicts` no
-`context` (telemetría). O executor continuou 1.14 completa sen parar. Ciclo
-de escalado pechado: primeiro uso real e exitoso do protocolo A.5.
+| Código | Valor | Familia | Orixe |
+|---|---|---|---|
+| `INVALID_COST` | `YGG_V006` | Validation | 1.11 |
+| `INVALID_NODE_STATE` | `YGG_E011` | Engine | 1.14 |
+| `CHANGE_CONFLICT` | `YGG_E012` | Engine | 1.14 |
 
-## A.4 — Versionado / release (pre-MVP)
+## A.3.2 — Cadea de escalado 1.17: 6 capas dun problema, todas resoltas
 
-`main` acumula changesets sen liberar. PR de release automático (#1) aberto:
-ao mergearse subiría versións, escribiría CHANGELOG e borraría changesets
-(o "vermello"/`deleted` é normal). **NON se mergea durante a Fase 1.**
-Déixase aberto e ignórase. Os executores NON o tocan.
+`exactOptionalPropertyTypes:true` ⊥ Zod 3 manifestouse en 6 capas
+(esquema, retorno do validador, ocos derivados, fronteira fromJSON→
+constructor, ubicación dos type-tests, helper sobre tipo recursivo).
+Todas resoltas sen débeda silenciosa: `Result<InferredTreeDef>` (5.2
+emendada), `materializeTreeDef` con UN `as` autorizado sobre dato xa
+validado, `treeDefSchema.type-test.ts` en `src/` validado polo
+pipeline, dobre asignabilidade dirixida con `DeepMutable`/`RelaxOptional`.
 
-## A.5 — Patrón de risco do executor e a súa evolución
+## A.4 / A.4.1 — Release/aclaracións
 
-- **1.10–1.12:** placeholders/códigos incorrectos sen reportar; cazábaos o
-  director.
-- **Mitigación (1.13):** anti-placeholder como grep verificable no reporte.
-- **1.13 resultado:** funcionou. DT-7 resolto de verdade; limitación
-  reportada honestamente (orixe de DT-8, obxección á decisión técnica, non
-  á ocultación).
-- **Protocolo de escalado (1.14):** ante decisión de **contrato/
-  arquitectura** non resolta no briefing, o executor PARA, abre
-  `🛑 DECISIÓN REQUERIDA DO ARQUITECTO` cunha pregunta+recomendación, e
-  detén o avance. O autor fai de ponte ao director.
-- **1.14 resultado:** primeiro uso real. O executor parou correctamente en
-  T3 e escalou `CHANGE_CONFLICT`. Director resolveu sen débeda. **O
-  protocolo de escalado funcionou á primeira.**
+PR release (#1) NON se mergea aínda. **Decisión pendente do autor:** ao
+pechar a Fase 1 con cero débeda funcional silenciosa e 538 tests verdes,
+podería considerarse mergealo como `0.1.0-alpha` interno (snapshot) ou
+seguir acumulando ata pasos máis maduros (recoméndase seguir agardando
+ata Fase 2 polo menos). NON urxente. Carpeta `yggdrasil-forge` local
+pendente de borrar polo autor. `docs/briefings/*` mantéñense.
 
-## A.6 — Leccións de planificación do director
+## A.5 — Evolución do executor (resumo Fase 1)
 
-- **1.12:** non cablear dependencias antes da sub-fase que as use
-  (`noUnusedLocals`). Aplicado desde 1.13.
-- **1.11:** conteo de tests verifícao o director no repo, exacto, sen `≥`.
+1.10–1.12 placeholders sen reportar → mitigación grep (1.13) → escalado
+de contrato (1.14, `CHANGE_CONFLICT`) → 1.15 incidente transporte
+resolto e doutrina afinada → 1.16 limpo → 1.17 sub-fase máis difícil,
+6 escalados, cero débeda silenciosa → 1.18 peche limpo (1292 insertions,
+**0 modificacións de produción**, cobertura TreeEngine 81%→96%).
 
-## A.7 — Protocolo director-executor: addenda consolidada
+Protocolo maduro: o executor escala con evidencia, cuestiona condicións
+do director (escalado #5), recomenda con honestidade aceptando rexeite
+(#2, #4), e clasifica débeda descuberta (criterio refinable: en 1.18 o
+"límite coñecido" debía ser "DT explícita"; matiz aceptable, sinalado).
 
-Todo briefing inclúe **sección 0**: (a) scripts en `/tmp/ygg-exec/` con
-rutas `C:/Users/...`; (b) tests SEMPRE `--force`; (c) rama/método/orde
-decididos polo director; (d) anti-placeholder con grep no reporte; (e)
-escalado de decisións de contrato ao arquitecto vía autor, deténdose no
-punto bloqueado; (f) un script por operación con `assert`; commits
-separados por unidade lóxica.
+## A.5.1 — Modelo executor
+
+Opus 4.7 desde ~1.14/1.15. Sección 0 e escalado INTACTOS.
+
+## A.6 — Leccións do director (Fase 1)
+
+- 1.12: non cablear deps antes da sub-fase que as use.
+- 1.11: verificar nº exacto de tests antes do briefing.
+- 1.17 #2: cubrir ocos derivados ou marcalos "re-escalar concreto".
+- 1.17 #4: verificar premisa técnica no código; doutrina con matices.
+- 1.17 #5: salvagarda imposta debe ser executable polo pipeline.
+- 1.17 #6: verificar empíricamente afirmacións técnicas centrais.
+- **1.18: ao escribir un briefing inicial de feature, acoutar
+  explicitamente "mínimo coherente" vs "feature completa". A imprecisión
+  do briefing 1.13 ("multi-tier mínimo coherente") xerou DT-10
+  silenciosa que só se viu en integración. Especificar o ámbito evita
+  débeda invisible.**
+
+## A.8 — Método de entrega
+
+Integración: SEMPRE push directo a `origin/main`. Transporte: `.patch`
+aceptable se non hai credenciais, aplicado **dende a raíz** (verificado
+correcto en 1.16/1.17/1.18 — incidente 1.15 non se repetiu), push final
+polo autor.
+
+## A.7 — Protocolo consolidado
+
+Sección 0 en todo briefing: scripts `/tmp/ygg-exec/` rutas `C:/`; tests
+`--force`; rama/método/orde do director; anti-placeholder grep no
+reporte; escalado de contrato verificado no código; salvagardas
+executables polo pipeline; afirmacións técnicas centrais verificadas
+empíricamente; script por operación con `assert`; entrega A.8; commits
+separados; excepcións de lockfile só con autorización explícita;
+**briefings de feature deben acoutar explícitamente o ámbito (A.6 1.18)**.
+
+## A.9 — Resumo cuantitativo da Fase 1
+
+```
+Commit final:           dc53f10 (origin/main)
+Tests:                  538 (33 ficheiros)
+Cobertura global:       97.68%   (obxectivo ≥90% superado en +7.7pp)
+Cobertura TreeEngine:   96.12%   (era 81% post-1.16)
+Lint:                   0/0
+Typecheck:              20/20 (sen caché, inclúe type-tests Zod)
+Deps externas (core):   immer + zod
+ErrorCodes:             30 (3 engadidos en execución, trazados)
+Sub-fases pechadas:     7 (1.12–1.18)
+Decisións escaladas:    6 (todas en 1.17, todas trazadas)
+Débeda funcional:       0 silenciosa, 1 documentada (DT-10)
+Débeda infra:           1 documentada (DT-9)
+Incidentes resoltos:    1 (transporte 1.15, lección incorporada)
+```
 
 ---
 
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (erratas/sincronización/débeda)**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (FASE 1 PECHADA ✅)**
