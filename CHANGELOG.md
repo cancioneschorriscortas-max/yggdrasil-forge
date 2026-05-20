@@ -7,6 +7,12 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- Phase 1 integration test suite (1.18, closure of Phase 1): new `packages/core/__tests__/integration/` directory with 6 end-to-end scenarios — `lifecycle`, `economy`, `applyChanges`, `audit`, `subscription`, `untrusted-input` — plus targeted coverage tests for `TreeEngine.ts`. Reusable rich fixtures (`fixtures.ts`) build realistic `TreeDef` instances that pass the Zod schema (round-trip safe via `toJSON ↔ fromJSON`).
+- No production code changes. Coverage rises: global 92.72% → 97.68%, `TreeEngine.ts` 81.72% → 96.12%. Total core tests: 482 → 538.
+
+## [Unreleased]
+
+### Added
 - `treeDefSchema` (engine): esquema Zod que reflicte estruturalmente o tipo `TreeDef`. Só validación estrutural (NON regras pedagóxicas — iso é a Fase 8). Recursivo (`subtrees`) vía `z.lazy`. `InferredTreeDef` exportado (tipo do TreeDef tras validación runtime; difire de `TreeDef` só no artefacto `?:T|undefined` de Zod 3, equivalencia probada por test de tipo).
 - `TreeDefValidator.validateTreeDef(input, locale?)`: validación estrutural de entrada non confiable; devolve `Result<InferredTreeDef>`. En erro: `YggdrasilError(INVALID_TREE_DEF)` con `issues` serializables `{path, message}[]` no `context` e mensaxe localizada. Nunca lanza.
 - `JsonSerializer` (engine): `serialize(treeDef)` JSON determinista (claves ordenadas de forma estable, recursivo; inclúe `schemaVersion`; só a definición, sen estado runtime) e `deserialize(json, locale?)` (parse → validación → comprobación de `schemaVersion` contra `SCHEMA_VERSION` de common). `schemaVersion` non soportada → `SCHEMA_VERSION_UNSUPPORTED`; JSON malformado → `INVALID_TREE_DEF` controlado.
