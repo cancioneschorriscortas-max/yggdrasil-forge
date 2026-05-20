@@ -78,10 +78,11 @@ describe('integración — economía e prerequisites', () => {
   })
 
   it('maxTier=1: o primeiro unlock deixa o nodo en maxed e bloquea reintentos', async () => {
-    // O motor da Fase 1 trata `unlock` como operación única por nodo (non
-    // hai escalado de tier en runtime polo método unlock; o multi-tier real
-    // é fase posterior). Verificamos a transición a maxed cando maxTier=1 e
-    // que un segundo unlock devolve NODE_ALREADY_UNLOCKED.
+    // Semántica de sempre (intacta tras DT-10 / Opción C): con maxTier=1
+    // o primeiro unlock pasa a 'maxed' (un só tier alcanzable) e calquera
+    // reintento devolve NODE_ALREADY_UNLOCKED. O multi-tier real (DT-10)
+    // só activa reintentos cando maxTier >= 2; con maxTier=1 ou
+    // maxTier=undefined a semántica é a mesma de sempre.
     const engine = new TreeEngine({
       ...makeMultiTierTreeDef(),
       nodes: [

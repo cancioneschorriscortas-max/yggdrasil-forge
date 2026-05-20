@@ -6,6 +6,11 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Fixed
+- DT-10 — Multi-tier unlock completo para nodos con `maxTier >= 2`: chamadas consecutivas a `unlock` sobre o mesmo nodo avanzan o seu tier ata `currentTier === maxTier`, momento no que pasa a `'maxed'`. Cada salto emite `unlock`, `stateChange` e `budgetChange`, e (con audit activo) rexistra unha entrada `node_unlocked` co tier alcanzado. Atomicidade preservada: se `applyCost` falla a media, o estado permanece intacto. A semántica de `maxTier === undefined` (queda en `'unlocked'`, reintentos bloqueados) e `maxTier === 1` (pasa a `'maxed'` no primeiro unlock) **non cambia**: multi-tier é opt-in vía `maxTier >= 2` explícito.
+
+## [Unreleased]
+
 ### Added
 - Phase 1 integration test suite (1.18, closure of Phase 1): new `packages/core/__tests__/integration/` directory with 6 end-to-end scenarios — `lifecycle`, `economy`, `applyChanges`, `audit`, `subscription`, `untrusted-input` — plus targeted coverage tests for `TreeEngine.ts`. Reusable rich fixtures (`fixtures.ts`) build realistic `TreeDef` instances that pass the Zod schema (round-trip safe via `toJSON ↔ fromJSON`).
 - No production code changes. Coverage rises: global 92.72% → 97.68%, `TreeEngine.ts` 81.72% → 96.12%. Total core tests: 482 → 538.

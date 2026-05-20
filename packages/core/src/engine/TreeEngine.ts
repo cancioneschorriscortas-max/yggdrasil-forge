@@ -269,13 +269,33 @@ export class TreeEngine {
     const instance = state.nodes[nodeId]
     const currentState = instance?.state ?? 'locked'
 
-    // Xa desbloqueado ou maxed → non está permitido, pero non é un erro de sistema
-    if (currentState === 'unlocked' || currentState === 'maxed') {
+    // ── INICIO: bloqueo por estado xa desbloqueado (DT-10) ──
+    // `'maxed'` sempre bloquea con NODE_ALREADY_UNLOCKED.
+    // `'unlocked'` distingue:
+    //   - Sen maxTier definido → segue bloqueando (semántica actual,
+    //     intacta dende 1.13: un nodo sen maxTier explícito non admite
+    //     reintentos de tier).
+    //   - Con maxTier definido e currentTier >= maxTier → bloquea.
+    //   - Con maxTier definido e currentTier < maxTier → NON cortar
+    //     aquí; segue avaliando prereq + exclusións + recursos como un
+    //     unlock normal. É a semántica multi-tier de DT-10.
+    if (currentState === 'maxed') {
       return ok({
         allowed: false,
         reason: getErrorMessage(ErrorCode.NODE_ALREADY_UNLOCKED, this.locale, { nodeId }),
       })
     }
+    if (currentState === 'unlocked') {
+      const currentTier = instance?.currentTier ?? 0
+      if (nodeDef.maxTier === undefined || currentTier >= nodeDef.maxTier) {
+        return ok({
+          allowed: false,
+          reason: getErrorMessage(ErrorCode.NODE_ALREADY_UNLOCKED, this.locale, { nodeId }),
+        })
+      }
+      // Tier libre dentro de maxTier: continúa coa avaliación normal.
+    }
+    // ── FIN: bloqueo por estado xa desbloqueado (DT-10) ──
 
     // Nodo expirado → non permitido (código específico NODE_EXPIRED)
     if (currentState === 'expired') {
@@ -381,7 +401,13 @@ export class TreeEngine {
       const instance = state.nodes[nodeId]
       const currentState = instance?.state ?? 'locked'
 
-      if (currentState === 'unlocked' || currentState === 'maxed') {
+      // ── INICIO: derivación coherente con canUnlock (DT-10) ──
+      // 'maxed' sempre é NODE_ALREADY_UNLOCKED.
+      // 'unlocked' sen maxTier ou con currentTier >= maxTier → tamén é
+      // NODE_ALREADY_UNLOCKED. Pero 'unlocked' con tier libre dentro de
+      // maxTier debe diagnosticarse polo motivo real (recursos,
+      // prerequisites, exclusións), exactamente como un primeiro unlock.
+      if (currentState === 'maxed') {
         return err(
           new YggdrasilError(
             ErrorCode.NODE_ALREADY_UNLOCKED,
@@ -389,6 +415,19 @@ export class TreeEngine {
           ),
         )
       }
+      const tierIfUnlocked = instance?.currentTier ?? 0
+      if (
+        currentState === 'unlocked' &&
+        (nodeDef.maxTier === undefined || tierIfUnlocked >= nodeDef.maxTier)
+      ) {
+        return err(
+          new YggdrasilError(
+            ErrorCode.NODE_ALREADY_UNLOCKED,
+            getErrorMessage(ErrorCode.NODE_ALREADY_UNLOCKED, this.locale, { nodeId }),
+          ),
+        )
+      }
+      // ── FIN: derivación coherente con canUnlock (DT-10) ──
 
       // Comprobar se é por exclusión
       if (nodeDef.exclusions !== undefined) {
