@@ -6,6 +6,24 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- `EffectsRunner` (engine, sub-fase 2.1): runner standalone do Effects DSL (`types/effects.ts`) que aplica e revira efectos declarativos contra unha pila inxectada de pezas do motor (`StateStore`, `ResourceManager`, `UnlockResolver`, `EventEmitter`, `TreeEngine`). Construído como peza illada por deseño: o consumidor instancia manualmente `EffectContext` con `{ engine, store, resources, resolver, events, locale }`. NON se conecta automaticamente a `TreeEngine.unlock` — a integración cómoda queda para a sub-fase 2.1.b.
+- Cobertura desta sub-fase: 8 dos 10 effect types con forward + reverse — `modify_resource` (+/-/*), `trigger_event`, `conditional`, `composite`, `set_node_visibility`, `unlock_node`, `modify_node_state`, `set_progress`. Os outros dous (`modify_stat`, `plugin`) devolven `EFFECT_TYPE_UNSUPPORTED` (validate e run); quedan para 2.2 e fase 8.
+- Atomicidade en `run()`: todo-ou-nada. Se o N-ésimo effect falla, os N-1 anteriores revírtense automaticamente en orde inversa; o error devolve `EFFECT_APPLICATION_FAILED` cun `context` que inclúe `failedAt`, `failedEffect`, `revertedCount` e `originalErrorCode` da causa real.
+- `EffectsRunner.validate(effects)`: comprobación estática sen aplicar — tipos coñecidos, referencias a `nodeId`/`resourceId` existen na TreeDef, rango `[0, 100]` para `set_progress`, lista branca de transicións para `modify_node_state`, recursión completa sobre `composite`/`conditional`.
+- `EffectsRunner.run(effects)`: forward atómico. Detección de bucles vía `Set<string>` de nodos desbloqueados durante a corrida (`unlock_node` repetido → `CIRCULAR_EFFECT`). Profundidade máxima de cascada `MAX_EFFECT_DEPTH = 8` (composite/conditional aniñados en exceso → `CIRCULAR_EFFECT`).
+- `EffectsRunner.reverse(results)`: itera en orde inversa, cada effect usa o seu `previousValue` para restaurar o estado previo. Effects con `irreversible: true` → `IRREVERSIBLE_EFFECT`. Para `set_node_visibility` preservase a distinción "campo ausente vs explicitamente `undefined`" (decisión do arquitecto): se `previousValue === undefined`, elimínase o campo do draft; se é boolean, restaúrase exactamente.
+- Lista branca de transicións de `modify_node_state` (sec. 5.8 do briefing): só `locked↔unlockable` e `unlocked↔disabled` están permitidas. Calquera outra (incluíndo saltar a `'unlocked'` ou `'maxed'` directamente) → `EFFECT_APPLICATION_FAILED`. Os saltos a `'unlocked'/'maxed'` deben pasar polo fluxo normal de `unlock` con custos e prerequisites.
+- `EffectContext` (engine, public): interface inxectable que agrupa as pezas do motor que cada effect necesita. Exportada xunto co `EffectsRunner`.
+- `NodeInstance.visible?: boolean` (types/node.ts): novo campo opcional mutable (sen `readonly`, coherente co estilo do tipo; Immer garante a inmutabilidade externa). Usado polo effect `set_node_visibility`.
+- `EventMap.customEvent: (eventName: string, payload?: unknown) => void`: novo evento emitido polo effect `trigger_event`. O `payload` trátase como `unknown`; o consumidor é responsable de validalo.
+- `EffectResult.previousValue?: unknown`: novo campo opcional para soportar `reverse()`. Cada effect coñece o tipo concreto que garda (number/boolean/string/array/object); reversores defensivos no caso de `previousValue` corrupto.
+- `ErrorCode` ampliado con 5 códigos novos (`@yggdrasil-forge/common`): `EFFECT_TYPE_UNSUPPORTED` (YGG_E013), `IRREVERSIBLE_EFFECT` (YGG_E014), `CIRCULAR_EFFECT` (YGG_E015), `EFFECT_TARGET_NOT_FOUND` (YGG_E016), `EFFECT_APPLICATION_FAILED` (YGG_E017). Mensaxes localizadas en `gl`/`es`/`en`.
+- Tests (`__tests__/engine/EffectsRunner.test.ts`): 68 tests novos cubrindo validate, run/reverse felices por tipo, atomicidade, detección de bucles, casos de error con `.code` exacto, integración con `customEvent`, e cobertura adicional de ramas defensivas. Total tests do paquete `core`: 547 → 615.
+- Cobertura de `EffectsRunner.ts`: 100% Stmts / 97.29% Branch / 100% Func / 100% Lines. Cobertura global do paquete sobe a 98.04% Stmts / 91.09% Branch (de 97.69 / 89.93 baseline). Ramas defensivas xenuínas anotadas con `c8 ignore` xustificado.
+
+## [Unreleased]
+
 ### Fixed
 - DT-10 — Multi-tier unlock completo para nodos con `maxTier >= 2`: chamadas consecutivas a `unlock` sobre o mesmo nodo avanzan o seu tier ata `currentTier === maxTier`, momento no que pasa a `'maxed'`. Cada salto emite `unlock`, `stateChange` e `budgetChange`, e (con audit activo) rexistra unha entrada `node_unlocked` co tier alcanzado. Atomicidade preservada: se `applyCost` falla a media, o estado permanece intacto. A semántica de `maxTier === undefined` (queda en `'unlocked'`, reintentos bloqueados) e `maxTier === 1` (pasa a `'maxed'` no primeiro unlock) **non cambia**: multi-tier é opt-in vía `maxTier >= 2` explícito.
 
