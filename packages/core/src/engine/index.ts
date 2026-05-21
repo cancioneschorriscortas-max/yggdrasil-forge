@@ -36,6 +36,7 @@ export {
   type AuditRecordOptions,
 } from './AuditLogger.js'
 export { TreeEngine } from './TreeEngine.js'
+export { EffectsRunner, type EffectContext } from './EffectsRunner.js'
 export { createSelector, shallowEqual } from './selectors.js'
 export {
   treeDefSchema,

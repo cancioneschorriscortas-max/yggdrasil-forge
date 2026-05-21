@@ -68,5 +68,13 @@ export interface EffectResult {
   readonly effect: Effect
   readonly applied: boolean
   readonly reason?: string
+  /**
+   * Valor previo do campo modificado, gardado para soportar `reverse()`.
+   * Tratado como `unknown`: cada effect coñece o seu tipo concreto.
+   * `composite` e `conditional` poden gardar aquí o array de results
+   * dos effects internos (para reverse en cascada). `trigger_event` non
+   * garda nada (non hai estado mutable que restaurar).
+   */
+  readonly previousValue?: unknown
 }
 // ── FIN: Effects DSL ──

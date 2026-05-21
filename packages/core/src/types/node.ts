@@ -206,6 +206,14 @@ export interface NodeInstance {
   /** Histórico de cambios de estado (audit local). */
   history?: StateChange[]
   /**
+   * Visibilidad del nodo en la UI. Mutable a propósito (set_node_visibility).
+   * `undefined` = no se ha establecido explícitamente; se trata como visible
+   * por defecto. Sin `readonly` para mantener coherencia con el resto de
+   * campos del tipo, que también son mutables vía StateStore.update (Immer
+   * garantiza la inmutabilidad externa).
+   */
+  visible?: boolean
+  /**
    * Estado da sub-árbore aniñada se o nodo é subtree_anchor.
    * Referencia circular: TreeState → NodeInstance → TreeState.
    */

@@ -64,6 +64,13 @@ export interface EventMap {
 
   /** Nova entrada engadida ao audit log. */
   readonly auditEntry: (entry: AuditEntry) => void
+
+  /**
+   * Evento custom emitido polo effect `trigger_event` do EffectsRunner.
+   * O `payload` trátase como `unknown`: o consumidor é responsable de
+   * validalo (mediante guardas de tipo) antes de usalo.
+   */
+  readonly customEvent: (eventName: string, payload?: unknown) => void
 }
 
 /**

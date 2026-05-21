@@ -66,6 +66,31 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Conflicto interno en la lista de cambios: {conflictType} ({details})',
     en: 'Internal conflict in change list: {conflictType} ({details})',
   },
+  [ErrorCode.EFFECT_TYPE_UNSUPPORTED]: {
+    gl: 'O tipo de efecto "{effectType}" non está soportado nesta versión',
+    es: 'El tipo de efecto "{effectType}" no está soportado en esta versión',
+    en: 'Effect type "{effectType}" is not supported in this version',
+  },
+  [ErrorCode.IRREVERSIBLE_EFFECT]: {
+    gl: 'O efecto "{effectType}" está marcado como irreversible e non se pode reverter',
+    es: 'El efecto "{effectType}" está marcado como irreversible y no se puede revertir',
+    en: 'Effect "{effectType}" is marked as irreversible and cannot be reverted',
+  },
+  [ErrorCode.CIRCULAR_EFFECT]: {
+    gl: 'Detectouse un ciclo na cascada de efectos: {cycle}',
+    es: 'Se detectó un ciclo en la cascada de efectos: {cycle}',
+    en: 'A cycle was detected in the effect cascade: {cycle}',
+  },
+  [ErrorCode.EFFECT_TARGET_NOT_FOUND]: {
+    gl: 'O efecto "{effectType}" referencia un destino inexistente: "{targetId}"',
+    es: 'El efecto "{effectType}" referencia un destino inexistente: "{targetId}"',
+    en: 'Effect "{effectType}" references a non-existent target: "{targetId}"',
+  },
+  [ErrorCode.EFFECT_APPLICATION_FAILED]: {
+    gl: 'Fallou a aplicación do efecto "{effectType}" no índice {failedAt}: {reason}',
+    es: 'Falló la aplicación del efecto "{effectType}" en el índice {failedAt}: {reason}',
+    en: 'Effect "{effectType}" application failed at index {failedAt}: {reason}',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',
