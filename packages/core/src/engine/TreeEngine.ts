@@ -10,10 +10,12 @@ import type {
   AuditEntry,
   AuditFilter,
   Budget,
+  Cost,
   EventMap,
   EventName,
   LockResult,
   NodeInstance,
+  NodeState,
   RespecResult,
   Result,
   Selector,
@@ -28,6 +30,7 @@ import type {
 import { err, ok } from '../types/index.js'
 import { AuditLogger } from './AuditLogger.js'
 import { type ChangeAnalysis, type ChangeConflict, analyzeChanges } from './ChangeTracker.js'
+import { EffectsRunner } from './EffectsRunner.js'
 import { EventEmitter, type Unsubscribe } from './EventEmitter.js'
 import { deserialize, serialize } from './JsonSerializer.js'
 import { ResourceManager } from './ResourceManager.js'
@@ -44,6 +47,12 @@ export class TreeEngine {
   private readonly resolver = new UnlockResolver()
   // Rexistro de auditoría. Desactivado por defecto (cero overhead).
   private readonly audit: AuditLogger
+  // ── INICIO: 2.1.b — runner de effects cableado ao motor ──
+  // Constrúese tras `this.audit` no constructor. Auto-referencia a `this`
+  // no EffectContext.engine para que effects como `unlock_node` poidan
+  // chamar de volta ao motor (con MAX_EFFECT_DEPTH limitando bucles).
+  private readonly effectsRunner: EffectsRunner
+  // ── FIN: 2.1.b ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -52,6 +61,16 @@ export class TreeEngine {
     this.store = new StateStore(treeDef)
     this.resources = new ResourceManager(treeDef.resources ?? [])
     this.audit = new AuditLogger(options?.audit)
+    // ── INICIO: 2.1.b — instanciación do EffectsRunner ──
+    this.effectsRunner = new EffectsRunner({
+      engine: this,
+      store: this.store,
+      resources: this.resources,
+      resolver: this.resolver,
+      events: this.events,
+      locale: this.locale,
+    })
+    // ── FIN: 2.1.b ──
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -478,6 +497,12 @@ export class TreeEngine {
     // Calcular custo e aplicalo de forma atómica
     const state = this.store.getState()
     const instance = state.nodes[nodeId]
+    // ── INICIO: 2.1.b — captura para rollback se effects fallan ──
+    // Alias explícito do NodeInstance previo (pode ser undefined se o nodo
+    // nunca foi tocado). Necesario para restaurar o estado do nodo se a
+    // execución de nodeDef.effects falla tras o unlock exitoso (5.3.c).
+    const previousInstance = instance
+    // ── FIN: 2.1.b ──
     const currentTier = instance?.currentTier ?? 0
     const targetTier = currentTier + 1
     const costs = this.resources.getCostForTier(nodeDef, targetTier)
@@ -552,8 +577,136 @@ export class TreeEngine {
       this.events.emit('auditEntry', auditEntry)
     }
 
+    // ── INICIO: 2.1.b — execución de effects tras unlock exitoso ──
+    // Se o NodeDef ten effects, execútanse via EffectsRunner.run. Atomicidade
+    // total: se algún effect falla, revértese o estado do nodo, restáurase o
+    // budget previo (sec. 5.3 do briefing 2.1.b, decisión do director:
+    // oldBudget directo, NON refund — o unlock "nunca aconteceu") e regístrase
+    // unha entrada audit 'effects_failed'. Multi-tier (5.7): cada salto de
+    // tier execútase como un unlock independente, polo tanto os effects
+    // execútanse en cada salto. Esta é a semántica natural.
+    const nodeEffects = nodeDef.effects
+    if (nodeEffects !== undefined && nodeEffects.length > 0) {
+      const effectsResult = await this.effectsRunner.run(nodeEffects)
+      if (!effectsResult.ok) {
+        return this.rollbackUnlockOnEffectsFailure(
+          nodeId,
+          previousInstance,
+          oldBudget,
+          newBudget,
+          costs,
+          newNodeState,
+          prevNodeState,
+          effectsResult.error,
+        )
+      }
+      // Audit agregada (5.4): unha única entrada custom 'effects_applied'.
+      const effectsAppliedEntry = this.audit.record({
+        type: 'custom',
+        name: 'effects_applied',
+        data: {
+          nodeId,
+          count: effectsResult.value.length,
+          effects: effectsResult.value.map((r) => ({
+            type: r.effect.type,
+            applied: r.applied,
+            reason: r.reason,
+          })),
+        },
+      })
+      if (effectsAppliedEntry !== null) {
+        this.events.emit('auditEntry', effectsAppliedEntry)
+      }
+    }
+    // ── FIN: 2.1.b ──
+
     return ok({ nodeId, newState: newNodeState, tier: targetTier, spent: costs })
   }
+
+  // ── INICIO: 2.1.b — helper privado de rollback ──
+  // Encapsula o rollback completo tras un fallo na execución dos effects de
+  // nodeDef.effects. Os effects parciais xa foron revertidos internamente
+  // polo EffectsRunner (atomicidade interna de 2.1 sec 5.4); aquí
+  // ocupámonos só do que o motor mutou: estado do nodo, budget, eventos
+  // de reversión e audit compensatorio.
+  //
+  // Decisión do director (1) sobre 5.3.b: restáurase oldBudget directo
+  // (NON via ResourceManager.refund). Refund é semántica de respec
+  // voluntario; aquí o unlock "nunca aconteceu" e o budget volve exacto.
+  //
+  // Decisión do director sobre 5.3.g: NON se revira o audit 'node_unlocked'
+  // previo; a entrada 'effects_failed' nova é compensatoria.
+  private rollbackUnlockOnEffectsFailure(
+    nodeId: string,
+    previousInstance: NodeInstance | undefined,
+    oldBudget: Budget,
+    newBudget: Budget,
+    costs: readonly Cost[],
+    newNodeState: NodeState,
+    prevNodeState: NodeState,
+    effectsError: YggdrasilError,
+  ): Result<UnlockResult> {
+    // (b) Restaurar oldBudget directo + (c) reverter estado do nodo.
+    this.store.update((draft) => {
+      draft.budget = castDraft(oldBudget)
+      if (previousInstance !== undefined) {
+        draft.nodes[nodeId] = castDraft(previousInstance)
+      } else {
+        delete draft.nodes[nodeId]
+      }
+    })
+
+    // (d) Emitir eventos de reversión, en orde coherente.
+    // budgetChange por cada cost: novo valor (post-cobro) → valor restaurado.
+    for (const cost of costs) {
+      const cobradoAmount = newBudget.resources[cost.resourceId] ?? 0
+      const restauradoAmount = oldBudget.resources[cost.resourceId] ?? 0
+      if (cobradoAmount !== restauradoAmount) {
+        this.events.emit('budgetChange', cost.resourceId, cobradoAmount, restauradoAmount)
+      }
+    }
+    this.events.emit('stateChange', nodeId, {
+      from: newNodeState,
+      to: prevNodeState,
+      timestamp: Date.now(),
+      reason: 'effect_failed',
+    })
+    // lock: emitir co NodeInstance restaurado. Se non había instance previa,
+    // sintetízase un coherente co estado post-rollback (state: 'locked').
+    const lockedInstance: NodeInstance = previousInstance ?? {
+      id: nodeId,
+      state: 'locked',
+      currentTier: 0,
+    }
+    this.events.emit('lock', nodeId, lockedInstance)
+
+    // (e) Audit compensatorio: entrada 'custom' co detalle do fallo.
+    // O context do error vén directamente do EffectsRunner (sec 5.4 do 2.1):
+    // { failedAt, failedEffect, reason, revertedCount, originalErrorCode }.
+    const failedEntry = this.audit.record({
+      type: 'custom',
+      name: 'effects_failed',
+      data: {
+        nodeId,
+        ...(effectsError.context ?? {}),
+      },
+    })
+    if (failedEntry !== null) {
+      this.events.emit('auditEntry', failedEntry)
+    }
+
+    // (f) Devolver err. Reusamos código + mensaxe + context do EffectsRunner,
+    // engadindo nodeId ao context (información que o runner non coñecía).
+    return err(
+      new YggdrasilError(effectsError.code, effectsError.message, {
+        context: {
+          ...(effectsError.context ?? {}),
+          nodeId,
+        },
+      }),
+    )
+  }
+  // ── FIN: 2.1.b ──
 
   // ── lock: mutación async (T4) ──
   // Limitación coñecida (1.13): non fai cascada de dependentes.
