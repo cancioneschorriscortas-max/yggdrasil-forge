@@ -2367,13 +2367,13 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 # ANEXO A — ERRATAS, SINCRONIZACIÓN E DÉBEDA
 
 > Mantido polo director. Estado real fronte ao roadmap (sección 67).
-> **Actualizado tras o peche oficial da FASE 1 (commit `dc53f10`).**
+> **Actualizado tras 2.1 + 2.1.b (Fase 2 en curso).**
 > Regra: unha sub-fase só se marca "Feito" cando o director a verifica
 > independentemente. Un bo reporte non substitúe a verificación.
 
-## A.1–A.2 — FASE 1: PECHADA ✅
+## A.1–A.2 — Estado actual
 
-1.11 (roadmap) feito en 1.1. Rañura 1.11 = consolidación.
+Fase 1 pechada + addendum 1.19 (DT-10). Fase 2 en curso:
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
@@ -2383,119 +2383,149 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 | 1.15 subscription + selectors | Feito | `c3410e2` | 420 |
 | 1.16 AuditLogger | Feito | `d91996e` | 449 |
 | 1.17 JsonSerializer + Validator | Feito | `25ffc6a` | 482 |
-| 1.18 Tests integración + cobertura | Feito | `dc53f10` | **538** |
-| **FASE 1 PECHADA** | ✅ | `dc53f10` | **538** |
+| 1.18 Tests integración + cobertura | Feito | `dc53f10` | 538 |
+| (peche docs Fase 1) | Feito | `1290378` | 538 |
+| 1.19 multi-tier unlock (DT-10) | Feito | `05dbf46` | 547 |
+| **2.1 EffectsRunner standalone** | **Feito** | `7dcc609` | **615** |
+| **2.1.b EffectsRunner cableado a unlock** | **Feito** | `3fb3199` | **623** |
+| 2.2 StatComputer | **Seguinte** | — | — |
 
-**Seguinte:** Fase 2 (Effects + Stats + Time + ProgressManager).
+**Tag `phase-1-closed`** segue en `1290378`. Fase 2: 2 sub-fases pechadas
+de ~6 previstas.
 
 ## A.3 — Débeda técnica
 
 | ID | Descrición | Estado |
 |---|---|---|
-| DT-1,4,5,6,7,8 | (historial) | **Todas resoltas** |
-| DT-9 | infra: `__tests__` non typechean; type-tests en `src/*.type-test.ts` | Aberta, Fase hardening (non bloqueante) |
-| DT-10 | `unlock` multi-tier parcial: `canUnlock` bloquea reintentos sobre nodos `unlocked` aínda con `currentTier<maxTier`. Infraestrutura case toda implementada (currentTier+1, getCostForTier, maxed-en-maxTier); falta o salto de `unlocked→unlockable` para reintento. **Orixe:** briefing 1.13 dixo "multi-tier mínimo coherente" sen acoutar; quedou parcial. **Descuberta en integración (1.18)** | Aberta, sub-fase futura propia (decidir cando) |
+| DT-1, DT-4..DT-8 | (historial) | Todas resoltas |
+| DT-9 | infra: `__tests__` non typechean; workaround `src/*.type-test.ts` | Aberta, Fase hardening (non bloqueante) |
+| DT-10 | unlock multi-tier parcial | **Resolta (1.19)** |
+| **DT-11** | Detección de ciclos `unlock_node` recursivos en EffectsRunner non se activa cando os unlocks pasan por `TreeEngine.unlock` (cada chamada crea un `run` novo con `unlockedDuringRun` local). O ciclo detéctase colateral como `NODE_ALREADY_UNLOCKED` na cadea; o estado queda **coherente** tras o rollback total da 2.1.b (verificado en test), pero a protección deseñada con `MAX_EFFECT_DEPTH=8` queda inerte nese fluxo. **Descuberta en 2.1.b por verificación empírica do executor** (intentou escribir o test esperando `CIRCULAR_EFFECT`, descubriu que sae `EFFECT_APPLICATION_FAILED`/`NODE_ALREADY_UNLOCKED` na cadea). Solución futura: estender `EffectContext` para compartir o Set entre invocacións aniñadas, ou mover a detección ao propio `TreeEngine.unlock`. **Non bloqueante** | Aberta, sub-fase futura |
 
-**0 débeda funcional silenciosa.** Toda débeda está documentada con
-orixe e plan.
+**0 débeda funcional crítica.** DT-11 é débeda de calidade (protección que existe pero non funciona como pensada); o sistema é robusto polo camiño colateral.
 
 ## A.3.1 — Contrato ErrorCode
-
-Engadidos en execución, todos seguindo "cada situación → o seu código":
 
 | Código | Valor | Familia | Orixe |
 |---|---|---|---|
 | `INVALID_COST` | `YGG_V006` | Validation | 1.11 |
 | `INVALID_NODE_STATE` | `YGG_E011` | Engine | 1.14 |
 | `CHANGE_CONFLICT` | `YGG_E012` | Engine | 1.14 |
+| `EFFECT_TYPE_UNSUPPORTED` | `YGG_E013` | Engine | 2.1 |
+| `IRREVERSIBLE_EFFECT` | `YGG_E014` | Engine | 2.1 |
+| `CIRCULAR_EFFECT` | `YGG_E015` | Engine | 2.1 (ver DT-11) |
+| `EFFECT_TARGET_NOT_FOUND` | `YGG_E016` | Engine | 2.1 |
+| `EFFECT_APPLICATION_FAILED` | `YGG_E017` | Engine | 2.1 |
 
-## A.3.2 — Cadea de escalado 1.17: 6 capas dun problema, todas resoltas
+## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
-`exactOptionalPropertyTypes:true` ⊥ Zod 3 manifestouse en 6 capas
-(esquema, retorno do validador, ocos derivados, fronteira fromJSON→
-constructor, ubicación dos type-tests, helper sobre tipo recursivo).
-Todas resoltas sen débeda silenciosa: `Result<InferredTreeDef>` (5.2
-emendada), `materializeTreeDef` con UN `as` autorizado sobre dato xa
-validado, `treeDefSchema.type-test.ts` en `src/` validado polo
-pipeline, dobre asignabilidade dirixida con `DeepMutable`/`RelaxOptional`.
+Resolta sen débeda silenciosa.
+
+## A.3.3 — Escalado 1.19 + 2.1 (escalado pequeno preventivo)
+
+1.19: semántica de `maxTier === undefined` resolta con Opción C
+conservadora. 2.1: o executor pediu confirmación sobre `readonly` en
+`NodeInstance.visible` e sobre tocar `TreeEngine` con getters; director
+ratificou (sen `readonly`; non tocar `TreeEngine`).
+
+## A.3.4 — Decisións do director en 2.1.b
+
+Pre-resoltas no briefing 2.1.b para minimizar escalados:
+- **Atomicidade total** no rollback (consistente con filosofía Fase 1).
+- **Audit agregada** cunha entrada `custom` `effects_applied`/
+  `effects_failed` por unlock con effects (NON unha por effect).
+- **`oldBudget` directo** no rollback, NON `ResourceManager.refund`:
+  refund é semántica de respec voluntario respectando
+  `refundable`/`refundPercent`; rollback técnico debe restaurar exacto
+  o budget previo independente de regras de refundability. **Test
+  específico esixe** verificar isto cun recurso `refundable: false`
+  (cumprido).
 
 ## A.4 / A.4.1 — Release/aclaracións
 
-PR release (#1) NON se mergea aínda. **Decisión pendente do autor:** ao
-pechar a Fase 1 con cero débeda funcional silenciosa e 538 tests verdes,
-podería considerarse mergealo como `0.1.0-alpha` interno (snapshot) ou
-seguir acumulando ata pasos máis maduros (recoméndase seguir agardando
-ata Fase 2 polo menos). NON urxente. Carpeta `yggdrasil-forge` local
-pendente de borrar polo autor. `docs/briefings/*` mantéñense.
+PR release (#1) NON se mergea aínda. Os 17 briefings de Fase 1 +
+briefings 2.1/2.1.b versionados deliberadamente.
 
-## A.5 — Evolución do executor (resumo Fase 1)
+## A.5 — Evolución do executor
 
-1.10–1.12 placeholders sen reportar → mitigación grep (1.13) → escalado
-de contrato (1.14, `CHANGE_CONFLICT`) → 1.15 incidente transporte
-resolto e doutrina afinada → 1.16 limpo → 1.17 sub-fase máis difícil,
-6 escalados, cero débeda silenciosa → 1.18 peche limpo (1292 insertions,
-**0 modificacións de produción**, cobertura TreeEngine 81%→96%).
-
-Protocolo maduro: o executor escala con evidencia, cuestiona condicións
-do director (escalado #5), recomenda con honestidade aceptando rexeite
-(#2, #4), e clasifica débeda descuberta (criterio refinable: en 1.18 o
-"límite coñecido" debía ser "DT explícita"; matiz aceptable, sinalado).
+Resumo Fase 1 → 2.1.b: protocolo maduro e bidireccional. O executor en
+**2.1.b** demostrou un nivel adicional de calidade:
+- Pediu confirmación preventiva en 2.1 (`readonly`, getters de TreeEngine).
+- En 2.1.b, ante test que esperaba `CIRCULAR_EFFECT`: **verificou
+  empíricamente con experimento local** antes de afirmar nada,
+  diagnosticou o problema con precisión, distinguiu "comportamento
+  correcto polo camiño accidental" de "garantía deseñada non actuando",
+  e **rexistrou DT-11 honestamente** en vez de adaptar o test e seguir.
 
 ## A.5.1 — Modelo executor
 
-Opus 4.7 desde ~1.14/1.15. Sección 0 e escalado INTACTOS.
+Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
 
-## A.6 — Leccións do director (Fase 1)
+## A.6 — Leccións do director
 
+**Fase 1:**
 - 1.12: non cablear deps antes da sub-fase que as use.
 - 1.11: verificar nº exacto de tests antes do briefing.
-- 1.17 #2: cubrir ocos derivados ou marcalos "re-escalar concreto".
-- 1.17 #4: verificar premisa técnica no código; doutrina con matices.
-- 1.17 #5: salvagarda imposta debe ser executable polo pipeline.
-- 1.17 #6: verificar empíricamente afirmacións técnicas centrais.
-- **1.18: ao escribir un briefing inicial de feature, acoutar
-  explicitamente "mínimo coherente" vs "feature completa". A imprecisión
-  do briefing 1.13 ("multi-tier mínimo coherente") xerou DT-10
-  silenciosa que só se viu en integración. Especificar o ámbito evita
-  débeda invisible.**
+- 1.17 #2-#6: cubrir ocos derivados; verificar premisa no código;
+  salvagardas executables polo pipeline; afirmacións técnicas verificadas
+  empíricamente.
+- 1.18: acoutar "mínimo coherente" vs "feature completa".
+- 1.19: redactar decisións sen ambigüidade dupla.
 
-## A.8 — Método de entrega
+**Fase 2:**
+- **2.1: ao engadir campos a un tipo existente, verificar primeiro o
+  estilo do tipo destino antes de aplicar convencións por inercia**
+  (caso `readonly visible?` que non encaixaba con NodeInstance).
+- **2.1.b L1: antes de aplicar parche con `git am`, verificar que o
+  working tree está limpo (`git status`) ou facer `git stash` previo.
+  Aplicar sobre working tree con cambios non commiteados causa
+  conflitos artificiais.**
+- **2.1.b L2: para tests sobre orde de eventos, audit entries, ou
+  cadeas de propagación, verificar empíricamente antes de fixar
+  asserts. Asunción + assert = test fráxil; verificación empírica +
+  assert = test válido.**
+- **2.1.b L3: débeda técnica descuberta no camiño merece DT explícita
+  inmediata, non "limitación coñecida". O executor en 2.1.b fíxoo ben
+  (DT-11), confirmando que o protocolo anti-débeda-silenciosa funciona
+  bidireccional.**
+
+## A.8 — Método de entrega (ampliada en 2.1.b)
 
 Integración: SEMPRE push directo a `origin/main`. Transporte: `.patch`
-aceptable se non hai credenciais, aplicado **dende a raíz** (verificado
-correcto en 1.16/1.17/1.18 — incidente 1.15 non se repetiu), push final
-polo autor.
+aceptable aplicado **dende a raíz** (lección 1.15), **e con working
+tree limpo previo** (lección 2.1.b L1 — `git status` ou `git stash`
+antes de `git am`). Push final polo autor.
 
 ## A.7 — Protocolo consolidado
 
-Sección 0 en todo briefing: scripts `/tmp/ygg-exec/` rutas `C:/`; tests
-`--force`; rama/método/orde do director; anti-placeholder grep no
-reporte; escalado de contrato verificado no código; salvagardas
-executables polo pipeline; afirmacións técnicas centrais verificadas
-empíricamente; script por operación con `assert`; entrega A.8; commits
-separados; excepcións de lockfile só con autorización explícita;
-**briefings de feature deben acoutar explícitamente o ámbito (A.6 1.18)**.
+Sección 0 en todo briefing. Salvagardas executables; afirmacións
+técnicas verificadas empíricamente; redacción sen ambigüidade dupla;
+estilo de tipo destino antes de convención xeral; working tree limpo
+antes de aplicar parche. Excepcións de lockfile só con autorización
+explícita.
 
-## A.9 — Resumo cuantitativo da Fase 1
+## A.9 — Estado cuantitativo actual
 
 ```
-Commit final:           dc53f10 (origin/main)
-Tests:                  538 (33 ficheiros)
-Cobertura global:       97.68%   (obxectivo ≥90% superado en +7.7pp)
-Cobertura TreeEngine:   96.12%   (era 81% post-1.16)
-Lint:                   0/0
-Typecheck:              20/20 (sen caché, inclúe type-tests Zod)
+Commit final:           3fb3199 (origin/main)
+Tag Fase 1:             phase-1-closed (en 1290378)
+Tests:                  623 (35 ficheiros)
+Cobertura global:       98.02%   (subiu desde 97.69% en 1.19)
+Cobertura TreeEngine:   96.20%
+Cobertura EffectsRunner: 100%
+Lint / Typecheck:       0/0 / 20/20 (sen caché)
 Deps externas (core):   immer + zod
-ErrorCodes:             30 (3 engadidos en execución, trazados)
-Sub-fases pechadas:     7 (1.12–1.18)
-Decisións escaladas:    6 (todas en 1.17, todas trazadas)
-Débeda funcional:       0 silenciosa, 1 documentada (DT-10)
-Débeda infra:           1 documentada (DT-9)
-Incidentes resoltos:    1 (transporte 1.15, lección incorporada)
+ErrorCodes:             35 (8 engadidos en execución)
+Sub-fases Fase 1:       8 pechadas + addendum 1.19
+Sub-fases Fase 2:       2 pechadas (2.1, 2.1.b)
+Escalados resoltos:     8 totais (6 en 1.17, 1 en 1.19, 1 pequeno en 2.1)
+Débeda funcional crítica: 0
+Débeda funcional non-crítica: 1 (DT-11, asignada a sub-fase futura)
+Débeda infra:           1 (DT-9, Fase hardening)
 ```
 
 ---
 
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (FASE 1 PECHADA ✅)**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 pechada + 2.1/2.1.b)**
