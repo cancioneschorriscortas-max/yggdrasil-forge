@@ -38,6 +38,11 @@ export {
 export { TreeEngine } from './TreeEngine.js'
 export { EffectsRunner, type EffectContext } from './EffectsRunner.js'
 export { StatComputer, type StatComputerContext } from './StatComputer.js'
+export {
+  TimeManager,
+  type TimeManagerContext,
+  type TimeStatus,
+} from './TimeManager.js'
 export { createSelector, shallowEqual } from './selectors.js'
 export {
   treeDefSchema,
