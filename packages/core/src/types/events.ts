@@ -32,7 +32,16 @@ export interface EventMap {
   /** Cambiou a cantidade dispoñible dun recurso. */
   readonly budgetChange: (resourceId: string, oldAmount: number, newAmount: number) => void
 
-  /** Cambiou un stat calculado polo StatComputer. */
+  /**
+   * Cambiou un stat calculado polo StatComputer.
+   *
+   * **NOTA (sub-fase 2.2.b):** este evento está declarado pero **NON
+   * se emite aínda**. A emisión require comparar valores antes/despois
+   * de cada mutación (overhead non trivial; decisión do director en
+   * 2.2.b §5.3-5.4: queda diferida). Para observar cambios de stats,
+   * subscríbase aos eventos de mutación (`unlock`, `lock`, `respec`,
+   * `treeChanged`) e re-consulte `TreeEngine.getStat`/`getAllStats`.
+   */
   readonly statChange: (statId: string, oldValue: number, newValue: number) => void
 
   /** Cambiou o progreso dun nodo (manual ou externo). */

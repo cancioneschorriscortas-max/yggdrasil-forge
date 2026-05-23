@@ -1,10 +1,12 @@
 // ── INICIO: tests de StatComputer ──
-// Suite unitaria do StatComputer (sub-fase 2.2). Constrúe manualmente
-// as pezas necesarias (TreeDef, TreeState, UnlockResolver). NON depende
-// de TreeEngine: o StatComputer é standalone.
+// Suite unitaria do StatComputer (sub-fases 2.2 + 2.2.b). Constrúe
+// manualmente as pezas necesarias (TreeDef, TreeState, StateStore,
+// UnlockResolver). NON depende de TreeEngine: o StatComputer é
+// standalone. Tras 2.2.b o context recibe `store: StateStore` en
+// lugar de `state: TreeState` para que a lectura sexa dinámica.
 
 import { describe, expect, it } from 'vitest'
-import { StatComputer, UnlockResolver } from '../../src/engine/index.js'
+import { StatComputer, StateStore, UnlockResolver } from '../../src/engine/index.js'
 import type {
   NodeDef,
   NodeInstance,
@@ -67,12 +69,31 @@ function makeState(instances: readonly NodeInstance[]): TreeState {
 }
 
 function buildComputer(treeDef: TreeDef, state: TreeState): StatComputer {
+  const store = new StateStore(treeDef, { initialState: state })
   return new StatComputer({
     treeDef,
-    state,
+    store,
     resolver: new UnlockResolver(),
     locale: 'gl',
   })
+}
+
+/**
+ * Variante que devolve tamén o `StateStore` interno, para tests que
+ * precisan mutar o estado tras construír o computer.
+ */
+function buildComputerWithStore(
+  treeDef: TreeDef,
+  state: TreeState,
+): { computer: StatComputer; store: StateStore } {
+  const store = new StateStore(treeDef, { initialState: state })
+  const computer = new StatComputer({
+    treeDef,
+    store,
+    resolver: new UnlockResolver(),
+    locale: 'gl',
+  })
+  return { computer, store }
 }
 
 // ───────────────────────────────────────────────
@@ -483,15 +504,16 @@ describe('StatComputer — cache e invalidate', () => {
       ],
       [makeStat({ id: 'dmg', initial: 0 })],
     )
-    const state = makeState([makeInstance('n1', 'locked')])
-    const computer = buildComputer(tree, state)
+    const initial = makeState([makeInstance('n1', 'locked')])
+    const { computer, store } = buildComputerWithStore(tree, initial)
     // Primeira lectura: 'n1' está locked → 0.
     expect(computer.computeStat('dmg')).toBe(0)
-    // Mutamos o estado externo (StatComputer non se entera).
-    state.nodes.n1 = makeInstance('n1', 'unlocked')
+    // Mutamos o estado vía o store (StatComputer non se entera porque
+    // o seu cálculo previo xa quedou cacheado).
+    store.replaceTreeState(makeState([makeInstance('n1', 'unlocked')]))
     // Aínda devolve o cacheado.
     expect(computer.computeStat('dmg')).toBe(0)
-    // Tras invalidate, recalcula.
+    // Tras invalidate, recalcula contra o estado actual do store.
     computer.invalidate()
     expect(computer.computeStat('dmg')).toBe(5)
   })
@@ -671,11 +693,12 @@ describe('StatComputer.explainStat', () => {
       ],
       [makeStat({ id: 'dmg', initial: 0 })],
     )
-    const state = makeState([makeInstance('n1', 'locked')])
-    const computer = buildComputer(tree, state)
+    const initial = makeState([makeInstance('n1', 'locked')])
+    const { computer, store } = buildComputerWithStore(tree, initial)
     expect(computer.explainStat('dmg').finalValue).toBe(0)
-    state.nodes.n1 = makeInstance('n1', 'unlocked')
-    // SEN invalidate: explainStat ten que reflectir o cambio.
+    store.replaceTreeState(makeState([makeInstance('n1', 'unlocked')]))
+    // SEN invalidate: explainStat ten que reflectir o cambio porque
+    // nunca usa cache (recálculo en cada chamada).
     expect(computer.explainStat('dmg').finalValue).toBe(5)
   })
 })

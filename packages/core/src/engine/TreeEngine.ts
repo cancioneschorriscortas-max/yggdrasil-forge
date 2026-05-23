@@ -34,6 +34,7 @@ import { EffectsRunner } from './EffectsRunner.js'
 import { EventEmitter, type Unsubscribe } from './EventEmitter.js'
 import { deserialize, serialize } from './JsonSerializer.js'
 import { ResourceManager } from './ResourceManager.js'
+import { StatComputer } from './StatComputer.js'
 import { StateStore } from './StateStore.js'
 import { UnlockResolver, type UnlockResolverContext } from './UnlockResolver.js'
 import type { InferredTreeDef } from './treeDefSchema.js'
@@ -53,6 +54,15 @@ export class TreeEngine {
   // chamar de volta ao motor (con MAX_EFFECT_DEPTH limitando bucles).
   private readonly effectsRunner: EffectsRunner
   // ── FIN: 2.1.b ──
+  // ── INICIO: 2.2.b — StatComputer cableado ──
+  // Calcula stats globais agregando as `statContributions` dos nodos
+  // desbloqueados (briefing 2.2). Instánciase tras `effectsRunner` no
+  // constructor. Cache simple invalidable: invalídase explicitamente en
+  // cada punto de mutación do estado relevante (unlock/lock/respec/
+  // applyChanges; sec 5.3 do briefing 2.2.b). Lectura do estado vía
+  // `store.getState()` en cada cálculo (NON captura no constructor).
+  private readonly statComputer: StatComputer
+  // ── FIN: 2.2.b ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -71,6 +81,18 @@ export class TreeEngine {
       locale: this.locale,
     })
     // ── FIN: 2.1.b ──
+    // ── INICIO: 2.2.b — instanciación do StatComputer ──
+    // Constrúese tras `effectsRunner` para reflectir a orde "primeiro
+    // motor de mutación, despois derivados". O context pasa as
+    // referencias estables (treeDef, store, resolver, locale); o
+    // StatComputer le `store.getState()` dinamicamente en cada cálculo.
+    this.statComputer = new StatComputer({
+      treeDef: this.store.getTreeDef(),
+      store: this.store,
+      resolver: this.resolver,
+      locale: this.locale,
+    })
+    // ── FIN: 2.2.b ──
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -189,6 +211,39 @@ export class TreeEngine {
   getLocale(): Locale {
     return this.locale
   }
+
+  // ── INICIO: 2.2.b — API pública de stats globais ──
+  /**
+   * Devolve o valor computado dun stat global. Delega no `StatComputer`
+   * interno, que agrega as `statContributions` dos nodos `unlocked` ou
+   * `maxed` aplicando operacións, `perTier` e `conditions?`.
+   *
+   * Devolve `NaN` se `statId` non está definido en `treeDef.stats`
+   * (semántica deliberada: ver briefing 2.2 §5.2 — `Result<>` sería
+   * disruptivo en cadeas de cálculo; `NaN` é detectable con
+   * `Number.isNaN()`).
+   *
+   * Usa unha cache interna que se invalida automaticamente tras
+   * `unlock`/`lock`/`respec`/`applyChanges` (sec 5.3).
+   *
+   * Nota: o evento `EventMap.statChange` non se emite ata unha sub-fase
+   * futura (briefing 2.2.b §5.3, §5.4). Para observar cambios de stats,
+   * subscríbase aos eventos de mutación (`unlock`, `lock`, `respec`) e
+   * re-consulte `getStat` / `getAllStats`.
+   */
+  getStat(statId: string): number {
+    return this.statComputer.computeStat(statId)
+  }
+
+  /**
+   * Devolve un snapshot inmutable de todos os stats computados,
+   * indexados por `statId`. Hai unha entrada por cada `StatDef`
+   * declarado en `treeDef.stats`; un `treeDef` sen `stats` devolve `{}`.
+   */
+  getAllStats(): Readonly<Record<string, number>> {
+    return this.statComputer.computeAllStats()
+  }
+  // ── FIN: 2.2.b ──
 
   isReadOnly(): boolean {
     return this.readOnly
@@ -577,6 +632,17 @@ export class TreeEngine {
       this.events.emit('auditEntry', auditEntry)
     }
 
+    // ── INICIO: 2.2.b — invalidación da cache do StatComputer ──
+    // O nodo desbloqueouse (pasou a 'unlocked' ou 'maxed'), polo que as
+    // súas `statContributions` (se as ten) entran agora na agregación.
+    // Colocamos esta chamada antes do bloque de effects para que, no
+    // caso de que algún effect chame `engine.getStat`/`getAllStats`
+    // mentres se aplica, lea valores actualizados. Se os effects fallan
+    // e se reverte o estado no helper de rollback, a cache xa está
+    // limpa: a seguinte consulta recomputará contra o estado restaurado.
+    this.statComputer.invalidate()
+    // ── FIN: 2.2.b ──
+
     // ── INICIO: 2.1.b — execución de effects tras unlock exitoso ──
     // Se o NodeDef ten effects, execútanse via EffectsRunner.run. Atomicidade
     // total: se algún effect falla, revértese o estado do nodo, restáurase o
@@ -799,6 +865,11 @@ export class TreeEngine {
       this.events.emit('auditEntry', auditEntry)
     }
 
+    // ── INICIO: 2.2.b — invalidación da cache do StatComputer ──
+    // O nodo deixou de contribuír; recalculamos na seguinte consulta.
+    this.statComputer.invalidate()
+    // ── FIN: 2.2.b ──
+
     return ok({ nodeId, newState: 'locked', refunded: costs })
   }
 
@@ -943,6 +1014,12 @@ export class TreeEngine {
     if (auditEntry !== null) {
       this.events.emit('auditEntry', auditEntry)
     }
+
+    // ── INICIO: 2.2.b — invalidación da cache do StatComputer ──
+    // O respec lockeou un ou máis nodos; as súas contribucións saen
+    // da agregación. Recalculamos na seguinte consulta.
+    this.statComputer.invalidate()
+    // ── FIN: 2.2.b ──
 
     return ok({ nodeIds: nodeIdsToLock, refunded: allCosts })
   }
@@ -1116,6 +1193,13 @@ export class TreeEngine {
     if (auditEntry !== null) {
       this.events.emit('auditEntry', auditEntry)
     }
+
+    // ── INICIO: 2.2.b — invalidación da cache do StatComputer ──
+    // applyChanges pode modificar `treeDef.stats` ou `nodeDef.statContributions`,
+    // ou cambiar o estado dos nodos (reconcilación). Calquera deses
+    // cambios invalida os valores cacheados.
+    this.statComputer.invalidate()
+    // ── FIN: 2.2.b ──
 
     return ok({
       applied: changes.length,

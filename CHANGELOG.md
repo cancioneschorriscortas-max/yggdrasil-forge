@@ -7,6 +7,21 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `TreeEngine.getStat(statId): number` e `TreeEngine.getAllStats(): Readonly<Record<string, number>>` (engine, sub-fase 2.2.b): API pública para consultar stats globais agregados. `getStat` devolve `NaN` para statIds descoñecidos; `getAllStats` devolve unha entrada por cada `StatDef` declarado en `treeDef.stats` (Record vacío se non hai stats). Delegan no `StatComputer` interno que se cablea como `private readonly` no constructor tras o `EffectsRunner`.
+- Invalidación automática da cache do `StatComputer` tras cada mutación exitosa do estado: `unlock` (antes do bloque de effects para que estes leas valores actualizados), `lock`, `respec`, `applyChanges`. Multi-tier: cada salto de tier dun `unlock` invalida individualmente, polo que `perTier` reflicte sempre o tier vixente.
+
+### Changed
+- `StatComputerContext` (engine): o campo `state: TreeState` substituíuse por `store: StateStore` para que o computer lea o snapshot vixente con `store.getState()` en cada cálculo (necesario para integrarse con mutacións Immer en `TreeEngine`). Cambio mínimo requirido pola integración; a API pública de `StatComputer` (`computeStat` / `computeAllStats` / `explainStat` / `invalidate`) **non muda**. Os tests existentes da sub-fase 2.2 que mutaban `state` por referencia foron adaptados a `store.replaceTreeState`.
+
+### Note
+- O effect `modify_stat` segue sen implementar: nun unlock con `effects: [{ type: 'modify_stat', ... }]`, o `EffectsRunner.run` rexéitao co código orixinal `EFFECT_TYPE_UNSUPPORTED` (YGG_E013) que `unlock` envolve como `EFFECT_APPLICATION_FAILED` (YGG_E017) cun `context.originalErrorCode = 'YGG_E013'`. Rollback total do unlock como sempre. Implementación diferida a unha sub-fase futura (probablemente 2.2.c ou con `TimeManager`) que defina onde almacenar o delta persistente, como compoñer coa derivación de `StatComputer`, e como serializar.
+- O evento `EventMap.statChange` queda declarado pero **non se emite**: a emisión require comparar valores antes/despois por mutación (overhead non trivial). Para observar cambios de stats, subscríbase aos eventos de mutación (`unlock`, `lock`, `respec`, `treeChanged`) e re-consulte `getStat` / `getAllStats`. Documentado no JSDoc do propio campo en `events.ts`.
+- `explainStat` queda accesible só polo `StatComputer` interno; non se expón en `TreeEngine` (briefing 2.2.b §5.2: a API pública mantense mínima ata que un consumidor o necesite).
+- Cobertura: `StatComputer.ts` 100/98.18/100/100 (sen variación); `TreeEngine.ts` 96.20% → 96.25%; global 98.10% → 98.11%. Tests do paquete `core`: 663 → 676 (13 novos en `__tests__/engine/TreeEngine.stats.test.ts`).
+
+## [Unreleased]
+
+### Added
 - `StatComputer` (engine, sub-fase 2.2): peza standalone que calcula valores agregados de stats globais a partir das `statContributions` dos nodos desbloqueados. API pública: `computeStat(statId)`, `computeAllStats()`, `explainStat(statId)`, `invalidate()`. Soporta operacións `+`, `-`, `*`, `/`, `min`, `max`, `set`; multiplicador `perTier` baseado en `NodeInstance.currentTier`; `conditions?` opcionais avaliadas como AND lóxico vía `UnlockResolver` (envolvidas como `UnlockRule { type: 'all', conditions }`). Clamp final de `min`/`max` aplicado **unha soa vez** tras todas as contribucións (briefing §5.3 paso 4), nunca entre operacións.
 - Cache simple invalidable: `computeStat` consulta un `Map<string, number>` privado antes de calcular; `invalidate()` baléirao por completo (invalidación granular por nodo deliberadamente fóra de alcance — §5.4). `explainStat` **NUNCA** usa cache; recalcula sempre para reflectir o estado exacto no momento. Os statIds descoñecidos non se cachean (evitan contaminar a cache con NaN).
 - Comportamento defensivo: `computeStat('nope')` para statId descoñecido devolve `NaN` (sen lanzar, sen `Result<>`); `explainStat('nope')` devolve `{ statId, finalValue: NaN, contributions: [] }`. `NodeInstance` que referencia un `NodeDef` inexistente saltase silenciosamente (caso defensivo improbable con TreeDef validada por Zod, pero protexido). Cero validación semántica de matemáticas patolóxicas: divisións por cero propágansen como `Infinity`/`NaN`, é responsabilidade do deseñador da árbore.

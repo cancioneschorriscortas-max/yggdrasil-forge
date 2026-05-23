@@ -34,21 +34,27 @@ import type {
   StatDef,
   StatExplanation,
   TreeDef,
-  TreeState,
   UnlockCondition,
 } from '../types/index.js'
+import type { StateStore } from './StateStore.js'
 import type { UnlockResolver, UnlockResolverContext } from './UnlockResolver.js'
 
 // ── INICIO: tipos públicos ──
 
 /**
- * Contexto inxectado no StatComputer. Mantense por referencia: cando o
- * estado externo muta, basta con chamar `invalidate()` para forzar
- * recálculo na seguinte consulta.
+ * Contexto inxectado no StatComputer. Todas as referencias son estables
+ * (treeDef, store, resolver). O estado **lese dinamicamente** vía
+ * `store.getState()` en cada cálculo: cando o estado muta, basta con
+ * chamar `invalidate()` para forzar o recálculo na seguinte consulta.
+ *
+ * Cambio respecto á sub-fase 2.2: o context recibía `state: TreeState`
+ * directamente, o que capturaba unha foto do estado no momento da
+ * construción. Para a integración con `TreeEngine` (que usa Immer e
+ * crea novas referencias en cada mutación) precisamos lelo cada vez.
  */
 export interface StatComputerContext {
   readonly treeDef: TreeDef
-  readonly state: TreeState
+  readonly store: StateStore
   readonly resolver: UnlockResolver
   readonly locale: Locale
 }
@@ -180,7 +186,12 @@ export class StatComputer {
    * detalle (modo `computeStat`, máis rápido).
    */
   private computeInternal(statDef: StatDef, entries: ExplanationEntry[] | null): number {
-    const { treeDef, state } = this.context
+    const { treeDef, store } = this.context
+    // Lectura dinámica do estado: cada cálculo obtén o snapshot vixente
+    // do StateStore. Combinado coa invalidación de cache externa, isto
+    // permite que cambios no estado se reflictan na seguinte chamada
+    // tras `invalidate()` (briefing 2.2.b §5.1).
+    const state = store.getState()
     let acc = statDef.initial ?? 0
 
     // Construímos o context para o resolver unha soa vez por cálculo.
