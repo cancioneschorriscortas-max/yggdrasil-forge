@@ -2367,42 +2367,49 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 # ANEXO A — ERRATAS, SINCRONIZACIÓN E DÉBEDA
 
 > Mantido polo director. Estado real fronte ao roadmap (sección 67).
-> **Actualizado tras 2.1 + 2.1.b (Fase 2 en curso).**
+> **Actualizado tras 2.2, 2.2.b, 2.3, 2.3.b.**
 > Regra: unha sub-fase só se marca "Feito" cando o director a verifica
 > independentemente. Un bo reporte non substitúe a verificación.
 
 ## A.1–A.2 — Estado actual
 
-Fase 1 pechada + addendum 1.19 (DT-10). Fase 2 en curso:
+Fase 1 pechada + addendum 1.19. **Fase 2: 6 sub-fases pechadas de ~6-7.**
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
-| 1.12 constructor + getters | Feito | `c3f8172` | 337 |
-| 1.13 unlock/lock/respec | Feito | `eb8fcd7` | 374 |
-| 1.14 applyChanges | Feito | `b913aae`/`05db45f` | 390 |
-| 1.15 subscription + selectors | Feito | `c3410e2` | 420 |
-| 1.16 AuditLogger | Feito | `d91996e` | 449 |
-| 1.17 JsonSerializer + Validator | Feito | `25ffc6a` | 482 |
-| 1.18 Tests integración + cobertura | Feito | `dc53f10` | 538 |
-| (peche docs Fase 1) | Feito | `1290378` | 538 |
+| 1.12–1.18 | (Fase 1) | varios | 538 |
 | 1.19 multi-tier unlock (DT-10) | Feito | `05dbf46` | 547 |
-| **2.1 EffectsRunner standalone** | **Feito** | `7dcc609` | **615** |
-| **2.1.b EffectsRunner cableado a unlock** | **Feito** | `3fb3199` | **623** |
-| 2.2 StatComputer | **Seguinte** | — | — |
+| **2.1 EffectsRunner standalone** | Feito | `7dcc609` | 615 |
+| **2.1.b EffectsRunner cableado** | Feito | `3fb3199` | 623 |
+| **2.2 StatComputer standalone** | Feito | `ace8bcb` | 663 |
+| **2.2.b StatComputer cableado** | Feito | `6d391c8` (+ incidente `72b36a7`) | 676 |
+| **2.3 TimeManager standalone** | Feito | `7d1f7b9` (+ incidente `34e5513`) | 721 |
+| **2.3.b TimeManager cableado** | Feito | `5d4cee5` + `13d06dd` | 748 |
+| 2.4 ProgressManager | **Seguinte** (briefing pendente) | — | — |
 
-**Tag `phase-1-closed`** segue en `1290378`. Fase 2: 2 sub-fases pechadas
-de ~6 previstas.
+**Tag `phase-1-closed`** en `1290378`. Fase 2 avanzada.
 
 ## A.3 — Débeda técnica
 
 | ID | Descrición | Estado |
 |---|---|---|
-| DT-1, DT-4..DT-8 | (historial) | Todas resoltas |
-| DT-9 | infra: `__tests__` non typechean; workaround `src/*.type-test.ts` | Aberta, Fase hardening (non bloqueante) |
-| DT-10 | unlock multi-tier parcial | **Resolta (1.19)** |
-| **DT-11** | Detección de ciclos `unlock_node` recursivos en EffectsRunner non se activa cando os unlocks pasan por `TreeEngine.unlock` (cada chamada crea un `run` novo con `unlockedDuringRun` local). O ciclo detéctase colateral como `NODE_ALREADY_UNLOCKED` na cadea; o estado queda **coherente** tras o rollback total da 2.1.b (verificado en test), pero a protección deseñada con `MAX_EFFECT_DEPTH=8` queda inerte nese fluxo. **Descuberta en 2.1.b por verificación empírica do executor** (intentou escribir o test esperando `CIRCULAR_EFFECT`, descubriu que sae `EFFECT_APPLICATION_FAILED`/`NODE_ALREADY_UNLOCKED` na cadea). Solución futura: estender `EffectContext` para compartir o Set entre invocacións aniñadas, ou mover a detección ao propio `TreeEngine.unlock`. **Non bloqueante** | Aberta, sub-fase futura |
+| DT-1, DT-4..DT-8 | (historial Fase 1) | Todas resoltas |
+| DT-9 | infra: `__tests__` non typechean; workaround `src/*.type-test.ts` | Aberta, Fase hardening |
+| DT-10 | unlock multi-tier parcial | Resolta (1.19) |
+| DT-11 | Detección de ciclos `unlock_node` recursivos non se activa cando os unlocks pasan polo `TreeEngine.unlock` (cada chamada crea `run` novo con `unlockedDuringRun` local). Estado queda coherente polo camiño colateral `NODE_ALREADY_UNLOCKED`. **Non bloqueante** | Aberta, sub-fase futura |
 
-**0 débeda funcional crítica.** DT-11 é débeda de calidade (protección que existe pero non funciona como pensada); o sistema é robusto polo camiño colateral.
+**0 débeda funcional crítica.** Só DT-9 (infra) e DT-11 (calidade).
+
+**Pendentes futuras documentadas (non DT formais):**
+- **`modify_stat` effect** segue como `EFFECT_TYPE_UNSUPPORTED`.
+  Asignada a sub-fase futura (probablemente xunto a TimeManager-related,
+  ou cando se aborde a persistencia de stats).
+- **TimeManager: `cooldownMs`, `reCertifyAfterMs`, `validForMs`** non
+  implementados. Asignadas a sub-fases futuras propias.
+- **Validador Zod non rexeita `maxTier <= 0`** (observación 1.19).
+  Pequena mellora pendente, non bloqueante.
+- **TreeEngine non emite `statChange`** event (declarado pero non
+  emitido; decisión consciente en 2.2.b por overhead).
 
 ## A.3.1 — Contrato ErrorCode
 
@@ -2416,46 +2423,38 @@ de ~6 previstas.
 | `CIRCULAR_EFFECT` | `YGG_E015` | Engine | 2.1 (ver DT-11) |
 | `EFFECT_TARGET_NOT_FOUND` | `YGG_E016` | Engine | 2.1 |
 | `EFFECT_APPLICATION_FAILED` | `YGG_E017` | Engine | 2.1 |
+| `NODE_NOT_YET_AVAILABLE` | `YGG_E018` | Engine | 2.3.b |
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
-Resolta sen débeda silenciosa.
+Resolta sen débeda silenciosa. Detalles na versión histórica.
 
-## A.3.3 — Escalado 1.19 + 2.1 (escalado pequeno preventivo)
+## A.3.3 — Escalado 1.19 + 2.1 + 2.2
 
-1.19: semántica de `maxTier === undefined` resolta con Opción C
-conservadora. 2.1: o executor pediu confirmación sobre `readonly` en
-`NodeInstance.visible` e sobre tocar `TreeEngine` con getters; director
-ratificou (sen `readonly`; non tocar `TreeEngine`).
+1.19: semántica `maxTier === undefined` resolta con Opción C
+conservadora. 2.1: escalado pequeno preventivo (`readonly`, getters
+TreeEngine). 2.2: o executor engadiu mellora preventiva (NaN non se
+cachea) que non estaba no briefing.
 
-## A.3.4 — Decisións do director en 2.1.b
+## A.3.4 — Decisións pre-resoltas en 2.1.b / 2.2.b / 2.3 / 2.3.b
 
-Pre-resoltas no briefing 2.1.b para minimizar escalados:
-- **Atomicidade total** no rollback (consistente con filosofía Fase 1).
-- **Audit agregada** cunha entrada `custom` `effects_applied`/
-  `effects_failed` por unlock con effects (NON unha por effect).
-- **`oldBudget` directo** no rollback, NON `ResourceManager.refund`:
-  refund é semántica de respec voluntario respectando
-  `refundable`/`refundPercent`; rollback técnico debe restaurar exacto
-  o budget previo independente de regras de refundability. **Test
-  específico esixe** verificar isto cun recurso `refundable: false`
-  (cumprido).
+Patrón consolidado: **standalone → integración como sub-fase aparte**.
+2.1→2.1.b, 2.2→2.2.b, 2.3→2.3.b. Decisións de modelo (atomicidade,
+audit agregada, oldBudget directo, clock virtual, cero timers, tick
+explícito) pre-resoltas nos briefings, minimizando escalados.
 
 ## A.4 / A.4.1 — Release/aclaracións
 
-PR release (#1) NON se mergea aínda. Os 17 briefings de Fase 1 +
-briefings 2.1/2.1.b versionados deliberadamente.
+PR release (#1) NON se mergea aínda. Posible `0.1.0-alpha` ao remate
+da Fase 2.
 
 ## A.5 — Evolución do executor
 
-Resumo Fase 1 → 2.1.b: protocolo maduro e bidireccional. O executor en
-**2.1.b** demostrou un nivel adicional de calidade:
-- Pediu confirmación preventiva en 2.1 (`readonly`, getters de TreeEngine).
-- En 2.1.b, ante test que esperaba `CIRCULAR_EFFECT`: **verificou
-  empíricamente con experimento local** antes de afirmar nada,
-  diagnosticou o problema con precisión, distinguiu "comportamento
-  correcto polo camiño accidental" de "garantía deseñada non actuando",
-  e **rexistrou DT-11 honestamente** en vez de adaptar o test e seguir.
+Fase 1: aprendizaxe do protocolo. Fase 2: protocolo maduro,
+bidireccional, con escrutinio empírico do executor (cazou DT-11 en
+2.1.b verificando empíricamente o test de ciclo) e protección
+preventiva (cuestionou condicións do director en 2.1, engadiu
+NaN-non-cache en 2.2 sen pedirllo).
 
 ## A.5.1 — Modelo executor
 
@@ -2467,65 +2466,80 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
 - 1.12: non cablear deps antes da sub-fase que as use.
 - 1.11: verificar nº exacto de tests antes do briefing.
 - 1.17 #2-#6: cubrir ocos derivados; verificar premisa no código;
-  salvagardas executables polo pipeline; afirmacións técnicas verificadas
-  empíricamente.
+  salvagardas executables polo pipeline; afirmacións técnicas
+  verificadas empíricamente.
 - 1.18: acoutar "mínimo coherente" vs "feature completa".
 - 1.19: redactar decisións sen ambigüidade dupla.
 
 **Fase 2:**
-- **2.1: ao engadir campos a un tipo existente, verificar primeiro o
-  estilo do tipo destino antes de aplicar convencións por inercia**
-  (caso `readonly visible?` que non encaixaba con NodeInstance).
-- **2.1.b L1: antes de aplicar parche con `git am`, verificar que o
-  working tree está limpo (`git status`) ou facer `git stash` previo.
-  Aplicar sobre working tree con cambios non commiteados causa
-  conflitos artificiais.**
-- **2.1.b L2: para tests sobre orde de eventos, audit entries, ou
-  cadeas de propagación, verificar empíricamente antes de fixar
-  asserts. Asunción + assert = test fráxil; verificación empírica +
-  assert = test válido.**
-- **2.1.b L3: débeda técnica descuberta no camiño merece DT explícita
-  inmediata, non "limitación coñecida". O executor en 2.1.b fíxoo ben
-  (DT-11), confirmando que o protocolo anti-débeda-silenciosa funciona
-  bidireccional.**
+- 2.1: ao engadir campos a un tipo existente, verificar primeiro o
+  estilo do tipo destino antes de aplicar convencións por inercia.
+- 2.1.b L1: antes de aplicar parche con `git am`, verificar working
+  tree limpo.
+- 2.1.b L2: para tests sobre orde de eventos/audit/cadeas de
+  propagación, verificar empíricamente antes de fixar asserts.
+- 2.1.b L3: débeda descuberta no camiño merece DT explícita inmediata.
+- **2.2.b/2.3 L1 (post-recuperación): cando o executor entregue
+  múltiples parches nunha sub-fase, verificar `git status` e
+  `git diff --cached --stat` ANTES de commitear, comprobando que os
+  ficheiros esperados están presentes. A sección "Como reportar" dos
+  briefings inclúe agora unha lista explícita de "Ficheiros esperados
+  no diff final".**
+- **2.3/2.3.b L2: o título do reporte do executor é a sinal
+  fundamental para o director. Os títulos novos prescritos son
+  inequívocos: "COMPLETADA E EN origin/main" vs "PENDENTE DE PUSH
+  POLO AUTOR (parche xerado)". O director debe ler primeiro o título
+  antes de empezar a verificación; se di PENDENTE, esperar á push
+  antes de validar.**
+- **2.3.b L3: o autor pode pushear entre que recibe o reporte e mo
+  pasa a min. Iso é parte do fluxo natural. O director SEMPRE
+  verifica `origin/main` antes de tirar conclusións, independentemente
+  do que diga o título do reporte. Verificación > etiquetas.**
 
-## A.8 — Método de entrega (ampliada en 2.1.b)
+## A.8 — Método de entrega
 
 Integración: SEMPRE push directo a `origin/main`. Transporte: `.patch`
-aceptable aplicado **dende a raíz** (lección 1.15), **e con working
-tree limpo previo** (lección 2.1.b L1 — `git status` ou `git stash`
-antes de `git am`). Push final polo autor.
+aceptable se non hai credenciais, aplicado **dende a raíz** (1.15) e
+**con working tree limpo previo** (2.1.b L1). Push final polo autor.
+
+**Títulos prescritos en reportes** (2.3/2.3.b L2):
+- Pushed: `═══ SUB-FASE X — COMPLETADA E EN origin/main ═══`
+- Pendente: `═══ SUB-FASE X — PENDENTE DE PUSH POLO AUTOR (parche xerado) ═══`
 
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
 técnicas verificadas empíricamente; redacción sen ambigüidade dupla;
 estilo de tipo destino antes de convención xeral; working tree limpo
-antes de aplicar parche. Excepcións de lockfile só con autorización
-explícita.
+antes de aplicar parche; títulos de reporte prescritos. Lista de
+ficheiros esperados no diff final en cada briefing.
 
 ## A.9 — Estado cuantitativo actual
 
 ```
-Commit final:           3fb3199 (origin/main)
+Commit actual:          5d4cee5 (origin/main)
 Tag Fase 1:             phase-1-closed (en 1290378)
-Tests:                  623 (35 ficheiros)
-Cobertura global:       98.02%   (subiu desde 97.69% en 1.19)
-Cobertura TreeEngine:   96.20%
+Tests:                  748 (39 ficheiros)
+Cobertura global:       98.14%
+Cobertura TreeEngine:   96.46%
 Cobertura EffectsRunner: 100%
+Cobertura StatComputer: 100/98.18/100/100
+Cobertura TimeManager:  98.73/96.29/100/98.73
 Lint / Typecheck:       0/0 / 20/20 (sen caché)
 Deps externas (core):   immer + zod
-ErrorCodes:             35 (8 engadidos en execución)
+ErrorCodes:             36 (9 engadidos en execución)
 Sub-fases Fase 1:       8 pechadas + addendum 1.19
-Sub-fases Fase 2:       2 pechadas (2.1, 2.1.b)
-Escalados resoltos:     8 totais (6 en 1.17, 1 en 1.19, 1 pequeno en 2.1)
-Débeda funcional crítica: 0
-Débeda funcional non-crítica: 1 (DT-11, asignada a sub-fase futura)
-Débeda infra:           1 (DT-9, Fase hardening)
+Sub-fases Fase 2:       6 pechadas (2.1, 2.1.b, 2.2, 2.2.b, 2.3, 2.3.b)
+Escalados resoltos:     8 (6 en 1.17, 1 en 1.19, 1 pequeno en 2.1)
+Incidentes transporte:  3 (2.2.b, 2.3, ningún en 2.3.b)
+Débeda funcional:       0 crítica · DT-11 (calidade, non bloqueante)
+Débeda infra:           DT-9 (Fase hardening)
+Pendentes documentadas: modify_stat, cooldown/recertify/validFor,
+                        validador maxTier<=0, emisión statChange
 ```
 
 ---
 
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 pechada + 2.1/2.1.b)**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 + Fase 2 ata 2.3.b)**
