@@ -2397,19 +2397,17 @@ Fase 1 pechada + addendum 1.19. **Fase 2: 6 sub-fases pechadas de ~6-7.**
 | DT-9 | infra: `__tests__` non typechean; workaround `src/*.type-test.ts` | Aberta, Fase hardening |
 | DT-10 | unlock multi-tier parcial | Resolta (1.19) |
 | DT-11 | Detección de ciclos `unlock_node` recursivos non se activa cando os unlocks pasan polo `TreeEngine.unlock` (cada chamada crea `run` novo con `unlockedDuringRun` local). Estado queda coherente polo camiño colateral `NODE_ALREADY_UNLOCKED`. **Non bloqueante** | Aberta, sub-fase futura |
+| **DT-12 (cosmética)** | **CHANGELOG.md ten múltiples cabeceiras `## [Unreleased]` aboliñadas (unha por sub-fase) en vez dunha única [Unreleased] acumulada con sub-seccións `### Added/Changed/Fixed/Note` segundo Keep a Changelog estrito. Non rompe nada (changesets-action consómea ao xerar release), pero non é o formato canónico. Decisión do autor: deixar como está, consolidar nunha futura sub-fase ou no release `0.1.0-alpha`. Os executores **NON deben tentar reagrupar nin corrixir o CHANGELOG**; manteñen o costume actual (nova cabeceira `## [Unreleased]` por sub-fase). Ver A.7 para a instrución prescrita** | Aberta cosmética, consolidación futura |
 
-**0 débeda funcional crítica.** Só DT-9 (infra) e DT-11 (calidade).
+**0 débeda funcional crítica.** Só DT-9 (infra), DT-11 (calidade) e
+DT-12 (cosmética).
 
 **Pendentes futuras documentadas (non DT formais):**
 - **`modify_stat` effect** segue como `EFFECT_TYPE_UNSUPPORTED`.
-  Asignada a sub-fase futura (probablemente xunto a TimeManager-related,
-  ou cando se aborde a persistencia de stats).
 - **TimeManager: `cooldownMs`, `reCertifyAfterMs`, `validForMs`** non
-  implementados. Asignadas a sub-fases futuras propias.
+  implementados.
 - **Validador Zod non rexeita `maxTier <= 0`** (observación 1.19).
-  Pequena mellora pendente, non bloqueante.
-- **TreeEngine non emite `statChange`** event (declarado pero non
-  emitido; decisión consciente en 2.2.b por overhead).
+- **TreeEngine non emite `statChange`** event.
 
 ## A.3.1 — Contrato ErrorCode
 
@@ -2427,34 +2425,29 @@ Fase 1 pechada + addendum 1.19. **Fase 2: 6 sub-fases pechadas de ~6-7.**
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
-Resolta sen débeda silenciosa. Detalles na versión histórica.
+Resolta sen débeda silenciosa.
 
 ## A.3.3 — Escalado 1.19 + 2.1 + 2.2
 
 1.19: semántica `maxTier === undefined` resolta con Opción C
-conservadora. 2.1: escalado pequeno preventivo (`readonly`, getters
-TreeEngine). 2.2: o executor engadiu mellora preventiva (NaN non se
-cachea) que non estaba no briefing.
+conservadora. 2.1: escalado pequeno preventivo. 2.2: mellora preventiva
+(NaN non se cachea).
 
 ## A.3.4 — Decisións pre-resoltas en 2.1.b / 2.2.b / 2.3 / 2.3.b
 
 Patrón consolidado: **standalone → integración como sub-fase aparte**.
-2.1→2.1.b, 2.2→2.2.b, 2.3→2.3.b. Decisións de modelo (atomicidade,
-audit agregada, oldBudget directo, clock virtual, cero timers, tick
-explícito) pre-resoltas nos briefings, minimizando escalados.
+Decisións de modelo pre-resoltas nos briefings.
 
 ## A.4 / A.4.1 — Release/aclaracións
 
 PR release (#1) NON se mergea aínda. Posible `0.1.0-alpha` ao remate
-da Fase 2.
+da Fase 2; sería bo momento para **drenar o `[Unreleased]` e consolidar
+o formato CHANGELOG** (DT-12).
 
 ## A.5 — Evolución do executor
 
-Fase 1: aprendizaxe do protocolo. Fase 2: protocolo maduro,
-bidireccional, con escrutinio empírico do executor (cazou DT-11 en
-2.1.b verificando empíricamente o test de ciclo) e protección
-preventiva (cuestionou condicións do director en 2.1, engadiu
-NaN-non-cache en 2.2 sen pedirllo).
+Fase 1: aprendizaxe. Fase 2: protocolo maduro, bidireccional, con
+escrutinio empírico do executor.
 
 ## A.5.1 — Modelo executor
 
@@ -2462,39 +2455,31 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
 
 ## A.6 — Leccións do director
 
-**Fase 1:**
-- 1.12: non cablear deps antes da sub-fase que as use.
-- 1.11: verificar nº exacto de tests antes do briefing.
-- 1.17 #2-#6: cubrir ocos derivados; verificar premisa no código;
-  salvagardas executables polo pipeline; afirmacións técnicas
-  verificadas empíricamente.
-- 1.18: acoutar "mínimo coherente" vs "feature completa".
-- 1.19: redactar decisións sen ambigüidade dupla.
+**Fase 1:** 1.11 (verificar tests exactos), 1.12 (deps tardías), 1.17
+#2-#6 (verificar premisa, salvagardas executables, afirmacións
+empíricas), 1.18 (acoutar feature completa vs mínima), 1.19 (decisións
+sen ambigüidade dupla).
 
 **Fase 2:**
-- 2.1: ao engadir campos a un tipo existente, verificar primeiro o
-  estilo do tipo destino antes de aplicar convencións por inercia.
-- 2.1.b L1: antes de aplicar parche con `git am`, verificar working
-  tree limpo.
-- 2.1.b L2: para tests sobre orde de eventos/audit/cadeas de
-  propagación, verificar empíricamente antes de fixar asserts.
-- 2.1.b L3: débeda descuberta no camiño merece DT explícita inmediata.
-- **2.2.b/2.3 L1 (post-recuperación): cando o executor entregue
-  múltiples parches nunha sub-fase, verificar `git status` e
-  `git diff --cached --stat` ANTES de commitear, comprobando que os
-  ficheiros esperados están presentes. A sección "Como reportar" dos
-  briefings inclúe agora unha lista explícita de "Ficheiros esperados
-  no diff final".**
-- **2.3/2.3.b L2: o título do reporte do executor é a sinal
-  fundamental para o director. Os títulos novos prescritos son
-  inequívocos: "COMPLETADA E EN origin/main" vs "PENDENTE DE PUSH
-  POLO AUTOR (parche xerado)". O director debe ler primeiro o título
-  antes de empezar a verificación; se di PENDENTE, esperar á push
-  antes de validar.**
-- **2.3.b L3: o autor pode pushear entre que recibe o reporte e mo
-  pasa a min. Iso é parte do fluxo natural. O director SEMPRE
-  verifica `origin/main` antes de tirar conclusións, independentemente
-  do que diga o título do reporte. Verificación > etiquetas.**
+- 2.1: ao engadir campos a tipo existente, verificar estilo do tipo
+  destino antes de aplicar convenciones por inercia.
+- 2.1.b L1: working tree limpo antes de `git am`.
+- 2.1.b L2: para tests de orde de eventos/audit, verificar
+  empíricamente antes de fixar asserts.
+- 2.1.b L3: débeda descuberta merece DT explícita inmediata.
+- 2.2.b/2.3 L1: lista de "Ficheiros esperados no diff final" en cada
+  briefing.
+- 2.3/2.3.b L2: títulos de reporte prescritos inequívocos ("COMPLETADA
+  E EN origin/main" vs "PENDENTE DE PUSH POLO AUTOR").
+- 2.3.b L3: o director sempre verifica `origin/main` antes de tirar
+  conclusións, independentemente do título do reporte.
+- **2.3.b L4 (post-mortem CHANGELOG): nos briefings que requiran tocar
+  CHANGELOG.md, prescribir explícitamente "engadir unha nova cabeceira
+  `## [Unreleased]` ao principio do ficheiro (patrón actual do
+  proxecto; NON reagrupar nin consolidar entradas existentes)" para que
+  o executor non se distraia tentando "limpar" o formato. A
+  consolidación canónica de Keep a Changelog farase nunha sub-fase
+  específica ou no release (DT-12).**
 
 ## A.8 — Método de entrega
 
@@ -2511,13 +2496,19 @@ aceptable se non hai credenciais, aplicado **dende a raíz** (1.15) e
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
 técnicas verificadas empíricamente; redacción sen ambigüidade dupla;
 estilo de tipo destino antes de convención xeral; working tree limpo
-antes de aplicar parche; títulos de reporte prescritos. Lista de
-ficheiros esperados no diff final en cada briefing.
+antes de aplicar parche; títulos de reporte prescritos; lista de
+ficheiros esperados no diff final.
+
+**CHANGELOG (DT-12 / A.6 L4):** os briefings prescriben "engadir nova
+cabeceira `## [Unreleased]` ao principio do ficheiro" como patrón
+actual do proxecto. O executor **non consolida** nin reagrupa entradas
+existentes; consolidación canónica é tarefa diferida (release o
+sub-fase específica).
 
 ## A.9 — Estado cuantitativo actual
 
 ```
-Commit actual:          5d4cee5 (origin/main)
+Commit actual:          5d4cee5 (origin/main) + f417828 docs (MASTER previo)
 Tag Fase 1:             phase-1-closed (en 1290378)
 Tests:                  748 (39 ficheiros)
 Cobertura global:       98.14%
@@ -2534,6 +2525,7 @@ Escalados resoltos:     8 (6 en 1.17, 1 en 1.19, 1 pequeno en 2.1)
 Incidentes transporte:  3 (2.2.b, 2.3, ningún en 2.3.b)
 Débeda funcional:       0 crítica · DT-11 (calidade, non bloqueante)
 Débeda infra:           DT-9 (Fase hardening)
+Débeda cosmética:       DT-12 (CHANGELOG formato, consolidación futura)
 Pendentes documentadas: modify_stat, cooldown/recertify/validFor,
                         validador maxTier<=0, emisión statChange
 ```
@@ -2542,4 +2534,4 @@ Pendentes documentadas: modify_stat, cooldown/recertify/validFor,
 
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 + Fase 2 ata 2.3.b)**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 + Fase 2 ata 2.3.b + DT-12)**
