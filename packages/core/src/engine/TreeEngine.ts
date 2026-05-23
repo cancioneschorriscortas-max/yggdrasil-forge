@@ -36,8 +36,27 @@ import { deserialize, serialize } from './JsonSerializer.js'
 import { ResourceManager } from './ResourceManager.js'
 import { StatComputer } from './StatComputer.js'
 import { StateStore } from './StateStore.js'
+import { TimeManager } from './TimeManager.js'
 import { UnlockResolver, type UnlockResolverContext } from './UnlockResolver.js'
 import type { InferredTreeDef } from './treeDefSchema.js'
+
+// ── INICIO: 2.3.b — TickResult ──
+/**
+ * Resultado dunha chamada a `TreeEngine.tick()`.
+ *
+ * - `expired`: lista (en orde de iteración do estado) dos nodos que
+ *   pasaron a `'expired'` nesta chamada. Vacío se non se detectou
+ *   ningunha caducidade nova.
+ * - `timestamp`: instante UTC ms capturado ao inicio do tick a partir
+ *   do `timeNow` inxectado. Todos os nodos expirados no mesmo tick
+ *   comparten exactamente este timestamp en `stateChange.timestamp` e
+ *   na avaliación de `TimeManager.evaluateAt`.
+ */
+export interface TickResult {
+  readonly expired: readonly string[]
+  readonly timestamp: number
+}
+// ── FIN: 2.3.b — TickResult ──
 
 export class TreeEngine {
   private readonly store: StateStore
@@ -63,6 +82,16 @@ export class TreeEngine {
   // `store.getState()` en cada cálculo (NON captura no constructor).
   private readonly statComputer: StatComputer
   // ── FIN: 2.2.b ──
+  // ── INICIO: 2.3.b — TimeManager cableado ──
+  // Peza encargada de avaliar `timeConstraints` (startsAt / expiresAt /
+  // expiresAtCalendar). Instánciase tras `statComputer` no constructor.
+  // O reloxo virtual (`now`) é inxectado vía `options.timeNow` cun
+  // default a `Date.now`. Tamén gardamos a referencia local a `timeNow`
+  // para usala como timestamp único nos `tick()`s (todos os nodos
+  // expirados no mesmo tick comparten exactamente o mesmo instante).
+  private readonly timeManager: TimeManager
+  private readonly timeNow: () => number
+  // ── FIN: 2.3.b ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -93,6 +122,16 @@ export class TreeEngine {
       locale: this.locale,
     })
     // ── FIN: 2.2.b ──
+    // ── INICIO: 2.3.b — instanciación do TimeManager ──
+    // Gardamos `timeNow` aparte para que `tick()` poida capturar o
+    // instante unha soa vez e usar `evaluateAt` (en lugar de `evaluate`)
+    // co mesmo timestamp para todos os nodos do tick.
+    this.timeNow = options?.timeNow ?? Date.now
+    this.timeManager = new TimeManager({
+      now: this.timeNow,
+      locale: this.locale,
+    })
+    // ── FIN: 2.3.b ──
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -389,6 +428,33 @@ export class TreeEngine {
         }),
       })
     }
+
+    // ── INICIO: 2.3.b — comprobación temporal vía TimeManager ──
+    // Posición na cadea: tras as comprobacións de estado actual
+    // (maxed/unlocked/expired/disabled), antes de prerequisites/recursos.
+    // Razón: se o estado xa di 'expired', o bloque anterior xa devolveu
+    // NODE_EXPIRED (máis específico). Aquí cubrimos o escenario común
+    // en que ningún `tick()` se chamou aínda pero TimeManager xa
+    // detecta a caducidade (ou que o nodo aínda non comezou).
+    // `permanent` e `active` non bloquean; déixase pasar ao seguinte
+    // chequeo.
+    const timeStatus = this.timeManager.evaluate(nodeDef.timeConstraints)
+    if (timeStatus.kind === 'pending') {
+      return ok({
+        allowed: false,
+        reason: getErrorMessage(ErrorCode.NODE_NOT_YET_AVAILABLE, this.locale, {
+          nodeId,
+          startsAt: String(timeStatus.startsAt),
+        }),
+      })
+    }
+    if (timeStatus.kind === 'expired') {
+      return ok({
+        allowed: false,
+        reason: getErrorMessage(ErrorCode.NODE_EXPIRED, this.locale, { nodeId }),
+      })
+    }
+    // ── FIN: 2.3.b ──
 
     // Comprobar prerequisites co UnlockResolver
     if (nodeDef.prerequisites !== undefined) {
@@ -1536,6 +1602,166 @@ export class TreeEngine {
     }
   }
   // ── FIN: applyChanges (sub-fase 1.14) ──
+
+  // ── INICIO: 2.3.b — tick + nextTickAt ──
+
+  /**
+   * Avalía o estado temporal de todos os nodos `unlocked`/`maxed` con
+   * `timeConstraints` e marca como `'expired'` os que `TimeManager`
+   * detecte como expirados no instante actual (segundo `timeNow`).
+   *
+   * Por cada nodo que transita:
+   *  - Muta `NodeInstance.state` a `'expired'` (StateStore.update con
+   *    Immer); engade entrada en `history`.
+   *  - Emite `stateChange` con `{from: <previo>, to: 'expired',
+   *    timestamp: <now do tick>, reason: 'expired'}`.
+   *  - Emite `nodeExpired(nodeId)`.
+   *  - Rexistra audit `{type: 'node_expired', nodeId}` con
+   *    `rollbackable: false` (a expiración non se desfai por respec:
+   *    o tempo non se reverte).
+   *  - Invalida a cache do `StatComputer` (nodo expirado deixa de
+   *    contribuír a stats).
+   *
+   * **Non afecta** nodos en estados distintos de `unlocked`/`maxed`:
+   *  - `'locked'`: a expiración bloquearía o unlock vía `canUnlock`
+   *    (briefing 5.3), pero `tick` non altera o estado dun nodo que
+   *    aínda non foi desbloqueado. Se o consumidor quere distinguir
+   *    "non desbloqueado pero xa expirado", consulte `canUnlock` ou
+   *    avalíe directamente o `TimeManager`.
+   *  - `'expired'`/`'disabled'`: idempotente, ignorados.
+   *
+   * Cero scheduling: este método é sempre chamado polo consumidor
+   * (briefing 5.5). Para programar a próxima chamada externamente,
+   * úsese `nextTickAt()`.
+   *
+   * Read-only: nun motor con `readOnly: true`, `tick` é un no-op
+   * (devolve `{expired: [], timestamp}`) para non mutar estado.
+   */
+  tick(): TickResult {
+    const timestamp = this.timeNow()
+
+    // Capturamos snapshot de claves a procesar antes da mutación para
+    // evitar iterar sobre un draft Immer en mutación. As constraints
+    // léense do treeDef (estables); o estado vén do store.
+    const treeDef = this.store.getTreeDef()
+    const state = this.store.getState()
+    const expired: string[] = []
+
+    // En readOnly devolvemos resultado vacío sen tocar nada nin emitir.
+    if (this.readOnly) {
+      return { expired, timestamp }
+    }
+
+    // Construímos a lista de transicións nun pase previo para que a
+    // mutación posterior sexa unha única `store.update` (semántica de
+    // "un tick = unha transacción atómica do estado").
+    const transitions: Array<{ nodeId: string; from: NodeState }> = []
+    for (const instance of Object.values(state.nodes)) {
+      if (instance.state !== 'unlocked' && instance.state !== 'maxed') {
+        continue
+      }
+      const nodeDef = treeDef.nodes.find((n) => n.id === instance.id)
+      if (nodeDef === undefined || nodeDef.timeConstraints === undefined) {
+        continue
+      }
+      // Usamos `evaluateAt` co `timestamp` capturado para garantir que
+      // todos os nodos do mesmo tick comparten exactamente o mesmo
+      // instante de referencia (criterio do briefing 5.4).
+      const status = this.timeManager.evaluateAt(nodeDef.timeConstraints, timestamp)
+      if (status.kind === 'expired') {
+        transitions.push({ nodeId: instance.id, from: instance.state })
+      }
+    }
+
+    if (transitions.length === 0) {
+      return { expired, timestamp }
+    }
+
+    // Mutación atómica do estado.
+    this.store.update((draft) => {
+      for (const t of transitions) {
+        const node = draft.nodes[t.nodeId]
+        if (node === undefined) {
+          continue
+        }
+        node.state = 'expired'
+        node.history = [
+          ...(node.history ?? []),
+          { from: t.from, to: 'expired', timestamp, reason: 'expired' },
+        ]
+      }
+    })
+
+    // Emisión de eventos + audit fóra da update (patrón existente).
+    for (const t of transitions) {
+      this.events.emit('stateChange', t.nodeId, {
+        from: t.from,
+        to: 'expired',
+        timestamp,
+        reason: 'expired',
+      })
+      this.events.emit('nodeExpired', t.nodeId)
+      // `rollbackable: false`: a expiración non se desfai por respec.
+      const auditEntry = this.audit.record(
+        { type: 'node_expired', nodeId: t.nodeId },
+        { rollbackable: false },
+      )
+      if (auditEntry !== null) {
+        this.events.emit('auditEntry', auditEntry)
+      }
+      expired.push(t.nodeId)
+    }
+
+    // Invalidación da cache do StatComputer: os nodos expirados deixan
+    // de contribuír a stats globais (StatComputer só conta unlocked/
+    // maxed). Unha soa chamada cubre todas as transicións.
+    this.statComputer.invalidate()
+
+    return { expired, timestamp }
+  }
+
+  /**
+   * Devolve o instante (UTC ms) máis próximo no futuro estrito no que
+   * algún nodo `unlocked`/`maxed` con `timeConstraints` cambiaría o
+   * seu status temporal (tipicamente, expiraría). Útil para que o
+   * consumidor programe `setTimeout(() => engine.tick(), delay)`.
+   *
+   * Devolve `null` se:
+   *  - Non hai ningún nodo unlocked/maxed con `timeConstraints`.
+   *  - Todos eles xa pasaron o seu instante de transición (deberían
+   *    procesarse cun `tick()` inmediato).
+   *
+   * Considera só nodos en `unlocked`/`maxed` porque son os que `tick`
+   * pode transitar. Para nodos `locked` con `startsAt` futuro (que
+   * desbloquearían unha "ventá de oportunidade"), o consumidor debe
+   * consultar `nextTransitionAt` do propio TimeManager sobre o seu
+   * `timeConstraints`, ou simplemente intentar `canUnlock` cando
+   * proceda.
+   */
+  nextTickAt(): number | null {
+    const treeDef = this.store.getTreeDef()
+    const state = this.store.getState()
+    let best: number | null = null
+    for (const instance of Object.values(state.nodes)) {
+      if (instance.state !== 'unlocked' && instance.state !== 'maxed') {
+        continue
+      }
+      const nodeDef = treeDef.nodes.find((n) => n.id === instance.id)
+      if (nodeDef === undefined || nodeDef.timeConstraints === undefined) {
+        continue
+      }
+      const candidate = this.timeManager.nextTransitionAt(nodeDef.timeConstraints)
+      if (candidate === null) {
+        continue
+      }
+      if (best === null || candidate < best) {
+        best = candidate
+      }
+    }
+    return best
+  }
+
+  // ── FIN: 2.3.b — tick + nextTickAt ──
 
   // ── INICIO: serialización JSON (sub-fase 1.17) ──
 

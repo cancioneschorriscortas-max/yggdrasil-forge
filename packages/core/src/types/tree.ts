@@ -129,5 +129,15 @@ export interface TreeEngineOptions {
     /** Máximo de entradas en memoria (FIFO). Default: 1000. */
     readonly maxEntries?: number
   }
+  /**
+   * Función que devolve o instante actual en UTC ms.
+   * Inxéctase no `TimeManager` interno do motor (sub-fase 2.3.b) para
+   * que toda a lóxica temporal (canUnlock con `timeConstraints`,
+   * `tick()`, `nextTickAt()`) use un reloxo virtual controlable.
+   * Default en produción: `Date.now`. En tests ou contornos
+   * deterministas, inxecta unha función que devolva un valor fixo ou
+   * incrementable.
+   */
+  readonly timeNow?: () => number
 }
 // ── FIN: Tree types ──

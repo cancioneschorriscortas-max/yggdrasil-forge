@@ -35,7 +35,7 @@ export {
   type AuditLoggerOptions,
   type AuditRecordOptions,
 } from './AuditLogger.js'
-export { TreeEngine } from './TreeEngine.js'
+export { TreeEngine, type TickResult } from './TreeEngine.js'
 export { EffectsRunner, type EffectContext } from './EffectsRunner.js'
 export { StatComputer, type StatComputerContext } from './StatComputer.js'
 export {
