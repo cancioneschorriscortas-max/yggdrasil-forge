@@ -91,6 +91,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Falló la aplicación del efecto "{effectType}" en el índice {failedAt}: {reason}',
     en: 'Effect "{effectType}" application failed at index {failedAt}: {reason}',
   },
+  [ErrorCode.NODE_NOT_YET_AVAILABLE]: {
+    gl: 'O nodo "{nodeId}" aínda non está dispoñible (comeza en {startsAt})',
+    es: 'El nodo "{nodeId}" aún no está disponible (comienza en {startsAt})',
+    en: 'Node "{nodeId}" is not yet available (starts at {startsAt})',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',
