@@ -96,6 +96,21 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'El nodo "{nodeId}" aún no está disponible (comienza en {startsAt})',
     en: 'Node "{nodeId}" is not yet available (starts at {startsAt})',
   },
+  [ErrorCode.PROGRESS_NOT_SUPPORTED]: {
+    gl: 'O nodo "{nodeId}" non admite progreso (supportsProgress é false ou ausente)',
+    es: 'El nodo "{nodeId}" no admite progreso (supportsProgress es false o ausente)',
+    en: 'Node "{nodeId}" does not support progress (supportsProgress is false or absent)',
+  },
+  [ErrorCode.PROGRESS_SOURCE_UNSUPPORTED]: {
+    gl: 'A fonte de progreso do nodo "{nodeId}" non é "manual" e non está soportada nesta versión',
+    es: 'La fuente de progreso del nodo "{nodeId}" no es "manual" y no está soportada en esta versión',
+    en: 'Progress source of node "{nodeId}" is not "manual" and is not supported in this version',
+  },
+  [ErrorCode.INVALID_PROGRESS_VALUE]: {
+    gl: 'Valor de progreso inválido para "{nodeId}": {percent}. Debe ser finito e estar en [0, 100]',
+    es: 'Valor de progreso inválido para "{nodeId}": {percent}. Debe ser finito y estar en [0, 100]',
+    en: 'Invalid progress value for "{nodeId}": {percent}. Must be finite and in [0, 100]',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',
