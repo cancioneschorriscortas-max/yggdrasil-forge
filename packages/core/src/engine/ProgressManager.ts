@@ -1,15 +1,18 @@
 // ── INICIO: ProgressManager ──
 // Peza standalone que xestiona o valor de progreso (0-100) dos nodos
-// con `supportsProgress: true` e fonte `manual`. Sub-fase 2.4: NON
-// está integrada en TreeEngine (iso é 2.4.b). Nesta sub-fase outras
-// fontes (`remote` / `callback` / `event` / `computed`) rexéitanse
-// con `PROGRESS_SOURCE_UNSUPPORTED`.
+// con `supportsProgress: true`. Soporta DÚAS fontes:
+//   - `manual`: o consumidor establece o valor con `setProgress`. O
+//     valor persiste en `NodeInstance.progress` no store.
+//   - `computed` (sub-fase 2.4.c): o valor DERIVA dinámicamente dunha
+//     fórmula (`sum`/`avg`/`min`/`max`) sobre `dependsOn`. NON se
+//     persiste no store; recalcúlase cada vez que se chama
+//     `getProgress`. `setProgress` sobre un nodo computed devolve err
+//     `INVALID_PROGRESS_OPERATION` (E022).
 //
-// Alcance EXACTO (briefing 2.4 §5.1):
-//   - Só `ProgressSourceConfig { type: 'manual' }` admite setProgress.
-//   - Calquera outra fonte (ou ausencia) → PROGRESS_SOURCE_UNSUPPORTED.
+// Outras fontes (`remote` / `callback` / `event`) seguen FÓRA de
+// alcance ata Fase 5 e rexéitanse con `PROGRESS_SOURCE_UNSUPPORTED`.
 //
-// FÓRA de alcance (briefing 2.4 §5.7 / §5.9 / §9):
+// FÓRA de alcance (briefings 2.4 §5.7 / §5.9 / §9; 2.4.c §5.10):
 //   - Auto-unlock cando progress=100: NUNCA muta NodeInstance.state.
 //     O consumidor que queira ese comportamento implémentao no
 //     wrapper despois de chamar a setProgress (ex):
@@ -25,14 +28,40 @@
 //   - Cero scheduling (setInterval/setTimeout) e cero handlers:
 //     a peza é síncrona, determinista e cero I/O. Mesma filosofía
 //     ca TimeManager (2.3).
-//   - Validacións Zod sobre `progressMilestones` (rango / orde):
-//     diferidas a futuro hardening do validador (§5.10).
+//   - Validacións Zod sobre `progressMilestones` (rango / orde) ou
+//     `dependsOn` (existencia, sen ciclos): diferidas a futuro
+//     hardening do validador.
+//   - **Cero `progressChange` event para computed** (briefing 2.4.c
+//     §5.10): cando o progress derivado dun nodo computed cambia
+//     porque cambiou un dos seus `dependsOn`, NON se emite ningún
+//     evento automático. A "cascada de eventos" require detectar
+//     todos os nodos computed que dependen indirectamente do nodo
+//     mutado, e o lifecycle de eventos encadeados é fonte de bugs.
+//     **Patrón recomendado para consumidores**: escoita
+//     `progressChange` para nodos `manual` e re-consulta manualmente
+//     `getProgress` para os computed que dependan deles.
+//   - **Cache do progress computed**: NON existe. Cada chamada a
+//     `getProgress` sobre un nodo computed recalcula. Razóns: os
+//     cálculos son triviais (lonxitude de `dependsOn` tipicamente
+//     <10), e unha cache requiriría invalidación coherente que é
+//     fonte de bugs. Optimización futura se aparecera evidencia de
+//     problema (briefing 2.4.c §5.2).
 //
 // Transicións descendentes (briefing 2.4 §5.5):
 //   setProgress(80) seguido de setProgress(40) está permitido sen
 //   restricións. Cando o progress baixa, `crossedMilestones`
 //   devólvese baleiro (semántica de "des-cruzar" non se define nesta
 //   sub-fase).
+//
+// Limitación coñecida (briefing 2.4.c — diferida a 2.4.d):
+//   `UnlockResolver` lee `NodeInstance.progress` directamente para
+//   avaliar condicións `progress_min` ao desbloquear nodos. **Non
+//   pasa por este ProgressManager**, polo que un `progress_min`
+//   apuntando a un nodo `computed` segue lendo 0 (xa que computed
+//   non persiste progress no state). Arranxo en sub-fase 2.4.d
+//   (require cableado UnlockResolver ↔ ProgressManager con análise
+//   da dependencia circular potencial: ProgressManager xa non
+//   consulta UnlockResolver, pero a inversa crearía ciclo).
 
 import { ErrorCode, type Locale, YggdrasilError, getErrorMessage } from '@yggdrasil-forge/common'
 import type { NodeDef, TreeDef } from '../types/index.js'
@@ -120,9 +149,23 @@ export class ProgressManager {
       )
     }
 
-    // ── 3. progressSource é 'manual' ──
+    // ── 3. progressSource é 'computed' → rexeitar (sub-fase 2.4.c §5.5) ──
+    // Un computed non se establece manualmente; só se deriva. Permitir
+    // `setProgress` sobre un computed crearía drift entre o valor
+    // establecido e o derivado dinámicamente.
+    if (nodeDef.progressSource?.type === 'computed') {
+      return err(
+        new YggdrasilError(
+          ErrorCode.INVALID_PROGRESS_OPERATION,
+          getErrorMessage(ErrorCode.INVALID_PROGRESS_OPERATION, this.context.locale, { nodeId }),
+        ),
+      )
+    }
+
+    // ── 4. progressSource é 'manual' ──
     // Se `progressSource` está ausente, a intención do autor da
-    // árbore é ambigua e tamén se rexeita (briefing §5.1).
+    // árbore é ambigua e tamén se rexeita (briefing §5.1). As fontes
+    // `remote` / `callback` / `event` seguen rexeitándose ata Fase 5.
     if (nodeDef.progressSource?.type !== 'manual') {
       return err(
         new YggdrasilError(
@@ -132,7 +175,7 @@ export class ProgressManager {
       )
     }
 
-    // ── 4. percent é finito e en [0, 100] ──
+    // ── 5. percent é finito e en [0, 100] ──
     if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
       return err(
         new YggdrasilError(
@@ -217,13 +260,92 @@ export class ProgressManager {
   }
 
   /**
-   * Lee o progreso actual dun nodo. Cero excepcións: devolve 0 se o
-   * nodo non ten progress definido, ou non existe, ou non existe a
-   * instancia. Defensivo por deseño (§5.3).
+   * Lee o progreso actual dun nodo. Cero excepcións: defensivo por
+   * deseño. Resolución segundo `progressSource` (briefing 2.4.c §5.6):
+   *
+   *   - Nodo NON existe (sen NodeDef): devolve **0**.
+   *   - `progressSource.type === 'manual'`: devolve
+   *     `NodeInstance.progress ?? 0` (comportamento clásico de 2.4).
+   *   - `progressSource.type === 'computed'`: **calcula dinámicamente**
+   *     a partir de `dependsOn` e `formula` (algoritmo en
+   *     `computeProgressFor`). Sen cache; recalcula cada chamada
+   *     (briefing 2.4.c §5.2).
+   *   - Calquera outro caso (remote / callback / event / ausente):
+   *     devolve **0** ignorando o que houbera en
+   *     `NodeInstance.progress` (briefing 2.4.c §5.6, decisión B1 do
+   *     arquitecto). Coherente con "se non sabemos de onde vén o
+   *     progress, devolvemos 0 sen lanzar".
+   *
+   * **Nota sobre composición computed→computed**: un `dependsOn` pode
+   * apuntar a outro nodo computed. A resolución é recursiva e detecta
+   * ciclos lazy con `Set<string>` (ver `computeProgressFor`). En
+   * ciclo, devolve 0 para o ramo afectado sen lanzar.
    */
   getProgress(nodeId: string): number {
-    const state = this.context.store.getState()
-    return state.nodes[nodeId]?.progress ?? 0
+    return this.computeProgressFor(nodeId, new Set<string>())
+  }
+
+  /**
+   * Helper privado recursivo para `getProgress`. Mantén un `Set` de
+   * nodos en curso de cálculo para detectar ciclos. Ver briefing
+   * 2.4.c §5.3 (algoritmo) e §5.4 (ciclos lazy).
+   *
+   * Garantías:
+   *   - Cero excepcións. Casos anómalos → devolve 0.
+   *   - Resultado final clampado a `[0, 100]` (defensa en
+   *     profundidade, §5.3 paso 4).
+   *   - O `Set` `inProgress` modifícase durante o cálculo (add/delete)
+   *     pero ao saír do método o estado é o mesmo que á entrada (a
+   *     mutación-restauración garántese mesmo en ciclos detectados).
+   */
+  private computeProgressFor(nodeId: string, inProgress: Set<string>): number {
+    // ── Ciclo detectado (briefing 2.4.c §5.4) ──
+    // Se este nodeId xa está sendo calculado máis arriba na pila
+    // recursiva, romper aquí devolvendo 0 (cero excepcións).
+    if (inProgress.has(nodeId)) {
+      return 0
+    }
+
+    const nodeDef = findNodeDef(this.context.treeDef, nodeId)
+    if (nodeDef === undefined) {
+      return 0
+    }
+
+    const source = nodeDef.progressSource
+
+    // ── Caso manual ──
+    if (source?.type === 'manual') {
+      const state = this.context.store.getState()
+      return state.nodes[nodeId]?.progress ?? 0
+    }
+
+    // ── Caso computed: cálculo recursivo con detección de ciclos ──
+    if (source?.type === 'computed') {
+      inProgress.add(nodeId)
+      try {
+        // Filtrar `dependsOn` por existencia antes de aplicar fórmula
+        // (briefing 2.4.c §5.3.2.a: "omitir" os inexistentes). Isto
+        // importa especialmente para `min`/`max` — un dep inexistente
+        // tratado como 0 contaminaría o resultado.
+        const validDeps = source.dependsOn.filter(
+          (depId) => findNodeDef(this.context.treeDef, depId) !== undefined,
+        )
+        return computeForFormula(source.formula, validDeps, (depId) =>
+          this.computeProgressFor(depId, inProgress),
+        )
+      } finally {
+        // Sempre restaurar o estado do Set ao saír (mesmo se algo
+        // lanzase nun futuro — defensa).
+        inProgress.delete(nodeId)
+      }
+    }
+
+    // ── Caso remote / callback / event / ausente (briefing 2.4.c §5.6) ──
+    // Devolvemos 0 ignorando NodeInstance.progress aínda que houbese
+    // algo gravado (deserialización dun estado antigo, test, etc.).
+    // Decisión B1 do arquitecto: coherencia semántica > preservar
+    // datos "orfos" de fontes non soportadas.
+    return 0
   }
 
   /**
@@ -292,4 +414,64 @@ function computeCrossedMilestones(
 }
 
 // ── FIN: helpers a nivel de módulo ──
+
+/**
+ * Aplica unha fórmula `sum`/`avg`/`min`/`max` sobre os valores
+ * resoltos dunha lista de `dependsOn`. Algoritmo briefing 2.4.c §5.3
+ * + §5.7.
+ *
+ * **Precondición**: `dependsOn` xa debe estar filtrado por
+ * existencia polo chamante (`computeProgressFor` faino con
+ * `findNodeDef` antes de chamarnos). Isto importa especialmente para
+ * `min`/`max` — un dep inexistente tratado como 0 contaminaría o
+ * resultado.
+ *
+ * Lista efectiva baleira (`dependsOn.length === 0`, sexa porque o
+ * autor a deixou baleira ou porque todos os deps foron filtrados
+ * por inexistentes) → **0** para todas as fórmulas (briefing §5.7).
+ * Evita `NaN` (`avg`), `Infinity` (`min`/`max` sobre array baleiro)
+ * ou `-Infinity`.
+ *
+ * Resultado final clampado a `[0, 100]` (§5.3 paso 4): `sum` pode
+ * pasar de 100 facilmente (varios deps ao 80 cada un); `min`/`max`/
+ * `avg` sobre valores en `[0, 100]` xa están en `[0, 100]`
+ * matemáticamente, pero o clamp adicional é defensa en
+ * profundidade.
+ */
+function computeForFormula(
+  formula: 'sum' | 'avg' | 'min' | 'max',
+  dependsOn: readonly string[],
+  resolve: (depId: string) => number,
+): number {
+  if (dependsOn.length === 0) {
+    return 0
+  }
+
+  const values = dependsOn.map(resolve)
+
+  let result: number
+  switch (formula) {
+    case 'sum':
+      result = values.reduce((acc, v) => acc + v, 0)
+      break
+    case 'avg':
+      // values.length >= 1 garantido (length===0 retornaba arriba).
+      result = values.reduce((acc, v) => acc + v, 0) / values.length
+      break
+    case 'min':
+      // Spread sobre array non baleiro: seguro.
+      result = Math.min(...values)
+      break
+    case 'max':
+      result = Math.max(...values)
+      break
+  }
+
+  // Clamp defensivo final a [0, 100]. `sum` pode superar 100; o
+  // límite inferior é defensa en profundidade (un dep manual nunca
+  // debería ser negativo, pero a fórmula `sum` con números garante
+  // un dominio de saída non negativo só se asumimos invariantes de
+  // entrada — usamos clamp por seguridade).
+  return Math.max(0, Math.min(100, result))
+}
 // ── FIN: ProgressManager ──

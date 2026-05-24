@@ -328,7 +328,14 @@ describe('ProgressManager.setProgress — validacións de erro', () => {
     expect(result.error.code).toBe(ErrorCode.PROGRESS_SOURCE_UNSUPPORTED)
   })
 
-  it('nodo con progressSource computed → PROGRESS_SOURCE_UNSUPPORTED', () => {
+  it('nodo con progressSource computed → INVALID_PROGRESS_OPERATION (sub-fase 2.4.c)', () => {
+    // En 2.4 e 2.4.b este caso devolvía PROGRESS_SOURCE_UNSUPPORTED
+    // (computed estaba fóra de alcance). En 2.4.c computed pasa a
+    // estar soportado *para getProgress* (derivación dinámica) pero
+    // setProgress sobre un computed segue sendo inválido por outro
+    // motivo: un computed non se establece manualmente, só se deriva.
+    // Por iso o ErrorCode cambia a un específico (INVALID_PROGRESS_OPERATION,
+    // YGG_E022).
     const tree = makeTree([
       makeNode({
         id: 'n1',
@@ -341,7 +348,7 @@ describe('ProgressManager.setProgress — validacións de erro', () => {
     const result = manager.setProgress('n1', 50)
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error.code).toBe(ErrorCode.PROGRESS_SOURCE_UNSUPPORTED)
+    expect(result.error.code).toBe(ErrorCode.INVALID_PROGRESS_OPERATION)
   })
 
   it('percent=-1 → INVALID_PROGRESS_VALUE', () => {
@@ -775,6 +782,573 @@ describe('ProgressManager — integración demostrativa con TreeEngine', () => {
     expect(result.value.crossedMilestones).toEqual([25, 50])
     expect(manager.getProgress('lesson-1')).toBe(60)
     expect(manager.getReachedMilestones('lesson-1')).toEqual([25, 50])
+  })
+})
+
+// ───────────────────────────────────────────────
+// Computed progress source (sub-fase 2.4.c)
+// ───────────────────────────────────────────────
+
+describe('ProgressManager — computed progress source (sub-fase 2.4.c)', () => {
+  // Helper: nodo manual con progress preexistente no state.
+  function withManualProgress(
+    id: string,
+    progress: number,
+  ): { def: NodeDef; instance: NodeInstance } {
+    return {
+      def: makeNode({ id, supportsProgress: true, progressSource: MANUAL }),
+      instance: { id, state: 'locked', currentTier: 0, progress },
+    }
+  }
+
+  // ── Cálculo básico: sum / avg / min / max ──
+
+  describe('cálculo básico (§5.3)', () => {
+    it('sum sobre un só dep devolve o seu valor', () => {
+      const a = withManualProgress('a', 50)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('c')).toBe(50)
+    })
+
+    it('sum sobre [A=30, B=40] devolve 70', () => {
+      const a = withManualProgress('a', 30)
+      const b = withManualProgress('b', 40)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getProgress('c')).toBe(70)
+    })
+
+    it('avg sobre [A=30, B=40] devolve 35', () => {
+      const a = withManualProgress('a', 30)
+      const b = withManualProgress('b', 40)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'avg' },
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getProgress('c')).toBe(35)
+    })
+
+    it('min sobre [A=30, B=40] devolve 30', () => {
+      const a = withManualProgress('a', 30)
+      const b = withManualProgress('b', 40)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'min' },
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getProgress('c')).toBe(30)
+    })
+
+    it('max sobre [A=30, B=40] devolve 40', () => {
+      const a = withManualProgress('a', 30)
+      const b = withManualProgress('b', 40)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'max' },
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getProgress('c')).toBe(40)
+    })
+
+    it('sum con A=80, B=80 clampa a 100 (non 160)', () => {
+      const a = withManualProgress('a', 80)
+      const b = withManualProgress('b', 80)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getProgress('c')).toBe(100)
+    })
+
+    it('avg sobre [A=100] devolve 100 (límite superior alcanzado pero non superado)', () => {
+      const a = withManualProgress('a', 100)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'avg' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('c')).toBe(100)
+    })
+  })
+
+  // ── Defensa: inexistentes, lista baleira ──
+
+  describe('defensa (§5.3.2.a, §5.7)', () => {
+    it('dependsOn con algún nodo inexistente: ignóranse e calcula sobre os que existen', () => {
+      const a = withManualProgress('a', 60)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'ghost'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      // Filtrado en computeProgressFor: 'ghost' descártase, queda [a=60].
+      expect(manager.getProgress('c')).toBe(60)
+    })
+
+    it('dependsOn con todos os nodos inexistentes: devolve 0 (lista efectiva baleira)', () => {
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['g1', 'g2'], formula: 'min' },
+      })
+      const tree = makeTree([computed])
+      const { manager } = buildManager(tree)
+
+      expect(manager.getProgress('c')).toBe(0)
+    })
+
+    it('dependsOn: [] (vacío declarado): devolve 0 para todas as fórmulas', () => {
+      const make = (formula: 'sum' | 'avg' | 'min' | 'max'): NodeDef =>
+        makeNode({
+          id: `c-${formula}`,
+          supportsProgress: true,
+          progressSource: { type: 'computed', dependsOn: [], formula },
+        })
+      const tree = makeTree([make('sum'), make('avg'), make('min'), make('max')])
+      const { manager } = buildManager(tree)
+
+      expect(manager.getProgress('c-sum')).toBe(0)
+      expect(manager.getProgress('c-avg')).toBe(0)
+      expect(manager.getProgress('c-min')).toBe(0)
+      expect(manager.getProgress('c-max')).toBe(0)
+    })
+
+    it('min con un dep inexistente filtrado NON contamina o resultado con 0 espurio', () => {
+      // Regresión específica do filtrado upstream: se o ghost fose
+      // tratado como 0, min daría 0; ao filtrarse, min é o do dep real.
+      const a = withManualProgress('a', 50)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['ghost', 'a'], formula: 'min' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('c')).toBe(50)
+    })
+  })
+
+  // ── Composición: computed depende de computed ──
+
+  describe('composición computed→computed', () => {
+    it('A manual=70, B=[A] sum=70, C=[A,B] sum=140 → clampado a 100', () => {
+      const a = withManualProgress('a', 70)
+      const b: NodeDef = makeNode({
+        id: 'b',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const c: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, b, c])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('a')).toBe(70)
+      expect(manager.getProgress('b')).toBe(70)
+      expect(manager.getProgress('c')).toBe(100)
+    })
+
+    it('composición avg sobre dependencias computed (deriva en cadea)', () => {
+      // A=40 manual, B=avg([A])=40, C=avg([A,B])=40.
+      const a = withManualProgress('a', 40)
+      const b: NodeDef = makeNode({
+        id: 'b',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'avg' },
+      })
+      const c: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'avg' },
+      })
+      const tree = makeTree([a.def, b, c])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('c')).toBe(40)
+    })
+  })
+
+  // ── Detección de ciclos (§5.4) ──
+
+  describe('detección de ciclos (§5.4)', () => {
+    it('ciclo simple A↔B: ambos devolven 0 sen lanzar', () => {
+      const a: NodeDef = makeNode({
+        id: 'a',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['b'], formula: 'sum' },
+      })
+      const b: NodeDef = makeNode({
+        id: 'b',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const tree = makeTree([a, b])
+      const { manager } = buildManager(tree)
+
+      expect(() => manager.getProgress('a')).not.toThrow()
+      expect(() => manager.getProgress('b')).not.toThrow()
+      expect(manager.getProgress('a')).toBe(0)
+      expect(manager.getProgress('b')).toBe(0)
+    })
+
+    it('autorreferencia A=[A]: devolve 0 sen lanzar', () => {
+      const a: NodeDef = makeNode({
+        id: 'a',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const tree = makeTree([a])
+      const { manager } = buildManager(tree)
+
+      expect(() => manager.getProgress('a')).not.toThrow()
+      expect(manager.getProgress('a')).toBe(0)
+    })
+
+    it('cadea A→B→C→A: todos devolven 0', () => {
+      const a: NodeDef = makeNode({
+        id: 'a',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['b'], formula: 'sum' },
+      })
+      const b: NodeDef = makeNode({
+        id: 'b',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['c'], formula: 'sum' },
+      })
+      const c: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const tree = makeTree([a, b, c])
+      const { manager } = buildManager(tree)
+
+      expect(manager.getProgress('a')).toBe(0)
+      expect(manager.getProgress('b')).toBe(0)
+      expect(manager.getProgress('c')).toBe(0)
+    })
+
+    it('ciclo con rama manual lateral: a rama válida calcula correctamente, o ciclo dá 0', () => {
+      // D = sum([A_manual=80, B_computed=[C_computed=[B]]])
+      // A=80 (manual), B↔C ciclo (ambos 0), D = 80 + 0 = 80.
+      const a = withManualProgress('a', 80)
+      const b: NodeDef = makeNode({
+        id: 'b',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['c'], formula: 'sum' },
+      })
+      const c: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['b'], formula: 'sum' },
+      })
+      const d: NodeDef = makeNode({
+        id: 'd',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, b, c, d])
+      const { manager } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('d')).toBe(80)
+    })
+
+    it('chamadas consecutivas tras un ciclo non contaminan o Set entre chamadas distintas', () => {
+      // Regresión: o `Set<string>` créase en cada chamada externa a
+      // getProgress (new Set()) e libérase con try/finally. Verificamos
+      // que un cálculo previo (que entrou en ciclo) non afecta a un
+      // posterior independente.
+      const a: NodeDef = makeNode({
+        id: 'a',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const b = withManualProgress('b', 42)
+      const tree = makeTree([a, b.def])
+      const { manager } = buildManager(tree, makeState([b.instance]))
+
+      // Primeiro pode entrar nun ciclo:
+      expect(manager.getProgress('a')).toBe(0)
+      // Inmediatamente despois, un cálculo limpo non se ve afectado:
+      expect(manager.getProgress('b')).toBe(42)
+      // E unha segunda chamada ao cíclico segue devolvendo 0 (non
+      // peor, non mellor):
+      expect(manager.getProgress('a')).toBe(0)
+    })
+  })
+
+  // ── setProgress sobre computed rexéitase (§5.5) ──
+
+  describe('setProgress sobre computed (§5.5)', () => {
+    it('rexeita con INVALID_PROGRESS_OPERATION (YGG_E022)', () => {
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: [], formula: 'sum' },
+      })
+      const tree = makeTree([computed])
+      const { manager } = buildManager(tree)
+
+      const result = manager.setProgress('c', 50)
+      expect(result.ok).toBe(false)
+      if (result.ok) return
+      expect(result.error.code).toBe(ErrorCode.INVALID_PROGRESS_OPERATION)
+      expect(result.error.code).toBe('YGG_E022')
+    })
+
+    it('a orde de validación: computed precede a "manual check" e a "percent check"', () => {
+      // Aínda que o percent é inválido (-1), o erro devolto é o de
+      // computed (E022), non o de percent (E021). Documenta a orde
+      // explícita das validacións.
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: [], formula: 'sum' },
+      })
+      const tree = makeTree([computed])
+      const { manager } = buildManager(tree)
+
+      const result = manager.setProgress('c', -1)
+      expect(result.ok).toBe(false)
+      if (result.ok) return
+      expect(result.error.code).toBe(ErrorCode.INVALID_PROGRESS_OPERATION)
+    })
+  })
+
+  // ── getReachedMilestones sobre computed (§5.8) ──
+
+  describe('getReachedMilestones sobre computed (§5.8)', () => {
+    it('reutiliza getProgress (xa calculado dinámicamente) para filtrar milestones', () => {
+      // Deps que dan 60 → milestones <= 60 son [25, 50].
+      const a = withManualProgress('a', 30)
+      const b = withManualProgress('b', 30)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'sum' },
+        progressMilestones: [25, 50, 75],
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getProgress('c')).toBe(60)
+      expect(manager.getReachedMilestones('c')).toEqual([25, 50])
+    })
+
+    it('cambio dinámico: ao mudar un dep manual, o computed actualiza e milestones reflicten', () => {
+      // Verifica derivación dinámica (cero cache): cando A muta de
+      // 30 a 80, c=sum([a,b])=110→clamp 100, e milestones cruzados
+      // muda en consecuencia.
+      const a = withManualProgress('a', 30)
+      const b = withManualProgress('b', 30)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a', 'b'], formula: 'sum' },
+        progressMilestones: [25, 50, 75, 100],
+      })
+      const tree = makeTree([a.def, b.def, computed])
+      const { manager } = buildManager(tree, makeState([a.instance, b.instance]))
+
+      expect(manager.getReachedMilestones('c')).toEqual([25, 50])
+
+      manager.setProgress('a', 80) // a sobe a 80; sum=110 → clamp 100
+      expect(manager.getProgress('c')).toBe(100)
+      expect(manager.getReachedMilestones('c')).toEqual([25, 50, 75, 100])
+    })
+  })
+
+  // ── Contrato observable §5.6 (B1): nodos con fonte non soportada ──
+
+  describe('§5.6 (B1): fontes non soportadas devolven 0 ignorando state', () => {
+    it('progressSource remote con NodeInstance.progress=50 → getProgress devolve 0', () => {
+      // Decisión B1 do arquitecto: aínda que o state teña gravado
+      // progress=50 (por deserialización dun estado antigo, test, ou
+      // erro), `getProgress` ignórao se a fonte non é manual nin
+      // computed. Coherencia semántica: "se non sabemos de onde vén
+      // o progress, devolvemos 0 sen lanzar".
+      const remote: NodeDef = makeNode({
+        id: 'r',
+        supportsProgress: true,
+        progressSource: { type: 'remote', endpoint: 'https://example.com/api' },
+      })
+      const tree = makeTree([remote])
+      const { manager } = buildManager(
+        tree,
+        makeState([{ id: 'r', state: 'locked', currentTier: 0, progress: 50 }]),
+      )
+
+      expect(manager.getProgress('r')).toBe(0)
+    })
+
+    it('progressSource callback con NodeInstance.progress=88 → getProgress devolve 0', () => {
+      const callback: NodeDef = makeNode({
+        id: 'cb',
+        supportsProgress: true,
+        progressSource: { type: 'callback', handlerId: 'h1' },
+      })
+      const tree = makeTree([callback])
+      const { manager } = buildManager(
+        tree,
+        makeState([{ id: 'cb', state: 'locked', currentTier: 0, progress: 88 }]),
+      )
+
+      expect(manager.getProgress('cb')).toBe(0)
+    })
+
+    it('progressSource event con NodeInstance.progress=99 → getProgress devolve 0', () => {
+      const event: NodeDef = makeNode({
+        id: 'ev',
+        supportsProgress: true,
+        progressSource: { type: 'event', eventName: 'lesson_done' },
+      })
+      const tree = makeTree([event])
+      const { manager } = buildManager(
+        tree,
+        makeState([{ id: 'ev', state: 'locked', currentTier: 0, progress: 99 }]),
+      )
+
+      expect(manager.getProgress('ev')).toBe(0)
+    })
+
+    it('progressSource ausente (undefined) con NodeInstance.progress=42 → getProgress devolve 0', () => {
+      // supportsProgress: true pero sen `progressSource` declarada.
+      // Tras 2.4.c devolve 0 (decisión B1). Antes de 2.4.c devolvía 42.
+      const orphan: NodeDef = makeNode({ id: 'o', supportsProgress: true })
+      const tree = makeTree([orphan])
+      const { manager } = buildManager(
+        tree,
+        makeState([{ id: 'o', state: 'locked', currentTier: 0, progress: 42 }]),
+      )
+
+      expect(manager.getProgress('o')).toBe(0)
+    })
+
+    it('nodo sen supportsProgress con progressSource: manual e NodeInstance.progress=33 → devolve 33', () => {
+      // Confirmación negativa: a comprobación de §5.6 NON afecta a
+      // nodos con tipo 'manual' aínda que `supportsProgress` non sexa
+      // true. (supportsProgress só afecta a setProgress, non a
+      // getProgress.) Esto documenta que a lóxica de getProgress
+      // mira só `progressSource.type`, non `supportsProgress`.
+      const n: NodeDef = makeNode({ id: 'n', progressSource: MANUAL })
+      const tree = makeTree([n])
+      const { manager } = buildManager(
+        tree,
+        makeState([{ id: 'n', state: 'locked', currentTier: 0, progress: 33 }]),
+      )
+
+      expect(manager.getProgress('n')).toBe(33)
+    })
+  })
+
+  // ── Cero auto-unlock para computed (2.4 §5.7 mantida) ──
+
+  describe('cero auto-unlock para computed (decisión 2.4 §5.7 mantida)', () => {
+    it('computed alcanza 100 → NodeInstance.state non muta', () => {
+      const a = withManualProgress('a', 100)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager, store } = buildManager(tree, makeState([a.instance]))
+
+      expect(manager.getProgress('c')).toBe(100)
+
+      // O computed nin sequera ten NodeInstance no store (cero
+      // persistencia §5.1). Se chegara a ter unha (creada por outras
+      // vías), o seu state non se tocaría.
+      const computedInstance = store.getState().nodes.c
+      expect(computedInstance).toBeUndefined()
+    })
+  })
+
+  // ── Cero persistencia: NodeInstance.progress non se escribe para computed (§5.1) ──
+
+  describe('cero persistencia para computed (§5.1)', () => {
+    it('tras chamar getProgress varias veces, NodeInstance.progress segue undefined', () => {
+      const a = withManualProgress('a', 50)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'avg' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager, store } = buildManager(tree, makeState([a.instance]))
+
+      // Varias chamadas (a cache non existe; cada chamada recalcula):
+      expect(manager.getProgress('c')).toBe(50)
+      expect(manager.getProgress('c')).toBe(50)
+      expect(manager.getProgress('c')).toBe(50)
+
+      // O store NON ten instancia para `c` (nunca se persistiu).
+      const stateC = store.getState().nodes.c
+      expect(stateC).toBeUndefined()
+    })
+
+    it('cero evento progressChange para computed (briefing 2.4.c §5.10)', () => {
+      // Aínda que un dep manual mude (e iso si emite progressChange
+      // para o dep), o computed non emite nada propio. O consumidor
+      // re-consulta manualmente.
+      const a = withManualProgress('a', 30)
+      const computed: NodeDef = makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      })
+      const tree = makeTree([a.def, computed])
+      const { manager, events } = buildManager(tree, makeState([a.instance]))
+
+      const log: Array<{ nodeId: string; percent: number }> = []
+      events.on('progressChange', (nodeId, percent) => {
+        log.push({ nodeId, percent })
+      })
+
+      manager.setProgress('a', 70)
+
+      // Só un evento, e SÓ para o dep manual `a`. Cero eventos para `c`.
+      expect(log).toEqual([{ nodeId: 'a', percent: 70 }])
+      // Pero o computed reflicte o cambio cando se consulta:
+      expect(manager.getProgress('c')).toBe(70)
+    })
   })
 })
 

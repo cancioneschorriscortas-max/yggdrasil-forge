@@ -3,7 +3,7 @@
 // (setProgress / getProgress / getReachedMilestones) e que estes
 // delegan correctamente no ProgressManager interno. As decisións
 // críticas (cero auto-unlock, cero mutación de state, respec
-// conserva progress, computed segue PROGRESS_SOURCE_UNSUPPORTED)
+// conserva progress, computed devolve INVALID_PROGRESS_OPERATION en setProgress)
 // están cubertas con tests dedicados.
 //
 // Os tests unitarios exhaustivos do propio ProgressManager (40 casos
@@ -263,8 +263,11 @@ describe('TreeEngine.setProgress — propagación de erros', () => {
     expect(result.error.code).toBe(ErrorCode.PROGRESS_SOURCE_UNSUPPORTED)
   })
 
-  it('progressSource computed segue rexeitándose nesta sub-fase (asignado a 2.4.c)', () => {
-    // §5.1: computed seguirá PROGRESS_SOURCE_UNSUPPORTED ata 2.4.c.
+  it('progressSource computed → INVALID_PROGRESS_OPERATION (sub-fase 2.4.c)', () => {
+    // En 2.4/2.4.b computed devolvía PROGRESS_SOURCE_UNSUPPORTED. En
+    // 2.4.c computed está SOPORTADO para getProgress (derivación
+    // dinámica) pero setProgress segue sendo inválido cun ErrorCode
+    // específico: un computed non se establece manualmente.
     const tree = makeTree([
       makeNode({
         id: 'n1',
@@ -277,7 +280,7 @@ describe('TreeEngine.setProgress — propagación de erros', () => {
     const result = engine.setProgress('n1', 50)
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error.code).toBe(ErrorCode.PROGRESS_SOURCE_UNSUPPORTED)
+    expect(result.error.code).toBe(ErrorCode.INVALID_PROGRESS_OPERATION)
   })
 
   it('percent=-1 → INVALID_PROGRESS_VALUE (YGG_E021)', () => {
