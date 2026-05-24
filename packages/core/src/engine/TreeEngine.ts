@@ -33,6 +33,7 @@ import { type ChangeAnalysis, type ChangeConflict, analyzeChanges } from './Chan
 import { EffectsRunner } from './EffectsRunner.js'
 import { EventEmitter, type Unsubscribe } from './EventEmitter.js'
 import { deserialize, serialize } from './JsonSerializer.js'
+import { ProgressManager, type ProgressUpdateResult } from './ProgressManager.js'
 import { ResourceManager } from './ResourceManager.js'
 import { StatComputer } from './StatComputer.js'
 import { StateStore } from './StateStore.js'
@@ -92,6 +93,16 @@ export class TreeEngine {
   private readonly timeManager: TimeManager
   private readonly timeNow: () => number
   // ── FIN: 2.3.b ──
+  // ── INICIO: 2.4.b — ProgressManager cableado ──
+  // Peza encargada de xestionar o progreso manual (0-100) dos nodos
+  // con `supportsProgress: true` e `progressSource: { type: 'manual' }`.
+  // Instánciase tras `timeManager` no constructor. Os tres métodos
+  // públicos `setProgress`/`getProgress`/`getReachedMilestones`
+  // delegan aquí. Outras fontes (remote/callback/event/computed)
+  // seguen rexeitándose con `PROGRESS_SOURCE_UNSUPPORTED` (decisión
+  // 2.4.b §5.1 — `computed` queda para 2.4.c).
+  private readonly progressManager: ProgressManager
+  // ── FIN: 2.4.b ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -132,6 +143,20 @@ export class TreeEngine {
       locale: this.locale,
     })
     // ── FIN: 2.3.b ──
+    // ── INICIO: 2.4.b — instanciación do ProgressManager ──
+    // Constrúese tras `timeManager` para preservar a orde "estado →
+    // efectos → derivados → tempo → progreso". O context recibe a
+    // referencia ao `treeDef` actual (consistente con StatComputer:
+    // snapshot no constructor; a invalidación tras `applyChanges`
+    // afecta a este patrón globalmente, fóra de alcance desta sub-fase).
+    this.progressManager = new ProgressManager({
+      treeDef: this.store.getTreeDef(),
+      store: this.store,
+      events: this.events,
+      audit: this.audit,
+      locale: this.locale,
+    })
+    // ── FIN: 2.4.b ──
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -235,12 +260,14 @@ export class TreeEngine {
     return this.store.getState().budget
   }
 
+  /**
+   * Lee o progreso actual dun nodo. Defensivo: 0 se o nodo non existe
+   * ou non ten progress. Delega en `ProgressManager` para centralizar
+   * a lectura nunha única peza (sub-fase 2.4.b refactor — antes 1.12
+   * lía directamente do store; comportamento observable idéntico).
+   */
   getProgress(nodeId: string): number {
-    const node = this.getNodeState(nodeId)
-    if (node === null) {
-      return 0
-    }
-    return node.progress ?? 0
+    return this.progressManager.getProgress(nodeId)
   }
 
   getTreeDef(): Readonly<TreeDef> {
@@ -283,6 +310,58 @@ export class TreeEngine {
     return this.statComputer.computeAllStats()
   }
   // ── FIN: 2.2.b ──
+
+  // ── INICIO: 2.4.b — API pública de progreso ──
+  /**
+   * Establece o progreso dun nodo (0-100). Require que o nodo teña
+   * `supportsProgress: true` e `progressSource: { type: 'manual' }`.
+   *
+   * Validacións (orde estricta, propaga errores do ProgressManager):
+   *   1. NodeDef existe → senón `NODE_NOT_FOUND` (YGG_E001).
+   *   2. `supportsProgress === true` → senón `PROGRESS_NOT_SUPPORTED`
+   *      (YGG_E019).
+   *   3. `progressSource.type === 'manual'` → senón
+   *      `PROGRESS_SOURCE_UNSUPPORTED` (YGG_E020). Outras fontes
+   *      (remote/callback/event/computed) rexéitanse nesta sub-fase;
+   *      `computed` queda para 2.4.c.
+   *   4. `percent` finito en `[0, 100]` → senón
+   *      `INVALID_PROGRESS_VALUE` (YGG_E021).
+   *
+   * Idempotente: se `oldPercent === newPercent` non se emite evento,
+   * non se rexistra audit, non se muta o store. Devolve ok con
+   * `crossedMilestones: []`.
+   *
+   * **Cero auto-unlock** (decisión 2.4.b §5.4): `setProgress(nodeId,
+   * 100)` **NON** desbloquea o nodo automaticamente. O consumidor que
+   * queira ese comportamento implémentao externamente combinando
+   * `setProgress` + `canUnlock` + `unlock`.
+   *
+   * **Cero mutación de `NodeInstance.state`** (decisión 2.4.b §5.5):
+   * o estado segue sendo responsabilidade exclusiva de
+   * `unlock`/`lock`/`respec`/`tick`/`applyChanges`. `setProgress(nodeId,
+   * 50)` **NON** transita o nodo a `'in_progress'` (estado declarado
+   * pero non usado nesta sub-fase; semántica diferida).
+   *
+   * **`respec` non reseta `progress`** (decisión 2.4.b §5.8): tras
+   * desbloquear, establecer progreso, e logo facer `respec`, o
+   * `progress` consérvase. Razón: `progress` é dato semántico ("xa
+   * fixen o 50%") que pode querer preservarse. O consumidor que queira
+   * resetar chama `setProgress(nodeId, 0)` explicitamente despois de
+   * `respec`.
+   */
+  setProgress(nodeId: string, percent: number): Result<ProgressUpdateResult> {
+    return this.progressManager.setProgress(nodeId, percent)
+  }
+
+  /**
+   * Lista de milestones xa alcanzados para un nodo, baseándose no seu
+   * progress actual e no `progressMilestones` do NodeDef. Defensivo:
+   * nodo inexistente ou sen milestones → array baleiro.
+   */
+  getReachedMilestones(nodeId: string): readonly number[] {
+    return this.progressManager.getReachedMilestones(nodeId)
+  }
+  // ── FIN: 2.4.b ──
 
   isReadOnly(): boolean {
     return this.readOnly
