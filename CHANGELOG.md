@@ -7,6 +7,24 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `TreeEngine.setProgress(nodeId, percent): Result<ProgressUpdateResult>` (engine, sub-fase 2.4.b): delega no `ProgressManager` interno. Valida (NodeDef existe → `supportsProgress === true` → `progressSource.type === 'manual'` → `percent` finito en `[0, 100]`). Idempotente cando `oldPercent === newPercent`. Emite `progressChange` e rexistra audit `{type: 'progress_updated', nodeId, from, to}` con `rollbackable: true`.
+- `TreeEngine.getReachedMilestones(nodeId): readonly number[]` (engine, sub-fase 2.4.b): delega no `ProgressManager`. Devolve os milestones de `progressMilestones` que son `<= progress` actual.
+
+### Changed
+- `TreeEngine.getProgress(nodeId): number` (existente desde sub-fase 1.12): a implementación pasa a delegar en `ProgressManager.getProgress` en lugar de ler directamente do store. **Comportamento observable idéntico** (nodo inexistente → 0, instancia sen `progress` → 0, instancia con progress=X → X). Tests de regresión específicos en `__tests__/engine/TreeEngine.progress.test.ts` documentan o contrato preservado. Razón: centralizar toda a lectura de progress nunha peza única, evitando drift entre dúas implementacións paralelas.
+- `TreeEngine` instancia agora un `private readonly progressManager: ProgressManager` tras `timeManager` no constructor. Sen cambios na orde xeral nin nas demais pezas.
+
+### Note
+- **Cero auto-unlock cando `progress === 100`** (decisión 2.4.b §5.4): `setProgress(nodeId, 100)` NON desbloquea o nodo. O estado segue sendo responsabilidade exclusiva de `unlock` / `lock` / `respec` / `tick` / `applyChanges`. O consumidor que queira "auto-unlock" implícitao externamente combinando `setProgress` + `canUnlock` + `unlock`.
+- **Cero transición a `'in_progress'`** (decisión 2.4.b §5.5): `setProgress(nodeId, 50)` NON cambia `NodeInstance.state`. O estado `'in_progress'` segue declarado en `NodeState` pero **non se usa**; a semántica de entrada/saída (¿progress>0? ¿progress=100?) queda diferida a unha sub-fase futura que a defina.
+- **`respec` non reseta `progress`** (decisión 2.4.b §5.8): tras un `unlock` + `setProgress(50)` + `respec`, `getProgress(nodeId)` segue devolvendo 50. Razón: `progress` é dato semántico ("xa fixen o 50%") que pode querer preservarse. O consumidor que queira resetar chama `setProgress(nodeId, 0)` explicitamente despois de `respec`. **Esta decisión non require cambios en `respec`** — a implementación actual simplemente non toca `progress`.
+- **`computed` progress source** (decisión 2.4.b §5.1): nodos con `progressSource: { type: 'computed', ... }` seguen rexeitándose con `PROGRESS_SOURCE_UNSUPPORTED` (YGG_E020). A integración de `computed` (con detección de ciclos en `dependsOn`, cache + invalidación, fórmulas `sum`/`avg`/`min`/`max`) queda asignada a **sub-fase 2.4.c** separada, aplicando a lección recorrente "acoutar > ambicionar".
+- Cero modificacións a `unlock` / `lock` / `respec` / `tick` / `applyChanges` / `canUnlock` (decisión 2.4.b §5.6). Cero novos `ErrorCode` (os tres engadidos en 2.4 cobren todos os casos de integración, decisión §5.7). Cero cambios en `@yggdrasil-forge/common`.
+- Cobertura (acumulada 2.4.b): `TreeEngine.ts` 96.46% (= baseline 2.4); `ProgressManager.ts` 100% (sen cambios); global 98.18% (= baseline 2.4). Tests do paquete `core`: 788 → 807 (19 novos en `__tests__/engine/TreeEngine.progress.test.ts`).
+
+## [Unreleased]
+
+### Added
 - `ProgressManager` (engine, sub-fase 2.4): peza standalone que xestiona o valor de progreso (0-100) dos nodos con `supportsProgress: true` e fonte `manual`. API pública: `setProgress(nodeId, percent): Result<ProgressUpdateResult>`, `getProgress(nodeId): number`, `getReachedMilestones(nodeId): readonly number[]`. `setProgress` valida en orde estricta (NodeDef existe → `supportsProgress === true` → `progressSource.type === 'manual'` → `percent` finito en `[0, 100]`); é idempotente se `oldPercent === newPercent` (cero evento, cero audit, cero mutación); permite progresos descendentes (devolve `crossedMilestones` baleiro nese caso); e calcula `crossedMilestones` como o conxunto de `progressMilestones` no intervalo `(oldPercent, newPercent]` cando o progress sobe. Se a `NodeInstance` non existe créase mínima con `state: 'locked'`. `getProgress` e `getReachedMilestones` son defensivas (nodo inexistente → 0 / `[]`). Tipos `ProgressManagerContext` e `ProgressUpdateResult` exportados desde `engine/index.ts`.
 - `ErrorCode.PROGRESS_NOT_SUPPORTED = 'YGG_E019'`, `ErrorCode.PROGRESS_SOURCE_UNSUPPORTED = 'YGG_E020'`, `ErrorCode.INVALID_PROGRESS_VALUE = 'YGG_E021'` (common, sub-fase 2.4) con mensaxes localizadas en gl/es/en. Placeholders `{nodeId}` e (para `INVALID_PROGRESS_VALUE`) `{percent}`. O cuarto código contemplado no briefing (`NODE_NOT_FOUND`) **xa existía** como `YGG_E001` e reutilízase.
 
