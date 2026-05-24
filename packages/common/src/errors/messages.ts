@@ -111,6 +111,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Valor de progreso inválido para "{nodeId}": {percent}. Debe ser finito y estar en [0, 100]',
     en: 'Invalid progress value for "{nodeId}": {percent}. Must be finite and in [0, 100]',
   },
+  [ErrorCode.INVALID_PROGRESS_OPERATION]: {
+    gl: 'A operación setProgress non é válida para o nodo "{nodeId}": é unha fonte computed',
+    es: 'La operación setProgress no es válida para el nodo "{nodeId}": es una fuente computed',
+    en: 'setProgress is not valid for node "{nodeId}": it is a computed source',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',
