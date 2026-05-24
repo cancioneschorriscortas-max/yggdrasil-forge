@@ -43,6 +43,11 @@ export {
   type TimeManagerContext,
   type TimeStatus,
 } from './TimeManager.js'
+export {
+  ProgressManager,
+  type ProgressManagerContext,
+  type ProgressUpdateResult,
+} from './ProgressManager.js'
 export { createSelector, shallowEqual } from './selectors.js'
 export {
   treeDefSchema,
