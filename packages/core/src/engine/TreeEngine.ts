@@ -537,7 +537,15 @@ export class TreeEngine {
 
     // Comprobar prerequisites co UnlockResolver
     if (nodeDef.prerequisites !== undefined) {
-      const ctx: UnlockResolverContext = { treeDef, state, locale: this.locale }
+      // ── INICIO: 2.4.d — pasar progressManager para soportar
+      // condicións progress_min sobre nodos computed ──
+      const ctx: UnlockResolverContext = {
+        treeDef,
+        state,
+        locale: this.locale,
+        progressManager: this.progressManager,
+      }
+      // ── FIN: 2.4.d ──
       const satisfied = this.resolver.evaluate(nodeDef.prerequisites, ctx)
       if (!satisfied) {
         return ok({
@@ -1079,7 +1087,19 @@ export class TreeEngine {
               ),
             ),
           }
-          const ctx: UnlockResolverContext = { treeDef, state: simulatedState, locale: this.locale }
+          // ── INICIO: 2.4.d — pasar progressManager (igual ca en canUnlock) ──
+          // Nota: o `progressManager` lee sempre o state do store
+          // real, non este `simulatedState`. Para nodos `computed`
+          // cuxos deps muten no mesmo cascade, isto pode crear unha
+          // inconsistencia (ver reporte de 2.4.d, sección "achadego");
+          // a 2.4.e estuda esa interacción.
+          const ctx: UnlockResolverContext = {
+            treeDef,
+            state: simulatedState,
+            locale: this.locale,
+            progressManager: this.progressManager,
+          }
+          // ── FIN: 2.4.d ──
           const stillSatisfied = this.resolver.evaluate(candidateDef.prerequisites, ctx)
           if (!stillSatisfied) {
             nodeIdsToLock.push(candidateDef.id)

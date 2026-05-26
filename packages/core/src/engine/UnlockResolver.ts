@@ -26,6 +26,31 @@ export interface DependencyGraphLike {
   distanceBetween(fromId: string, toId: string): number
 }
 
+// ── INICIO: 2.4.d — ProgressManagerLike ──
+/**
+ * Interface mínima requirida polo UnlockResolver para consultar
+ * progress. Permite que `ProgressManager` (clase concreta de
+ * `engine/ProgressManager.ts`) se inxecte vía context sen acoplar
+ * `UnlockResolver` á clase concreta. TypeScript usa structural typing,
+ * polo que `ProgressManager` cumpre esta interface automáticamente
+ * sen necesidade de declaración explícita.
+ *
+ * Aliñase coa API pública de `ProgressManager.getProgress`. A interface
+ * é deliberadamente mínima: o `UnlockResolver` só consulta progress
+ * por nodo, non precisa coñecer `setProgress` nin
+ * `getReachedMilestones`.
+ *
+ * Razóns desta abstracción (en lugar de importar a clase concreta):
+ *   - Mantén `UnlockResolver` desacoplado da implementación de
+ *     `ProgressManager`.
+ *   - Permite tests illados con mocks triviales.
+ *   - Facilita unha eventual substitución da implementación.
+ */
+export interface ProgressManagerLike {
+  getProgress(nodeId: string): number
+}
+// ── FIN: 2.4.d ──
+
 /**
  * Contexto pasado ao UnlockResolver.
  */
@@ -35,6 +60,33 @@ export interface UnlockResolverContext {
   readonly dependencyGraph?: DependencyGraphLike
   readonly customEvaluators?: ReadonlyMap<string, ConditionEvaluator>
   readonly locale?: Locale
+  // ── INICIO: 2.4.d — campo opcional progressManager ──
+  /**
+   * `ProgressManager` (ou compatible estructural) opcional. Se está
+   * presente, o método privado `getProgress` interno delega nel ao
+   * avaliar condicións `progress_min`. Iso permite que as condicións
+   * lean valores derivados de nodos `computed` (que non persisten en
+   * `NodeInstance.progress`).
+   *
+   * **Se ausente**, o `UnlockResolver` cae no comportamento legacy:
+   * lectura directa de `state.nodes[nodeId]?.progress ?? 0`. Necesario
+   * para compatibilidade con tests illados e consumidores que constrúan
+   * o context manualmente sen un motor completo.
+   *
+   * **Inxectado por `TreeEngine` (sub-fase 2.4.d)** nos dous lugares
+   * onde constrúe `UnlockResolverContext` (`canUnlock` e o context
+   * usado para simulación en `applyChanges`).
+   *
+   * **Asimetría coñecida (2.4.d)**: `EffectsRunner.applyConditional` e
+   * `StatComputer.computeStatDef` constrúen os seus propios
+   * `UnlockResolverContext` SEN este campo (non teñen acceso ao
+   * `progressManager`). Polo tanto, `progress_min` apuntando a un
+   * nodo `computed` segue lendo 0 nesas dúas rutas. Arranxo en
+   * sub-fase 2.4.e (estender `EffectsRunnerContext` e
+   * `StatComputerContext` para incluír `progressManager`).
+   */
+  readonly progressManager?: ProgressManagerLike
+  // ── FIN: 2.4.d ──
 }
 
 /**
@@ -463,6 +515,22 @@ export class UnlockResolver {
   }
 
   private getProgress(nodeId: string, ctx: UnlockResolverContext): number {
+    // ── INICIO: 2.4.d — delega en ProgressManager se está dispoñible ──
+    // Cando o context vén dun TreeEngine completo (sub-fase 2.4.d), inclúe
+    // unha referencia ao `ProgressManager`. Iso permite que as condicións
+    // `progress_min` apuntando a nodos `computed` lean valores derivados
+    // dinámicamente (sub-fase 2.4.c), en lugar de devolver 0 porque
+    // computed non persiste en `NodeInstance.progress`.
+    if (ctx.progressManager !== undefined) {
+      return ctx.progressManager.getProgress(nodeId)
+    }
+    // ── FIN: 2.4.d ──
+    // Fallback legacy (anterior a 2.4.d): lectura directa de
+    // `NodeInstance.progress`. Mantense para que `UnlockResolver` siga
+    // funcionando se alguén constrúe `UnlockResolverContext` sen
+    // `progressManager` (tests illados, escenarios non-engine, ou as
+    // dúas localizacións de `EffectsRunner`/`StatComputer` que aínda
+    // non se cablearon — asignadas a sub-fase 2.4.e).
     return ctx.state.nodes[nodeId]?.progress ?? 0
   }
 

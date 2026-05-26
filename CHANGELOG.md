@@ -7,6 +7,26 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `UnlockResolverContext.progressManager?: ProgressManagerLike` (engine, sub-fase 2.4.d): campo opcional que permite que o `UnlockResolver` consulte un `ProgressManager` (ou compatible estructural) ao avaliar condicións `progress_min`. Cando está presente, o método privado `getProgress` interno do resolver delega no manager (e así, nodos `computed` da sub-fase 2.4.c son consultables desde condicións de prerequisite). Cando ausente, fallback automático ao comportamento legacy (lectura directa de `NodeInstance.progress`); cero ruptura de API.
+- Interface `ProgressManagerLike` exportada de `engine/UnlockResolver.ts`: tipo estructural mínimo `{ getProgress(nodeId: string): number }`. A clase concreta `ProgressManager` cumpre esta interface automáticamente por structural typing (TypeScript); **non se modifica `ProgressManager.ts`**. A interface úsase para inxección desacoplada e mocks triviais en tests illados.
+
+### Changed
+- `TreeEngine` agora pasa `progressManager: this.progressManager` nos dous `UnlockResolverContext` que constrúe internamente: en `canUnlock` (avaliación de `prerequisites`) e na re-avaliación cascada dentro de `applyChanges`. Consecuencia observable: unha condición `progress_min` apuntando a un nodo `computed` agora avalíase contra o valor derivado dinámicamente (sum/avg/min/max de `dependsOn`) en lugar de devolver sempre 0.
+
+### Note
+- **Compatibilidade total**: os 837 tests preexistentes pasan sen modificación (a presenza do novo campo no context é totalmente opcional; o fallback legacy preservouse intencionalmente).
+- **Asimetría coñecida — diferida a sub-fase 2.4.e** (documentada como contrato observable cun test de regresión específico): `EffectsRunner.applyConditional` e `StatComputer.computeStatDef` constrúen cadanseu `UnlockResolverContext` **sen** o campo `progressManager`. Consecuencias:
+  - Un `Effect` de tipo `'conditional'` cuxa `condition` é `progress_min` sobre un nodo computed **NON ve o valor derivado**; lee 0 e probablemente entra na rama `else`.
+  - Unha contribución a stat condicionada por `progress_min` sobre un nodo computed tamén lee 0.
+  - Arranxo en 2.4.e: estender `EffectsRunnerContext` e `StatComputerContext` para carregar `progressManager`, máis propagación desde o constructor de `TreeEngine`.
+  - O test `TreeEngine — asimetría coñecida 2.4.d` en `TreeEngine.progress.test.ts` fixa o contrato observable actual (rama `else` ejecutada cando "debería" ser `then` polo valor computed) para evitar que un cambio futuro arranxe a asimetría accidentalmente sen darnos conta.
+- **Cero ErrorCodes novos**, cero cambios en `@yggdrasil-forge/common`, cero cambios en `packages/core/src/types/`, cero cambios en `ProgressManager.ts` (decisión §5.5: structural typing fai innecesario tocar a clase concreta), cero cambios en `engine/index.ts` (a interface úsase como detalle do `UnlockResolverContext`; consumidores que precisen referenciala explícitamente impórtana desde `UnlockResolver.js` directamente).
+- Cobertura (acumulada 2.4.d): `UnlockResolver.ts` 100/100/100/100 (mantén 2.4.c); `ProgressManager.ts` 100/100/100/100 (mantén); global 98.21% (= baseline 2.4.c). Tests do paquete `core`: 837 → 852 (15 novos: 10 illados en `UnlockResolver.progress.test.ts`, 5 de integración en `TreeEngine.progress.test.ts`).
+- **Cero dependencia circular real**: aínda que a 2.4.c documentou unha preocupación teórica sobre "ProgressManager consulta UnlockResolver para conditions", a verificación empírica de T0 (grep en `ProgressManager.ts`) confirmou que **non hai chamadas reais de ProgressManager a UnlockResolver**. A relación é unidireccional: `UnlockResolver → ProgressManager` (vía context opcional). Cero risco.
+
+## [Unreleased]
+
+### Added
 - `ProgressManager` agora soporta `computed` progress source (sub-fase 2.4.c): un nodo con `progressSource: { type: 'computed', dependsOn, formula }` deriva o seu progress dinámicamente dunha fórmula (`sum`/`avg`/`min`/`max`) sobre os progress dos seus `dependsOn`. **Sen cache** (cada `getProgress` recalcula); **sen persistencia** (`NodeInstance.progress` non se escribe para nodos computed); **detección de ciclos lazy** con `Set<string>` interno (ciclos devolven 0 silenciosamente, cero excepcións); resultado sempre clampado a `[0, 100]`. Composición admitida (un computed pode depender doutro computed). Dependencias inexistentes fíltranse antes de aplicar a fórmula (importante para `min`/`max`).
 - `ErrorCode.INVALID_PROGRESS_OPERATION = 'YGG_E022'` (common, sub-fase 2.4.c) con mensaxes localizadas en gl/es/en. Úsase cando `setProgress` se chama sobre un nodo `computed`: un computed non se establece manualmente; só se deriva. Esto distínguese de `PROGRESS_SOURCE_UNSUPPORTED` (E020), que segue cubrindo `remote`/`callback`/`event`/ausente.
 

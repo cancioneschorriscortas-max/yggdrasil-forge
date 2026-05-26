@@ -344,4 +344,186 @@ describe('TreeEngine.getProgress — regresión contrato 1.12 → 2.4.b', () => 
   })
 })
 
+// ───────────────────────────────────────────────
+// Integración 2.4.d: progress_min con nodos computed
+// ───────────────────────────────────────────────
+
+describe('TreeEngine — progress_min sobre nodo computed (sub-fase 2.4.d)', () => {
+  // Helper: TreeDef estándar para os tests de 2.4.d.
+  // - A: manual con progress controlable.
+  // - C: computed = sum([A]) — deriva dinámicamente do A.
+  // - B: ten prerequisite `progress_min: C >= 50`.
+  function makeTreeABC(): TreeDef {
+    return makeTree([
+      makeNode({ id: 'a', supportsProgress: true, progressSource: MANUAL }),
+      makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      }),
+      makeNode({
+        id: 'b',
+        prerequisites: { type: 'progress_min', nodeId: 'c', percent: 50 },
+      }),
+    ])
+  }
+
+  it('canUnlock(B) permítese cando o computed C deriva ≥ 50 (manual A=80 → C=80)', () => {
+    // Caso principal: tras 2.4.d, canUnlock consulta progressManager
+    // a través do context do UnlockResolver. O computed C lese
+    // dinámicamente como 80 (=sum([A])); a condición progress_min ≥ 50
+    // satisfacese e B é desbloqueable.
+    const engine = new TreeEngine(makeTreeABC())
+
+    engine.setProgress('a', 80)
+    expect(engine.getProgress('c')).toBe(80) // sanity check de 2.4.c
+
+    const result = engine.canUnlock('b')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.allowed).toBe(true)
+  })
+
+  it('canUnlock(B) rexéitase cando o computed C deriva < 50 (manual A=30 → C=30)', () => {
+    // Caso negativo simétrico. C=30 < 50, a condición progress_min
+    // non se cumpre, B segue locked.
+    const engine = new TreeEngine(makeTreeABC())
+
+    engine.setProgress('a', 30)
+    expect(engine.getProgress('c')).toBe(30)
+
+    const result = engine.canUnlock('b')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.allowed).toBe(false)
+  })
+
+  it('ciclo computed: canUnlock(C) cunha prereq apuntando a A nun ciclo A↔B devolve allowed=false', () => {
+    // A=[B] computed, B=[A] computed; ambos devolven 0 polo ciclo
+    // (sub-fase 2.4.c §5.4). Un nodo C que precisa progress_min(A, 1)
+    // non pode desbloquearse porque A=0 < 1.
+    const tree = makeTree([
+      makeNode({
+        id: 'a',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['b'], formula: 'sum' },
+      }),
+      makeNode({
+        id: 'b',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      }),
+      makeNode({
+        id: 'c',
+        prerequisites: { type: 'progress_min', nodeId: 'a', percent: 1 },
+      }),
+    ])
+    const engine = new TreeEngine(tree)
+
+    // Sanity: A devolve 0 polo ciclo.
+    expect(engine.getProgress('a')).toBe(0)
+
+    const result = engine.canUnlock('c')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.value.allowed).toBe(false)
+  })
+
+  it('regresión: progress_min apuntando a nodo MANUAL segue funcionando idéntico ao previo a 2.4.d', () => {
+    // Test de non-regresión: o comportamento clásico (progress_min
+    // sobre un nodo manual con progress no state) non se ve afectado
+    // pola integración do progressManager. Aínda que agora se delega
+    // no progressManager (que devolve o valor do state para nodos
+    // manual), o resultado observable é idéntico.
+    const tree = makeTree([
+      makeNode({ id: 'a', supportsProgress: true, progressSource: MANUAL }),
+      makeNode({
+        id: 'b',
+        prerequisites: { type: 'progress_min', nodeId: 'a', percent: 50 },
+      }),
+    ])
+    const engine = new TreeEngine(tree)
+
+    // Sen progress: B non se pode desbloquear.
+    let result = engine.canUnlock('b')
+    expect(result.ok && !result.value.allowed).toBe(true)
+
+    // Con A.progress=80 (manual): B desbloqueable.
+    engine.setProgress('a', 80)
+    result = engine.canUnlock('b')
+    expect(result.ok && result.value.allowed).toBe(true)
+
+    // Con A.progress=20 (manual, baixo límite): B non desbloqueable.
+    engine.setProgress('a', 20)
+    result = engine.canUnlock('b')
+    expect(result.ok && !result.value.allowed).toBe(true)
+  })
+})
+
+// ───────────────────────────────────────────────
+// Asimetría coñecida 2.4.d: EffectsRunner aínda non cableado (asignado a 2.4.e)
+// ───────────────────────────────────────────────
+
+describe('TreeEngine — asimetría coñecida 2.4.d: EffectsRunner non ve computed (asignada a 2.4.e)', () => {
+  it('effect conditional con progress_min(computed) AVALÍASE como falso aínda con C=80', async () => {
+    // Este test DOCUMENTA O ESTADO INTERMEDIO COMO CONTRATO OBSERVABLE.
+    //
+    // Tras 2.4.d:
+    //   - canUnlock(B) sobre `prerequisites: progress_min(C, ...)` ve o valor computed
+    //     (porque TreeEngine pasa progressManager ao context).
+    //   - PERO un effect `conditional` cuxa `condition` é `progress_min(C, ...)` NON ve
+    //     o valor computed (EffectsRunner constrúe o seu propio UnlockResolverContext
+    //     sen progressManager — asignado a sub-fase 2.4.e).
+    //
+    // Cando 2.4.e arranxe isto, este test cambiará de "asimetría observable" a
+    // "comportamento corrixido"; mentres tanto, fixa o contrato actual para evitar
+    // que un cambio futuro "arranxe accidentalmente" o caso sen darnos conta.
+    const tree = makeTree([
+      makeNode({ id: 'a', supportsProgress: true, progressSource: MANUAL }),
+      makeNode({
+        id: 'c',
+        supportsProgress: true,
+        progressSource: { type: 'computed', dependsOn: ['a'], formula: 'sum' },
+      }),
+      makeNode({
+        id: 'trigger',
+        // Sen prerequisites: desbloquéase libremente. Ao desbloquear,
+        // executa un effect conditional cuxa condition é
+        // `progress_min(c, 50)`. Se a condition é true → +50 xp; se
+        // non → -10 xp. O xp inicial é 100; iso permítenos verificar
+        // que rama se executou.
+        effects: [
+          {
+            type: 'conditional',
+            condition: { type: 'progress_min', nodeId: 'c', percent: 50 },
+            // biome-ignore lint/suspicious/noThenProperty: 'then' é parte da DSL declarativa de Effect, non un thenable.
+            then: [{ type: 'modify_resource', resourceId: 'xp', op: '+', amount: 50 }],
+            else: [{ type: 'modify_resource', resourceId: 'xp', op: '-', amount: 10 }],
+          },
+        ],
+      }),
+    ])
+    const engine = new TreeEngine(tree)
+
+    // Setear A=80, polo que C deriva a 80 — claramente >= 50.
+    engine.setProgress('a', 80)
+    expect(engine.getProgress('c')).toBe(80) // sanity check
+
+    // Confirmación crúa: canUnlock-style cunha condición idéntica VE o computed
+    // (xa probado arriba); pero o effects runner NON. Tras unlock, espérase a
+    // **rama else** (porque EffectsRunner ve C=0, non 80).
+    const initialXp = engine.getSnapshot().budget.resources.xp ?? 0
+    expect(initialXp).toBe(100)
+
+    const result = await engine.unlock('trigger')
+    expect(result.ok).toBe(true)
+
+    const finalXp = engine.getSnapshot().budget.resources.xp ?? 0
+    // Se EffectsRunner visse C=80: 100 + 50 = 150 (rama then).
+    // Como NON ve C correctamente (lee 0): 100 - 10 = 90 (rama else).
+    // **O contrato actual de 2.4.d é 90** (asimetría documentada).
+    expect(finalXp).toBe(90)
+  })
+})
+
 // ── FIN: tests de integración Progress en TreeEngine ──
