@@ -111,6 +111,22 @@ export class TreeEngine {
     this.store = new StateStore(treeDef)
     this.resources = new ResourceManager(treeDef.resources ?? [])
     this.audit = new AuditLogger(options?.audit)
+    // ── INICIO: 2.4.b — instanciación do ProgressManager ──
+    // Constrúese inmediatamente despois de `audit` (sub-fase 2.4.e:
+    // reorderado desde a posición orixinal "tras timeManager") para
+    // que `effectsRunner` e `statComputer` poidan recibilo como campo
+    // do seu context. O context do ProgressManager precisa só
+    // { treeDef, store, events, audit, locale }, todos xa
+    // dispoñibles neste punto do constructor (events/resolver son
+    // field initializers; store/audit acaban de inicializarse).
+    this.progressManager = new ProgressManager({
+      treeDef: this.store.getTreeDef(),
+      store: this.store,
+      events: this.events,
+      audit: this.audit,
+      locale: this.locale,
+    })
+    // ── FIN: 2.4.b ──
     // ── INICIO: 2.1.b — instanciación do EffectsRunner ──
     this.effectsRunner = new EffectsRunner({
       engine: this,
@@ -119,6 +135,10 @@ export class TreeEngine {
       resolver: this.resolver,
       events: this.events,
       locale: this.locale,
+      // ── 2.4.e — pasar progressManager para que applyConditional
+      // poida consultar valores derivados de nodos computed nas
+      // condicións progress_min. ──
+      progressManager: this.progressManager,
     })
     // ── FIN: 2.1.b ──
     // ── INICIO: 2.2.b — instanciación do StatComputer ──
@@ -131,6 +151,10 @@ export class TreeEngine {
       store: this.store,
       resolver: this.resolver,
       locale: this.locale,
+      // ── 2.4.e — pasar progressManager para que as contribucións
+      // condicionadas por progress_min consulten correctamente nodos
+      // computed. ──
+      progressManager: this.progressManager,
     })
     // ── FIN: 2.2.b ──
     // ── INICIO: 2.3.b — instanciación do TimeManager ──
@@ -143,20 +167,6 @@ export class TreeEngine {
       locale: this.locale,
     })
     // ── FIN: 2.3.b ──
-    // ── INICIO: 2.4.b — instanciación do ProgressManager ──
-    // Constrúese tras `timeManager` para preservar a orde "estado →
-    // efectos → derivados → tempo → progreso". O context recibe a
-    // referencia ao `treeDef` actual (consistente con StatComputer:
-    // snapshot no constructor; a invalidación tras `applyChanges`
-    // afecta a este patrón globalmente, fóra de alcance desta sub-fase).
-    this.progressManager = new ProgressManager({
-      treeDef: this.store.getTreeDef(),
-      store: this.store,
-      events: this.events,
-      audit: this.audit,
-      locale: this.locale,
-    })
-    // ── FIN: 2.4.b ──
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -350,7 +360,20 @@ export class TreeEngine {
    * `respec`.
    */
   setProgress(nodeId: string, percent: number): Result<ProgressUpdateResult> {
-    return this.progressManager.setProgress(nodeId, percent)
+    // ── INICIO: 2.4.e bug-fix — invalidar cache de stats tras setProgress exitoso ──
+    // Bug latente desde 2.4.b: setProgress mutaba progress pero non
+    // invalidaba a cache de StatComputer. Era invisible ata 2.4.e porque
+    // StatComputer non vía valores derivados de computed.
+    // Os outros 5 mutators do engine (unlock/lock/respec/applyChanges/tick)
+    // xa invalidan; setProgress era a única omisión.
+    // Invalidamos SÓ se a mutación foi exitosa (consistencia coa
+    // filosofía atómica do engine: non invalidar en operacións fallidas).
+    // ── FIN: 2.4.e bug-fix ──
+    const result = this.progressManager.setProgress(nodeId, percent)
+    if (result.ok) {
+      this.statComputer.invalidate()
+    }
+    return result
   }
 
   /**

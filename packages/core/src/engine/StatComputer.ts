@@ -37,7 +37,11 @@ import type {
   UnlockCondition,
 } from '../types/index.js'
 import type { StateStore } from './StateStore.js'
-import type { UnlockResolver, UnlockResolverContext } from './UnlockResolver.js'
+import type {
+  ProgressManagerLike,
+  UnlockResolver,
+  UnlockResolverContext,
+} from './UnlockResolver.js'
 
 // ── INICIO: tipos públicos ──
 
@@ -57,6 +61,25 @@ export interface StatComputerContext {
   readonly store: StateStore
   readonly resolver: UnlockResolver
   readonly locale: Locale
+  // ── INICIO: 2.4.e — ProgressManagerLike opcional ──
+  /**
+   * `ProgressManager` (ou compatible estructural) opcional. Se está
+   * presente, propágase ao `UnlockResolverContext` cando se constrúe
+   * para o cálculo de stats con conditional contributions, permitindo
+   * que as condicións `progress_min` lean valores derivados de nodos
+   * `computed` (sub-fase 2.4.c).
+   *
+   * **Pecha a asimetría coñecida documentada en 2.4.d**: antes desta
+   * sub-fase, unha contribución condicionada por `progress_min` sobre
+   * un nodo computed avaliábase sempre como 0, deixando contribucións
+   * sen aplicar inesperadamente.
+   *
+   * Inxectado por `TreeEngine` (sub-fase 2.4.e). Se ausente, o
+   * `UnlockResolver` cae no fallback legacy. Cero regresión para
+   * consumidores que constrúan o context a man sen este campo.
+   */
+  readonly progressManager?: ProgressManagerLike
+  // ── FIN: 2.4.e ──
 }
 
 // ── FIN: tipos públicos ──
@@ -195,11 +218,17 @@ export class StatComputer {
     let acc = statDef.initial ?? 0
 
     // Construímos o context para o resolver unha soa vez por cálculo.
+    // ── INICIO: 2.4.e — pasar progressManager para soportar progress_min sobre nodos computed en conditional contributions ──
+    // Spread condicional por `exactOptionalPropertyTypes: true`.
     const resolverCtx: UnlockResolverContext = {
       treeDef,
       state,
       locale: this.context.locale,
+      ...(this.context.progressManager !== undefined && {
+        progressManager: this.context.progressManager,
+      }),
     }
+    // ── FIN: 2.4.e ──
 
     // Iteramos os nodos na orde natural de Object.values(state.nodes).
     // Briefing §5.3 punto 2: NON se ordena por nada externo.

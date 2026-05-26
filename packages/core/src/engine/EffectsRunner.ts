@@ -33,7 +33,11 @@ import type { EventEmitter } from './EventEmitter.js'
 import type { ResourceManager } from './ResourceManager.js'
 import type { StateStore } from './StateStore.js'
 import type { TreeEngine } from './TreeEngine.js'
-import type { UnlockResolver, UnlockResolverContext } from './UnlockResolver.js'
+import type {
+  ProgressManagerLike,
+  UnlockResolver,
+  UnlockResolverContext,
+} from './UnlockResolver.js'
 
 // ── Constantes ──
 
@@ -78,6 +82,26 @@ export interface EffectContext {
   readonly events: EventEmitter
   /** Idioma para mensaxes de error. */
   readonly locale: Locale
+  // ── INICIO: 2.4.e — ProgressManagerLike opcional ──
+  /**
+   * `ProgressManager` (ou compatible estructural) opcional. Se está
+   * presente, propágase ao `UnlockResolverContext` cando se constrúe
+   * en `applyConditional` para que as condicións `progress_min` dentro
+   * de effects `conditional` consulten valores derivados de nodos
+   * `computed` correctamente (sub-fase 2.4.c).
+   *
+   * **Pecha a asimetría coñecida documentada en 2.4.d**: antes desta
+   * sub-fase, `progress_min` apuntando a un nodo computed avaliábase
+   * sempre como 0 dentro dun effect conditional, mentres que
+   * funcionaba correctamente en `canUnlock` (cableado en 2.4.d).
+   *
+   * Inxectado por `TreeEngine` (sub-fase 2.4.e). Se ausente, o
+   * `UnlockResolver` cae no fallback legacy (`state.nodes[nodeId]?.progress ?? 0`),
+   * garantindo cero regresión en consumidores que constrúan o context
+   * a man sen este campo (tests illados, mocks).
+   */
+  readonly progressManager?: ProgressManagerLike
+  // ── FIN: 2.4.e ──
 }
 
 // ── Helpers internos (non exportados) ──
@@ -568,11 +592,19 @@ export class EffectsRunner {
     unlockedDuringRun: Set<string>,
   ): Promise<Result<EffectResult>> {
     const { resolver, engine, store, locale } = this.context
+    // ── INICIO: 2.4.e — pasar progressManager para soportar progress_min sobre nodos computed ──
+    // Usamos spread condicional por `exactOptionalPropertyTypes: true`:
+    // se this.context.progressManager é undefined, NON debe pasarse o
+    // campo (un campo opcional con undefined explícito non é permitido).
     const ctx: UnlockResolverContext = {
       treeDef: engine.getTreeDef(),
       state: store.getState(),
       locale,
+      ...(this.context.progressManager !== undefined && {
+        progressManager: this.context.progressManager,
+      }),
     }
+    // ── FIN: 2.4.e ──
     const matched = resolver.evaluate(effect.condition, ctx)
     const branch = matched ? effect.then : (effect.else ?? [])
 

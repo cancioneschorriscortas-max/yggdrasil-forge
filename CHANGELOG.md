@@ -6,6 +6,22 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Changed
+- `EffectContext` (en `EffectsRunner.ts`) e `StatComputerContext` (en `StatComputer.ts`) agora aceptan `progressManager?: ProgressManagerLike` (opcional). Cando se inxecta, `progress_min` condicións dentro de effects `conditional` e dentro de stat conditional contributions consultan o `ProgressManager` (soportando nodos `computed` da sub-fase 2.4.c). Cero ruptura de API; o campo é opcional.
+- `TreeEngine` reordeneou o seu constructor para que `ProgressManager` se construa **antes** de `EffectsRunner` e `StatComputer` (anteriormente construíase último, tras `timeManager`). Isto permítelle pasar a referencia `progressManager: this.progressManager` automáticamente nas instanciaciones de ambas pezas. O reordering é seguro porque `ProgressManagerContext` só precisa `{ treeDef, store, events, audit, locale }`, todos dispoñibles inmediatamente despois de `audit`.
+
+### Fixed
+- `TreeEngine.setProgress` agora invalida a cache de `StatComputer` tras mutación exitosa. **Bug latente** introducido en 2.4.b: `setProgress` era o único mutator do engine que non invalidaba (`unlock`, `lock`, `respec`, `applyChanges`, `tick` xa o facían). Era **invisible** en 2.4.b/c/d porque o `StatComputer` sempre lía `0` para nodos `computed`; cando 2.4.e (esta sub-fase) cableou `StatComputer` para consultar valores derivados, a cache stale fíxose observable. Invalidación gated en `result.ok` para preservar a filosofía atómica do engine (cero invalidación en operacións fallidas).
+
+### Note
+- **Pecha a asimetría coñecida documentada en 2.4.d**. Tras esta sub-fase, `progress_min` con nodos computed funciona **uniformemente** en `canUnlock`, en effects `conditional` e en stat conditional contributions. A familia 2.4.* está funcionalmente completa: progress (manual + computed) integrado uniformemente no engine.
+- O test "asimetría coñecida 2.4.d" en `TreeEngine.progress.test.ts` foi renomeado a "asimetría 2.4.d pechada en 2.4.e" e as súas asercións invertidas: o effect conditional con `progress_min(computed, 50)` e `C=80` agora correctamente escolle a rama `then`. Engadíronse dous tests novos: un caso negativo do effect conditional (`C=30` → rama `else`) e un caso paralelo para `StatComputer` con conditional contributions que verifica tamén o bug-fix da cache.
+- Cero modificacións a `UnlockResolver.ts` (o cableado de 2.4.d xa soporta a delegación). Cero modificacións a `ProgressManager.ts` (cumpre `ProgressManagerLike` por structural typing). Cero changes en `@yggdrasil-forge/common` (cero novos `ErrorCode`s). Cero cambios en `packages/core/src/types/` nin en `engine/index.ts`.
+- Cobertura (acumulada 2.4.e): `EffectsRunner.ts` 100/97.33/100/100; `StatComputer.ts` 100/98.24/100/100; `UnlockResolver.ts` 100/100/100/100; `ProgressManager.ts` 100/100/100/100; `TreeEngine.ts` 96.47/83.81/98.5/96.87 (= baseline 2.4.d); global 98.22% (sobe lixeiramente desde 98.21% de 2.4.d). Tests do paquete `core`: 852 → 854 (+2 novos en `TreeEngine.progress.test.ts`: caso negativo do effect conditional + caso paralelo de StatComputer; 1 test preexistente reescrito).
+- Auditoría grep confirmou **6 chamadas a `statComputer.invalidate()`** no `TreeEngine.ts` (5 previas + 1 nova en `setProgress`), correspondendo aos **6 mutators públicos** que tocan state: `setProgress`, `unlock`, `lock`, `respec`, `applyChanges`, `tick`. Cero outros sitios pendentes de invalidación.
+
+## [Unreleased]
+
 ### Added
 - `UnlockResolverContext.progressManager?: ProgressManagerLike` (engine, sub-fase 2.4.d): campo opcional que permite que o `UnlockResolver` consulte un `ProgressManager` (ou compatible estructural) ao avaliar condicións `progress_min`. Cando está presente, o método privado `getProgress` interno do resolver delega no manager (e así, nodos `computed` da sub-fase 2.4.c son consultables desde condicións de prerequisite). Cando ausente, fallback automático ao comportamento legacy (lectura directa de `NodeInstance.progress`); cero ruptura de API.
 - Interface `ProgressManagerLike` exportada de `engine/UnlockResolver.ts`: tipo estructural mínimo `{ getProgress(nodeId: string): number }`. A clase concreta `ProgressManager` cumpre esta interface automáticamente por structural typing (TypeScript); **non se modifica `ProgressManager.ts`**. A interface úsase para inxección desacoplada e mocks triviais en tests illados.
