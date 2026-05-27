@@ -6,6 +6,17 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- **Sub-fase 2.6** — Tests de integración cross-piece que pechan a **Fase 2**. Novo ficheiro `packages/core/__tests__/integration/phase-2-cross-piece.test.ts` con **8 escenarios** que combinan tres ou máis pezas da Fase 2 (`EffectsRunner`, `StatComputer`, `TimeManager`, `ProgressManager`) en situacións realistas: Effects+Stats, Effects+Progress, TimeManager+Progress (preservación tras expiración), computed progress + `canUnlock`, statContribution condicional con computed (verifica o bug-fix 2.4.e), round-trip Fase 2 completo, applyChanges atómico cross-piece (positivo + negativo), e cascade event ordering (orde fixada empíricamente). Tests do paquete `core`: 882 → 891 (+9).
+
+### Note
+- **Cero código novo no motor**. Esta sub-fase só engade tests. Cobertura global subiu lixeiramente: 98.13% → **98.18%**.
+- **Escalado preventivo detectado** durante a captura empírica do escenario 8: o effect `modify_resource` muta correctamente o budget pero **non emite `budgetChange`** cando se invoca desde un effect (camiño `EffectsRunner → ResourceManager.modify`). É unha asimetría análoga á que a sub-fase 2.6.fix arranxou para `set_progress`; outro cableado pendente da Fase 2. Briefing 2.6 §5.7 esixe non arranxar bugs descubertos silenciosamente; queda **rexistrado como candidato a futura 2.6.fix2 ou Fase 3**. O estado interno (`budget`) é coherente; só falta a propagación do evento.
+- **Cero modificación** de `packages/core/src/`, `packages/common/`, `packages/core/__tests__/integration/fixtures.ts`, `engine/index.ts`, `types/`, `pnpm-lock.yaml`, `core/package.json`.
+- **Fase 2 pechada**. 13 sub-fases (2.1 → 2.6) con pezas implementadas, cableadas e verificadas en escenarios cross-piece. Próximo: hixiene MASTER final + decisión sobre Fase 3 (Persistencia + Migracións) ou etapa intermedia de exemplos prácticos.
+
+## [Unreleased]
+
 ### Fixed
 - **Sub-fase 2.6.fix** — Bug latente do `EffectsRunner` introducido en 2.1: o effect `set_progress` mutaba directamente o `StateStore` saltándose o `ProgressManager`, perdendo a emisión de `progressChange`, o rexistro `progress_updated` no audit, e a invalidación da cache de `StatComputer`. Agora `EffectsRunner.applySetProgress` delega en `progressManager.setProgress` cando está dispoñible no `EffectContext` (caso normal cando `TreeEngine` constrúe o runner desde 2.4.e). Mantense un fallback legacy de mutación directa para os tests illados que constrúen `EffectContext` manualmente sen `progressManager`. Bug revelado pola investigación T0 da sub-fase 2.6.
 
