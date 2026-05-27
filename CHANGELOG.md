@@ -6,6 +6,20 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- Validacións Zod novas no `treeDefSchema` (`packages/core/src/engine/treeDefSchema.ts`), sub-fase 2.5 — hardening do validador na fronteira. Por campo: `maxTier > 0`, `tier > 0`, `cost.amount > 0`, `progressMilestones` con valores en `[0, 100]` e ordenado estrictamente ascendente sen duplicados. Cross-field (no `nodeDefSchema`): `progressSource` definido obriga a `supportsProgress === true`.
+- Validacións cross-node no `treeDefShapeSchema.superRefine`: `progressSource.computed.dependsOn` referencia nodos existentes; `prerequisites` (recursivo sobre `UnlockRule`, incluíndo combinadores `all`/`any`/`none` e condicións `node_unlocked`/`node_maxed`/`node_state`/`tier_min`/`progress_min`/`distance_max`/`stat_min`) referencia nodos/stats existentes; `exclusions[]` referencia nodos existentes; `edges` referencian nodos existentes nos seus extremos `source` e `target`. Cada issue carrega un `path` accionable apuntando ao campo concreto e unha `message` localizable.
+
+### Note
+- **Reutiliza `INVALID_TREE_DEF` (YGG_V001)**: cero `ErrorCode` novo, cero cambios en `@yggdrasil-forge/common`. Os issues devoltos polas validacións novas serializaranse a través do mesmo contexto (`error.context.issues`) implementado en 1.17.
+- **Cero modificación de pezas do motor** (decisión §5.1 do briefing): `TreeEngine`, `ProgressManager`, `EffectsRunner`, `StatComputer`, `UnlockResolver`, `TimeManager` e `JsonSerializer` quedan intocados. `JsonSerializer.fromJSON` xa delega no validador, polo que automáticamente se beneficia das validacións novas sen tocar código. Cero cambios en `packages/core/src/types/` nin en `engine/index.ts`.
+- **Asimetría deliberada validador-motor**: a validación corre só na fronteira (entrada externa: `validateTreeDef`, `JsonSerializer.fromJSON`). O motor mantén comportamento defensivo interno cando recibe `TreeDef` construídas directamente en código (uso típico en tests unitarios; non pasan polo validador). Ambos comportamentos son correctos e complementarios.
+- **Limitación coñecida (§5.5 do briefing)**: a detección de ciclos en `prerequisites` ou en `progressSource.computed.dependsOn` queda **fóra de alcance** desta sub-fase. Os ciclos son detectados defensivamente polo motor en runtime (`UnlockResolver`, `ProgressManager`); a validación estructural de ciclos queda asignada a fase pedagóxica posterior (8.7).
+- **Nota sobre o nome dos campos de `edge`** (validación #10): o briefing menciona `edges.from/to` por analoxía conceptual, pero o contrato real de `EdgeDef` (`types/edge.ts`) usa `source` e `target`. Os issues cargan `path: ['edges', i, 'source'|'target']` para que sexan accionables contra o campo real.
+- Cobertura (acumulada 2.5): `treeDefSchema.ts` 95.83/89.06/94.44/98.83; global 98.13% (vs baseline 2.4.e 98.22%; lixeira baixa explicada por novas ramas defensivas no helper recursivo cuxos camiños minoritarios de Zod non se exercen). Tests do paquete `core`: 854 → 876 (+22 novos: 10 positivos + 10 negativos das validacións 1-10, máis 2 extra para cubrir as ramas `distance_max` e `stat_min` do helper recursivo de prerequisites).
+
+## [Unreleased]
+
 ### Changed
 - `EffectContext` (en `EffectsRunner.ts`) e `StatComputerContext` (en `StatComputer.ts`) agora aceptan `progressManager?: ProgressManagerLike` (opcional). Cando se inxecta, `progress_min` condicións dentro de effects `conditional` e dentro de stat conditional contributions consultan o `ProgressManager` (soportando nodos `computed` da sub-fase 2.4.c). Cero ruptura de API; o campo é opcional.
 - `TreeEngine` reordeneou o seu constructor para que `ProgressManager` se construa **antes** de `EffectsRunner` e `StatComputer` (anteriormente construíase último, tras `timeManager`). Isto permítelle pasar a referencia `progressManager: this.progressManager` automáticamente nas instanciaciones de ambas pezas. O reordering é seguro porque `ProgressManagerContext` só precisa `{ treeDef, store, events, audit, locale }`, todos dispoñibles inmediatamente despois de `audit`.

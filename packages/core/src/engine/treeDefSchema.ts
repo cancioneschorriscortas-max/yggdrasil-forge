@@ -1,6 +1,16 @@
 // ── INICIO: treeDefSchema (Zod) ──
 // Esquema Zod que refleja la estructura del tipo TreeDef (types/tree.ts).
-// SOLO validación estructural: no incluye reglas pedagógicas (Fase 8.7).
+// SOLO validación estructural + integridade referencial: no incluye reglas
+// pedagógicas (Fase 8.7) nin detección de ciclos (motor é defensivo en
+// runtime).
+//
+// Asimetría deliberada (sub-fase 2.5, §5.1 do briefing):
+// - Entrada externa (`validateTreeDef`, `JsonSerializer.fromJSON`) →
+//   rexeita TreeDefs inválidas mediante este esquema.
+// - Construción directa de TreeDef en código (uso típico en tests
+//   unitarios) → motor mantén comportamento defensivo internamente; non
+//   pasa polo validador.
+// Ambos comportamentos son correctos e complementarios.
 //
 // Diseño (decisión 5.2 del briefing):
 // - El esquema raíz se tipa como z.ZodType<TreeDef> usando el TIPO del
@@ -43,7 +53,9 @@ const resourceSchema = z.object({
 // ── Cost (types/resources.ts) ──
 const costSchema = z.object({
   resourceId: z.string(),
-  amount: z.number(),
+  // ── INICIO: validación 2.5 #5 — amount > 0 ──
+  amount: z.number().refine((v) => v > 0, 'amount debe ser maior que 0'),
+  // ── FIN: validación 2.5 #5 ──
 })
 
 // ── Budget (types/resources.ts) ──
@@ -299,33 +311,75 @@ const edgeDefSchema = z.object({
 })
 
 // ── NodeDef (types/node.ts) ──
-const nodeDefSchema = z.object({
-  id: z.string(),
-  type: nodeTypeSchema,
-  label: localizedStringSchema,
-  description: localizedStringSchema.optional(),
-  content: nodeContentSchema.optional(),
-  icon: z.string().optional(),
-  color: z.string().optional(),
-  tier: z.number().optional(),
-  maxTier: z.number().optional(),
-  cost: z.array(costSchema).optional(),
-  costPerTier: z.array(z.array(costSchema)).optional(),
-  effects: z.array(effectSchema).optional(),
-  prerequisites: unlockRuleSchema.optional(),
-  exclusions: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
-  searchKeywords: z.array(z.string()).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-  position: positionSchema.optional(),
-  group: z.string().optional(),
-  supportsProgress: z.boolean().optional(),
-  progressMilestones: z.array(z.number()).optional(),
-  progressSource: progressSourceConfigSchema.optional(),
-  subtreeId: z.string().optional(),
-  timeConstraints: timeConstraintsSchema.optional(),
-  statContributions: z.array(statContributionSchema).optional(),
-})
+//
+// Validacións Zod incluídas (sub-fase 2.5):
+// - #1 maxTier > 0 (.positive)
+// - #2 tier > 0 (.positive)
+// - #3 progressMilestones[i] ∈ [0, 100]
+// - #4 progressMilestones estrictamente ordenado ascendentemente
+// - #6 cross-field: progressSource require supportsProgress === true
+//   (.refine despois do z.object — máis abaixo)
+const nodeDefSchema = z
+  .object({
+    id: z.string(),
+    type: nodeTypeSchema,
+    label: localizedStringSchema,
+    description: localizedStringSchema.optional(),
+    content: nodeContentSchema.optional(),
+    icon: z.string().optional(),
+    color: z.string().optional(),
+    // ── INICIO: validación 2.5 #2 — tier > 0 ──
+    tier: z.number().positive('tier debe ser maior que 0').optional(),
+    // ── FIN: validación 2.5 #2 ──
+    // ── INICIO: validación 2.5 #1 — maxTier > 0 ──
+    maxTier: z.number().positive('maxTier debe ser maior que 0').optional(),
+    // ── FIN: validación 2.5 #1 ──
+    cost: z.array(costSchema).optional(),
+    costPerTier: z.array(z.array(costSchema)).optional(),
+    effects: z.array(effectSchema).optional(),
+    prerequisites: unlockRuleSchema.optional(),
+    exclusions: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(),
+    searchKeywords: z.array(z.string()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+    position: positionSchema.optional(),
+    group: z.string().optional(),
+    supportsProgress: z.boolean().optional(),
+    // ── INICIO: validacións 2.5 #3 e #4 — progressMilestones rango + orde ──
+    progressMilestones: z
+      .array(z.number())
+      .refine(
+        (arr) => arr.every((v) => v >= 0 && v <= 100),
+        'progressMilestones debe conter só valores en [0, 100]',
+      )
+      .refine((arr) => {
+        for (let i = 1; i < arr.length; i++) {
+          const prev = arr[i - 1]
+          const curr = arr[i]
+          if (prev === undefined || curr === undefined) return false
+          if (curr <= prev) return false
+        }
+        return true
+      }, 'progressMilestones debe estar ordenado ascendentemente sen duplicados')
+      .optional(),
+    // ── FIN: validacións 2.5 #3 e #4 ──
+    progressSource: progressSourceConfigSchema.optional(),
+    subtreeId: z.string().optional(),
+    timeConstraints: timeConstraintsSchema.optional(),
+    statContributions: z.array(statContributionSchema).optional(),
+  })
+  // ── INICIO: validación 2.5 #6 — progressSource require supportsProgress: true ──
+  .refine(
+    (node) => {
+      if (node.progressSource === undefined) return true
+      return node.supportsProgress === true
+    },
+    {
+      message: 'progressSource require supportsProgress: true',
+      path: ['supportsProgress'],
+    },
+  )
+// ── FIN: validación 2.5 #6 ──
 
 // ── GroupDef (types/tree.ts) ──
 const groupDefSchema = z.object({
@@ -375,31 +429,173 @@ const i18nConfigSchema = z.object({
  * (TreeDefValidator parsea con este esquema; z.infer da el tipo estructural
  * sin `as`/`any`) y del test de tipo de T7.
  */
-export const treeDefShapeSchema = z.object({
-  id: z.string(),
-  schemaVersion: z.string(),
-  version: z.string(),
-  label: localizedStringSchema,
-  description: localizedStringSchema.optional(),
-  author: z.string().optional(),
-  rootNodeId: z.string().optional(),
-  nodes: z.array(nodeDefSchema),
-  edges: z.array(edgeDefSchema),
-  groups: z.array(groupDefSchema).optional(),
-  resources: z.array(resourceSchema).optional(),
-  stats: z.array(statDefSchema).optional(),
-  startingBudget: budgetSchema.optional(),
-  layout: layoutConfigSchema,
-  theme: z.string().optional(),
-  i18n: i18nConfigSchema.optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
-  subtrees: z
-    .record(
-      z.string(),
-      z.lazy(() => treeDefSchema),
-    )
-    .optional(),
-})
+export const treeDefShapeSchema = z
+  .object({
+    id: z.string(),
+    schemaVersion: z.string(),
+    version: z.string(),
+    label: localizedStringSchema,
+    description: localizedStringSchema.optional(),
+    author: z.string().optional(),
+    rootNodeId: z.string().optional(),
+    nodes: z.array(nodeDefSchema),
+    edges: z.array(edgeDefSchema),
+    groups: z.array(groupDefSchema).optional(),
+    resources: z.array(resourceSchema).optional(),
+    stats: z.array(statDefSchema).optional(),
+    startingBudget: budgetSchema.optional(),
+    layout: layoutConfigSchema,
+    theme: z.string().optional(),
+    i18n: i18nConfigSchema.optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+    subtrees: z
+      .record(
+        z.string(),
+        z.lazy(() => treeDefSchema),
+      )
+      .optional(),
+  })
+  // ── INICIO: validacións cross-node 2.5 #7-#10 ──
+  // Validacións de integridade referencial: as referencias a nodos e stats
+  // dentro dun TreeDef deben apuntar a entidades que existen no propio
+  // TreeDef. NON valida ciclos (5.5 do briefing — fóra de alcance, motor é
+  // defensivo en runtime; asignado a Fase 8.7 pedagóxica).
+  //
+  // Tipado: usamos z.infer do z.object plano (sen o superRefine) para
+  // dispoñer dunha visión estructural do TreeDef sen ciclos de tipos. O
+  // schema raíz exposto (treeDefSchema) segue sendo ZodTypeAny por causa
+  // do z.lazy de subtrees; aquí dentro do callback temos un valor xa
+  // parseado e podemos navegalo con seguridade.
+  .superRefine((tree, ctx) => {
+    const nodeIds = new Set(tree.nodes.map((n) => n.id))
+    const statIds = new Set((tree.stats ?? []).map((s) => s.id))
+
+    // ── helper: recorrido recursivo dunha UnlockRule ──
+    // Sinala cada referencia inexistente a nodo ou stat dentro dunha regra
+    // arbitraria (combinacións `all`/`any`/`none` recursivas + condicións
+    // simples). path acumula a ruta dentro do TreeDef ata a regra raíz.
+    const collectRuleReferences = (rule: unknown, path: (string | number)[]): void => {
+      if (rule === null || typeof rule !== 'object') return
+      const r = rule as { type?: unknown }
+      const type = r.type
+      if (typeof type !== 'string') return
+
+      // Combinadores recursivos
+      if (type === 'all' || type === 'any' || type === 'none') {
+        const conditions = (r as { conditions?: unknown }).conditions
+        if (Array.isArray(conditions)) {
+          conditions.forEach((cond, idx) => {
+            collectRuleReferences(cond, [...path, 'conditions', idx])
+          })
+        }
+        return
+      }
+
+      // Condicións simples que referencian un nodeId
+      if (
+        type === 'node_unlocked' ||
+        type === 'node_maxed' ||
+        type === 'node_state' ||
+        type === 'tier_min' ||
+        type === 'progress_min'
+      ) {
+        const nodeId = (r as { nodeId?: unknown }).nodeId
+        if (typeof nodeId === 'string' && !nodeIds.has(nodeId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [...path, 'nodeId'],
+            message: `prerequisite referencia nodo/stat inexistente: "${nodeId}"`,
+          })
+        }
+        return
+      }
+
+      // distance_max usa fromNodeId
+      if (type === 'distance_max') {
+        const fromNodeId = (r as { fromNodeId?: unknown }).fromNodeId
+        if (typeof fromNodeId === 'string' && !nodeIds.has(fromNodeId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [...path, 'fromNodeId'],
+            message: `prerequisite referencia nodo/stat inexistente: "${fromNodeId}"`,
+          })
+        }
+        return
+      }
+
+      // stat_min referencia un statId
+      if (type === 'stat_min') {
+        const statId = (r as { statId?: unknown }).statId
+        if (typeof statId === 'string' && !statIds.has(statId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [...path, 'statId'],
+            message: `prerequisite referencia nodo/stat inexistente: "${statId}"`,
+          })
+        }
+        return
+      }
+
+      // Outros tipos (nodes_count, resource_min, tag_count, subtree_completion,
+      // time_after/before, custom) non referencian nodos individuais; saltámolos.
+    }
+
+    tree.nodes.forEach((node, i) => {
+      // #7 — progressSource.computed.dependsOn apunta a nodos existentes
+      const ps = node.progressSource
+      if (ps !== undefined && ps.type === 'computed') {
+        ps.dependsOn.forEach((depId, j) => {
+          if (!nodeIds.has(depId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['nodes', i, 'progressSource', 'dependsOn', j],
+              message: `dependsOn referencia nodo inexistente: "${depId}"`,
+            })
+          }
+        })
+      }
+
+      // #8 — prerequisites (recursivo sobre UnlockRule)
+      if (node.prerequisites !== undefined) {
+        collectRuleReferences(node.prerequisites, ['nodes', i, 'prerequisites'])
+      }
+
+      // #9 — exclusions referencian nodos existentes
+      if (node.exclusions !== undefined) {
+        node.exclusions.forEach((exId, j) => {
+          if (!nodeIds.has(exId)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['nodes', i, 'exclusions', j],
+              message: `exclusion referencia nodo inexistente: "${exId}"`,
+            })
+          }
+        })
+      }
+    })
+
+    // #10 — edges.source/target referencian nodos existentes
+    // NOTA: o contrato EdgeDef usa `source` e `target` (non `from`/`to`); o
+    // briefing 2.5 §5.2 #10 menciona `from`/`to` por analoxía conceptual, pero
+    // sinálase no `path` o nome real do campo para que o issue sexa accionable.
+    tree.edges.forEach((edge, i) => {
+      if (!nodeIds.has(edge.source)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['edges', i, 'source'],
+          message: `edge referencia nodo inexistente: "${edge.source}"`,
+        })
+      }
+      if (!nodeIds.has(edge.target)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['edges', i, 'target'],
+          message: `edge referencia nodo inexistente: "${edge.target}"`,
+        })
+      }
+    })
+  })
+// ── FIN: validacións cross-node 2.5 #7-#10 ──
 
 /**
  * Esquema Zod público que refleja la estructura del tipo TreeDef.
