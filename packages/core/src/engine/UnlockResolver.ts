@@ -48,6 +48,46 @@ export interface DependencyGraphLike {
  */
 export interface ProgressManagerLike {
   getProgress(nodeId: string): number
+  // ── INICIO: 2.6.fix — engadir setProgress ──
+  /**
+   * Establece o progress dun nodo manual e propaga as cascadas
+   * asociadas (emisión de `progressChange`, rexistro de `progress_updated`
+   * no audit, invalidación da cache do `StatComputer`).
+   *
+   * Engadido en 2.6.fix para permitir que `EffectsRunner.applySetProgress`
+   * delegue aquí no canto de mutar o store directamente (cableado análogo
+   * ao do `getProgress` engadido en 2.4.d).
+   *
+   * **Notas sobre o tipo de retorno**:
+   * - O retorno reflicte estructuralmente `Result<ProgressUpdateResult>`
+   *   definido en `engine/ProgressManager.ts`. Defínese aquí inline (en
+   *   vez de importarse) para evitar a dependencia cíclica
+   *   `UnlockResolver ↔ ProgressManager` xa documentada nos comentarios
+   *   da cabeceira de `ProgressManager.ts` (sub-fase 2.4.d).
+   * - Os campos da variante `ok` son os mesmos que `ProgressUpdateResult`:
+   *   `nodeId`, `oldPercent`, `newPercent`, `crossedMilestones`.
+   * - Os campos da variante `err` (`code` + `message`) son os de
+   *   `YggdrasilError`; o consumidor só necesita estes dous para
+   *   propagar o erro envolto en `EFFECT_APPLICATION_FAILED`.
+   */
+  setProgress(
+    nodeId: string,
+    percent: number,
+  ):
+    | {
+        readonly ok: true
+        readonly value: {
+          readonly nodeId: string
+          readonly oldPercent: number
+          readonly newPercent: number
+          readonly crossedMilestones: readonly number[]
+        }
+      }
+    | {
+        readonly ok: false
+        readonly error: { readonly code: string; readonly message: string }
+      }
+  // ── FIN: 2.6.fix ──
 }
 // ── FIN: 2.4.d ──
 

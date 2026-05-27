@@ -796,8 +796,14 @@ export class EffectsRunner {
   private async applySetProgress(
     effect: Extract<Effect, { type: 'set_progress' }>,
   ): Promise<Result<EffectResult>> {
-    const { store, locale } = this.context
+    const { store, locale, progressManager } = this.context
 
+    // Validación local de rango (briefing 2.6.fix §5.5): mantémola aquí
+    // por defense in depth e para preservar a mensaxe específica
+    // (`percent fóra de rango`) que os tests existentes esperan.
+    // ProgressManager validaríao tamén, pero co código
+    // INVALID_PROGRESS_VALUE — semánticamente equivalente pero distinto
+    // textualmente.
     if (effect.percent < 0 || effect.percent > 100) {
       return err(
         makeError(
@@ -813,9 +819,64 @@ export class EffectsRunner {
       )
     }
 
+    // ── INICIO: 2.6.fix — capturar previousValue antes da mutación ──
+    // O `previousValue` é o que `reverse()` usa para restaurar; ten
+    // que ser o progress previo do store, non o `ProgressUpdateResult`
+    // devolto polo manager (decisión §5.2 do briefing).
     const instance = store.getState().nodes[effect.nodeId]
     const previousProgress = instance?.progress
+    // ── FIN: 2.6.fix ──
 
+    // ── INICIO: 2.6.fix — cablear via ProgressManager se está dispoñible ──
+    // Patrón paralelo ao fallback de `UnlockResolver.getProgress` (2.4.d
+    // §5.3): se `progressManager` está inxectado no context (caso normal
+    // cando `TreeEngine` constrúe o `EffectsRunner` desde 2.4.e), delégase
+    // nel para que se:
+    //   - emita o evento `progressChange(nodeId, percent)`,
+    //   - se grave a entrada `progress_updated` no audit log,
+    //   - e se invalide a cache de `StatComputer` (decisión 2.4.e).
+    //
+    // Sen este cableado, o effect `set_progress` salta o `ProgressManager`
+    // e perde as tres cascadas (bug latente introducido en 2.1, revelado
+    // pola investigación T0 da sub-fase 2.6 e arranxado aquí).
+    if (progressManager !== undefined) {
+      const pmResult = progressManager.setProgress(effect.nodeId, effect.percent)
+      if (!pmResult.ok) {
+        return err(
+          makeError(
+            ErrorCode.EFFECT_APPLICATION_FAILED,
+            locale,
+            {
+              effectType: effect.type,
+              failedAt: '0',
+              reason: pmResult.error.message,
+            },
+            {
+              effectType: effect.type,
+              nodeId: effect.nodeId,
+              percent: effect.percent,
+              originalErrorCode: pmResult.error.code,
+            },
+          ),
+        )
+      }
+      return ok({
+        effect,
+        applied: true,
+        previousValue: previousProgress,
+      })
+    }
+    // ── FIN: 2.6.fix — vía ProgressManager ──
+
+    // ── INICIO: 2.6.fix — fallback legacy ──
+    // Cando `progressManager` é `undefined` (caso típico: tests que
+    // constrúen `EffectContext` manualmente con `buildContext` sen
+    // pasar por `TreeEngine`), mantemos o comportamento previo de
+    // mutación directa do store. Cero ruptura de tests illados.
+    // Limitación coñecida e deliberada: nesta vía non se emite
+    // `progressChange`, non se grava audit, non se invalida cache. É
+    // aceptable porque a única forma de chegar aquí é construír un
+    // contexto sen manager (raro fóra de tests).
     store.update((draft) => {
       const existing = draft.nodes[effect.nodeId]
       if (existing === undefined) {
@@ -835,6 +896,7 @@ export class EffectsRunner {
       applied: true,
       previousValue: previousProgress,
     })
+    // ── FIN: 2.6.fix — fallback legacy ──
   }
 
   // ───────────────────────────────────────────────

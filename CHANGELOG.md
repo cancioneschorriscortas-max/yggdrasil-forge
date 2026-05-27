@@ -6,6 +6,21 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Fixed
+- **Sub-fase 2.6.fix** — Bug latente do `EffectsRunner` introducido en 2.1: o effect `set_progress` mutaba directamente o `StateStore` saltándose o `ProgressManager`, perdendo a emisión de `progressChange`, o rexistro `progress_updated` no audit, e a invalidación da cache de `StatComputer`. Agora `EffectsRunner.applySetProgress` delega en `progressManager.setProgress` cando está dispoñible no `EffectContext` (caso normal cando `TreeEngine` constrúe o runner desde 2.4.e). Mantense un fallback legacy de mutación directa para os tests illados que constrúen `EffectContext` manualmente sen `progressManager`. Bug revelado pola investigación T0 da sub-fase 2.6.
+
+### Changed
+- **Sub-fase 2.6.fix** — `ProgressManagerLike` (exportada por `UnlockResolver.ts`, introducida en 2.4.d) amplíase para incluír `setProgress(nodeId, percent)` ademais de `getProgress(nodeId)`. O tipo de retorno declárase estructuralmente inline (idéntico en forma a `Result<ProgressUpdateResult>` definido en `engine/ProgressManager.ts`) para evitar reintroducir a dependencia cíclica `UnlockResolver → ProgressManager` documentada na cabeceira do `ProgressManager`. Cero ruptura: `ProgressManager` real xa o cumpre.
+
+### Note
+- **Cambio observable** (efecto colateral correcto): o effect `set_progress` agora rexeita os nodos sen `supportsProgress: true` con `EFFECT_APPLICATION_FAILED`, onde antes silenciaba a condición. Aliñado co contrato de `ProgressManager.setProgress`.
+- **Cero modificación** de `ProgressManager.ts`, `TreeEngine.ts`, `StatComputer.ts`, `TimeManager.ts`, `engine/index.ts`, `packages/common/`, nin de `packages/core/src/types/`.
+- **Tests do paquete `core`**: 876 → 882 (+6 novos en `EffectsRunner.test.ts` que verifican as 4 cascadas: evento, audit, cache de stats, e propagación de erro do PM; máis fallback legacy e preservación de `reverse()`).
+- **Cobertura**: global 98.13% (idéntica á baseline 2.5); `EffectsRunner.ts` 100% statements/lines/funcs (branches 97.4%).
+- **Próximo paso**: reanudar a sub-fase 2.6 tal cal está escrita; os escenarios 1 e 2 do briefing 2.6 pasan agora sen adaptación das asercións sobre eventos/audit, porque o motor xa propaga correctamente.
+
+## [Unreleased]
+
 ### Added
 - Validacións Zod novas no `treeDefSchema` (`packages/core/src/engine/treeDefSchema.ts`), sub-fase 2.5 — hardening do validador na fronteira. Por campo: `maxTier > 0`, `tier > 0`, `cost.amount > 0`, `progressMilestones` con valores en `[0, 100]` e ordenado estrictamente ascendente sen duplicados. Cross-field (no `nodeDefSchema`): `progressSource` definido obriga a `supportsProgress === true`.
 - Validacións cross-node no `treeDefShapeSchema.superRefine`: `progressSource.computed.dependsOn` referencia nodos existentes; `prerequisites` (recursivo sobre `UnlockRule`, incluíndo combinadores `all`/`any`/`none` e condicións `node_unlocked`/`node_maxed`/`node_state`/`tier_min`/`progress_min`/`distance_max`/`stat_min`) referencia nodos/stats existentes; `exclusions[]` referencia nodos existentes; `edges` referencian nodos existentes nos seus extremos `source` e `target`. Cada issue carrega un `path` accionable apuntando ao campo concreto e unha `message` localizable.

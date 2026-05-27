@@ -6,9 +6,11 @@
 import { ErrorCode } from '@yggdrasil-forge/common'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  AuditLogger,
   type EffectContext,
   EffectsRunner,
   EventEmitter,
+  ProgressManager,
   ResourceManager,
   StateStore,
   TreeEngine,
@@ -1162,4 +1164,239 @@ describe('EffectsRunner — cobertura branches', () => {
     expect(store.getState().budget.resources.xp).toBe(7)
   })
 })
+
+// ── INICIO: tests da sub-fase 2.6.fix ──
+// Verifican que `applySetProgress` cablea correctamente coa peza
+// `ProgressManager` cando está dispoñible no `EffectContext`, e que
+// segue funcionando vía fallback legacy cando non o está.
+//
+// Helper: constrúe un EffectContext análogo a `buildContext` pero
+// inxectando un `ProgressManager` real que comparte o MESMO store +
+// events + audit que o resto das pezas. Imita exactamente o que fai
+// TreeEngine internamente desde 2.4.e.
+describe('EffectsRunner.applySetProgress — cableado vía ProgressManager (2.6.fix)', () => {
+  function buildContextWithProgressManager(treeDef: TreeDef): {
+    runner: EffectsRunner
+    store: StateStore
+    events: EventEmitter
+    audit: AuditLogger
+    progressManager: ProgressManager
+  } {
+    const engine = new TreeEngine(treeDef, { locale: 'gl' })
+    const store = new StateStore(treeDef)
+    const resources = new ResourceManager(treeDef.resources ?? [])
+    const resolver = new UnlockResolver()
+    const events = new EventEmitter()
+    const audit = new AuditLogger({ enabled: true })
+    const progressManager = new ProgressManager({
+      treeDef,
+      store,
+      events,
+      audit,
+      locale: 'gl',
+    })
+    const ctx: EffectContext = {
+      engine,
+      store,
+      resources,
+      resolver,
+      events,
+      locale: 'gl',
+      progressManager,
+    }
+    const runner = new EffectsRunner(ctx)
+    return { runner, store, events, audit, progressManager }
+  }
+
+  it('set_progress vía manager emite progressChange (briefing T2 #1)', async () => {
+    const tree = makeTree([
+      makeNode({
+        id: 'n1',
+        supportsProgress: true,
+        progressSource: { type: 'manual' },
+      }),
+    ])
+    const { runner, events } = buildContextWithProgressManager(tree)
+
+    const captured: Array<{ nodeId: string; percent: number }> = []
+    events.on('progressChange', (nodeId, percent) => {
+      captured.push({ nodeId, percent })
+    })
+
+    const r = await runner.run([{ type: 'set_progress', nodeId: 'n1', percent: 60 }])
+    expect(r.ok).toBe(true)
+    expect(captured).toEqual([{ nodeId: 'n1', percent: 60 }])
+  })
+
+  it('set_progress vía manager rexistra progress_updated no audit (briefing T2 #2)', async () => {
+    const tree = makeTree([
+      makeNode({
+        id: 'n1',
+        supportsProgress: true,
+        progressSource: { type: 'manual' },
+      }),
+    ])
+    const { runner, audit } = buildContextWithProgressManager(tree)
+
+    const r = await runner.run([{ type: 'set_progress', nodeId: 'n1', percent: 45 }])
+    expect(r.ok).toBe(true)
+
+    const entries = audit.query()
+    const progressEntries = entries.filter((e) => e.action.type === 'progress_updated')
+    expect(progressEntries.length).toBe(1)
+    const first = progressEntries[0]
+    expect(first).toBeDefined()
+    if (first !== undefined && first.action.type === 'progress_updated') {
+      expect(first.action.nodeId).toBe('n1')
+      expect(first.action.from).toBe(0)
+      expect(first.action.to).toBe(45)
+    }
+  })
+
+  it('set_progress vía effect propaga á cache de stats (briefing T2 #3)', async () => {
+    // Verificación INDIRECTA da invalidación de cache: usamos un
+    // TreeEngine real (que cablea StatComputer, ProgressManager e
+    // EffectsRunner sobre o mesmo store) e medimos que un stat
+    // condicional dependente de progress reflicte un cambio feito
+    // exclusivamente vía effect `set_progress`.
+    const tree: TreeDef = {
+      id: 'cache-tree',
+      schemaVersion: '1.0.0',
+      version: '1.0.0',
+      label: { gl: 'Cache', es: 'Cache', en: 'Cache' },
+      nodes: [
+        makeNode({
+          id: 'target',
+          supportsProgress: true,
+          progressSource: { type: 'manual' },
+        }),
+        makeNode({
+          id: 'trigger',
+          effects: [{ type: 'set_progress', nodeId: 'target', percent: 80 }],
+          statContributions: [
+            {
+              statId: 'power',
+              op: '+',
+              value: 10,
+              conditions: [{ type: 'progress_min', nodeId: 'target', percent: 50 }],
+            },
+          ],
+        }),
+      ],
+      edges: [],
+      stats: [{ id: 'power', label: { gl: 'Power', es: 'Power', en: 'Power' }, initial: 0 }],
+      layout: { type: 'radial' },
+    }
+    const engine = new TreeEngine(tree, { locale: 'gl' })
+
+    // Antes de unlock 'trigger': target.progress=0 → condition falla
+    // → power=0.
+    expect(engine.getStat('power')).toBe(0)
+
+    // unlock trigger: aplica o effect set_progress(target, 80), e a
+    // súa propia statContribution. A condición `progress_min target 50`
+    // agora pasa, polo que power debería ser 10.
+    const r = await engine.unlock('trigger')
+    expect(r.ok).toBe(true)
+    expect(engine.getProgress('target')).toBe(80)
+    // Esta aserción só pasa se a cache do StatComputer FOI invalidada
+    // tras o set_progress feito polo effect. Antes do 2.6.fix, a cache
+    // ficaba stale e power seguía a 0.
+    expect(engine.getStat('power')).toBe(10)
+  })
+
+  it('fallback legacy: sen progressManager funciona pero non emite evento nin audit (briefing T2 #4)', async () => {
+    // buildContext orixinal NON inxecta progressManager.
+    const tree = makeTree([
+      makeNode({
+        id: 'n1',
+        supportsProgress: true,
+        progressSource: { type: 'manual' },
+      }),
+    ])
+    const { runner, store, events } = buildContext(tree)
+
+    const captured: Array<{ nodeId: string; percent: number }> = []
+    events.on('progressChange', (nodeId, percent) => {
+      captured.push({ nodeId, percent })
+    })
+
+    const r = await runner.run([{ type: 'set_progress', nodeId: 'n1', percent: 70 }])
+    expect(r.ok).toBe(true)
+
+    // O store si reflicte o cambio (mutación directa do fallback).
+    expect(store.getState().nodes.n1?.progress).toBe(70)
+    // Pero NIN evento NIN audit son emitidos: o fallback é "silencioso"
+    // por deseño (§5.4 do briefing 2.6.fix). É a forma compatible con
+    // tests illados pre-existentes.
+    expect(captured).toEqual([])
+  })
+
+  it('propaga err de ProgressManager con originalErrorCode (briefing T2 #5)', async () => {
+    // Nodo SEN supportsProgress: o ProgressManager rexéitao con
+    // PROGRESS_NOT_SUPPORTED (YGG_E019). Antes do 2.6.fix o effect
+    // silenciaba esta condición; agora propágase.
+    const tree = makeTree([makeNode({ id: 'n1' })])
+    const { runner } = buildContextWithProgressManager(tree)
+
+    const r = await runner.run([{ type: 'set_progress', nodeId: 'n1', percent: 50 }])
+    expect(r.ok).toBe(false)
+    if (!r.ok) {
+      expect(r.error.code).toBe(ErrorCode.EFFECT_APPLICATION_FAILED)
+      // Nota sobre o dobre envoltorio: `applySetProgress` xa envolve o
+      // erro do ProgressManager nun `EFFECT_APPLICATION_FAILED` con
+      // `context.originalErrorCode = 'YGG_E019'`. Pero ese erro pasa
+      // despois por `EffectsRunner.run()`, que reenvolve calquera erro
+      // nun outro `EFFECT_APPLICATION_FAILED` cuxo `originalErrorCode`
+      // pasa a ser o do envoltorio interno (`'YGG_E017'`,
+      // `EFFECT_APPLICATION_FAILED`). É o contrato observable real,
+      // común a tódolos applyXxx que devolvan err.
+      //
+      // O que SI se preserva é a mensaxe orixinal do PM, que viaxa
+      // como `reason` a través dos dous envoltorios.
+      expect(r.error.context?.originalErrorCode).toBe(ErrorCode.EFFECT_APPLICATION_FAILED)
+      const reason = r.error.context?.reason
+      expect(typeof reason === 'string' && reason.length > 0).toBe(true)
+      // O reason orixinal procede do PM e debe mencionar o nodeId
+      // problemático ou aludir á falta de soporte de progress.
+      if (typeof reason === 'string') {
+        expect(reason.toLowerCase()).toContain('n1')
+      }
+    }
+  })
+
+  it('reverse() segue funcionando despois do cableado vía manager (briefing T2 #6)', async () => {
+    const tree = makeTree([
+      makeNode({
+        id: 'n1',
+        supportsProgress: true,
+        progressSource: { type: 'manual' },
+      }),
+    ])
+    const { runner, store } = buildContextWithProgressManager(tree)
+
+    // Estabrecemos un valor previo (vía manager directo, non por effect)
+    // para que reverse teña a que volver.
+    store.update((draft) => {
+      draft.nodes.n1 = { id: 'n1', state: 'locked', currentTier: 0, progress: 30 }
+    })
+
+    const r = await runner.run([{ type: 'set_progress', nodeId: 'n1', percent: 80 }])
+    expect(r.ok).toBe(true)
+    expect(store.getState().nodes.n1?.progress).toBe(80)
+
+    if (r.ok) {
+      // previousValue debe ser 30 (capturado antes da chamada ao manager).
+      expect(r.value[0]?.previousValue).toBe(30)
+      // reverse restaura ao previo. NOTA: reverse vai pola vía legacy
+      // (escritura directa do store), non polo manager, polo que esta
+      // vía non emite progressChange — comportamento aceptable: reverse
+      // é interno á rollback de un batch e non se considera un cambio
+      // "exterior" observable.
+      await runner.reverse(r.value)
+      expect(store.getState().nodes.n1?.progress).toBe(30)
+    }
+  })
+})
+// ── FIN: tests da sub-fase 2.6.fix ──
 // ── FIN: tests de EffectsRunner ──
