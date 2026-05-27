@@ -2367,57 +2367,82 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 # ANEXO A — ERRATAS, SINCRONIZACIÓN E DÉBEDA
 
 > Mantido polo director. Estado real fronte ao roadmap (sección 67).
-> **Actualizado tras 2.4 + 2.4.b.**
+> **Actualizado tras 2.4.c/d/e + 2.5 (Zod hardening).**
 > Regra: unha sub-fase só se marca "Feito" cando o director a verifica
-> independentemente.
+> independentemente. Un bo reporte non substitúe a verificación.
 
 ## A.1–A.2 — Estado actual
 
-Fase 1 pechada + addendum 1.19. **Fase 2: 8 sub-fases pechadas de ~9-10.**
+Fase 1 pechada + addendum 1.19. **Fase 2: 12 sub-fases pechadas; só 2.6 pendente.**
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
 | 1.12–1.18 | (Fase 1) | varios | 538 |
-| 1.19 multi-tier unlock (DT-10) | Feito | `05dbf46` | 547 |
+| 1.19 multi-tier (DT-10) | Feito | `05dbf46` | 547 |
 | 2.1 EffectsRunner standalone | Feito | `7dcc609` | 615 |
 | 2.1.b EffectsRunner cableado | Feito | `3fb3199` | 623 |
 | 2.2 StatComputer standalone | Feito | `ace8bcb` | 663 |
-| 2.2.b StatComputer cableado | Feito | `6d391c8` (+ inc. `72b36a7`) | 676 |
-| 2.3 TimeManager standalone | Feito | `7d1f7b9` (+ inc. `34e5513`) | 721 |
+| 2.2.b StatComputer cableado | Feito | `6d391c8` (+inc. `72b36a7`) | 676 |
+| 2.3 TimeManager standalone | Feito | `7d1f7b9` (+inc. `34e5513`) | 721 |
 | 2.3.b TimeManager cableado | Feito | `5d4cee5` + `13d06dd` | 748 |
-| **2.4 ProgressManager standalone (manual only)** | Feito | `f136ad8` + `9e5aee2` + `1774a81` | 788 |
-| **2.4.b ProgressManager cableado** | Feito | `5885bac` + `1dd379a` + `a346888` | 807 |
-| 2.4.c ProgressManager.computed | **Seguinte** (briefing pendente) | — | — |
+| 2.4 ProgressManager (manual) | Feito | `f136ad8`+`9e5aee2`+`1774a81` | 788 |
+| 2.4.b ProgressManager cableado | Feito | `5885bac`+`1dd379a`+`a346888` | 807 |
+| 2.4.c ProgressManager.computed | Feito | `747e48d`+`c4f03d4`+`cfafc76` | 837 |
+| 2.4.d UnlockResolver wiring | Feito | `c918324` | 852 |
+| 2.4.e EffectsRunner+StatComputer wiring | Feito | `9afd412` | 854 |
+| **2.5 Zod hardening** | Feito | `8555542` | 876 |
+| 2.6 Tests integración Fase 2 | **Seguinte** (último de Fase 2) | — | — |
 
-**Tag `phase-1-closed`** en `1290378`.
+**Tag `phase-1-closed`** en `1290378`. **Familia 2.4 PECHADA enteira.**
+**Hardening da fronteira PECHADO en 2.5.**
 
 ## A.3 — Débeda técnica
 
 | ID | Descrición | Estado |
 |---|---|---|
-| DT-1, DT-4..DT-8, DT-10 | (historial) | Resoltas |
+| DT-1, DT-4..DT-8, DT-10 | (historial Fase 1) | Resoltas |
 | DT-9 | infra: `__tests__` non typechean; workaround `src/*.type-test.ts` | Aberta, Fase hardening |
 | DT-11 | Detección de ciclos `unlock_node` recursivos non se activa cando pasan polo `TreeEngine.unlock`. Estado coherente polo camiño colateral `NODE_ALREADY_UNLOCKED`. Non bloqueante | Aberta, sub-fase futura |
 | DT-12 (cosmética) | CHANGELOG.md ten múltiples cabeceiras `## [Unreleased]` aboliñadas (unha por sub-fase). Decisión: deixar como está, consolidar nunha futura sub-fase ou no release `0.1.0-alpha`. Os executores **NON deben tentar reagrupar nin corrixir o CHANGELOG**; manteñen o costume actual (nova cabeceira por sub-fase). Ver A.7 e A.6 L4 | Aberta cosmética, consolidación futura |
 
 **0 débeda funcional crítica.**
 
-**Pendentes futuras documentadas:**
-- `modify_stat` effect segue `EFFECT_TYPE_UNSUPPORTED`.
+**Bugs latentes arranxados (non DT formais):**
+- **Cache stale en `TreeEngine.setProgress`** (introducido en 2.4.b; revelado e corrixido en 2.4.e): `setProgress` non invalidaba `statComputer.cache`. Arranxado en `9afd412` con `if (result.ok) this.statComputer.invalidate()`. Auditoría completa confirma 6 chamadas a `statComputer.invalidate()` correspondentes aos 6 mutators públicos (setProgress, unlock, lock, respec, applyChanges, tick).
+
+**Pendentes futuras documentadas (significativamente reducidos tras 2.5):**
+
+*Validador Zod (2.5 pechou 5 pendentes):*
+- ✅ `maxTier <= 0` (rexeitado en 2.5)
+- ✅ `progressMilestones` fóra de [0,100] (rexeitado en 2.5)
+- ✅ `progressMilestones` desordeados (rexeitado en 2.5)
+- ✅ `progressSource` sen `supportsProgress` (rexeitado en 2.5)
+- ✅ `dependsOn` apuntando a inexistentes (rexeitado en 2.5)
+
+*Validacións bonus engadidas en 2.5:*
+- ✅ `tier > 0`
+- ✅ `cost.amount > 0`
+- ✅ `prerequisites` references a nodos/stats existentes
+- ✅ `exclusions` references a nodos existentes
+- ✅ `edges.source/target` references a nodos existentes
+
+*Pendentes que aínda quedan abertos:*
+- `modify_stat` effect → `EFFECT_TYPE_UNSUPPORTED` (require decisión sobre persistencia).
 - TimeManager: `cooldownMs`, `reCertifyAfterMs`, `validForMs` non implementados.
-- ProgressManager: `remote`, `callback`, `event` sources fóra de alcance (Fase 5).
-- ProgressManager: `computed` source asignada a 2.4.c.
-- Auto-unlock cando `progress === 100`: non implementado por deseño (decisión 2.4 §5.7 / 2.4.b §5.4).
+- ProgressManager: `remote`, `callback`, `event` sources fóra (Fase 5; integracións externas).
+- AuthProviderRegistry (roadmap orixinal 2.5; **substituído por Zod hardening na 2.5 actual**; sen consumidor real ata Fase 5 quen implemente remote/callback/event).
+- Auto-unlock cando `progress === 100`: non implementado por deseño (2.4 §5.7).
 - `'in_progress'` state declarado pero non usado (decisión 2.4.b §5.5).
-- `respec` conserva `progress` (decisión 2.4.b §5.8).
-- Validador Zod non rexeita: `maxTier <= 0`, `progressMilestones` fóra de [0,100], `progressMilestones` desordeados, `progressSource` sen `supportsProgress`.
-- TreeEngine non emite `statChange` event.
+- `respec` conserva `progress` (decisión 2.4.b §5.8 deliberada).
+- TreeEngine non emite `statChange` event (declarado, non emitido).
+- **Detección de ciclos en prerequisites/dependsOn** (asignado a Fase 8.7 pedagóxica; motor xa defensivo en runtime).
 
 ## A.3.1 — Contrato ErrorCode
 
 | Código | Valor | Familia | Orixe |
 |---|---|---|---|
 | `NODE_NOT_FOUND` | `YGG_E001` | Engine | (preexistente, reutilizado en 2.4) |
+| `INVALID_TREE_DEF` | `YGG_V001` | Validation | (preexistente, reutilizado en 2.5) |
 | `INVALID_COST` | `YGG_V006` | Validation | 1.11 |
 | `INVALID_NODE_STATE` | `YGG_E011` | Engine | 1.14 |
 | `CHANGE_CONFLICT` | `YGG_E012` | Engine | 1.14 |
@@ -2430,25 +2455,43 @@ Fase 1 pechada + addendum 1.19. **Fase 2: 8 sub-fases pechadas de ~9-10.**
 | `PROGRESS_NOT_SUPPORTED` | `YGG_E019` | Engine | 2.4 |
 | `PROGRESS_SOURCE_UNSUPPORTED` | `YGG_E020` | Engine | 2.4 |
 | `INVALID_PROGRESS_VALUE` | `YGG_E021` | Engine | 2.4 |
+| `INVALID_PROGRESS_OPERATION` | `YGG_E022` | Engine | 2.4.c |
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
 Resolta sen débeda silenciosa.
 
-## A.3.3 — Escalados Fase 2
+## A.3.3 — Escalados Fase 2 (13 acumulados; 5 preventivos)
 
-1.19: semántica `maxTier === undefined` Opción C conservadora.
-2.1: escalado pequeno preventivo (`readonly`, getters TreeEngine).
-2.2: mellora preventiva NaN-non-cache.
-2.4.b: escalado preventivo (executor cazou que `TreeEngine.getProgress` xa existía desde 1.12; resolto Opción A: substituír polo delegante con tests de regresión).
+- 1.19: `maxTier === undefined` Opción C conservadora.
+- 2.1: escalado pequeno preventivo (`readonly`, getters TreeEngine).
+- 2.2: mellora preventiva (NaN-non-cache).
+- **2.4.b preventivo**: executor cazou `TreeEngine.getProgress`
+  preexistente desde 1.12.
+- **2.4.c preventivo**: executor cazou `UnlockResolver.getProgress`
+  privado + cambio sutil §5.6 redactado como "sen cambio".
+- **2.4.d preventivo**: executor cazou 4 lugares con
+  `UnlockResolverContext` cando briefing dicía 2.
+- **2.4.e preventivo**: executor cazou bug latente de 2.4.b
+  (`setProgress` non invalidaba cache).
+- **2.5 preventivo**: executor cazou nome incorrecto de campo
+  (`edges.from/to` no briefing → `source/target` no tipo real).
 
-## A.3.4 — Decisións pre-resoltas en sub-fases `.b`
+**Patrón confirmado**: escalados preventivos do executor protexen
+contra erros do propio briefing. 5 preventivos só en Fase 2.
+
+## A.3.4 — Decisións pre-resoltas en sub-fases `.b`/`.c`/`.d`/`.e`
 
 Patrón consolidado: **standalone → integración como sub-fase aparte**.
-2.1→2.1.b, 2.2→2.2.b, 2.3→2.3.b, 2.4→2.4.b. Decisións de modelo
-(atomicidade, audit agregada, oldBudget directo, clock virtual, cero
-timers, tick explícito, cero auto-unlock, respec conserva progress)
-pre-resoltas nos briefings, minimizando escalados.
+A familia 2.4 mostra a mellor expresión: **2.4 → 2.4.b → 2.4.c → 2.4.d
+→ 2.4.e**. Cada sub-fase pequena, escalable, con bug-fix declarado
+cando aparece.
+
+Decisións consistentes en toda Fase 2: atomicidade, audit agregada,
+oldBudget directo (vs refund), clock virtual obrigatorio, cero
+timers internos, tick explícito, cero auto-unlock, respec conserva
+progress, fallback legacy sempre que se inxecta peza opcional,
+validación na fronteira (motor defensivo internamente).
 
 ## A.4 / A.4.1 — Release/aclaracións
 
@@ -2456,18 +2499,32 @@ PR release (#1) NON se mergea aínda. Posible `0.1.0-alpha` ao remate
 da Fase 2; sería bo momento para **drenar `[Unreleased]` e consolidar
 o formato CHANGELOG** (DT-12).
 
-**Briefings versionados**: por acordo co autor (post-2.4), os
-briefings de cada sub-fase **engádense ao repo só ao remate de cada
-etapa** (Fase 2 → un único commit `docs: add briefings (Phase 2.X)` ao
-peche). Iso aforra commits intermedios e aplica unha lóxica de "batch"
-máis limpa. Briefings pendentes acumulados localmente: 2.4, 2.4.b
-(actuais), futuros 2.4.c, 2.5, 2.6.
+**Briefings versionados** (acordo post-2.4): trackeánse ao final de
+cada etapa. Pendentes acumulados localmente: **6 briefings (2.4,
+2.4.b, 2.4.c, 2.4.d, 2.4.e, 2.5)**. Trackeo previsto: peche Fase 2
+xunto coa 2.6 (un único commit `docs: add Phase 2 briefings`).
+
+**Casos prácticos / exemplos**: idea anotada por autor para discutir
+ao peche Fase 2. Probablemente unha pasta `examples/` ou `playground/`
+con TreeDefs realistas exercitando todas as pezas. Sería **demo +
+documentación viva + smoke integration test + onboarding**. Non se
+debe meter como sub-fase 2.x; é ponte natural á Fase 3 ou etapa
+final de consolidación.
+
+**AuthProviderRegistry**: roadmap orixinal incluíao como 2.5. O
+director substituíuno por Zod hardening por non ter consumidor real
+ata Fase 5. Vai con Fase 5 cando se implementen `remote`/`callback`/
+`event` progress sources.
 
 ## A.5 — Evolución do executor
 
 Fase 1: aprendizaxe do protocolo. Fase 2: protocolo maduro,
-bidireccional, con escrutinio empírico (DT-11 cazada en 2.1.b) e
-protección preventiva contra erros do propio briefing (2.1, 2.4.b).
+bidireccional, con escrutinio empírico do executor (DT-11 cazada en
+2.1.b; bug latente cazado en 2.4.e) e **5 escalados preventivos**
+contra erros do propio briefing (2.1, 2.4.b, 2.4.c, 2.4.d, 2.4.e, 2.5).
+
+**Notas de despedida do executor saliente (post-2.4.e)** incluídas en
+A.7 X.
 
 ## A.5.1 — Modelo executor
 
@@ -2481,33 +2538,43 @@ empíricas), 1.18 (acoutar feature completa vs mínima), 1.19 (decisións
 sen ambigüidade dupla).
 
 **Fase 2:**
-- 2.1: ao engadir campos a tipo existente, verificar estilo do tipo
-  destino antes de aplicar convenciones por inercia.
+- 2.1: estilo do tipo destino antes de aplicar convencións por inercia.
 - 2.1.b L1: working tree limpo antes de `git am`.
-- 2.1.b L2: para tests de orde de eventos/audit, verificar
-  empíricamente antes de fixar asserts.
-- 2.1.b L3: débeda descuberta merece DT explícita inmediata.
-- 2.2.b/2.3 L1: lista de "Ficheiros esperados no diff final" en cada
-  briefing.
-- 2.3/2.3.b L2: títulos de reporte prescritos inequívocos
-  ("COMPLETADA E EN origin/main" vs "PENDENTE DE PUSH POLO AUTOR").
-- 2.3.b L3: o director sempre verifica `origin/main` antes de tirar
-  conclusións, independentemente do título do reporte.
-- 2.3.b L4 (post-mortem CHANGELOG): nos briefings prescribir
-  explícitamente "engadir nova cabeceira `## [Unreleased]` ao
-  principio; NON consolidar". Consolidación canónica diferida
-  (DT-12).
-- **2.4 L1 (post-mortem `git am`)**: ante calquera fallo de
-  aplicación de parche, primeiro `git status` + `git log -1` para
-  verificar se xa foi aplicado en intentos previos. Diagnosticar
-  antes de teorizar (CRLF, base, etc.).
-- **2.4.b L1**: ao preparar briefings de integración (sub-fases
-  `.b`), o director DEBE verificar primeiro se a API que se vai
-  expoñer xa existe na fachada por outra ruta (ex: `grep
-  "getX\|setX" TreeEngine.ts` antes de prescribir "engadir
-  engine.X"). O risco é redactar "engadir X" cando o correcto é
-  "substituír X existente polo delegante", que require decisión
-  consciente.
+- 2.1.b L2: orde de eventos/audit verificar empíricamente.
+- 2.1.b L3: débeda descuberta merece DT explícita.
+- 2.2.b/2.3 L1: lista de "Ficheiros esperados no diff final".
+- 2.3/2.3.b L2: títulos de reporte prescritos inequívocos.
+- 2.3.b L3: o director sempre verifica `origin/main`.
+- 2.3.b L4 (CHANGELOG): "engadir nova cabeceira `[Unreleased]`; NON
+  consolidar" (DT-12).
+- 2.4 L1 (`git am`): primeiro `git status` + `git log -1` antes de
+  teorizar.
+- 2.4.b L1: verificar solapamento de API en TreeEngine antes de
+  prescribir "engadir engine.X".
+- 2.4.c L1: cando briefing pide "buscar usos cruzados", debe **tamén
+  prescribir a política** se se atopan (Opción A/B/C).
+- 2.4.d L1: ao prescribir "buscar usos cruzados", listar
+  **explicitamente todas as pezas** que poderían construír o tipo de
+  contexto involucrado.
+- 2.4.d L2: asimetrías parciais documéntanse como **contrato
+  intermedio fixado por test**, non só nota nas limitacións.
+- 2.4.e L1: ao engadir métodos públicos novos que mutan estado, o
+  briefing DEBE incluír T explícito de "auditar invalidación de
+  pezas derivativas existentes". Bug latente en 2.4.b durou 4
+  sub-fases ata aparecer en 2.4.e.
+- 2.4.e L2: ao inxectar peza nova vía context opcional, verificar a
+  fondo a orde de construción das pezas antes de redactar.
+- **2.5 L1**: ao redactar briefings que referencian campos de tipos
+  existentes (especialmente nomes de propiedades), o director DEBE
+  verificar empíricamente o nome exacto da propiedade no tipo real
+  (`grep -A2 "interface NomeDoTipo" types/...`). En 2.5 prescribín
+  "edges.from/to" cando o tipo `EdgeDef` usa `source/target`. O
+  executor verificouno; o briefing podería ter sido máis preciso.
+- **2.5 L2 (cobertura baseline)**: a regra "baseline non debe baixar"
+  é estricta pero non absurda. Baixas de ~0.1 puntos por ramas
+  defensivas razoables (helpers recursivos cuxos camiños minoritarios
+  non se exercen) son aceptables sen escalado. Forzar cobertura
+  artificial é peor que aceptar a baixa.
 
 ## A.7 — Protocolo consolidado
 
@@ -2516,12 +2583,42 @@ técnicas verificadas empíricamente; redacción sen ambigüidade dupla;
 estilo de tipo destino antes de convención xeral; working tree limpo
 antes de aplicar parche; títulos de reporte prescritos; lista de
 ficheiros esperados no diff final; `git status` + `git log -1` antes
-de teorizar sobre fallos de parche; verificación de solapamento de
-API antes de prescribir "engadir X" en integración.
+de teorizar; verificación de solapamento de API; auditoría de
+invalidación cando se engaden mutators; **verificación de nomes
+exactos de campos de tipos existentes** (2.5 L1).
 
 **CHANGELOG (DT-12 / A.6 L4):** os briefings prescriben "engadir nova
 cabeceira `## [Unreleased]` ao principio do ficheiro". O executor
-**non consolida** nin reagrupa; consolidación canónica diferida.
+non consolida; consolidación canónica diferida.
+
+**`exactOptionalPropertyTypes: true`** (post-2.4.e): para campos
+opcionais cuxo valor pode ser `undefined`, usar spread condicional
+`...(value !== undefined && { field: value })`.
+
+### A.7 X — Consellos do executor saliente (post-2.4.e)
+
+Notas do executor que pechou a familia 2.4.*, conservadas como guía
+para futuros executores:
+
+- **Verificacións T0 antes de tocar nada** salvaron premisas
+  erróneas dos briefings.
+- **Escalar ante descubrimentos non previstos** sempre mellor que
+  asumir. Cinco escalados preventivos en Fase 2 (2.4.b/c/d/e + 2.5),
+  todos resoltos limpamente.
+- **Patrón "test intermedio que se actualiza ao pechar a asimetría"**
+  útil para sub-fases acoutadas con cambios diferidos
+  deliberadamente.
+- **Commits separados con `git format-patch` + `git am`** robusto.
+- **Detalles do entorno**: `exactOptionalPropertyTypes: true` require
+  spread condicional. Biome `noThenProperty` da DSL Effect →
+  `biome-ignore` localizado. `useLiteralKeys` arranxa con
+  `npx biome check --fix --unsafe`. Mensaxes de erro **sen punto
+  final** (consistencia E001-E022). Comentarios en galego/castelán.
+  Marcadores `// ── INICIO/FIN ──`. Sen `;`, 2 espazos.
+- **Lección máis aplicable**: **"acoutar > ambicionar"**. Catro
+  sub-fases (2.4.b/c/d/e) emerxeron de 2.4 orixinal precisamente
+  por aplicar esta regra; sen ela serían sub-fase monolítica con
+  débeda silenciosa.
 
 ## A.8 — Método de entrega
 
@@ -2536,33 +2633,37 @@ aceptable se non hai credenciais, aplicado **dende a raíz** (1.15) e
 ## A.9 — Estado cuantitativo actual
 
 ```
-Commit actual:          a346888 (origin/main)
-Tag Fase 1:             phase-1-closed (en 1290378)
-Tests:                  807 (41 ficheiros)
-Cobertura global:       98.18%
-Cobertura TreeEngine:   96.46%
-Cobertura EffectsRunner: 100%
-Cobertura StatComputer: 100/98.18/100/100
-Cobertura TimeManager:  98.73/96.29/100/98.73
-Cobertura ProgressManager: 100%
-Lint / Typecheck:       0/0 / 20/20 (sen caché)
-Deps externas (core):   immer + zod
-ErrorCodes:             39 (12 engadidos en execución dende 1.0;
-                        3 novos en 2.4 + reutilizado E001)
-Sub-fases Fase 1:       8 pechadas + addendum 1.19
-Sub-fases Fase 2:       8 pechadas (2.1, 2.1.b, 2.2, 2.2.b, 2.3,
-                        2.3.b, 2.4, 2.4.b)
-Escalados resoltos:     9 (6 en 1.17, 1 en 1.19, 1 pequeno en 2.1,
-                        1 preventivo en 2.4.b)
-Incidentes transporte:  3 (2.2.b, 2.3; ningún desde 2.3.b)
-Briefings pendentes de trackear: 2.4, 2.4.b (acordo: ao peche Fase 2)
-Débeda funcional:       0 crítica · DT-11 (calidade, non bloqueante)
-Débeda infra:           DT-9 (Fase hardening)
-Débeda cosmética:       DT-12 (CHANGELOG formato)
+Commit actual:           8555542 (origin/main)
+Tag Fase 1:              phase-1-closed (en 1290378)
+Tests:                   876 (42 ficheiros)
+Cobertura global:        98.13% (baixa controlada de 0.09 vs 2.4.e por
+                         ramas defensivas en superRefine; aceptable per A.6 L2)
+Pezas a 100% cobertura:  EffectsRunner, StatComputer, UnlockResolver,
+                         ProgressManager (4 pezas core completas)
+Cobertura treeDefSchema: 95.83% (NOVA en 2.5)
+Cobertura TreeEngine:    96.46%
+Cobertura TimeManager:   98.73/96.29/100/98.73
+Lint / Typecheck:        0/0 / 20/20 (sen caché)
+Deps externas (core):    immer + zod
+ErrorCodes:              40 (cero novos en 2.5; INVALID_TREE_DEF reutilizado)
+Sub-fases Fase 1:        8 pechadas + addendum 1.19
+Sub-fases Fase 2:        12 pechadas; só 2.6 pendente
+Escalados resoltos:      13 (5 preventivos só en Fase 2)
+Incidentes transporte:   3 (ningún desde 2.3.b)
+Bugs latentes arranxados: 1 (cache stale setProgress, 2.4.b → 2.4.e)
+Briefings pendentes trackear: 6 (2.4, 2.4.b, 2.4.c, 2.4.d, 2.4.e, 2.5)
+Débeda funcional:        0 crítica · DT-11 (calidade, non bloqueante)
+Débeda infra:            DT-9 (Fase hardening)
+Débeda cosmética:        DT-12 (CHANGELOG formato)
+Asimetrías abertas:      0 (familia 2.4 pecha o ciclo de progress;
+                         2.5 pecha o ciclo de validación)
+Validacións Zod:         10 totais engadidas en 2.5 (5 pendentes
+                         pechados + 5 bonus)
 ```
 
 ---
 
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 + Fase 2 ata 2.4.b)**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 + Fase 2 ata 2.5
+incluído; só 2.6 pendente para pechar Fase 2)**
