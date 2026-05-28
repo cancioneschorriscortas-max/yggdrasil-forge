@@ -6,6 +6,22 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Fixed
+- **Sub-fase 2.6.fix2** — Bug latente (DT-13): o effect `modify_resource` mutaba o budget pero non emitía o evento `budgetChange`, polo que os suscritores externos non se enteraban dos cambios de budget producidos vía effect. Agora `EffectsRunner.applyModifyResource` emite `budgetChange` tras a mutación (só cando o valor cambia), replicando o patrón de `TreeEngine`. Mesma familia que o bug de `set_progress` arranxado en 2.6.fix. Detectado no escenario 8 de 2.6 (cascade event ordering).
+
+### Changed
+- **Sub-fase 2.6.fix2** — Actualizado o test `cascade event ordering` (escenario 8 de `phase-2-cross-piece.test.ts`) para reflectir a nova orde de 6 eventos que inclúe `budgetChange`, completando o patrón de contrato intermedio (o test fixara antes 5 eventos documentando a ausencia de `budgetChange` como bug). Orde verificada empíricamente: `stateChange → unlock → auditEntry(node_unlocked) → budgetChange → progressChange → auditEntry(custom)`.
+
+### Note
+- **Emisión directa** (non delegación): `ResourceManager.applyCost` é cálculo puro; a emisión de `budgetChange` faina o chamante, igual ca `TreeEngine`.
+- **Cero audit**: `budgetChange` non leva audit en ningunha vía; esta sub-fase non engade audit.
+- **Rollback**: a emisión de `budgetChange` durante effects que logo se revierten é coherente co comportamento de `set_progress` (2.6.fix); eventos compensatorios de rollback son decisión futura se procede.
+- **Cero modificación** de `TreeEngine`, `ResourceManager`, `ProgressManager`, `UnlockResolver`, `types/`, `common/`, `engine/index.ts`. Cero `ErrorCode` novo.
+- **Tests do paquete `core`**: 891 → 896 (+5 novos). Cobertura global 98.18% (= baseline 2.6); `EffectsRunner.ts` 100% statements/lines/funcs.
+- **DT-13 PECHADA**. A Fase 2 queda sen asimetrías de emisión coñecidas: `set_progress` (2.6.fix) e `modify_resource` (2.6.fix2) propagan os seus eventos cando se invocan desde effects.
+
+## [Unreleased]
+
 ### Added
 - **Sub-fase 2.6** — Tests de integración cross-piece que pechan a **Fase 2**. Novo ficheiro `packages/core/__tests__/integration/phase-2-cross-piece.test.ts` con **8 escenarios** que combinan tres ou máis pezas da Fase 2 (`EffectsRunner`, `StatComputer`, `TimeManager`, `ProgressManager`) en situacións realistas: Effects+Stats, Effects+Progress, TimeManager+Progress (preservación tras expiración), computed progress + `canUnlock`, statContribution condicional con computed (verifica o bug-fix 2.4.e), round-trip Fase 2 completo, applyChanges atómico cross-piece (positivo + negativo), e cascade event ordering (orde fixada empíricamente). Tests do paquete `core`: 882 → 891 (+9).
 

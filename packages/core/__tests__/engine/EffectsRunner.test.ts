@@ -1399,4 +1399,112 @@ describe('EffectsRunner.applySetProgress — cableado vía ProgressManager (2.6.
   })
 })
 // ── FIN: tests da sub-fase 2.6.fix ──
+
+// ── INICIO: tests da sub-fase 2.6.fix2 ──
+// Verifican que `applyModifyResource` emite `budgetChange` tras a
+// mutación (bug DT-13). Emisión directa (ResourceManager é cálculo
+// puro; o chamante é quen emite, igual ca TreeEngine). Só se emite
+// cando o valor cambia.
+describe('EffectsRunner.applyModifyResource — emite budgetChange (2.6.fix2)', () => {
+  it("op '+' emite budgetChange(resourceId, old, new)", async () => {
+    const tree = makeTree(
+      [makeNode({ id: 'n1' })],
+      [{ id: 'xp', label: { gl: 'XP', es: 'XP', en: 'XP' } }],
+      { xp: 50 },
+    )
+    const { runner, events } = buildContext(tree)
+
+    const captured: Array<{ resourceId: string; oldAmount: number; newAmount: number }> = []
+    events.on('budgetChange', (resourceId, oldAmount, newAmount) => {
+      captured.push({ resourceId, oldAmount, newAmount })
+    })
+
+    const r = await runner.run([{ type: 'modify_resource', resourceId: 'xp', op: '+', amount: 10 }])
+    expect(r.ok).toBe(true)
+    expect(captured).toEqual([{ resourceId: 'xp', oldAmount: 50, newAmount: 60 }])
+  })
+
+  it("op '-' emite budgetChange", async () => {
+    const tree = makeTree(
+      [makeNode({ id: 'n1' })],
+      [{ id: 'xp', label: { gl: 'XP', es: 'XP', en: 'XP' } }],
+      { xp: 50 },
+    )
+    const { runner, events } = buildContext(tree)
+
+    const captured: Array<{ resourceId: string; oldAmount: number; newAmount: number }> = []
+    events.on('budgetChange', (resourceId, oldAmount, newAmount) => {
+      captured.push({ resourceId, oldAmount, newAmount })
+    })
+
+    const r = await runner.run([{ type: 'modify_resource', resourceId: 'xp', op: '-', amount: 10 }])
+    expect(r.ok).toBe(true)
+    expect(captured).toEqual([{ resourceId: 'xp', oldAmount: 50, newAmount: 40 }])
+  })
+
+  it("op '*' emite budgetChange", async () => {
+    const tree = makeTree(
+      [makeNode({ id: 'n1' })],
+      [{ id: 'xp', label: { gl: 'XP', es: 'XP', en: 'XP' } }],
+      { xp: 50 },
+    )
+    const { runner, events } = buildContext(tree)
+
+    const captured: Array<{ resourceId: string; oldAmount: number; newAmount: number }> = []
+    events.on('budgetChange', (resourceId, oldAmount, newAmount) => {
+      captured.push({ resourceId, oldAmount, newAmount })
+    })
+
+    const r = await runner.run([{ type: 'modify_resource', resourceId: 'xp', op: '*', amount: 2 }])
+    expect(r.ok).toBe(true)
+    expect(captured).toEqual([{ resourceId: 'xp', oldAmount: 50, newAmount: 100 }])
+  })
+
+  it('delta cero NON emite budgetChange', async () => {
+    const tree = makeTree(
+      [makeNode({ id: 'n1' })],
+      [{ id: 'xp', label: { gl: 'XP', es: 'XP', en: 'XP' } }],
+      { xp: 50 },
+    )
+    const { runner, events } = buildContext(tree)
+
+    const captured: Array<{ resourceId: string; oldAmount: number; newAmount: number }> = []
+    events.on('budgetChange', (resourceId, oldAmount, newAmount) => {
+      captured.push({ resourceId, oldAmount, newAmount })
+    })
+
+    // op '+' amount 0 e op '*' amount 1 → ambos no-op (delta === 0).
+    const r1 = await runner.run([{ type: 'modify_resource', resourceId: 'xp', op: '+', amount: 0 }])
+    expect(r1.ok).toBe(true)
+    const r2 = await runner.run([{ type: 'modify_resource', resourceId: 'xp', op: '*', amount: 1 }])
+    expect(r2.ok).toBe(true)
+
+    // Cero eventos: o valor non cambiou en ningún dos dous.
+    expect(captured).toEqual([])
+  })
+
+  it('integración cross-piece: unlock dun nodo con effect modify_resource emite budgetChange', async () => {
+    // Replica reducida do escenario 8 da 2.6: un unlock con effect
+    // modify_resource produce budgetChange (vía engine real, que
+    // cablea EffectsRunner co EventEmitter interno).
+    const a = makeNode({
+      id: 'a',
+      effects: [{ type: 'modify_resource', resourceId: 'xp', op: '+', amount: 5 }],
+    })
+    const tree = makeTree([a], [{ id: 'xp', label: { gl: 'XP', es: 'XP', en: 'XP' } }], { xp: 10 })
+    const engine = new TreeEngine(tree, { locale: 'gl' })
+
+    const captured: Array<{ resourceId: string; oldAmount: number; newAmount: number }> = []
+    engine.on('budgetChange', (resourceId, oldAmount, newAmount) => {
+      captured.push({ resourceId, oldAmount, newAmount })
+    })
+
+    const r = await engine.unlock('a')
+    expect(r.ok).toBe(true)
+    // O budget mutou e o evento emitiuse.
+    expect(engine.getBudget().resources.xp).toBe(15)
+    expect(captured).toContainEqual({ resourceId: 'xp', oldAmount: 10, newAmount: 15 })
+  })
+})
+// ── FIN: tests da sub-fase 2.6.fix2 ──
 // ── FIN: tests de EffectsRunner ──

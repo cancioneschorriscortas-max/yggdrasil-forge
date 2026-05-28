@@ -731,41 +731,45 @@ describe('integración — Fase 2 cross-piece (sub-fase 2.6)', () => {
       // (verificación §5.5 do briefing 2.6: corrida primeiro, asercións
       // fixadas a posteriori contra o que realmente sucedeu).
       //
-      // Resultado observado para o `unlock('a')` cos effects e
-      // statContributions deste escenario:
+      // ACTUALIZADO en 2.6.fix2: o effect `modify_resource` agora emite
+      // `budgetChange` (bug DT-13 arranxado). A orde observada para o
+      // `unlock('a')` cos effects e statContributions deste escenario é:
       //
       //   1. stateChange      a:unlocked
       //   2. unlock           a
       //   3. auditEntry       node_unlocked
-      //   4. progressChange   b=100      ← effect set_progress
-      //   5. auditEntry       custom     ← effects_applied
+      //   4. budgetChange     xp=15      ← effect modify_resource (2.6.fix2)
+      //   5. progressChange   b=100      ← effect set_progress (2.6.fix)
+      //   6. auditEntry       custom     ← effects_applied
       //
-      // Observación sobre `budgetChange`: o effect `modify_resource`
-      // muta o budget pero NON emite `budgetChange` neste camiño de
-      // execución (ResourceManager.modify desde EffectsRunner non
-      // pasa polo emisor). É unha **asimetría análoga á de
-      // `set_progress` previa a 2.6.fix**: outro bug latente da Fase 2
-      // pendente de cableado. Briefing 2.6 §5.7 esixe non arranxar
-      // bugs descubertos silenciosamente; déixase rexistrado no
-      // CHANGELOG/changeset desta sub-fase para escalado preventivo
-      // posterior. Esta orde fíxase aquí como **contrato observable
-      // actual**, non como contrato ideal.
+      // Os dous effects de A emítense na orde declarativa: modify_resource
+      // (1º effect) → budgetChange; set_progress (2º effect) →
+      // progressChange. As dúas emisións suceden tras o audit do unlock e
+      // antes do audit agregado `custom 'effects_applied'`.
       //
-      // Esta sub-fase **fixa esta orde como contrato observable
-      // estable**. Calquera futura modificación que a cambie deberá
-      // actualizar este test e xustificar o cambio.
-      expect(order.length).toBe(5)
+      // Histórico do contrato (patrón de contrato intermedio 2.4.d L2):
+      //  - Sub-fase 2.6 fixou empíricamente 5 eventos SEN budgetChange,
+      //    documentando a súa ausencia como bug latente (DT-13).
+      //  - Sub-fase 2.6.fix2 arranxa o bug → aparece budgetChange (6
+      //    eventos). Este test actualízase para reflectir o comportamento
+      //    correcto, completando o patrón.
+      //
+      // Esta sub-fase **fixa esta orde como contrato observable estable**.
+      // Calquera futura modificación que a cambie deberá actualizar este
+      // test e xustificar o cambio.
+      expect(order.length).toBe(6)
       expect(order[0]).toEqual({ event: 'stateChange', data: 'a:unlocked' })
       expect(order[1]).toEqual({ event: 'unlock', data: 'a' })
       expect(order[2]).toEqual({ event: 'auditEntry', data: 'node_unlocked' })
-      expect(order[3]).toEqual({ event: 'progressChange', data: 'b=100' })
-      expect(order[4]).toEqual({ event: 'auditEntry', data: 'custom' })
+      expect(order[3]).toEqual({ event: 'budgetChange', data: 'xp=15' })
+      expect(order[4]).toEqual({ event: 'progressChange', data: 'b=100' })
+      expect(order[5]).toEqual({ event: 'auditEntry', data: 'custom' })
 
       // E aínda así, o estado final é coherente: stat S contribuído
       // por A perTier reflicte tier 1.
       expect(engine.getStat('s')).toBe(1)
-      // E o budget SI mutou (aínda que sen emitir evento — confirma
-      // que se trata de bug de emisión, non de mutación):
+      // E o budget mutou a 15 (10 inicial + 5 do effect modify_resource),
+      // agora xa con emisión de budgetChange (verificada arriba na orde).
       expect(engine.getBudget().resources.xp).toBe(15)
     })
   })

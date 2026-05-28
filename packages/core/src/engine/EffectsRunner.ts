@@ -495,7 +495,7 @@ export class EffectsRunner {
   private async applyModifyResource(
     effect: Extract<Effect, { type: 'modify_resource' }>,
   ): Promise<Result<EffectResult>> {
-    const { store, resources, locale } = this.context
+    const { store, resources, locale, events } = this.context
     const state = store.getState()
     /* c8 ignore next -- ?? 0 defensivo: o validate xa garantiu que o recurso existe na treeDef e o startingBudget ponse no constructor; rama undefined só se daría con consumidor que muta a estructura por hack. */
     const currentAmount = state.budget.resources[effect.resourceId] ?? 0
@@ -567,6 +567,18 @@ export class EffectsRunner {
       })
     }
     // delta === 0 → no-op pero applied=true.
+
+    // ── INICIO: 2.6.fix2 — emitir budgetChange tras mutación ──
+    // Bug latente (DT-13): applyModifyResource mutaba o budget pero non
+    // emitía budgetChange, polo que os suscritores externos non se
+    // enteraban dos cambios vía effect. Replicamos o patrón de TreeEngine
+    // (só emitir se houbo cambio real). budgetChange non ten audit
+    // asociado (nin sequera na vía TreeEngine), polo que só se emite o
+    // evento.
+    if (currentAmount !== nextAmount) {
+      events.emit('budgetChange', effect.resourceId, currentAmount, nextAmount)
+    }
+    // ── FIN: 2.6.fix2 ──
 
     return ok({
       effect,
