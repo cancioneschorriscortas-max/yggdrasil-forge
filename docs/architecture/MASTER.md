@@ -2493,23 +2493,93 @@ fronteira (motor defensivo internamente).
 
 ## A.4 / A.4.1 — Release/aclaracións
 
-PR release (#1) NON se mergea aínda. **Posible `0.1.0-alpha` agora que
-Fase 2 está pechada** — sería bo momento para **drenar `[Unreleased]` e
-consolidar o formato CHANGELOG** (DT-12).
-
 **Briefings versionados**: tras 2.6.fix2 e o trackeo en `624e682`, **15
 briefings 2.x trackeados** en `docs/briefings/`. Todos os briefings da
 Fase 2 están persistidos no repo.
 
-**Casos prácticos / exemplos**: idea anotada por autor para discutir
-agora que Fase 2 está pechada. Pasta `examples/` ou `playground/` con
-TreeDefs realistas exercitando todas as pezas. Sería **demo +
-documentación viva + smoke integration test + onboarding**. **Decisión
-pendente**: facer agora antes de Fase 3, ou diferir á Fase 3?
-
 **AuthProviderRegistry**: roadmap orixinal incluíao como 2.5. Director
 substituíuno por Zod hardening por non ter consumidor real. Vai con Fase
 5 cando se implementen `remote`/`callback`/`event`.
+
+### A.4.2 — Plan de publicación a npm (decisión do autor, 28-may-2026)
+
+**Decisión do autor**: a publicación a npm **DIFÍRESE** ata ter código
+máis maduro **+ exemplos prácticos probados**. Razón: publicar a npm é
+case irreversible (deprecación posible, pero versions publicadas viven
+para sempre); mellor cazar problemas de API / ergonomía / configuración
+nun escenario controlado antes do primeiro publish real.
+
+**Casos prácticos / exemplos** (idea inicialmente posta como "antes de
+Fase 3"): **REVISADA polo autor**. Mellor diferilos **antes do editor**
+(probablemente Fase 7+) cando xa exista persistencia (Fase 3), React
+hooks (Fase 6), e a demo poda ter feedback loop visual real. Hoxe un
+exemplo tipo script Node sen persistencia confunde máis do que axuda
+(estado pérdese ao acabar, consumidor preguntaría "como gardo isto?").
+
+**Plan de transición**:
+- **Próxima sub-fase**: Fase 3.1 (StorageAdapter interface) segundo
+  roadmap orixinal. **NON** release-prep agora.
+- **Cando publiquemos** (probablemente tras Fase 6 ou tras exemplos):
+  sub-fase específica "release-prep + npm publish".
+- Mentres tanto: os 34 changesets pendentes seguen acumulándose;
+  PR #1 mantense automáticamente actualizada por `changesets/action`;
+  cero risco porque `release.yml` actual **NON** chama `pnpm publish`.
+
+### A.4.3 — Investigación pre-release (feita 28-may-2026, NON aplicada)
+
+Investigación realizada para preparar release-prep futura. **Decisións
+pre-resoltas para cando chegue o momento**, gardadas aquí para o
+próximo arquitecto:
+
+**Configuración do monorepo verificada:**
+- **19 paquetes en `packages/`**: 2 reais (`common` 641 liñas, `core`
+  10111 liñas), **17 baleiros** (9 liñas cada = `export const VERSION
+  = '0.0.0'` placeholder do briefing 0.5 "scaffold all packages").
+- **Todos os 19 son publicables**: `private: false` + `publishConfig:
+  { access: 'public' }` + license MIT.
+- **Linked group actual** en `.changeset/config.json`: `[['common',
+  'core', 'react', 'themes']]`. Iso significa que cando sobe versión
+  `core`, sobe automáticamente `react` e `themes` (baleiros). Coherente
+  co plan de "publicar todos á vez" para reservar nomes npm.
+- **`release.yml`**: SÓ xera PRs de versión (changesets/action), NON
+  publica. Para activar publicación require: NPM_TOKEN secret + engadir
+  `publish: pnpm changeset:publish` no step. Está documentado no propio
+  workflow.
+- **PR #1 está VIVO**: mantida automaticamente por changesets/action,
+  54 commits adiantados sobre main, 0 atrasados. Último commit:
+  `8cf587d chore: version packages`. Propón bumpear linked group a
+  `0.1.0` baseado nos 34 changesets `minor` acumulados. **NON é
+  obsoleto; é a release vivente**.
+
+**Decisións xa tomadas para cando publiquemos:**
+1. **Versión inicial: `0.1.0`** (o que `changesets` xa propón en PR #1;
+   aceptamos en vez de loitar contra a ferramenta).
+2. **Manter 17 paquetes baleiros como publicables** (NON marcar
+   `private: true`): plan é publicar todos á vez para reservar nomes
+   npm. Patrón estándar en monorepos grandes (Material-UI, Babel).
+3. **Engadir README placeholder real a cada baleiro** antes do primeiro
+   publish ("planned for Phase X — see roadmap"), para non publicar
+   paquetes completamente baleiros.
+4. **CHANGELOG: reescribir dende cero formato Keep-a-Changelog** ao
+   publicar (https://keepachangelog.com). Substitúe a DT-12 (15
+   cabeceiras `[Unreleased]` apiladas). Aplícase a CHANGELOG raíz +
+   common + core; borrar nos 17 baleiros.
+5. **Mergear PR #1 vivente** cando chegue o momento (NON pechalo).
+
+**Aclaración importante para próximo arquitecto sobre seguridade:**
+- **GitHub repo**: protexido por defecto (só autor pushea a main; forks
+  son copias independentes que NON tocan o repo orixinal).
+- **npm registry**: independente do repo GitHub. Calquera podería
+  rexistrar `@yggdrasil-forge/*` en npm se non está reservado. Por iso
+  o plan de "publicar todos á vez" cando chegue o momento.
+- **Licencia MIT**: autoriza expresamente modificar e redistribuír
+  copias. Iso é compatible coa intención do autor ("código visible,
+  forks lexítimos, pero NON modificación do MEU repo en GitHub"); ambas
+  cousas son cousas distintas.
+- **Recomendación opcional** (decisión do autor pendente): configurar
+  **Branch Protection** en GitHub (Settings → Branches → main →
+  "Require pull request reviews before merging") para reforzar a
+  intención. Cero cambio no código.
 
 ## A.5 — Evolución do executor
 
