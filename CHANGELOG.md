@@ -8,6 +8,14 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `LocalStorageAdapter` (en `@yggdrasil-forge/storage`): segunda implementación concreta de `StorageAdapter`. Wrapper sobre `Storage` interface estándar (por defecto `globalThis.localStorage`) con serialización JSON automática. Acepta `Storage` inxectado no constructor para tests sen jsdom. Detecta `QuotaExceededError` multi-navegador (Chrome, Firefox, Safari, iOS) e mapéao a `STORAGE_QUOTA_EXCEEDED`. Valores corruptos no storage devolven `STORAGE_READ_FAILED`. Asimetría con MemoryStorage: valores pasan por `JSON.parse(JSON.stringify(x))` (perden identidade referencial; `undefined`, `BigInt`, funcións e circular refs rexéitanse).
+- `LocalStorageAdapterOptions` interface exportada para configuración explícita.
+- Script `test:coverage` en `@yggdrasil-forge/storage` (patrón idéntico a core e common).
+
+## [Unreleased]
+
+### Added
+
 - `MemoryStorage` (en `@yggdrasil-forge/storage`): primeira implementación concreta de `StorageAdapter`. Backend en memoria sobre `Map<string, unknown>`. Cero serialización (acepta valores arbitrarios incluíndo Date, Map, Set, funcións). Soporta `watch` con notificación a múltiples callbacks; callback recibe `null` ao borrar a clave. Ideal para tests, SSR, contextos sen storage persistente.
 
 ## [Unreleased]
