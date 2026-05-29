@@ -27,4 +27,14 @@ export {
   isYggdrasilError,
   getErrorMessage,
 } from './errors/index.js'
+// Result type (movido desde core en sub-fase 3.0)
+export {
+  type Result,
+  ok,
+  err,
+  isOk,
+  isErr,
+  unwrap,
+  unwrapOr,
+} from './result.js'
 // ── FIN: @yggdrasil-forge/common public API ──

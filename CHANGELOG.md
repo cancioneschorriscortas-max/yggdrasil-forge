@@ -6,6 +6,12 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Changed
+
+- `Result<T, E>` type e helpers (`ok`, `err`, `isOk`, `isErr`, `unwrap`, `unwrapOr`) movidos de `@yggdrasil-forge/core/types/` a `@yggdrasil-forge/common` como primitivo xenérico compartido. `@yggdrasil-forge/core/types/result.js` mantén re-export para cero ruptura dos imports existentes en core. Sub-fase preparatoria para Fase 3 (StorageAdapter en `@yggdrasil-forge/storage` agora pode importar Result sen depender de core).
+
+## [Unreleased]
+
 ### Fixed
 - **Sub-fase 2.6.fix2** — Bug latente (DT-13): o effect `modify_resource` mutaba o budget pero non emitía o evento `budgetChange`, polo que os suscritores externos non se enteraban dos cambios de budget producidos vía effect. Agora `EffectsRunner.applyModifyResource` emite `budgetChange` tras a mutación (só cando o valor cambia), replicando o patrón de `TreeEngine`. Mesma familia que o bug de `set_progress` arranxado en 2.6.fix. Detectado no escenario 8 de 2.6 (cascade event ordering).
 
