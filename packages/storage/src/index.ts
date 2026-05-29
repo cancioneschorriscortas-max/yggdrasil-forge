@@ -3,6 +3,7 @@
 // 3.1 — interface StorageAdapter. Implementacións concretas en 3.2-3.4.
 
 export type { StorageAdapter } from './StorageAdapter.js'
+export { MemoryStorage } from './MemoryStorage.js'
 
 /**
  * Versión actual do paquete.
