@@ -1,6 +1,8 @@
 // ── INICIO: @yggdrasil-forge/storage ──
-// Storage backends for Yggdrasil Forge
-// O contido real engadirase en sub-fases posteriores.
+// Storage backends for Yggdrasil Forge.
+// 3.1 — interface StorageAdapter. Implementacións concretas en 3.2-3.4.
+
+export type { StorageAdapter } from './StorageAdapter.js'
 
 /**
  * Versión actual do paquete.

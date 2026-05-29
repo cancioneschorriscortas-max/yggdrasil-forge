@@ -6,6 +6,13 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+
+- Interface `StorageAdapter` exportada desde `@yggdrasil-forge/storage` segundo MASTER §21. Define o contrato uniforme para backends de almacenamento: `get`, `set`, `delete`, `list`, `clear`, `watch?`. Cada método devolve `Promise<Result<T>>` para manexo explícito de erros. Implementacións concretas (MemoryStorage, LocalStorage, etc.) vén en sub-fases 3.2-3.4.
+- Dependencia nova: `@yggdrasil-forge/storage` agora depende de `@yggdrasil-forge/common` (workspace:*) para importar `Result`.
+
+## [Unreleased]
+
 ### Changed
 
 - `Result<T, E>` type e helpers (`ok`, `err`, `isOk`, `isErr`, `unwrap`, `unwrapOr`) movidos de `@yggdrasil-forge/core/types/` a `@yggdrasil-forge/common` como primitivo xenérico compartido. `@yggdrasil-forge/core/types/result.js` mantén re-export para cero ruptura dos imports existentes en core. Sub-fase preparatoria para Fase 3 (StorageAdapter en `@yggdrasil-forge/storage` agora pode importar Result sen depender de core).

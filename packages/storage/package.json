@@ -32,6 +32,9 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
+  "dependencies": {
+    "@yggdrasil-forge/common": "workspace:*"
+  },
   "devDependencies": {
     "tsup": "catalog:",
     "vitest": "catalog:",
