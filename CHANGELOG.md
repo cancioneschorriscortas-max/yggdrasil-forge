@@ -8,6 +8,14 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `IndexedDBAdapter` (en `@yggdrasil-forge/storage`): terceira implementación concreta de `StorageAdapter`. Wrapper sobre IndexedDB nativo con apertura lazy (constructor sync, BD ábrese na primeira operación). Soporta valores arbitrarios via structured clone nativo (Date, Map, Set, ArrayBuffer, undefined). Capacidade superior a localStorage (≥50MB típico). Cero `watch` (IndexedDB sen observador nativo intra-database). `databaseName` obrigatorio no constructor; `factory` opcional permite inxectar fake-indexeddb nos tests sen jsdom.
+- `IndexedDBAdapterOptions` interface exportada.
+- devDependency: `fake-indexeddb ^6.2.5` no catalog para tests.
+
+## [Unreleased]
+
+### Added
+
 - `LocalStorageAdapter` (en `@yggdrasil-forge/storage`): segunda implementación concreta de `StorageAdapter`. Wrapper sobre `Storage` interface estándar (por defecto `globalThis.localStorage`) con serialización JSON automática. Acepta `Storage` inxectado no constructor para tests sen jsdom. Detecta `QuotaExceededError` multi-navegador (Chrome, Firefox, Safari, iOS) e mapéao a `STORAGE_QUOTA_EXCEEDED`. Valores corruptos no storage devolven `STORAGE_READ_FAILED`. Asimetría con MemoryStorage: valores pasan por `JSON.parse(JSON.stringify(x))` (perden identidade referencial; `undefined`, `BigInt`, funcións e circular refs rexéitanse).
 - `LocalStorageAdapterOptions` interface exportada para configuración explícita.
 - Script `test:coverage` en `@yggdrasil-forge/storage` (patrón idéntico a core e common).

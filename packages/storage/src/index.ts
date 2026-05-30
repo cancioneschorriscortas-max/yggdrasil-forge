@@ -6,6 +6,8 @@ export type { StorageAdapter } from './StorageAdapter.js'
 export { MemoryStorage } from './MemoryStorage.js'
 export { LocalStorageAdapter } from './LocalStorageAdapter.js'
 export type { LocalStorageAdapterOptions } from './LocalStorageAdapter.js'
+export { IndexedDBAdapter } from './IndexedDBAdapter.js'
+export type { IndexedDBAdapterOptions } from './IndexedDBAdapter.js'
 
 /**
  * Versión actual do paquete.

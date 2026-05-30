@@ -40,6 +40,7 @@
     "tsup": "catalog:",
     "vitest": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "fake-indexeddb": "catalog:",
     "typescript": "catalog:"
   },
   "publishConfig": {
