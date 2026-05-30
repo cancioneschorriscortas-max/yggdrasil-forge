@@ -2373,7 +2373,8 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 
 ## A.1–A.2 — Estado actual
 
-Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA enteira.**
+Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA enteira. Fase 3 EN
+CURSO (4/N sub-fases pechadas; 3.3 seguinte).**
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
@@ -2391,12 +2392,30 @@ Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA enteira.**
 | 2.4.d UnlockResolver wiring | Feito | `c918324` | 852 |
 | 2.4.e EffectsRunner+StatComputer wiring | Feito | `9afd412` | 854 |
 | 2.5 Zod hardening | Feito | `8555542` | 876 |
-| **2.6.fix** set_progress wiring (bug latente) | Feito | `cd750c3` | 882 |
-| **2.6 Tests integración Fase 2** | Feito | `c8bed7e` | 891 |
-| **2.6.fix2** modify_resource budgetChange (DT-13) | Feito | `3f42e79` | 896 |
-| **docs: briefings Fase 2** | Feito | `624e682` | — |
+| 2.6.fix set_progress wiring (bug latente) | Feito | `cd750c3` | 882 |
+| 2.6 Tests integración Fase 2 | Feito | `c8bed7e` | 891 |
+| 2.6.fix2 modify_resource budgetChange (DT-13) | Feito | `3f42e79` | 896 |
+| docs: briefings Fase 2 | Feito | `624e682` | — |
+| docs: close Phase 2 en MASTER | Feito | `7974214` | — |
+| docs: publish strategy + investigation | Feito | `f14e5c7` | — |
+| **3.0 Result movido a common (refactor preparatorio)** | Feito | `de16c01` | 956 |
+| **3.1 StorageAdapter interface** | Feito | `c39b8d7` | 14 storage |
+| **3.2.a MemoryStorage backend** | Feito | `3658808` | 36 storage |
+| **3.2.b LocalStorageAdapter** | Feito | `2e6998a` | 72 storage |
+| **3.3 IndexedDBAdapter** | **Seguinte** | — | — |
+| 3.4 SessionStorageAdapter + FileSystemAdapter | Roadmap | — | — |
+| 3.5 Migration system + auto backup | Roadmap | — | — |
+| 3.6 Reconciler | Roadmap | — | — |
 
 **Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA.**
+
+**Métricas Fase 3 ata o de agora (3.0–3.2.b):**
+- 0 escalados.
+- 0 bugs latentes cazados.
+- 0 asimetrías abertas.
+- 0 incidentes transporte.
+- Catro sub-fases consecutivas limpas (resultado de "acoutar > ambicionar"
+  aplicada deliberadamente con 3.2 partida en a + b).
 
 ## A.3 — Débeda técnica
 
@@ -2621,6 +2640,29 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
 - **2.6.fix L1**: bug-fixes que arranxan comportamentos previamente fixados por test (contratos intermedios da L2 2.4.d) deben **explicitamente listar e autorizar** a actualización deses tests no briefing.
 - **2.6.fix2 L1**: cando un briefing anticipa que un test cambia (§T2.5) E á vez ten regra anti-modificación de tests (§9), DEBE eximir explícitamente ese test. Senón créase contradición interna. O briefing 2.6.fix2 omitiuno; executor cazou a contradición; resolveuse con addendum explícito.
 
+**Fase 3 (en curso):**
+- **3.0 L1 (acoplamento de tipos primitivos vs dominio)**: cando o
+  MASTER spec ubique un tipo nunha sección de "tipos fundamentais",
+  verificar antes de prescribir se é **primitivo xenérico** ou
+  **dominio-específico**. Os primitivos (Result, Locale,
+  YggdrasilError, ErrorCode) vai a `@yggdrasil-forge/common`. Os
+  dominio-específicos (NodeDef, EdgeDef, TreeDef) vai ao paquete
+  dominio. Decisión orixinal do briefing 1.2 (poñer Result en core)
+  foi mimética da estrutura do MASTER §7 sen análise de acoplamento;
+  resolveuse arquitectónicamente en 3.0 cando storage precisou Result
+  sen acoplarse a core. Patrón de re-export en `core/types/result.ts`
+  mantén cero ruptura para imports existentes.
+- **3.2 L1 (partir sub-fases por complexidade arquitectónica)**: o
+  roadmap orixinal listaba 3.2 como "MemoryStorage + LocalStorageAdapter"
+  xuntas. Director decidiu partir en 3.2.a + 3.2.b porque arquitectónicamente
+  son distintas: MemoryStorage é trivial; LocalStorageAdapter ten
+  serialización JSON + QuotaExceeded + inversión de control + mock
+  manual de Storage. Sinerxia natural se a precede: MemoryStorage
+  publicado pode servir de referencia/inspiración no test de
+  LocalStorageAdapter. Resultado: 4 sub-fases consecutivas limpas
+  (3.0/3.1/3.2.a/3.2.b) sen escalados. Confirma que "acoutar >
+  ambicionar" funciona tamén en sub-fases pequenas tipo backend.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
@@ -2674,7 +2716,8 @@ aceptable se non hai credenciais, aplicado **dende a raíz** (1.15) e
 ## A.9 — Estado cuantitativo final Fase 2
 
 ```
-Commit actual:           624e682 (origin/main)
+Commit final Fase 2:     624e682 (briefings) → 7974214 (close) →
+                         f14e5c7 (publish strategy)
 Tag Fase 1:              phase-1-closed (en 1290378)
 Tests:                   896 (43 ficheiros)
 Cobertura global:        98.18%
@@ -2695,6 +2738,33 @@ Briefings trackeados:    15 da Fase 2 (commit 624e682)
 Débeda funcional:        0 crítica · 0 asimetrías coñecidas
 Débeda non bloqueante:   DT-9 (infra), DT-11 (cycles), DT-12 (CHANGELOG cosmético)
 DT-13:                   PECHADA en 2.6.fix2
+```
+
+## A.9.b — Estado cuantitativo Fase 3 (en curso, ata 3.2.b)
+
+```
+Commit actual:           2e6998a (origin/main)
+Sub-fases Fase 3:        4 pechadas (3.0, 3.1, 3.2.a, 3.2.b)
+Tests adicionais:        +17 common (Result) + 72 storage = 89 novos
+                         (tests core inalterados: 896)
+Cobertura paquete storage: 100/98.18/100/100
+  - StorageAdapter.ts:   só interface (sen liñas executables)
+  - MemoryStorage.ts:    100/100/100/100
+  - LocalStorageAdapter.ts: 100/97.67/100/100 (liña 146 rama defensiva)
+Cobertura paquete common: 100% (subiu con Result)
+Lint / Typecheck:        0/0 / 20/20 (sen caché)
+ErrorCodes:              40 (cero novos; E055-057 storage reutilizables)
+Escalados resoltos:      cero novos en Fase 3 (15 totais acumulados)
+Bugs latentes:           cero novos
+Asimetrías abertas:      cero (documentadas como contratos: MemoryStorage
+                         garda referencias, LocalStorageAdapter copia via JSON)
+Incidentes transporte:   cero novos
+Débeda nova:             cero
+Briefings pendentes trackear: 5 (3.0, 3.1, 3.2.a, 3.2.b, 3.3 cando peche)
+Filosofía aplicada:      "cero jsdom" (mock manual de Storage en 3.2.b).
+                         Aplícase agás en 3.3 onde fake-indexeddb é
+                         dependencia estándar do ecosistema (decisión 3.3,
+                         documentada).
 ```
 
 ## A.10 — Comparación inicio/fin Fase 2
