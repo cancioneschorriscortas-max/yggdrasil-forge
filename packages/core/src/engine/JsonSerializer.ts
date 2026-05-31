@@ -1,7 +1,7 @@
 // ── INICIO: JsonSerializer ──
 // Serialización / deserialización determinista de TreeDef con versionado de
-// esquema. NO serializa TreeState/builds (solo la definición); NO migra
-// entre versiones de esquema (fase posterior). Decisión 5.3 del briefing.
+// esquema. NO serializa TreeState/builds (solo la definición).
+// Sub-fase 3.5 engade `deserializeAsync` con soporte de migracións.
 
 import {
   ErrorCode,
@@ -13,6 +13,8 @@ import {
 import type { Result, TreeDef } from '../types/index.js'
 import { err, ok } from '../types/index.js'
 import { validateTreeDef } from './TreeDefValidator.js'
+import type { MigrationRegistry } from './migrations/MigrationRegistry.js'
+import { MigrationRunner } from './migrations/MigrationRunner.js'
 import type { InferredTreeDef } from './treeDefSchema.js'
 
 /**
@@ -130,6 +132,84 @@ export function deserialize(
 }
 
 /**
+ * Versión async de `deserialize` con soporte de migracións.
+ *
+ * Cando se pasa un `MigrationRegistry` e o `schemaVersion` do JSON non
+ * coincide co SCHEMA_VERSION actual, intenta migrar os datos usando
+ * `MigrationRunner` antes de validar. Se non se pasa registry ou
+ * `schemaVersion` coincide, o comportamento é idéntico a `deserialize`.
+ *
+ * Flujo: parse JSON → (se schema distinto e registry presente) migrar →
+ * validación estrutural → comprobación final de schemaVersion.
+ *
+ * @param json - Cadea JSON de fonte externa/non confiable.
+ * @param locale - Locale para mensaxes de erro. Default: 'gl'.
+ * @param migrationRegistry - Rexistro de migracións (opcional).
+ */
+export async function deserializeAsync(
+  json: string,
+  locale: Locale = DEFAULT_LOCALE,
+  migrationRegistry?: MigrationRegistry,
+): Promise<Result<InferredTreeDef>> {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(json)
+  } catch (cause) {
+    const detail = cause instanceof Error ? cause.message : 'JSON parse error'
+    return err(
+      new YggdrasilError(
+        ErrorCode.INVALID_TREE_DEF,
+        getErrorMessage(ErrorCode.INVALID_TREE_DEF, locale, {
+          details: `JSON parse error: ${detail}`,
+        }),
+        { context: { reason: 'JSON parse error' } },
+      ),
+    )
+  }
+
+  // Se hai migrationRegistry e o dato ten schemaVersion distinto, migrar.
+  let dataToValidate: unknown = parsed
+  if (
+    migrationRegistry !== undefined &&
+    isPlainRecord(parsed) &&
+    typeof parsed.schemaVersion === 'string' &&
+    parsed.schemaVersion !== SCHEMA_VERSION
+  ) {
+    const runner = new MigrationRunner(migrationRegistry, { locale })
+    const migrated = await runner.run(parsed, parsed.schemaVersion, SCHEMA_VERSION)
+    if (!migrated.ok) {
+      return migrated
+    }
+    dataToValidate = migrated.value
+  }
+
+  const validation = validateTreeDef(dataToValidate, locale)
+  if (!validation.ok) {
+    return validation
+  }
+
+  const treeDef = validation.value
+  if (treeDef.schemaVersion !== SCHEMA_VERSION) {
+    return err(
+      new YggdrasilError(
+        ErrorCode.SCHEMA_VERSION_UNSUPPORTED,
+        getErrorMessage(ErrorCode.SCHEMA_VERSION_UNSUPPORTED, locale, {
+          version: treeDef.schemaVersion,
+        }),
+        {
+          context: {
+            found: treeDef.schemaVersion,
+            supported: SCHEMA_VERSION,
+          },
+        },
+      ),
+    )
+  }
+
+  return ok(treeDef)
+}
+
+/**
  * Agrupación de las funciones de serialización como objeto, para quien
  * prefiera un punto de acceso único (coherente con el patrón de otras
  * piezas del motor). Las funciones sueltas siguen exportadas.
@@ -137,5 +217,6 @@ export function deserialize(
 export const JsonSerializer = {
   serialize,
   deserialize,
+  deserializeAsync,
 }
 // ── FIN: JsonSerializer ──

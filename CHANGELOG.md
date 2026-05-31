@@ -8,6 +8,18 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- Sistema de migracións de schema en `@yggdrasil-forge/core/engine/migrations/`:
+  - `Migration` interface (segundo MASTER §22).
+  - `MigrationRegistry` para rexistrar migracións.
+  - `MigrationRunner` con resolución de path greedy (salto máximo) e detección defensiva de ciclos.
+  - `AutoBackup` safety net que persiste estado pre-migración nun `BackupStorage` inxectado (compatible estruturalmente con LocalStorageAdapter / IndexedDBAdapter / etc.).
+- `JsonSerializer.deserializeAsync` función nova que acepta `MigrationRegistry` opcional. Cando presente e `schemaVersion` non coincide, intenta migrar antes de validar. Comportamento sen registry sen cambios. Función nova `deserializeAsync` engadida; `deserialize` sync mantense intacta (Caso B: 1 consumidor existente en TreeEngine.fromJSON, non modificado).
+- Cero ErrorCodes novos: `MIGRATION_FAILED` e `NO_MIGRATION_PATH` xa existían en common.
+
+## [Unreleased]
+
+### Added
+
 - `SessionStorageAdapter` (en `@yggdrasil-forge/storage`): wrapper sobre `LocalStorageAdapter` con `globalThis.sessionStorage` como default. Cero duplicación de lóxica; herda automáticamente todos os arranxos futuros de LocalStorageAdapter. A semántica é idéntica salvo na duración (sessionStorage pérdese ao pechar a pestana).
 - `FileSystemAdapter` (en `@yggdrasil-forge/storage`): cuarta implementación concreta de `StorageAdapter`. Usa OPFS (Origin Private File System) accesible via `navigator.storage.getDirectory()`. Soporte amplo: Chrome, Edge, Firefox, Safari, Opera (desde marzo 2023). `directoryName` obrigatorio no constructor; `storage` (StorageManager) opcional permite inxectar `opfs-mock` nos tests. Estrutura plana de ficheiros (cero subdirectorios); keys que conteñan `/` ou `\\` rexéitanse. Serialización JSON (asimetría con IndexedDBAdapter: rexeita undefined/BigInt/funcións/circular refs, idéntico a LocalStorageAdapter).
 - `SessionStorageAdapterOptions` e `FileSystemAdapterOptions` interfaces exportadas.

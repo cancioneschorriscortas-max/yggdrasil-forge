@@ -62,5 +62,11 @@ export {
   JsonSerializer,
   serialize,
   deserialize,
+  deserializeAsync,
 } from './JsonSerializer.js'
+export type { Migration } from './migrations/Migration.js'
+export { MigrationRegistry } from './migrations/MigrationRegistry.js'
+export { MigrationRunner } from './migrations/MigrationRunner.js'
+export type { BackupStorage } from './migrations/AutoBackup.js'
+export { AutoBackup } from './migrations/AutoBackup.js'
 // ── FIN: engine public API ──

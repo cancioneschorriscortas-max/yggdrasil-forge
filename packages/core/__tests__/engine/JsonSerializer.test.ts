@@ -153,4 +153,124 @@ describe('JsonSerializer', () => {
     })
   })
 })
+
+// ── INICIO: tests de deserializeAsync (sub-fase 3.5) ──
+import { isErr, isOk, ok } from '@yggdrasil-forge/common'
+import { deserializeAsync } from '../../src/engine/index.js'
+import type { Migration } from '../../src/engine/migrations/Migration.js'
+import { MigrationRegistry } from '../../src/engine/migrations/MigrationRegistry.js'
+
+describe('deserializeAsync', () => {
+  it('sen migrationRegistry: comportamento idéntico a deserialize', async () => {
+    const json = serialize(makeValidTreeDef())
+    const result = await deserializeAsync(json)
+    expect(isOk(result)).toBe(true)
+    if (isOk(result)) {
+      expect(result.value.id).toBe('test-tree')
+    }
+  })
+
+  it('sen migrationRegistry + schemaVersion distinta: rexeita', async () => {
+    const json = serialize(makeValidTreeDef({ schemaVersion: '0.9.0' }))
+    const result = await deserializeAsync(json)
+    expect(isErr(result)).toBe(true)
+    if (isErr(result)) {
+      expect(result.error.code).toBe(ErrorCode.SCHEMA_VERSION_UNSUPPORTED)
+    }
+  })
+
+  it('con migrationRegistry baleiro + schemaVersion distinta: err(NO_MIGRATION_PATH)', async () => {
+    const json = serialize(makeValidTreeDef({ schemaVersion: '0.9.0' }))
+    const reg = new MigrationRegistry()
+    const result = await deserializeAsync(json, 'gl', reg)
+    expect(isErr(result)).toBe(true)
+    if (isErr(result)) {
+      expect(result.error.code).toBe(ErrorCode.NO_MIGRATION_PATH)
+    }
+  })
+
+  it('con migración válida: migra e devolve TreeDef', async () => {
+    const oldTree = makeValidTreeDef({ schemaVersion: '0.9.0' })
+    const json = serialize(oldTree)
+
+    const migration: Migration = {
+      from: '0.9.0',
+      to: '1.0.0',
+      description: '0.9 → 1.0',
+      migrate: async (data: unknown) => {
+        const d = data as Record<string, unknown>
+        return ok({ ...d, schemaVersion: '1.0.0' })
+      },
+    }
+    const reg = new MigrationRegistry().register(migration)
+    const result = await deserializeAsync(json, 'gl', reg)
+    expect(isOk(result)).toBe(true)
+    if (isOk(result)) {
+      expect(result.value.schemaVersion).toBe('1.0.0')
+    }
+  })
+
+  it('schemaVersion coincide + registry presente: cero migración', async () => {
+    const json = serialize(makeValidTreeDef())
+    let migrateCalled = false
+    const migration: Migration = {
+      from: '1.0.0',
+      to: '2.0.0',
+      description: 'non debería chamarse',
+      migrate: async (data: unknown) => {
+        migrateCalled = true
+        return ok(data)
+      },
+    }
+    const reg = new MigrationRegistry().register(migration)
+    const result = await deserializeAsync(json, 'gl', reg)
+    expect(isOk(result)).toBe(true)
+    expect(migrateCalled).toBe(false)
+  })
+
+  it('migración que devolve estrutura inválida: validation err', async () => {
+    const json = serialize(makeValidTreeDef({ schemaVersion: '0.9.0' }))
+    const migration: Migration = {
+      from: '0.9.0',
+      to: '1.0.0',
+      description: 'produce lixo',
+      migrate: async () => ok({ garbage: true, schemaVersion: '1.0.0' }),
+    }
+    const reg = new MigrationRegistry().register(migration)
+    const result = await deserializeAsync(json, 'gl', reg)
+    expect(isErr(result)).toBe(true)
+    if (isErr(result)) {
+      expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+    }
+  })
+
+  it('JSON malformado: err sen intentar migrar', async () => {
+    const reg = new MigrationRegistry()
+    const result = await deserializeAsync('{not json', 'gl', reg)
+    expect(isErr(result)).toBe(true)
+    if (isErr(result)) {
+      expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+    }
+  })
+
+  it('JSON sen schemaVersion: valida normal (non tenta migración)', async () => {
+    const reg = new MigrationRegistry()
+    const result = await deserializeAsync('{"id":"x"}', 'gl', reg)
+    expect(isErr(result)).toBe(true)
+    // Falla na validación (falta schemaVersion e outros campos)
+    if (isErr(result)) {
+      expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+    }
+  })
+
+  it('locale propaga a erros de migración', async () => {
+    const json = serialize(makeValidTreeDef({ schemaVersion: '0.9.0' }))
+    const reg = new MigrationRegistry()
+    const result = await deserializeAsync(json, 'en', reg)
+    expect(isErr(result)).toBe(true)
+    if (isErr(result)) {
+      expect(result.error.message).toContain('migration')
+    }
+  })
+})
 // ── FIN: tests de JsonSerializer (1.17) ──
