@@ -8,6 +8,10 @@ export { LocalStorageAdapter } from './LocalStorageAdapter.js'
 export type { LocalStorageAdapterOptions } from './LocalStorageAdapter.js'
 export { IndexedDBAdapter } from './IndexedDBAdapter.js'
 export type { IndexedDBAdapterOptions } from './IndexedDBAdapter.js'
+export { SessionStorageAdapter } from './SessionStorageAdapter.js'
+export type { SessionStorageAdapterOptions } from './SessionStorageAdapter.js'
+export { FileSystemAdapter } from './FileSystemAdapter.js'
+export type { FileSystemAdapterOptions } from './FileSystemAdapter.js'
 
 /**
  * Versión actual do paquete.

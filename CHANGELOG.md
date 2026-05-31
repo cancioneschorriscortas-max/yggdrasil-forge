@@ -8,6 +8,15 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `SessionStorageAdapter` (en `@yggdrasil-forge/storage`): wrapper sobre `LocalStorageAdapter` con `globalThis.sessionStorage` como default. Cero duplicación de lóxica; herda automáticamente todos os arranxos futuros de LocalStorageAdapter. A semántica é idéntica salvo na duración (sessionStorage pérdese ao pechar a pestana).
+- `FileSystemAdapter` (en `@yggdrasil-forge/storage`): cuarta implementación concreta de `StorageAdapter`. Usa OPFS (Origin Private File System) accesible via `navigator.storage.getDirectory()`. Soporte amplo: Chrome, Edge, Firefox, Safari, Opera (desde marzo 2023). `directoryName` obrigatorio no constructor; `storage` (StorageManager) opcional permite inxectar `opfs-mock` nos tests. Estrutura plana de ficheiros (cero subdirectorios); keys que conteñan `/` ou `\\` rexéitanse. Serialización JSON (asimetría con IndexedDBAdapter: rexeita undefined/BigInt/funcións/circular refs, idéntico a LocalStorageAdapter).
+- `SessionStorageAdapterOptions` e `FileSystemAdapterOptions` interfaces exportadas.
+- devDependency: `opfs-mock ^2.7.0` no catalog para tests de FileSystemAdapter.
+
+## [Unreleased]
+
+### Added
+
 - `IndexedDBAdapter` (en `@yggdrasil-forge/storage`): terceira implementación concreta de `StorageAdapter`. Wrapper sobre IndexedDB nativo con apertura lazy (constructor sync, BD ábrese na primeira operación). Soporta valores arbitrarios via structured clone nativo (Date, Map, Set, ArrayBuffer, undefined). Capacidade superior a localStorage (≥50MB típico). Cero `watch` (IndexedDB sen observador nativo intra-database). `databaseName` obrigatorio no constructor; `factory` opcional permite inxectar fake-indexeddb nos tests sen jsdom.
 - `IndexedDBAdapterOptions` interface exportada.
 - devDependency: `fake-indexeddb ^6.2.5` no catalog para tests.

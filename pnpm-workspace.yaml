@@ -10,6 +10,7 @@ catalog:
   vitest: ^4.1.0
   '@vitest/coverage-v8': ^4.1.0
   fake-indexeddb: ^6.2.5
+  opfs-mock: ^2.7.0
   typescript: ^5.4.0
 
 # Build scripts aprobados (pnpm 11 require aprobación explícita).

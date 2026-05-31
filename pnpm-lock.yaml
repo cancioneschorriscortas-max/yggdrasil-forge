@@ -12,6 +12,9 @@ catalogs:
     fake-indexeddb:
       specifier: ^6.2.5
       version: 6.2.5
+    opfs-mock:
+      specifier: ^2.7.0
+      version: 2.7.0
     tsup:
       specifier: ^8.3.0
       version: 8.5.1
@@ -304,6 +307,9 @@ importers:
       fake-indexeddb:
         specifier: 'catalog:'
         version: 6.2.5
+      opfs-mock:
+        specifier: 'catalog:'
+        version: 2.7.0
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.14)(typescript@5.9.3)(yaml@2.8.4)
@@ -1533,6 +1539,10 @@ packages:
   onetime@7.0.0:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
     engines: {node: '>=18'}
+
+  opfs-mock@2.7.0:
+    resolution: {integrity: sha512-c1mFiluwdNU9TyAEpfy/K+/qL2FhImmNGO8TB6CdKxRJztP/Ea7QdSgGlmYpcaDRS2JILJXiHbsDYLXnRHopXQ==}
+    engines: {node: '>=20.0.0'}
 
   outdent@0.5.0:
     resolution: {integrity: sha512-/jHxFIzoMXdqPzTaCpFzAAWhpkSjZPF4Vsn6jAfNpmbH/ymsmd7Qc6VE9BGn0L6YMj6uwpQLxCECpus4ukKS9Q==}
@@ -2975,6 +2985,8 @@ snapshots:
   onetime@7.0.0:
     dependencies:
       mimic-function: 5.0.1
+
+  opfs-mock@2.7.0: {}
 
   outdent@0.5.0: {}
 
