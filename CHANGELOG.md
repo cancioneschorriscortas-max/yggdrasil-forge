@@ -8,6 +8,18 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- Reconciler base en `@yggdrasil-forge/core/engine/reconciler/`: función pura `reconcile(oldTreeDef, newTreeDef, oldTreeState, options, locale?)` para reconciliar saves contra TreeDefs modificadas (MASTER §23).
+- `ReconcileOptions`, `ReconcileChange` e `ReconcileResult` types exportados.
+- ErrorCode `RECONCILE_TREE_MISMATCH = YGG_R001` con mensaxes en gl/es/en.
+
+### Note
+
+- Esta sub-fase (3.6.a) implementa só `refundRemovedNodes` das catro opcións de `ReconcileOptions`. As outras tres (`grandfatherIncreasedCosts`, `refundDecreasedCosts`, `invalidateOnPrereqFailure`) acéptanse na interface pero non afectan o comportamento aínda; serán efectivas na sub-fase 3.6.b.
+
+## [Unreleased]
+
+### Added
+
 - Sistema de migracións de schema en `@yggdrasil-forge/core/engine/migrations/`:
   - `Migration` interface (segundo MASTER §22).
   - `MigrationRegistry` para rexistrar migracións.

@@ -69,4 +69,10 @@ export { MigrationRegistry } from './migrations/MigrationRegistry.js'
 export { MigrationRunner } from './migrations/MigrationRunner.js'
 export type { BackupStorage } from './migrations/AutoBackup.js'
 export { AutoBackup } from './migrations/AutoBackup.js'
+export type {
+  ReconcileOptions,
+  ReconcileChange,
+  ReconcileResult,
+} from './reconciler/Reconciler.js'
+export { reconcile } from './reconciler/Reconciler.js'
 // ── FIN: engine public API ──

@@ -80,5 +80,8 @@ export enum ErrorCode {
   // Multi-tenancy
   TENANT_QUOTA_EXCEEDED = 'YGG_T001',
   TENANT_PERMISSION_DENIED = 'YGG_T002',
+
+  // Reconcile errors
+  RECONCILE_TREE_MISMATCH = 'YGG_R001',
 }
 // ── FIN: error codes ──

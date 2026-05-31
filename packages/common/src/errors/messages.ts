@@ -236,5 +236,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'El tenant no tiene permiso para "{action}"',
     en: 'Tenant does not have permission for "{action}"',
   },
+  [ErrorCode.RECONCILE_TREE_MISMATCH]: {
+    gl: 'Non se pode reconciliar: árbores con id distinto ({oldId} vs {newId})',
+    es: 'No se puede reconciliar: árboles con id distinto ({oldId} vs {newId})',
+    en: 'Cannot reconcile: trees have different ids ({oldId} vs {newId})',
+  },
 }
 // ── FIN: error messages localizadas ──
