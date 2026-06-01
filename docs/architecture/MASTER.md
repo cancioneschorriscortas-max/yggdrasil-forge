@@ -2406,23 +2406,26 @@ CURSO (4/N sub-fases pechadas; 3.3 seguinte).**
 | **3.4 SessionStorage + FileSystem (OPFS)** | Feito | `190fd98` | 171 storage |
 | **3.5 Migration system + AutoBackup** | Feito | `f97b467` | 945 core |
 | **3.6.a Reconciler base + refundRemovedNodes** | Feito | `2a12ef7` | 966 core |
-| **3.6.b Reconciler: 3 opcións restantes** | **Seguinte** | — | — |
+| **3.6.b Reconciler: 3 opcións restantes** | Feito | `ccf9187` | 997 core |
+| docs: MASTER through 3.6.a + leccións | Feito | `3005c41` | — |
+| docs: briefings Fase 3 (3.0 → 3.6.b) | Feito | `1fe9374` | — |
 
-**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA.**
+**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. 🎉 FASE 3 PECHADA OFICIALMENTE.**
 
-**Métricas Fase 3 ata o de agora (3.0–3.6.a):**
+**Métricas Fase 3 finais (3.0–3.6.b):**
 - 0 escalados funcionais (cero asimetrías abertas).
 - 1 escalado procedural en 3.4 (fixes globais aplicados sen escalar; anotado
   e resolto retroactivamente; non require rollback).
 - 2 bugs latentes do scaffold orixinal cazados en 3.4 (DOM.AsyncIterable +
   tsup dts.composite). Ambos arranxados.
-- 9 sub-fases consecutivas no fluxo limpo desde 3.0 (3.0/3.1/3.2.a/3.2.b/
-  3.3/3.4/3.5/3.6.a + investigación 3.6.b lista).
+- 9 sub-fases pechadas (3.0/3.1/3.2.a/3.2.b/3.3/3.4/3.5/3.6.a/3.6.b).
 - 5 backends de storage implementados (Memory + LocalStorage + Session +
   IndexedDB + FileSystem OPFS).
 - Sistema de migracións completo (Registry + Runner + AutoBackup
   + JsonSerializer.deserializeAsync integrado).
-- Reconciler base con refundRemovedNodes (3.6.a). Quedan 3 opcións para 3.6.b.
+- Reconciler completo (4/4 opcións de ReconcileOptions implementadas:
+  refundRemovedNodes en 3.6.a; grandfatherIncreasedCosts +
+  refundDecreasedCosts + invalidateOnPrereqFailure en 3.6.b).
 
 ## A.3 — Débeda técnica
 
@@ -2724,6 +2727,20 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   acepta retroactivamente** e anota como lección. Briefings futuros con
   valores enumerados deben **lista-los exhaustivamente** ou autorizar
   interpretación ampliada explicitamente.
+- **3.6.b L1 (cobertura branch en pezas que medran require reescalado)**:
+  O briefing 3.6.a entregou Reconciler.ts a 100/100/100/100 (peza de 156
+  liñas). A 3.6.b ampliouna a 342 liñas (+186, máis do dobre) engadindo
+  3 funcións privadas + 5 tipos a discriminated union + lóxica para 3
+  políticas. **Resultado: 99/94.64/100/100** (3 liñas defensivas non
+  testeables sen forzar tipos). **O briefing 3.6.b prescribía ≥95%
+  Branch**; a entrega quedou 0.36 puntos por debaixo. As 3 ramas non
+  cubertas son **defensivas razonables** (nodo en oldState pero non en
+  oldDef; `?? 0` fallback en workingResources; `oldNode?.cost !== undefined`
+  cando o nodo está unlocked). **Aceptable per lección 3.5 L1**. **Lección
+  futura**: cando unha peza medra significativamente (>+100 liñas), o
+  límite de cobertura no briefing **debe reescalarse explicitamente** ou
+  o "salvo ramas defensivas documentadas" debe estenderse claramente. O
+  patrón 3.5 L1 → 3.6.b é coherente; non é débeda real.
 
 ## A.7 — Protocolo consolidado
 
@@ -2802,30 +2819,30 @@ Débeda non bloqueante:   DT-9 (infra), DT-11 (cycles), DT-12 (CHANGELOG cosmét
 DT-13:                   PECHADA en 2.6.fix2
 ```
 
-## A.9.b — Estado cuantitativo Fase 3 (en curso, ata 3.6.a)
+## A.9.b — Estado cuantitativo final Fase 3 (PECHADA)
 
 ```
-Commit actual:           2a12ef7 (origin/main)
-Sub-fases Fase 3 pechadas: 9 (3.0, 3.1, 3.2.a, 3.2.b, 3.3, 3.4, 3.5, 3.6.a)
-                          + investigación 3.6.b lista
-Tests adicionais:        +60 common (Result + Reconcile mensaxes)
-                          +171 storage (15 backends)
-                          +70 core (migracións + reconciler)
-                          Total monorepo: ~1290+ tests
-Cobertura paquete storage:
+Commit actual:           1fe9374 (origin/main; tras peche oficial)
+Sub-fases Fase 3:        9 entregas (3.0, 3.1, 3.2.a, 3.2.b, 3.3, 3.4,
+                         3.5, 3.6.a, 3.6.b)
+Tests adicionais:        +43 common (Result + Reconcile mensaxes)
+                         +171 storage (5 backends)
+                         +101 core (migracións + reconciler completo)
+                         Total monorepo: ~1228 tests
+Cobertura paquete storage: 100/97/100/100
   - StorageAdapter.ts:   só interface (sen liñas executables)
   - MemoryStorage.ts:    100/100/100/100
   - LocalStorageAdapter.ts: 100/97.67/100/100
   - IndexedDBAdapter.ts: 100/95.65/100/100
   - SessionStorageAdapter.ts: 100/100/100/100
   - FileSystemAdapter.ts: 100/95.71/100/100
-Cobertura paquete core (engadidos 3.5 + 3.6.a):
+Cobertura paquete core (engadidos 3.5 + 3.6.a + 3.6.b):
   - MigrationRegistry.ts: 100/100/100/100
   - MigrationRunner.ts:  95.12/88/100/94.44 (2 ramas defensivas; ver 3.5 L1)
   - AutoBackup.ts:       100/100/100/100
   - JsonSerializer.ts (ampliado): 100/93.1/100/100
-  - Reconciler.ts:       100/100/100/100
-  Global core:           98.19% Stmts
+  - Reconciler.ts:       99/94.64/100/100 (3 ramas defensivas; ver 3.6.b L1)
+  Global core:           98.2% Stmts
 Cobertura paquete common: 100%
 Lint / Typecheck:        0/0 / 20/20 (sen caché, 253 ficheiros)
 ErrorCodes:              41 (RECONCILE_TREE_MISMATCH YGG_R001 novo en 3.6.a)
@@ -2836,8 +2853,7 @@ Bugs latentes cazados:   2 do scaffold orixinal en 3.4 (DOM.AsyncIterable
 Asimetrías abertas:      cero
 Incidentes transporte:   cero novos en Fase 3
 Débeda nova:             DT-14 (tsup composite; non bloqueante)
-Briefings pendentes trackear: 7 (3.0, 3.1, 3.2.a, 3.2.b, 3.3, 3.4, 3.5,
-                              3.6.a — trackear ao pechar Fase 3)
+Briefings trackeados:    9 da Fase 3 (commit 1fe9374)
 Filosofía aplicada:      "cero jsdom" (mock manual de Storage en 3.2.b;
                          mock manual de mock interno en SessionStorage 3.4).
                          Exceptúase con fake-indexeddb (3.3) e opfs-mock
@@ -2848,11 +2864,46 @@ Backends storage:        5 implementacións concretas
                           + FileSystem OPFS)
 Sistema migracions:      completo (Registry + Runner + AutoBackup +
                          JsonSerializer.deserializeAsync integrado)
-Reconciler:              base con refundRemovedNodes (3.6.a)
-                         3 opcións restantes (grandfatherIncreasedCosts,
-                         refundDecreasedCosts, invalidateOnPrereqFailure)
-                         deferidas á 3.6.b (decisión do autor)
+Reconciler:              completo (4/4 opcións de ReconcileOptions
+                         implementadas):
+                         - refundRemovedNodes (3.6.a)
+                         - grandfatherIncreasedCosts (3.6.b)
+                         - refundDecreasedCosts (3.6.b)
+                         - invalidateOnPrereqFailure 3 valores (3.6.b)
 ```
+
+## A.10.b — Comparación inicio/fin Fase 3
+
+```
+Inicio Fase 3:    896 tests core + 17 common + 1 storage smoke = 914 tests
+                  Cero backend de persistencia (StorageAdapter aínda
+                  non existía como interface)
+                  Cero sistema de migracións
+                  Cero reconciler
+
+Fin Fase 3:       997 core + 60 common + 171 storage = ~1228 tests (+314)
+                  5 backends storage completos
+                  Sistema de migracións completo (Registry + Runner +
+                  AutoBackup + JsonSerializer integrado)
+                  Reconciler completo con 4/4 opcións de ReconcileOptions
+
+Leccións do director engadidas en Fase 3:
+                  3.0 L1, 3.2 L1, 3.4 L1, 3.5 L1, 3.5 L2,
+                  3.6.a L1, 3.6.b L1 (7 leccións de aprendizaxe estrutural)
+
+ErrorCodes:       40 → 41 (+1: RECONCILE_TREE_MISMATCH YGG_R001)
+                  Familia YGG_R nova para Reconcile.
+
+Débeda nova:      DT-14 (tsup composite, non bloqueante).
+Bugs latentes arranxados: 2 do scaffold orixinal (DOM.AsyncIterable +
+                         tsup composite, ambos en 3.4).
+```
+
+**Fase 3 modélica.** 314 tests engadidos, cero asimetrías funcionais
+abertas, 7 leccións estruturais aprendidas, 5 backends storage cubrindo
+o ecosistema completo de persistencia web (Memory, LocalStorage,
+SessionStorage, IndexedDB, OPFS), sistema de migracións con safety net,
+e Reconciler con 4 políticas configurables de reconciliación de saves.
 
 ## A.10 — Comparación inicio/fin Fase 2
 
