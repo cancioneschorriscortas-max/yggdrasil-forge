@@ -2402,20 +2402,27 @@ CURSO (4/N sub-fases pechadas; 3.3 seguinte).**
 | **3.1 StorageAdapter interface** | Feito | `c39b8d7` | 14 storage |
 | **3.2.a MemoryStorage backend** | Feito | `3658808` | 36 storage |
 | **3.2.b LocalStorageAdapter** | Feito | `2e6998a` | 72 storage |
-| **3.3 IndexedDBAdapter** | **Seguinte** | — | — |
-| 3.4 SessionStorageAdapter + FileSystemAdapter | Roadmap | — | — |
-| 3.5 Migration system + auto backup | Roadmap | — | — |
-| 3.6 Reconciler | Roadmap | — | — |
+| **3.3 IndexedDBAdapter** | Feito | `1528fa8` | 115 storage |
+| **3.4 SessionStorage + FileSystem (OPFS)** | Feito | `190fd98` | 171 storage |
+| **3.5 Migration system + AutoBackup** | Feito | `f97b467` | 945 core |
+| **3.6.a Reconciler base + refundRemovedNodes** | Feito | `2a12ef7` | 966 core |
+| **3.6.b Reconciler: 3 opcións restantes** | **Seguinte** | — | — |
 
 **Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA.**
 
-**Métricas Fase 3 ata o de agora (3.0–3.2.b):**
-- 0 escalados.
-- 0 bugs latentes cazados.
-- 0 asimetrías abertas.
-- 0 incidentes transporte.
-- Catro sub-fases consecutivas limpas (resultado de "acoutar > ambicionar"
-  aplicada deliberadamente con 3.2 partida en a + b).
+**Métricas Fase 3 ata o de agora (3.0–3.6.a):**
+- 0 escalados funcionais (cero asimetrías abertas).
+- 1 escalado procedural en 3.4 (fixes globais aplicados sen escalar; anotado
+  e resolto retroactivamente; non require rollback).
+- 2 bugs latentes do scaffold orixinal cazados en 3.4 (DOM.AsyncIterable +
+  tsup dts.composite). Ambos arranxados.
+- 9 sub-fases consecutivas no fluxo limpo desde 3.0 (3.0/3.1/3.2.a/3.2.b/
+  3.3/3.4/3.5/3.6.a + investigación 3.6.b lista).
+- 5 backends de storage implementados (Memory + LocalStorage + Session +
+  IndexedDB + FileSystem OPFS).
+- Sistema de migracións completo (Registry + Runner + AutoBackup
+  + JsonSerializer.deserializeAsync integrado).
+- Reconciler base con refundRemovedNodes (3.6.a). Quedan 3 opcións para 3.6.b.
 
 ## A.3 — Débeda técnica
 
@@ -2426,6 +2433,7 @@ CURSO (4/N sub-fases pechadas; 3.3 seguinte).**
 | DT-11 | Detección de ciclos `unlock_node` recursivos non se activa cando pasan polo `TreeEngine.unlock`. Estado coherente polo camiño colateral `NODE_ALREADY_UNLOCKED`. Non bloqueante | Aberta, sub-fase futura |
 | DT-12 (cosmética) | CHANGELOG.md ten múltiples cabeceiras `## [Unreleased]` aboliñadas (unha por sub-fase). Decisión: deixar como está, consolidar nunha futura sub-fase ou no release `0.1.0-alpha` | Aberta cosmética, consolidación futura |
 | DT-13 | `EffectsRunner.applyModifyResource` non emitía `budgetChange` desde effects | **PECHADA en 2.6.fix2 (3f42e79)** |
+| DT-14 | tsup `dts: {composite: false, incremental: false}` necesario en paquetes que dependen de common (composite=true). Cazado en 3.4 para storage. Outros 17 paquetes scaffold terán o mesmo problema cando se lles engada código real. **Plan**: propagar fix nun ciclo de hardening futuro ou paquete por paquete cando active cada un. | Aberta non bloqueante |
 
 **0 débeda funcional crítica. 0 asimetrías coñecidas.**
 
@@ -2470,8 +2478,9 @@ CURSO (4/N sub-fases pechadas; 3.3 seguinte).**
 | `PROGRESS_SOURCE_UNSUPPORTED` | `YGG_E020` | Engine | 2.4 |
 | `INVALID_PROGRESS_VALUE` | `YGG_E021` | Engine | 2.4 |
 | `INVALID_PROGRESS_OPERATION` | `YGG_E022` | Engine | 2.4.c |
+| `RECONCILE_TREE_MISMATCH` | `YGG_R001` | Reconcile | 3.6.a |
 
-**Total: 40 ErrorCodes. Cero novos en 2.6/2.6.fix/2.6.fix2.**
+**Total: 41 ErrorCodes. Familia YGG_R nova en 3.6.a (cero novos en 3.0–3.5).**
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
@@ -2662,6 +2671,59 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   LocalStorageAdapter. Resultado: 4 sub-fases consecutivas limpas
   (3.0/3.1/3.2.a/3.2.b) sen escalados. Confirma que "acoutar >
   ambicionar" funciona tamén en sub-fases pequenas tipo backend.
+- **3.4 L1 (riscos non documentados na primeira ampliación de scope
+  técnico)**: cando un briefing introduce funcionalidade que **podería
+  revelar bugs latentes do scaffold orixinal** (configuracións de tsup,
+  tsconfig, lib DOM, project references, etc.) — típicamente cando o
+  paquete pasa de "scaffold 9 liñas" a "compilación real con código
+  complexo" — o briefing DEBE explicitar:
+  1. Que **escalar inmediatamente** se cazara que algunha config global
+     precisa modificación.
+  2. Que **calquera fix de scaffold non listado en §6 é decisión
+     arquitectónica do director**, non implementación do executor.
+  O briefing 3.4 omitiu isto. O executor cazou dous bugs lexítimos
+  (DOM.AsyncIterable para OPFS for-await, dts.composite:false para
+  tsup co tipo composite de common) pero aplicounos directamente como
+  "fix" sen escalar. **Funcionalmente correcto, procedimentalmente
+  non**. **Briefings posteriores (3.5, 3.6.a) reforzaron §0.6** con
+  esta lección explícita e funcionou: executor aplicou
+  correctamente en 3.5 evitando Caso A para non modificar
+  TreeEngine.fromJSON.
+- **3.5 L1 (límite de cobertura branch debe permitir ramas defensivas
+  documentadas)**: O briefing 3.5 prescribiu "≥95% Branch en
+  MigrationRunner". O executor entregou 88% con 2 liñas non cubertas:
+  ambas son ramas defensivas para invariantes que TypeScript non pode
+  garantir (cadeas non-semver no fallback de comparación; `array[length-1]
+  === undefined` por `noUncheckedIndexedAccess`). Testealas require
+  forzar tipos con `as`, prohibido. **A cobertura era irrecuperable**,
+  non débeda real. **Briefings futuros distinguen**: "≥95% Branch
+  *salvo ramas defensivas documentadas no JSDoc con comentario
+  explicativo*". Pasos defensivos comentados con "// Defensivo; non
+  debería pasar" son aceptables por debaixo de 95% **sempre que estean
+  razoadas e o resto da peza chegue ao limite**.
+- **3.5 L2 (decisión condicional dentro de briefing debe considerar §6
+  dependencies)**: A decisión T9 do briefing 3.5 prescribiu Caso A
+  (converter `deserialize` a `async`) para "≤2 consumidores", sen
+  comprobar que ese consumidor (TreeEngine.fromJSON) está fóra de §6.
+  Caso A obriga a modificar TreeEngine, o cal require escalar segundo
+  3.4 L1. **Polo tanto Caso A é incompatible co espírito do propio
+  briefing**. Briefings futuros con bifurcacións condicionais deben
+  verificar que **TODAS as ramas da bifurcación respectan §6**. O
+  executor xa resolveu ben preferindo Caso B (e así protexendo a
+  sub-fase de escalado innecesario), demostrando madureza procedural.
+- **3.6.a L1 (decisión arquitectónica pequena reportada transparentemente
+  non require escalado retrospectivo)**: O briefing 3.6.a §5.5
+  prescribía `state === 'unlocked'` literal. O executor cazou que existe
+  tamén estado `'maxed'` (T0.2: 5 valores: locked|unlockable|in_progress|
+  unlocked|maxed). Decidiu tratar `'maxed'` como `'unlocked'` para refund
+  (razonable: para chegar a maxed pagouse o custo inicial). **Reportouno
+  transparentemente en ⚠️ Limitacións**, **NON como "🔧 FIX silencioso"**.
+  Distintamente de 3.4 L1, **o comportamento foi correcto**: o executor
+  ampliou comportamento pequeno con xustificación clara, comunicou
+  abertamente, e a decisión é arquitectónicamente defensible. **Director
+  acepta retroactivamente** e anota como lección. Briefings futuros con
+  valores enumerados deben **lista-los exhaustivamente** ou autorizar
+  interpretación ampliada explicitamente.
 
 ## A.7 — Protocolo consolidado
 
@@ -2740,31 +2802,56 @@ Débeda non bloqueante:   DT-9 (infra), DT-11 (cycles), DT-12 (CHANGELOG cosmét
 DT-13:                   PECHADA en 2.6.fix2
 ```
 
-## A.9.b — Estado cuantitativo Fase 3 (en curso, ata 3.2.b)
+## A.9.b — Estado cuantitativo Fase 3 (en curso, ata 3.6.a)
 
 ```
-Commit actual:           2e6998a (origin/main)
-Sub-fases Fase 3:        4 pechadas (3.0, 3.1, 3.2.a, 3.2.b)
-Tests adicionais:        +17 common (Result) + 72 storage = 89 novos
-                         (tests core inalterados: 896)
-Cobertura paquete storage: 100/98.18/100/100
+Commit actual:           2a12ef7 (origin/main)
+Sub-fases Fase 3 pechadas: 9 (3.0, 3.1, 3.2.a, 3.2.b, 3.3, 3.4, 3.5, 3.6.a)
+                          + investigación 3.6.b lista
+Tests adicionais:        +60 common (Result + Reconcile mensaxes)
+                          +171 storage (15 backends)
+                          +70 core (migracións + reconciler)
+                          Total monorepo: ~1290+ tests
+Cobertura paquete storage:
   - StorageAdapter.ts:   só interface (sen liñas executables)
   - MemoryStorage.ts:    100/100/100/100
-  - LocalStorageAdapter.ts: 100/97.67/100/100 (liña 146 rama defensiva)
-Cobertura paquete common: 100% (subiu con Result)
-Lint / Typecheck:        0/0 / 20/20 (sen caché)
-ErrorCodes:              40 (cero novos; E055-057 storage reutilizables)
-Escalados resoltos:      cero novos en Fase 3 (15 totais acumulados)
-Bugs latentes:           cero novos
-Asimetrías abertas:      cero (documentadas como contratos: MemoryStorage
-                         garda referencias, LocalStorageAdapter copia via JSON)
-Incidentes transporte:   cero novos
-Débeda nova:             cero
-Briefings pendentes trackear: 5 (3.0, 3.1, 3.2.a, 3.2.b, 3.3 cando peche)
-Filosofía aplicada:      "cero jsdom" (mock manual de Storage en 3.2.b).
-                         Aplícase agás en 3.3 onde fake-indexeddb é
-                         dependencia estándar do ecosistema (decisión 3.3,
-                         documentada).
+  - LocalStorageAdapter.ts: 100/97.67/100/100
+  - IndexedDBAdapter.ts: 100/95.65/100/100
+  - SessionStorageAdapter.ts: 100/100/100/100
+  - FileSystemAdapter.ts: 100/95.71/100/100
+Cobertura paquete core (engadidos 3.5 + 3.6.a):
+  - MigrationRegistry.ts: 100/100/100/100
+  - MigrationRunner.ts:  95.12/88/100/94.44 (2 ramas defensivas; ver 3.5 L1)
+  - AutoBackup.ts:       100/100/100/100
+  - JsonSerializer.ts (ampliado): 100/93.1/100/100
+  - Reconciler.ts:       100/100/100/100
+  Global core:           98.19% Stmts
+Cobertura paquete common: 100%
+Lint / Typecheck:        0/0 / 20/20 (sen caché, 253 ficheiros)
+ErrorCodes:              41 (RECONCILE_TREE_MISMATCH YGG_R001 novo en 3.6.a)
+Escalados resoltos:      15 acumulados + 1 procedural en 3.4 (anotado;
+                         resolto retroactivamente sen rollback)
+Bugs latentes cazados:   2 do scaffold orixinal en 3.4 (DOM.AsyncIterable
+                         + tsup composite); arranxados.
+Asimetrías abertas:      cero
+Incidentes transporte:   cero novos en Fase 3
+Débeda nova:             DT-14 (tsup composite; non bloqueante)
+Briefings pendentes trackear: 7 (3.0, 3.1, 3.2.a, 3.2.b, 3.3, 3.4, 3.5,
+                              3.6.a — trackear ao pechar Fase 3)
+Filosofía aplicada:      "cero jsdom" (mock manual de Storage en 3.2.b;
+                         mock manual de mock interno en SessionStorage 3.4).
+                         Exceptúase con fake-indexeddb (3.3) e opfs-mock
+                         (3.4): librerías específicas dun estándar
+                         complexo, paralelo arquitectónico documentado.
+Backends storage:        5 implementacións concretas
+                         (Memory + LocalStorage + Session + IndexedDB
+                          + FileSystem OPFS)
+Sistema migracions:      completo (Registry + Runner + AutoBackup +
+                         JsonSerializer.deserializeAsync integrado)
+Reconciler:              base con refundRemovedNodes (3.6.a)
+                         3 opcións restantes (grandfatherIncreasedCosts,
+                         refundDecreasedCosts, invalidateOnPrereqFailure)
+                         deferidas á 3.6.b (decisión do autor)
 ```
 
 ## A.10 — Comparación inicio/fin Fase 2
