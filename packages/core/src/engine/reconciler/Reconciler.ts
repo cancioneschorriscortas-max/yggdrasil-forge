@@ -1,6 +1,8 @@
 // ── INICIO: Reconciler ──
 // Función pura de reconciliación de saves contra TreeDefs modificadas.
-// Sub-fase 3.6.a: só refundRemovedNodes implementado.
+// Sub-fase 3.6.a: refundRemovedNodes.
+// Sub-fase 3.6.b: grandfatherIncreasedCosts, refundDecreasedCosts,
+//   invalidateOnPrereqFailure (disable/refund/preserve).
 // MASTER §23. Cero acoplamento a TreeEngine vivo.
 
 import {
@@ -12,47 +14,45 @@ import {
   getErrorMessage,
   ok,
 } from '@yggdrasil-forge/common'
+import type { NodeDef } from '../../types/node.js'
 import type { Cost } from '../../types/resources.js'
 import type { TreeDef } from '../../types/tree.js'
 import type { TreeState } from '../../types/tree.js'
+import { UnlockResolver } from '../UnlockResolver.js'
 
 /**
  * Opcións de reconciliación segundo MASTER §23.
  * 4 campos obrigatorios; cero defaults para forzar decisión consciente.
- *
- * **3.6.a**: só `refundRemovedNodes` é efectivo. As outras 3 opcións
- * acéptanse na interface pero non afectan o comportamento aínda.
- * Serán efectivas na sub-fase 3.6.b.
  */
 export interface ReconcileOptions {
   /** Se true, devolve ao budget os custos pagados polos nodos
    * desbloqueados que xa non existen na nova TreeDef. */
   readonly refundRemovedNodes: boolean
 
-  /** Se true, mantén o estado "desbloqueado" dos nodos cuxo custo subiu
-   * na nova TreeDef sen cobrar a diferenza. NON implementado en 3.6.a. */
+  /** Se true, emite `cost_grandfathered` cando o custo dun nodo
+   * unlocked subiu, sen modificar estado nin cobrar diferenza.
+   * Se false, cero evento auditable (o nodo segue unlocked igualmente). */
   readonly grandfatherIncreasedCosts: boolean
 
-  /** Se true, devolve ao budget a diferenza cando o custo baixa.
-   * NON implementado en 3.6.a. */
+  /** Se true, devolve ao budget a diferenza cando o custo baixou e
+   * emite `cost_decreased_refunded`. */
   readonly refundDecreasedCosts: boolean
 
-  /** Política se prerequisites cambian e xa non se cumpren.
-   * NON implementado en 3.6.a. */
+  /** Política se prerequisites cambian e xa non se cumpren:
+   * - `'disable'`: pasa a locked, cero refund.
+   * - `'refund'`: pasa a locked + refund de oldNodeDef.cost.
+   * - `'preserve'`: mantén unlocked (ATENCIÓN: rompe invariante engine). */
   readonly invalidateOnPrereqFailure: 'disable' | 'refund' | 'preserve'
 }
 
 /**
  * Cambio aplicado durante a reconciliación. Discriminated union.
- *
- * **3.6.a**: só `'node_removed'` e `'cost_refunded'` se emiten.
- * Outros tipos engadiranse en 3.6.b.
+ * 7 tipos: 2 de 3.6.a + 5 de 3.6.b.
  */
 export type ReconcileChange =
   | {
       readonly type: 'node_removed'
       readonly nodeId: string
-      /** Se o nodo estaba en estado 'unlocked' antes da eliminación. */
       readonly wasUnlocked: boolean
     }
   | {
@@ -61,39 +61,122 @@ export type ReconcileChange =
       readonly resourceId: string
       readonly amount: number
     }
+  // ── 3.6.b ──
+  | {
+      readonly type: 'cost_grandfathered'
+      readonly nodeId: string
+      readonly resourceId: string
+      readonly oldAmount: number
+      readonly newAmount: number
+    }
+  | {
+      readonly type: 'cost_decreased_refunded'
+      readonly nodeId: string
+      readonly resourceId: string
+      readonly oldAmount: number
+      readonly newAmount: number
+      readonly refundAmount: number
+    }
+  | {
+      readonly type: 'prereq_failure_disabled'
+      readonly nodeId: string
+    }
+  | {
+      readonly type: 'prereq_failure_refunded'
+      readonly nodeId: string
+      readonly refunds: readonly {
+        readonly resourceId: string
+        readonly amount: number
+      }[]
+    }
+  | {
+      readonly type: 'prereq_failure_preserved'
+      readonly nodeId: string
+    }
 
 /**
  * Resultado da reconciliación.
  */
 export interface ReconcileResult {
-  /** TreeState actualizado para a nova TreeDef. */
   readonly newTreeState: TreeState
-
-  /** Lista de cambios aplicados, en orde determinista. */
   readonly changes: readonly ReconcileChange[]
 }
 
 const DEFAULT_LOCALE: Locale = 'gl'
 
+// ── Helpers privados a nivel de módulo ──
+
+/**
+ * Compara dúas listas de Cost e devolve Map de cambios por resourceId.
+ * Só inclúe recursos que cambiaron (oldAmount !== newAmount).
+ */
+function compareCosts(
+  oldCosts: readonly Cost[] | undefined,
+  newCosts: readonly Cost[] | undefined,
+): Map<string, { oldAmount: number; newAmount: number }> {
+  const result = new Map<string, { oldAmount: number; newAmount: number }>()
+
+  const oldByResource = new Map<string, number>()
+  if (oldCosts !== undefined) {
+    for (const c of oldCosts) {
+      oldByResource.set(c.resourceId, c.amount)
+    }
+  }
+
+  const newByResource = new Map<string, number>()
+  if (newCosts !== undefined) {
+    for (const c of newCosts) {
+      newByResource.set(c.resourceId, c.amount)
+    }
+  }
+
+  const allResourceIds = new Set<string>()
+  for (const id of oldByResource.keys()) allResourceIds.add(id)
+  for (const id of newByResource.keys()) allResourceIds.add(id)
+
+  for (const resourceId of allResourceIds) {
+    const oldAmount = oldByResource.get(resourceId) ?? 0
+    const newAmount = newByResource.get(resourceId) ?? 0
+    if (oldAmount !== newAmount) {
+      result.set(resourceId, { oldAmount, newAmount })
+    }
+  }
+
+  return result
+}
+
+/** Determina se un NodeInstance está "desbloqueado" (unlocked ou maxed). */
+function isUnlocked(state: string): boolean {
+  return state === 'unlocked' || state === 'maxed'
+}
+
 /**
  * Reconcilia un TreeState gardado contra un TreeDef anterior cun
  * TreeDef novo. Función pura: cero mutación dos argumentos.
  *
- * **3.6.a**: só `refundRemovedNodes` das 4 opcións é efectivo.
- * As outras 3 opcións (`grandfatherIncreasedCosts`,
- * `refundDecreasedCosts`, `invalidateOnPrereqFailure`) acéptanse
- * na sinatura pero non afectan o resultado aínda. Serán
- * implementadas na sub-fase 3.6.b.
+ * **Orde de aplicación** (5.7):
+ * 1. Validación (oldTreeDef.id === newTreeDef.id).
+ * 2. processRemovedNodes (refundRemovedNodes).
+ * 3. processCostChanges (grandfatherIncreasedCosts + refundDecreasedCosts).
+ * 4. processPrereqFailures (invalidateOnPrereqFailure).
  *
- * **Refund non comproba límite máximo do recurso**: o fenómeno de
- * "over-cap" é responsabilidade do consumidor ou sub-fase futura.
+ * **'maxed' trátase como 'unlocked'** en todas as operacións (5.9).
  *
- * @param oldTreeDef - TreeDef contra a que se gardou o TreeState.
- * @param newTreeDef - TreeDef nova á que se quere migrar o save.
- * @param oldTreeState - TreeState gardado contra oldTreeDef.
- * @param options - Opcións de reconciliación (MASTER §23).
- * @param locale - Locale para mensaxes de erro. Default: 'gl'.
- * @returns ok(ReconcileResult) con TreeState actualizado e cambios.
+ * **Refund non comproba límite máximo do recurso**: over-cap é
+ * responsabilidade do consumidor.
+ *
+ * **`invalidateOnPrereqFailure: 'preserve'`**: **ATENCIÓN**: mantén o
+ * nodo desbloqueado aínda que os seus prerequisites xa non se cumpren.
+ * **Rompe a invariante fundamental do engine** ('un nodo unlocked
+ * sempre cumpre os seus prereqs'). Pode provocar comportamentos
+ * inesperados en operacións posteriores (canUnlock, applyChanges,
+ * recálculo de stats). Use só se o consumidor xestiona explicitamente
+ * as consecuencias. `ReconcileResult.changes` inclúe
+ * `prereq_failure_preserved` para auditoría.
+ *
+ * **Cero recursividade en prereqs** (5.10): avalíase unha vez por
+ * nodo. Se invalidar A causa que B xa non cumpre, B non se re-avalía
+ * nesta pasada. O consumidor pode aplicar outra ronda.
  */
 export function reconcile(
   oldTreeDef: TreeDef,
@@ -102,7 +185,7 @@ export function reconcile(
   options: ReconcileOptions,
   locale: Locale = DEFAULT_LOCALE,
 ): Result<ReconcileResult> {
-  // 1. Validación: mesma árbore, distintas versións.
+  // 1. Validación: mesma árbore.
   if (oldTreeDef.id !== newTreeDef.id) {
     return err(
       new YggdrasilError(
@@ -116,66 +199,141 @@ export function reconcile(
     )
   }
 
-  // 2. Identificar nodos eliminados.
+  // Índices para acceso eficiente.
+  const oldNodeMap = new Map<string, NodeDef>()
+  for (const node of oldTreeDef.nodes) {
+    oldNodeMap.set(node.id, node)
+  }
+  const newNodeMap = new Map<string, NodeDef>()
+  for (const node of newTreeDef.nodes) {
+    newNodeMap.set(node.id, node)
+  }
+
+  const changes: ReconcileChange[] = []
+  const workingNodes = { ...oldTreeState.nodes }
+  const workingResources = { ...oldTreeState.budget.resources }
+
+  // 2. processRemovedNodes (refundRemovedNodes) — 3.6.a
   const newNodeIds = new Set(newTreeDef.nodes.map((n) => n.id))
   const removedNodeIds = oldTreeDef.nodes.map((n) => n.id).filter((id) => !newNodeIds.has(id))
 
-  // Índice de custos dos nodos antigos para acceso eficiente.
-  const oldCostsByNodeId = new Map<string, readonly Cost[]>()
-  for (const node of oldTreeDef.nodes) {
-    if (node.cost !== undefined && node.cost.length > 0) {
-      oldCostsByNodeId.set(node.id, node.cost)
-    }
-  }
-
-  // 3. Procesar nodos eliminados.
-  const changes: ReconcileChange[] = []
-  const refunds: Array<{ resourceId: string; amount: number }> = []
-
   for (const nodeId of removedNodeIds) {
     const instance = oldTreeState.nodes[nodeId]
-    if (instance === undefined) {
-      // Defensivo: nodo en oldTreeDef pero non en oldTreeState; ignora.
-      continue
-    }
+    if (instance === undefined) continue // Defensivo
 
-    const wasUnlocked = instance.state === 'unlocked' || instance.state === 'maxed'
-
+    const wasUnlocked = isUnlocked(instance.state)
     changes.push({ type: 'node_removed', nodeId, wasUnlocked })
 
     if (wasUnlocked && options.refundRemovedNodes) {
-      const costs = oldCostsByNodeId.get(nodeId)
-      if (costs !== undefined) {
-        for (const cost of costs) {
+      const oldNode = oldNodeMap.get(nodeId)
+      if (oldNode?.cost !== undefined) {
+        for (const cost of oldNode.cost) {
           changes.push({
             type: 'cost_refunded',
             nodeId,
             resourceId: cost.resourceId,
             amount: cost.amount,
           })
-          refunds.push({ resourceId: cost.resourceId, amount: cost.amount })
+          workingResources[cost.resourceId] = (workingResources[cost.resourceId] ?? 0) + cost.amount
         }
+      }
+    }
+
+    delete workingNodes[nodeId]
+  }
+
+  // 3. processCostChanges (grandfather + refundDecreased) — 3.6.b
+  // Iterar en orde de newTreeDef.nodes para determinismo (5.8).
+  for (const newNode of newTreeDef.nodes) {
+    const nodeId = newNode.id
+    const instance = workingNodes[nodeId]
+    if (instance === undefined) continue
+    if (!isUnlocked(instance.state)) continue
+
+    const oldNode = oldNodeMap.get(nodeId)
+    if (oldNode === undefined) continue // Nodo novo; cero comparación
+
+    const costChanges = compareCosts(oldNode.cost, newNode.cost)
+
+    for (const [resourceId, { oldAmount, newAmount }] of costChanges) {
+      if (newAmount > oldAmount && options.grandfatherIncreasedCosts) {
+        // Custo subiu: emitir cost_grandfathered (só auditoría).
+        changes.push({
+          type: 'cost_grandfathered',
+          nodeId,
+          resourceId,
+          oldAmount,
+          newAmount,
+        })
+      } else if (newAmount < oldAmount && options.refundDecreasedCosts) {
+        // Custo baixou: refund da diferenza.
+        const refundAmount = oldAmount - newAmount
+        changes.push({
+          type: 'cost_decreased_refunded',
+          nodeId,
+          resourceId,
+          oldAmount,
+          newAmount,
+          refundAmount,
+        })
+        workingResources[resourceId] = (workingResources[resourceId] ?? 0) + refundAmount
       }
     }
   }
 
-  // 4. Construír newTreeState (copia defensiva).
-  const newNodes = { ...oldTreeState.nodes }
-  for (const nodeId of removedNodeIds) {
-    delete newNodes[nodeId]
+  // 4. processPrereqFailures (invalidateOnPrereqFailure) — 3.6.b
+  const resolver = new UnlockResolver()
+  const workingTreeState: TreeState = {
+    ...oldTreeState,
+    nodes: workingNodes,
+    budget: { ...oldTreeState.budget, resources: workingResources },
   }
 
-  const newResources = { ...oldTreeState.budget.resources }
-  for (const refund of refunds) {
-    newResources[refund.resourceId] = (newResources[refund.resourceId] ?? 0) + refund.amount
+  for (const newNode of newTreeDef.nodes) {
+    const nodeId = newNode.id
+    const instance = workingNodes[nodeId]
+    if (instance === undefined) continue
+    if (!isUnlocked(instance.state)) continue
+    if (newNode.prerequisites === undefined) continue
+
+    const ctx = { treeDef: newTreeDef, state: workingTreeState, locale }
+    const cumpre = resolver.evaluate(newNode.prerequisites, ctx)
+    if (cumpre) continue
+
+    switch (options.invalidateOnPrereqFailure) {
+      case 'disable':
+        workingNodes[nodeId] = { ...instance, state: 'locked' }
+        changes.push({ type: 'prereq_failure_disabled', nodeId })
+        break
+
+      case 'refund': {
+        const oldNode = oldNodeMap.get(nodeId)
+        const refunds: { resourceId: string; amount: number }[] = []
+        if (oldNode?.cost !== undefined) {
+          for (const c of oldNode.cost) {
+            workingResources[c.resourceId] = (workingResources[c.resourceId] ?? 0) + c.amount
+            refunds.push({ resourceId: c.resourceId, amount: c.amount })
+          }
+        }
+        workingNodes[nodeId] = { ...instance, state: 'locked' }
+        changes.push({ type: 'prereq_failure_refunded', nodeId, refunds })
+        break
+      }
+
+      case 'preserve':
+        // ATENCIÓN: rompe invariante "nodo unlocked SEMPRE cumpre prereqs".
+        changes.push({ type: 'prereq_failure_preserved', nodeId })
+        break
+    }
   }
 
+  // 5. Construír resultado final.
   const newTreeState: TreeState = {
     ...oldTreeState,
-    nodes: newNodes,
+    nodes: workingNodes,
     budget: {
       ...oldTreeState.budget,
-      resources: newResources,
+      resources: workingResources,
     },
   }
 

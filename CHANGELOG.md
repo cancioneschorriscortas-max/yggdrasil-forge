@@ -8,6 +8,18 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- Reconciler completo: tres opcións pendentes da `ReconcileOptions` agora implementadas:
+  - `grandfatherIncreasedCosts`: emite `cost_grandfathered` cando o custo dun nodo unlocked subiu, sen modificar estado.
+  - `refundDecreasedCosts`: emite `cost_decreased_refunded` e devolve a diferenza ao budget cando o custo baixou.
+  - `invalidateOnPrereqFailure: 'disable' | 'refund' | 'preserve'`: tres políticas para nodos cuxos prerequisites xa non se cumpren co estado actual. ATENCIÓN: 'preserve' rompe invariantes do engine; emite `prereq_failure_preserved` para auditoría.
+- 5 tipos novos en `ReconcileChange`: `cost_grandfathered`, `cost_decreased_refunded`, `prereq_failure_disabled`, `prereq_failure_refunded`, `prereq_failure_preserved`.
+- Reutilización de `UnlockResolver` para a avaliación de prereqs.
+- Orde de aplicación documentada: refunds primeiro, prereqs último.
+
+## [Unreleased]
+
+### Added
+
 - Reconciler base en `@yggdrasil-forge/core/engine/reconciler/`: función pura `reconcile(oldTreeDef, newTreeDef, oldTreeState, options, locale?)` para reconciliar saves contra TreeDefs modificadas (MASTER §23).
 - `ReconcileOptions`, `ReconcileChange` e `ReconcileResult` types exportados.
 - ErrorCode `RECONCILE_TREE_MISMATCH = YGG_R001` con mensaxes en gl/es/en.
