@@ -13,6 +13,7 @@
 //   YGG_C   = Concurrency errors
 //   YGG_RO  = Read-only mode errors
 //   YGG_T   = Multi-tenancy errors
+//   YGG_L   = Layout errors
 
 export enum ErrorCode {
   // Engine
@@ -83,5 +84,9 @@ export enum ErrorCode {
 
   // Reconcile errors
   RECONCILE_TREE_MISMATCH = 'YGG_R001',
+
+  // Layout errors
+  LAYOUT_TYPE_UNKNOWN = 'YGG_L001',
+  LAYOUT_COMPUTE_FAILED = 'YGG_L002',
 }
 // ── FIN: error codes ──

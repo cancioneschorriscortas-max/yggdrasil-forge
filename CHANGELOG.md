@@ -8,6 +8,24 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- Layout Engine base en `@yggdrasil-forge/core/engine/layouts/`:
+  - `LayoutEngine` interface (contrato común).
+  - `LayoutEngineRegistry` para rexistrar engines por tipo.
+  - `LayoutResult`, `EdgePath`, `Bounds` tipos.
+  - `IdentityLayout`: implementación trivial (type='custom') que copia `NodeDef.position` ou usa (0,0).
+  - `computeLayout(treeDef, registry, locale?)` función pública.
+- `BaseLayoutConfig` interface engadida como punto de extensión limpo para layouts futuros. `LayoutConfig` existente non modificado.
+- ErrorCodes `LAYOUT_TYPE_UNKNOWN = YGG_L001` e `LAYOUT_COMPUTE_FAILED = YGG_L002` con mensaxes en gl/es/en. Familia nova YGG_L.
+
+### Note
+
+- Esta sub-fase (4.1) **non integra** computeLayout no TreeEngine (cache de LayoutResult). Iso é decisión futura.
+- Sub-fases 4.2-4.4 engadirán RadialLayout, TreeLayout e ampliarán CustomLayout sobre a base IdentityLayout. 4.5 engadirá PathBuilder + BoundsCalculator + QuadTree.
+
+## [Unreleased]
+
+### Added
+
 - Reconciler completo: tres opcións pendentes da `ReconcileOptions` agora implementadas:
   - `grandfatherIncreasedCosts`: emite `cost_grandfathered` cando o custo dun nodo unlocked subiu, sen modificar estado.
   - `refundDecreasedCosts`: emite `cost_decreased_refunded` e devolve a diferenza ao budget cando o custo baixou.

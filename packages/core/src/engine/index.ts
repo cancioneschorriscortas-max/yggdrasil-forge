@@ -75,4 +75,13 @@ export type {
   ReconcileResult,
 } from './reconciler/Reconciler.js'
 export { reconcile } from './reconciler/Reconciler.js'
+export type { LayoutEngine } from './layouts/LayoutEngine.js'
+export { LayoutEngineRegistry } from './layouts/LayoutEngineRegistry.js'
+export type {
+  LayoutResult,
+  EdgePath,
+  Bounds,
+} from './layouts/LayoutResult.js'
+export { IdentityLayout } from './layouts/IdentityLayout.js'
+export { computeLayout } from './layouts/computeLayout.js'
 // ── FIN: engine public API ──

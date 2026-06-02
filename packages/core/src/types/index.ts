@@ -41,6 +41,7 @@ export type {
   TreeState,
   GroupDef,
   StatDef,
+  BaseLayoutConfig,
   LayoutConfig,
   TreeEngineOptions,
 } from './tree.js'

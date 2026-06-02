@@ -41,13 +41,33 @@ export interface StatDef {
 }
 
 /**
- * Configuración do layout para a árbore.
+ * Base común para tódalas configuracións de layout.
  *
- * O tipo concreto desenrolarase en 1.4. Por agora un placeholder estructurado.
+ * Os layouts concretos (RadialLayoutConfig en 4.2, TreeLayoutConfig
+ * en 4.3, etc.) estenden esta interface. Consumidores externos que
+ * definan layouts propios poden usar BaseLayoutConfig como punto de
+ * extensión limpo.
+ *
+ * Para a configuración real do TreeDef.layout, ver LayoutConfig (que
+ * mantén un index signature `[key: string]: unknown` por
+ * compatibilidade; isto pode tighten en sub-fases posteriores cando a
+ * discriminated union completa estea disponible).
+ */
+export interface BaseLayoutConfig {
+  readonly type: string
+}
+
+/**
+ * Configuración do layout dunha árbore.
+ *
+ * Nota: mantén `[key: string]: unknown` por compatibilidade con tests
+ * existentes que acceden a campos non tipados (ex. `layout.spacing`
+ * usado en applyChanges con `modify_layout`). Sub-fases 4.2-4.4
+ * substituirán este tipo por unha discriminated union sobre `type`
+ * cando estean todos os layouts concretos definidos.
  */
 export interface LayoutConfig {
-  readonly type: string // 'radial' | 'tree' | 'constellation' | 'grid' | 'web' | 'linear' | 'sphere_grid' | 'custom'
-  /** Resto de campos específicos do layout type. */
+  readonly type: string
   readonly [key: string]: unknown
 }
 

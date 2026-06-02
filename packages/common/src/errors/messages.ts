@@ -241,5 +241,15 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'No se puede reconciliar: árboles con id distinto ({oldId} vs {newId})',
     en: 'Cannot reconcile: trees have different ids ({oldId} vs {newId})',
   },
+  [ErrorCode.LAYOUT_TYPE_UNKNOWN]: {
+    gl: 'Layout descoñecido: tipo {type} non rexistrado',
+    es: 'Layout desconocido: tipo {type} no registrado',
+    en: 'Unknown layout: type {type} not registered',
+  },
+  [ErrorCode.LAYOUT_COMPUTE_FAILED]: {
+    gl: 'Erro ao calcular layout {type}: {reason}',
+    es: 'Error al calcular layout {type}: {reason}',
+    en: 'Layout computation failed ({type}): {reason}',
+  },
 }
 // ── FIN: error messages localizadas ──
