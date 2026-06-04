@@ -93,4 +93,10 @@ export type {
 } from './layouts/RadialLayoutConfig.js'
 export { parseRadialConfig } from './layouts/RadialLayoutConfig.js'
 export { generateMesh } from './layouts/MeshGenerator.js'
+export { TreeLayout } from './layouts/TreeLayout.js'
+export type {
+  TreeLayoutConfig,
+  TreeDirection,
+} from './layouts/TreeLayoutConfig.js'
+export { parseTreeConfig } from './layouts/TreeLayoutConfig.js'
 // ── FIN: engine public API ──

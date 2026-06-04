@@ -8,6 +8,30 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `TreeLayout` (LayoutEngine para type='tree'): implementa o
+  algoritmo de Buchheim et al. 2002 (linear-time variante de
+  Reingold-Tilford 1981).
+- `TreeLayoutConfig`, `TreeDirection` tipos exportados.
+- `parseTreeConfig(config, locale?)` helper validador.
+- 4 direccións soportadas: 'top-down', 'bottom-up', 'left-right',
+  'right-left'.
+- DAG → árbore lóxica via "primary parent" (menor level BFS;
+  desempate por orde en treeDef.nodes).
+
+### Note
+
+- **Determinismo absoluto**: orde dos roots/children/desempates
+  sempre por orde de aparición en treeDef.nodes.
+- Múltiples roots: cada un é unha árbore independente; colócanse
+  horizontalmente con separación nodeSpacing*2.
+- Edges seguen visibles **todos** (incluído diamond DAGs). Só o
+  layout xerárquico usa o primary parent.
+- TreeLayout cero xera mesh (LayoutResult.mesh undefined).
+
+## [Unreleased]
+
+### Added
+
 - `RadialLayout` (LayoutEngine para type='radial'): algoritmo de
   árbore radial clásica con BFS desde os roots da DependencyGraph
   + sectores angulares iguais por nodo.
