@@ -99,4 +99,6 @@ export type {
   TreeDirection,
 } from './layouts/TreeLayoutConfig.js'
 export { parseTreeConfig } from './layouts/TreeLayoutConfig.js'
+export type { CustomLayoutConfig } from './layouts/CustomLayoutConfig.js'
+export { parseCustomConfig } from './layouts/CustomLayoutConfig.js'
 // ── FIN: engine public API ──

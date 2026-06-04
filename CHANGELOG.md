@@ -8,6 +8,26 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `CustomLayoutConfig` interface (extends BaseLayoutConfig con
+  `type: 'custom'`).
+- `parseCustomConfig(config, locale?)` validador. Patrón consistente
+  con parseRadialConfig (4.2) e parseTreeConfig (4.3).
+
+### Note
+
+- Sub-fase 4.4 **MINIMAL por deseño**: IdentityLayout (4.1) xa
+  cumpre o contrato 'custom' segundo MASTER §20 ("Posicións
+  manuais"). A 4.4 só engade parseCustomConfig por coherencia
+  arquitectónica con sub-fases anteriores. Cero modificación de
+  IdentityLayout. Cero opcións opt-in (requireAllPositions,
+  defaultPosition) inventadas: decisión consciente de evitar
+  inflación de scope sin casos de uso reais (3.0 L1 + 4.3 L1
+  aplicadas).
+
+## [Unreleased]
+
+### Added
+
 - `TreeLayout` (LayoutEngine para type='tree'): implementa o
   algoritmo de Buchheim et al. 2002 (linear-time variante de
   Reingold-Tilford 1981).
