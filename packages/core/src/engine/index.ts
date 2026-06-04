@@ -81,7 +81,16 @@ export type {
   LayoutResult,
   EdgePath,
   Bounds,
+  MeshElement,
 } from './layouts/LayoutResult.js'
 export { IdentityLayout } from './layouts/IdentityLayout.js'
 export { computeLayout } from './layouts/computeLayout.js'
+export { RadialLayout } from './layouts/RadialLayout.js'
+export type {
+  RadialLayoutConfig,
+  PolygonConfig,
+  MeshType,
+} from './layouts/RadialLayoutConfig.js'
+export { parseRadialConfig } from './layouts/RadialLayoutConfig.js'
+export { generateMesh } from './layouts/MeshGenerator.js'
 // ── FIN: engine public API ──

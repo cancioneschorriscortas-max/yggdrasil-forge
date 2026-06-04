@@ -25,18 +25,43 @@ export interface Bounds {
 }
 
 /**
+ * Elemento visual auxiliar do layout. Discriminated union por `type`.
+ *
+ * Os layouts opcionalmente xeran elementos mesh (círculos
+ * concéntricos para `radial`, etc.) para guiar visualmente ao
+ * usuario. Os renderers (React/SVG futuros) decidirán como debuxalos.
+ */
+export type MeshElement =
+  | {
+      readonly type: 'line'
+      readonly from: Position
+      readonly to: Position
+    }
+  | {
+      readonly type: 'circle'
+      readonly center: Position
+      readonly radius: number
+    }
+  | {
+      readonly type: 'polygon'
+      readonly points: readonly Position[]
+    }
+
+/**
  * Resultado dunha computación de layout.
  *
  * - `nodes`: posición por id de nodo.
  * - `edges`: path por id de edge.
  * - `bounds`: caixa contedora axis-aligned.
- * - `layoutType`: tipo de layout que produciu este resultado
- *   (`'radial'`, `'tree'`, `'custom'`, etc.).
+ * - `layoutType`: tipo de layout que produciu este resultado.
+ * - `mesh`: elementos visuais auxiliares (opcional). Engadido en 4.2.
  */
 export interface LayoutResult {
   readonly nodes: ReadonlyMap<string, Position>
   readonly edges: ReadonlyMap<string, EdgePath>
   readonly bounds: Bounds
   readonly layoutType: string
+  /** Elementos visuais auxiliares. Engadido en 4.2 (campo opcional, cero ruptura). */
+  readonly mesh?: readonly MeshElement[]
 }
 // ── FIN: LayoutResult tipos ──

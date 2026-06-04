@@ -8,6 +8,35 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `RadialLayout` (LayoutEngine para type='radial'): algoritmo de
+  árbore radial clásica con BFS desde os roots da DependencyGraph
+  + sectores angulares iguais por nodo.
+- `RadialLayoutConfig`, `PolygonConfig`, `MeshType` tipos exportados.
+- `parseRadialConfig(config, locale?)` helper validador.
+- `MeshElement` discriminated union exportado (line/circle/polygon).
+- `generateMesh(meshType, config, ...)` función pura exportada.
+- `LayoutResult.mesh?: readonly MeshElement[]` campo opcional
+  engadido (cero ruptura).
+- Estréase o ErrorCode `LAYOUT_COMPUTE_FAILED` (YGG_L002) anticipado
+  en 4.1: úsase en parseRadialConfig para validación.
+
+### Note
+
+- RadialLayout **ignora `NodeDef.position`**. Para posicións
+  manuais, use o layout 'custom' (IdentityLayout). RadialLayout é
+  algoritmo automático.
+- **DT-16 (NOVO non bloqueante)**: RadialLayout usa sectores
+  iguais por nodo, cero proporcional a número de descendentes.
+  Para árbores desbalanceadas pode producir sobreposición visual.
+  Algoritmo proporcional diferido a sub-fase futura.
+- Subpath exports `/layouts/*` diferidos a sub-fase futura
+  específica de bundle splitting (require tocar tsup config
+  integrado co fix de DT-14).
+
+## [Unreleased]
+
+### Added
+
 - Layout Engine base en `@yggdrasil-forge/core/engine/layouts/`:
   - `LayoutEngine` interface (contrato común).
   - `LayoutEngineRegistry` para rexistrar engines por tipo.
