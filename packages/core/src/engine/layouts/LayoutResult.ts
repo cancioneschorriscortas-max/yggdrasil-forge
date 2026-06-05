@@ -2,14 +2,37 @@
 import type { Position } from '../../types/node.js'
 
 /**
- * Paths para un edge. En 4.1 é simplemente unha lista de puntos
- * (mínimo 2). 4.5 (PathBuilder) ampliará con curvas/beziers se
- * procede; engadirase como campo opcional para non romper
- * consumidores.
+ * Tipo de path para un edge. Determina como se interpreta o array
+ * `points` de EdgePath:
+ *
+ * - `'line'` (default): 2 puntos (start, end). Liña recta.
+ * - `'cubic'`: 4 puntos (P0, P1=control1, P2=control2, P3=end).
+ *   Cubic Bézier curve.
+ * - `'polyline'`: 3+ puntos. Polyline (segmentos rectos
+ *   consecutivos). Usado para 'orthogonal' L-shape ou S-shape.
+ *
+ * Engadido en 4.5 (cero ruptura: campo opcional con default 'line'
+ * para EdgePaths producidos por sub-fases 4.1-4.4).
+ */
+export type PathKind = 'line' | 'cubic' | 'polyline'
+
+/**
+ * Paths para un edge.
  */
 export interface EdgePath {
-  /** Mínimo 2 puntos (orixe + destino). */
+  /**
+   * Lista de puntos. Interpretación segundo `kind`:
+   * - `'line'` (default): 2 puntos (start, end).
+   * - `'cubic'`: 4 puntos (P0, P1=control1, P2=control2, P3).
+   * - `'polyline'`: 3+ puntos.
+   */
   readonly points: readonly Position[]
+
+  /**
+   * Tipo de path. Default `'line'` se non se especifica.
+   * Engadido en 4.5 para soportar curvas e orthogonal.
+   */
+  readonly kind?: PathKind
 }
 
 /**

@@ -101,4 +101,11 @@ export type {
 export { parseTreeConfig } from './layouts/TreeLayoutConfig.js'
 export type { CustomLayoutConfig } from './layouts/CustomLayoutConfig.js'
 export { parseCustomConfig } from './layouts/CustomLayoutConfig.js'
+export type { CurveStyle, PathBuilderOptions } from './layouts/PathBuilder.js'
+export { buildPaths } from './layouts/PathBuilder.js'
+export type { BoundsCalculatorOptions } from './layouts/BoundsCalculator.js'
+export { computeBounds } from './layouts/BoundsCalculator.js'
+export type { QuadTreeOptions } from './layouts/QuadTree.js'
+export { QuadTree } from './layouts/QuadTree.js'
+export type { PathKind } from './layouts/LayoutResult.js'
 // ── FIN: engine public API ──

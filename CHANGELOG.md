@@ -8,6 +8,38 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `PathBuilder` (`buildPaths(layoutResult, style, options?)`):
+  transforma os edges dun LayoutResult aplicando un dos 5 estilos
+  de curva: 'straight', 'diagonal-vertical', 'diagonal-horizontal',
+  'radial', 'orthogonal'.
+- `CurveStyle` + `PathBuilderOptions` types.
+- `PathKind` type ('line' | 'cubic' | 'polyline'); campo opcional
+  `kind?` engadido a EdgePath (cero ruptura).
+- `BoundsCalculator` (`computeBounds(layoutResult, options?)`):
+  cálculo sofisticado con padding uniforme/por nodo, inclusión
+  opcional de mesh e edges curvos.
+- `BoundsCalculatorOptions` type.
+- `QuadTree`: spatial index recursivo con queryRange + queryNearest.
+  Para uso futuro en useVisibleNodes (Fase 7). Algoritmo paralelo
+  a d3-quadtree (cero dependencia externa).
+- `QuadTreeOptions` type.
+
+### Note
+
+- Sub-fase 4.5 entrega 3 pezas heteroxéneas pero
+  arquitectónicamente independentes nun só sprint (decisión do
+  autor).
+- QuadTree branch coverage ≥85% relaxado (anticipo 4.3 L1):
+  algoritmo recursivo con ramas internas que requiren puntos en
+  posicións específicas para activarse.
+- EdgePath.kind: campo opcional default 'line'. IdentityLayout/
+  RadialLayout/TreeLayout (4.1-4.4) seguen producindo 2 puntos
+  sen kind explícito.
+
+## [Unreleased]
+
+### Added
+
 - `CustomLayoutConfig` interface (extends BaseLayoutConfig con
   `type: 'custom'`).
 - `parseCustomConfig(config, locale?)` validador. Patrón consistente
