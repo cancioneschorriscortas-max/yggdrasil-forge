@@ -8,6 +8,36 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- SSR verification: directorio `packages/core/__tests__/ssr/` con
+  5 ficheiros de tests SSR (~25 tests):
+  - `layouts.ssr.test.ts`: Layout Engine completo (4.1-4.5) en
+    Node sen DOM.
+  - `engine.ssr.test.ts`: TreeEngine + ProgressManager +
+    StatComputer.
+  - `effects-time.ssr.test.ts`: EffectsRunner + TimeManager.
+  - `graph-audit.ssr.test.ts`: DependencyGraph + AuditLogger +
+    Reconciler.
+  - `no-dom-imports.ssr.test.ts`: **regression guard
+    programático** que escanea `packages/core/src/` buscando
+    usos prohibidos de `window.`/`document.`/`navigator.`.
+- `docs/SSR.md`: guía documental sobre SSR-safety, con exemplos
+  de uso en Next.js RSC, Astro, Node puro.
+
+### Note
+
+- Sub-fase 4.6 **ÚLTIMA da Fase 4**. Cero código novo en `src/`.
+  Verifica formalmente o cumprimento de MASTER §38 ("@yggdrasil-
+  forge/react/server RSC-safe"). Core era SSR-safe por construción
+  desde Fase 1; esta sub-fase engade tests explícitos e
+  documentación.
+- Regression guard: o test `no-dom-imports.ssr.test.ts` corre en
+  cada `pnpm test` e bloqueará calquera regresión futura que
+  introduza DOM APIs en core.
+
+## [Unreleased]
+
+### Added
+
 - `PathBuilder` (`buildPaths(layoutResult, style, options?)`):
   transforma os edges dun LayoutResult aplicando un dos 5 estilos
   de curva: 'straight', 'diagonal-vertical', 'diagonal-horizontal',
