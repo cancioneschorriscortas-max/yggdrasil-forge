@@ -108,4 +108,10 @@ export { computeBounds } from './layouts/BoundsCalculator.js'
 export type { QuadTreeOptions } from './layouts/QuadTree.js'
 export { QuadTree } from './layouts/QuadTree.js'
 export type { PathKind } from './layouts/LayoutResult.js'
+export { SubtreeManager } from './SubtreeManager.js'
+export type {
+  SubtreeManagerOptions,
+  TreeEngineFactory,
+} from './SubtreeManager.js'
+export { mergeTreeDefWithOverrides } from './mergeTreeDefWithOverrides.js'
 // ── FIN: engine public API ──

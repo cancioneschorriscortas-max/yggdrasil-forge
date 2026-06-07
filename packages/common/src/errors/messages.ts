@@ -116,6 +116,16 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'La operación setProgress no es válida para el nodo "{nodeId}": es una fuente computed',
     en: 'setProgress is not valid for node "{nodeId}": it is a computed source',
   },
+  [ErrorCode.SUBTREE_DEPTH_EXCEEDED]: {
+    gl: 'Profundidade máxima de sub-árbores excedida: {depth} > {maxDepth}',
+    es: 'Profundidad máxima de sub-árboles excedida: {depth} > {maxDepth}',
+    en: 'Maximum subtree depth exceeded: {depth} > {maxDepth}',
+  },
+  [ErrorCode.SUBTREE_CYCLE_DETECTED]: {
+    gl: 'Detectouse un ciclo de sub-árbores: {subtreeId} xa está activo en {chain}',
+    es: 'Se detectó un ciclo de sub-árboles: {subtreeId} ya está activo en {chain}',
+    en: 'Subtree cycle detected: {subtreeId} is already active in {chain}',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

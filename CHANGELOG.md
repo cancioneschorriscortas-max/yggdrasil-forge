@@ -8,6 +8,44 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `SubtreeManager` clase: xestor de lifecycle dos sub-engines
+  (TreeEngine instances para sub-trees aniñadas):
+  - Creación lazy via `getOrCreateSubtree(subtreeId)`.
+  - Cache: o mesmo subtreeId devolve sempre a mesma instance.
+  - Verificación de profundidade (`maxDepth`, default 10).
+  - Detección de ciclos (subtreeId activo na cadea ancestral).
+  - API: `getExistingSubtree`, `hasSubtree`, `getOrCreateSubtree`,
+    `listSubtrees`, `destroySubtree`, `clear`, `size`.
+- `TreeEngineFactory` type: factory inxectable para evitar
+  acoplamento circular (en 5.2 TreeEngine pasarase a si mesmo
+  como factory).
+- `SubtreeManagerOptions` type.
+- `mergeTreeDefWithOverrides(base, overrides)` helper: aplica
+  Partial<TreeDef> a un TreeDef base (substitución simple; id
+  sempre preserva base).
+- ErrorCodes novos: `SUBTREE_DEPTH_EXCEEDED` (YGG_E023) +
+  `SUBTREE_CYCLE_DETECTED` (YGG_E024), traducidos en gl/es/en.
+
+### Note
+
+- Sub-fase 5.1 PRIMEIRA da Fase 5. SubtreeManager é **standalone**:
+  cero modificación de TreeEngine. A integración real
+  (TreeEngine.getSubtreeEngine, enterSubtree, sincronización
+  parent ↔ sub-engine) vai en 5.2 (Recursive engine).
+- O modelo de datos para sub-trees xa estaba modelado en código
+  desde Fase 1 (NodeType 'subtree_anchor', NodeDef.subtreeId/
+  subtreeOverrides, TreeDef.subtrees, TreeState.subtreeStates,
+  Prereq subtree_completion). A 5.1 engade a infraestrutura de
+  XESTIÓN.
+- Modelo inspirador: Path of Exile Cluster Jewels. Un nodo
+  subtree_anchor expón un mini-tree ao desbloquearse;
+  subtreeOverrides personaliza a template (paralelo aos "afixes"
+  de PoE).
+
+## [Unreleased]
+
+### Added
+
 - SSR verification: directorio `packages/core/__tests__/ssr/` con
   5 ficheiros de tests SSR (~25 tests):
   - `layouts.ssr.test.ts`: Layout Engine completo (4.1-4.5) en
