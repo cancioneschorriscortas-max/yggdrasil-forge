@@ -37,6 +37,7 @@ import { ProgressManager, type ProgressUpdateResult } from './ProgressManager.js
 import { ResourceManager } from './ResourceManager.js'
 import { StatComputer } from './StatComputer.js'
 import { StateStore } from './StateStore.js'
+import { SubtreeManager } from './SubtreeManager.js'
 import { TimeManager } from './TimeManager.js'
 import { UnlockResolver, type UnlockResolverContext } from './UnlockResolver.js'
 import type { InferredTreeDef } from './treeDefSchema.js'
@@ -103,12 +104,25 @@ export class TreeEngine {
   // 2.4.b §5.1 — `computed` queda para 2.4.c).
   private readonly progressManager: ProgressManager
   // ── FIN: 2.4.b ──
+  // ── INICIO: 5.2 — campos para subtree integration ──
+  private readonly activeSubtreeIds: ReadonlySet<string>
+  private subtreeManager: SubtreeManager | null = null
+  // ── FIN: 5.2 ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
     this.readOnly = options?.readOnly ?? false
     TreeEngine.validateTreeDef(treeDef, this.locale)
-    this.store = new StateStore(treeDef)
+    // ── INICIO: 5.2 — pasar initialState a StateStore ──
+    this.store = new StateStore(treeDef, {
+      ...(options?.initialState !== undefined && {
+        initialState: options.initialState,
+      }),
+    })
+    // ── FIN: 5.2 ──
+    // ── INICIO: 5.2 — gardar activeSubtreeIds ──
+    this.activeSubtreeIds = options?.activeSubtreeIds ?? new Set()
+    // ── FIN: 5.2 ──
     this.resources = new ResourceManager(treeDef.resources ?? [])
     this.audit = new AuditLogger(options?.audit)
     // ── INICIO: 2.4.b — instanciación do ProgressManager ──
@@ -462,6 +476,119 @@ export class TreeEngine {
       unsub()
     }
   }
+
+  // ── INICIO: 5.2 — subtree integration ──
+
+  /**
+   * Devolve o sub-engine xa creado para `subtreeId`, ou null.
+   * Lookup pasivo: cero crea, cero require anchor unlocked.
+   *
+   * Para creación + sincronización, use `enterSubtree`.
+   */
+  getSubtreeEngine(subtreeId: string): TreeEngine | null {
+    if (this.subtreeManager === null) {
+      return null
+    }
+    return this.subtreeManager.getExistingSubtree(subtreeId)
+  }
+
+  /**
+   * Entra nunha sub-árbore: crea o sub-engine se non existe, configura
+   * a sincronización automática co parent, emite o evento subtreeEntered,
+   * e devólveo.
+   *
+   * Validacións (en orde):
+   * 1. Polo menos un nodo `subtree_anchor` con `subtreeId` debe estar
+   *    en estado 'unlocked' ou 'maxed'. Senón, err(SUBTREE_NOT_UNLOCKED).
+   * 2. As validacións internas do SubtreeManager (existence, cycle,
+   *    depth) propagan os seus err() respectivos.
+   *
+   * Tras crear, o sub-engine subscríbese: cada mudanza no sub-engine
+   * actualiza automaticamente `parent.state.subtreeStates[subtreeId]`.
+   *
+   * Emítese o evento `subtreeEntered(subtreeId)` (xa declarado).
+   */
+  enterSubtree(subtreeId: string): Result<TreeEngine> {
+    // 1. Anchor unlocked check
+    if (!this.isAnyAnchorUnlocked(subtreeId)) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.SUBTREE_NOT_UNLOCKED,
+          getErrorMessage(ErrorCode.SUBTREE_NOT_UNLOCKED, this.locale, { subtreeId }),
+          { context: { subtreeId } },
+        ),
+      )
+    }
+
+    // 2. Crear/recuperar via SubtreeManager con sync
+    const manager = this.ensureSubtreeManager()
+    const result = manager.getOrCreateSubtreeWithSync(subtreeId, (subEngine) => {
+      return subEngine.subscribe(() => {
+        this.store.update((draft) => {
+          if (!draft.subtreeStates) {
+            draft.subtreeStates = {}
+          }
+          draft.subtreeStates[subtreeId] = subEngine.getSnapshot()
+        })
+      })
+    })
+
+    if (!result.ok) return result
+
+    // 3. Emitir evento
+    this.events.emit('subtreeEntered', subtreeId)
+
+    return ok(result.value)
+  }
+
+  /**
+   * Inicialización lazy do SubtreeManager. Créase só cando se accede
+   * por primeira vez (cero overhead se cero se usan sub-trees).
+   */
+  private ensureSubtreeManager(): SubtreeManager {
+    if (this.subtreeManager === null) {
+      this.subtreeManager = new SubtreeManager({
+        parentTreeDef: this.store.getTreeDef(),
+        parentState: this.store.getState(),
+        engineFactory: (treeDef, initialState, context) => {
+          const newActiveIds =
+            context !== undefined
+              ? new Set([...context.parentActiveIds, context.subtreeId])
+              : this.activeSubtreeIds
+          return new TreeEngine(treeDef, {
+            ...(initialState !== undefined && { initialState }),
+            activeSubtreeIds: newActiveIds,
+            locale: this.locale,
+          })
+        },
+        depth: this.activeSubtreeIds.size,
+        maxDepth: 10,
+        locale: this.locale,
+        activeSubtreeIds: this.activeSubtreeIds,
+      })
+    }
+    return this.subtreeManager
+  }
+
+  /**
+   * Verifica se hai algún nodo subtree_anchor con `subtreeId` que
+   * estea en estado 'unlocked' ou 'maxed'.
+   */
+  private isAnyAnchorUnlocked(subtreeId: string): boolean {
+    const treeDef = this.store.getTreeDef()
+    const state = this.store.getState()
+    for (const node of treeDef.nodes) {
+      if (node.subtreeId === subtreeId) {
+        const instance = state.nodes[node.id]
+        if (instance?.state === 'unlocked' || instance?.state === 'maxed') {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  // ── FIN: 5.2 — subtree integration ──
 
   // ── canUnlock: comprobación síncrona pura (T3) ──
   // Decisión: nodo xa unlocked/maxed → ok({ allowed: false, reason }) non err,

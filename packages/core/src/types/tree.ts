@@ -159,5 +159,27 @@ export interface TreeEngineOptions {
    * incrementable.
    */
   readonly timeNow?: () => number
+
+  /**
+   * Estado inicial. Se omitido, créase un estado baleiro a partir
+   * do treeDef.
+   *
+   * Engadido en 5.2 para soportar recuperación de estado en sub-engines
+   * (parentState.subtreeStates[id]). Tamén útil para deserializar
+   * un estado persistido.
+   */
+  readonly initialState?: TreeState
+
+  /**
+   * Conxunto de subtreeIds activos na cadea recursiva ancestral.
+   * Usado para propagar cycle detection a través de sub-engines.
+   *
+   * Engadido en 5.2. Default Set vacío.
+   *
+   * Cando TreeEngine A crea sub-engine para subtreeId 'B', pasa
+   * activeSubtreeIds = parentActiveSet ∪ {'B'} ao sub-engine. Se
+   * dentro de 'B' alguén intenta enterSubtree('A'), detéctase ciclo.
+   */
+  readonly activeSubtreeIds?: ReadonlySet<string>
 }
 // ── FIN: Tree types ──

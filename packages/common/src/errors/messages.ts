@@ -126,6 +126,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Se detectó un ciclo de sub-árboles: {subtreeId} ya está activo en {chain}',
     en: 'Subtree cycle detected: {subtreeId} is already active in {chain}',
   },
+  [ErrorCode.SUBTREE_NOT_UNLOCKED]: {
+    gl: 'A sub-árbore {subtreeId} non está desbloqueada (ningún anchor está unlocked)',
+    es: 'La sub-árbol {subtreeId} no está desbloqueada (ningún anchor está unlocked)',
+    en: 'Subtree {subtreeId} is not unlocked (no anchor is unlocked)',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

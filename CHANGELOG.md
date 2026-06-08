@@ -8,6 +8,57 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `TreeEngine.getSubtreeEngine(subtreeId)`: lookup pasivo dun
+  sub-engine creado. Devolve null se non existe.
+- `TreeEngine.enterSubtree(subtreeId)`: crea ou recupera o
+  sub-engine con sincronización automática co parent. Emite
+  evento `subtreeEntered`. Devolve err(SUBTREE_NOT_UNLOCKED)
+  se cero anchor con ese subtreeId está unlocked.
+- `TreeEngineOptions.initialState?`: estado inicial pasado a
+  StateStore. Útil para sub-engines (recuperación desde
+  parentState.subtreeStates[id]) e deserialización.
+- `TreeEngineOptions.activeSubtreeIds?`: conxunto de subtreeIds
+  activos na cadea recursiva, propágase a través de sub-engines
+  para cycle detection.
+- `SubtreeManager.getOrCreateSubtreeWithSync(id, setupSync)`:
+  crea sub-engine + setup callback de sincronización; o
+  Unsubscribe handle gárdase no cache para liberación automática
+  en destroySubtree/clear.
+- `TreeEngineFactoryContext` interface: terceiro parámetro
+  opcional do TreeEngineFactory para propagación de
+  subtreeId + parentActiveIds.
+- ErrorCode novo: `SUBTREE_NOT_UNLOCKED` (YGG_E025), traducido
+  en gl/es/en.
+
+### Changed
+
+- `SubtreeManager` cache interno: agora garda `{ engine,
+  unsubscribe }` por sub-engine; `destroySubtree` e `clear`
+  liberan listeners. API pública sen cambios (5.1 tests intactos).
+- `TreeEngineFactory` type: terceiro parámetro `context?:
+  TreeEngineFactoryContext` opcional (cero ruptura).
+
+### Note
+
+- Sub-fase 5.2: integración real entre TreeEngine e
+  SubtreeManager. Modelo PoE Cluster Jewels totalmente
+  funcional para casos básicos.
+- **Budget compartido DIFERIDO**. DT-19 NOVA non bloqueante:
+  cada sub-engine usa o seu propio budget (illado por defecto).
+  Para compartido (modelo PoE estrito) require refactor de
+  ResourceManager con BudgetSource inxectable; diferido a
+  sub-fase futura específica cando exista caso de uso demostrado.
+- Sincronización parent ↔ sub-engine via subscribe (push model):
+  cada mudanza no sub-engine actualiza automaticamente
+  parent.state.subtreeStates[id]. Unsubscribe handles xestionados
+  polo SubtreeManager para evitar memory leaks.
+- Recursividade ilimitada con maxDepth=10 + cycle detection
+  propagado a través de activeSubtreeIds.
+
+## [Unreleased]
+
+### Added
+
 - `SubtreeManager` clase: xestor de lifecycle dos sub-engines
   (TreeEngine instances para sub-trees aniñadas):
   - Creación lazy via `getOrCreateSubtree(subtreeId)`.
