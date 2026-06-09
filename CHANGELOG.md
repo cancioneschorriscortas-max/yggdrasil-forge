@@ -8,6 +8,52 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `Federator` clase: utilidade para combinar múltiples TreeDefs.
+  Métodos puros:
+  - `detectConflicts(trees)`: detecta colisións de id en 7
+    categorías (tree, node, edge, group, resource, stat, subtree).
+  - `mergeTreeDefs(trees, strategy, options?)`: combina TreeDefs
+    segundo unha estratexia (`'namespace_all'`, `'first_wins'`,
+    `'last_wins'`, `'manual'`).
+- `MergeStrategy`, `Conflict`, `ConflictReport`, `MergeOptions`,
+  `MergedTreeMeta` types.
+- `'namespace_all'` strategy reescribe TODAS as cross-references
+  internas (edges source/target, prereqs nodeId/resourceId/
+  statId/subtreeId/fromNodeId, effects nodeId/resourceId/statId,
+  rootNodeId, conditional/composite recursivos, etc.)
+  incluíndo all/any/none conditions.
+- `'manual'` strategy devolve err(MERGE_CONFLICTS_DETECTED) se
+  hai conflitos; cero conflitos → equivalente a 'first_wins'.
+- 3 ErrorCodes novos: `MERGE_INVALID_INPUT` (YGG_E026),
+  `MERGE_CONFLICTS_DETECTED` (YGG_E027), `MERGE_INCOMPATIBLE_SCHEMA`
+  (YGG_E028), traducidos en gl/es/en.
+
+### Note
+
+- Sub-fase 5.3 ÚLTIMA da Fase 5. **Fase 5 PECHADA**.
+- `Federator.loadFederation(sources)` **DIFERIDA** a sub-fase
+  específica futura. **DT-20 NOVA**: require decisión arquitectónica
+  sobre FederationSource shape (URL+CORS? File? Storage?) sin caso
+  de uso real documentado. mergeTreeDefs cumpre o caso core; o
+  consumidor carga TreeDefs co seu propio método e pasa.
+- `mergeTreeDefs` rexeita TreeDefs con `schemaVersion` distintos
+  (MERGE_INCOMPATIBLE_SCHEMA). Workflow: usar MigrationRunner antes
+  de federar.
+- tree.subtrees[id].nodes NON se rewrite recursivamente en
+  'namespace_all' (decisión consciente: subtree é template
+  interna; consumidor pode aplicar mergeTreeDefs recursivamente
+  se quere flatten).
+- 5.2 L2 aplicado: briefing prescribía `unlockable.prereq` /
+  `all_of`/`any_of`/`children` / `group.nodes` pero a API real
+  é `prerequisites: UnlockRule` / `all`/`any`/`none`/`conditions` /
+  `group.nodeIds`. Corrixido transparentemente. Tamén engadidos
+  rewrites para `distance_max.fromNodeId`, `modify_resource`,
+  `modify_stat`, `modify_node_state`, `conditional`, `composite`.
+
+## [Unreleased]
+
+### Added
+
 - `TreeEngine.getSubtreeEngine(subtreeId)`: lookup pasivo dun
   sub-engine creado. Devolve null se non existe.
 - `TreeEngine.enterSubtree(subtreeId)`: crea ou recupera o

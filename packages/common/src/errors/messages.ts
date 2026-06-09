@@ -131,6 +131,21 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'La sub-árbol {subtreeId} no está desbloqueada (ningún anchor está unlocked)',
     en: 'Subtree {subtreeId} is not unlocked (no anchor is unlocked)',
   },
+  [ErrorCode.MERGE_INVALID_INPUT]: {
+    gl: 'Federator require polo menos 2 TreeDefs para mesturar; recibiu {count}',
+    es: 'Federator requiere al menos 2 TreeDefs para mezclar; recibió {count}',
+    en: 'Federator requires at least 2 TreeDefs to merge; got {count}',
+  },
+  [ErrorCode.MERGE_CONFLICTS_DETECTED]: {
+    gl: 'Detectáronse {count} conflitos durante o merge; estratexia "manual" require resolución externa',
+    es: 'Se detectaron {count} conflictos durante el merge; estrategia "manual" requiere resolución externa',
+    en: '{count} conflicts detected during merge; "manual" strategy requires external resolution',
+  },
+  [ErrorCode.MERGE_INCOMPATIBLE_SCHEMA]: {
+    gl: 'TreeDefs con schemaVersion incompatibles: primeira={first}, árbore {treeIndex}={other}. Use MigrationRunner antes de federar',
+    es: 'TreeDefs con schemaVersion incompatibles: primera={first}, árbol {treeIndex}={other}. Use MigrationRunner antes de federar',
+    en: 'TreeDefs with incompatible schemaVersion: first={first}, tree {treeIndex}={other}. Use MigrationRunner before federating',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

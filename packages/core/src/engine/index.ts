@@ -114,4 +114,12 @@ export type {
   TreeEngineFactory,
 } from './SubtreeManager.js'
 export { mergeTreeDefWithOverrides } from './mergeTreeDefWithOverrides.js'
+export { Federator } from './Federator.js'
+export type {
+  MergeStrategy,
+  Conflict,
+  ConflictReport,
+  MergeOptions,
+  MergedTreeMeta,
+} from './Federator.js'
 // ── FIN: engine public API ──
