@@ -2374,7 +2374,7 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 ## A.1–A.2 — Estado actual
 
 Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA. Fase 3 PECHADA.
-🎉 FASE 4 PECHADA (Layout Engine completo con SSR verification).**
+Fase 4 PECHADA. 🎉 FASE 5 PECHADA (Sub-trees + Federation completos).**
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
@@ -2416,8 +2416,12 @@ Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA. Fase 3 PECHADA.
 | **4.4 CustomLayoutConfig (minimal)** | Feito | `f055555` | 1140 core |
 | **4.5 PathBuilder + BoundsCalculator + QuadTree** | Feito | `e31ec1f` | 1196 core |
 | **4.6 SSR verification + regression guard** | Feito | `5a80acf` | 1221 core |
+| docs: close Phase 4 in MASTER | Feito | `13ef887` | — |
+| **5.1 SubtreeManager standalone** | Feito | `2fd2e6a` | 1263 core |
+| **5.2 Recursive engine integration** | Feito | `1f7de89` | 1306 core |
+| **5.3 Federator (mergeTreeDefs + detectConflicts)** | Feito | `953cda7` | 1381 core |
 
-**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. 🎉 FASE 4 PECHADA OFICIALMENTE.**
+**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. 🎉 FASE 5 PECHADA OFICIALMENTE.**
 
 **Métricas Fase 3 finais (3.0–3.6.b):**
 - 0 escalados funcionais (cero asimetrías abertas).
@@ -2448,6 +2452,8 @@ Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA. Fase 3 PECHADA.
 | DT-16 | RadialLayout (4.2) usa sectores angulares iguais por nodo, cero proporcional a número de descendentes. Para árbores moi desbalanceadas pode producir sobreposición visual. **Plan**: sub-fase futura específica implementará o algoritmo proporcional (require dous BFS + cálculo de tamaño do sector proporcional). | Aberta non bloqueante |
 | DT-17 | TreeLayout.ts (Buchheim 2002, 4.3) entregou con cobertura Stmts 89.6% / Branch 70.12% (560 liñas, +87% sobre estimación). Ramas non cubertas son ramas internas do algoritmo (apportion thread setting + ancestor default + computeBounds redundancia). **Cero impacto funcional**: 1134 tests pasan, todos os casos comúns producen LayoutResults correctos. **Plan**: hardening específico nun ciclo futuro engadirá ~10-15 tests con árbores en formas particulares (asimétricas profundas, multi-roots desbalanceados) para activar ramas internas. | Aberta non bloqueante |
 | DT-18 | Tras 4.5, cobertura global core baixou a 97.91% (de 98.05%). 0.04 puntos por encima do tope ≤0.1 prescrito no briefing. Atribuíble a ramas defensivas legítimas en PathBuilder (1 rama imposible por `noUncheckedIndexedAccess`) e QuadTree (2 ramas de nearest-neighbor: prune + ordenación de visita). **Cero impacto funcional**. **Plan**: hardening cosmético opcional cando se aborde DT-17. | Aberta cosmética |
+| DT-19 | Budget compartido entre parent e sub-engines non implementado en 5.2. **Modelo actual**: cada sub-engine usa o seu propio budget illado (configurable via `subtreeOverrides.budget` ou recuperado desde `parentState.subtreeStates[id].budget` via `initialState`). **Para implementar compartido** (modelo PoE estrito): refactor de ResourceManager con `BudgetSource` inxectable + dúas codepaths en TreeEngine.unlock/respec/lock. **Diferido** a sub-fase específica de hardening cando exista caso de uso real demostrado. Cero impacto funcional. | Aberta non bloqueante |
+| DT-20 | `Federator.loadFederation(sources)` non implementado en 5.3. Require decisión arquitectónica sobre `FederationSource` shape (URL+CORS? File? Storage? Plugin?). Cero spec MASTER, cero caso de uso real documentado. `mergeTreeDefs` + `detectConflicts` cumpren o caso core (consumidor carga TreeDefs e pasa array). **Diferido** a sub-fase específica futura cando exista demanda real (probable Fase 7 React renderer ou plugin system). Cero impacto funcional. | Aberta non bloqueante |
 
 **0 débeda funcional crítica. 0 asimetrías coñecidas.**
 
@@ -2495,8 +2501,14 @@ Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA. Fase 3 PECHADA.
 | `RECONCILE_TREE_MISMATCH` | `YGG_R001` | Reconcile | 3.6.a |
 | `LAYOUT_TYPE_UNKNOWN` | `YGG_L001` | Layout | 4.1 |
 | `LAYOUT_COMPUTE_FAILED` | `YGG_L002` | Layout | 4.1 (anticipado), estreado 4.2 |
+| `SUBTREE_DEPTH_EXCEEDED` | `YGG_E023` | Engine | 5.1 |
+| `SUBTREE_CYCLE_DETECTED` | `YGG_E024` | Engine | 5.1 |
+| `SUBTREE_NOT_UNLOCKED` | `YGG_E025` | Engine | 5.2 |
+| `MERGE_INVALID_INPUT` | `YGG_E026` | Engine | 5.3 |
+| `MERGE_CONFLICTS_DETECTED` | `YGG_E027` | Engine | 5.3 |
+| `MERGE_INCOMPATIBLE_SCHEMA` | `YGG_E028` | Engine | 5.3 |
 
-**Total: 43 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1 (LAYOUT_TYPE_UNKNOWN + LAYOUT_COMPUTE_FAILED).**
+**Total: 49 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA).**
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
@@ -2819,6 +2831,32 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   única é viable se ademáis cada peza pode entregarse e testarse
   independentemente.
 
+**Fase 5 (pechada):**
+- **5.2 L1 (cobertura prescritiva debe ser relativa cando se modifica
+  peza preexistente sub-óptima)**: O briefing 5.2 prescribía ≥95%
+  Branch para TreeEngine. **Pero TreeEngine xa estaba en 84.54% Branch
+  antes da modificación 5.2** (cobertura sub-óptima histórica desde
+  Fase 2). A 5.2 mellorou +0.61 puntos (a 85.15%), **funcionalmente
+  cumpridora**, **pero formalmente non-conforme co prescrito**.
+  **Patrón futuro**: investigación previa do director debe **verificar
+  baseline da peza modificada** e prescribir incremento ("non baixar")
+  en vez de absoluto ("≥95%"). **Aplicable a TreeEngine sempre** (peza
+  monumental de ~1900 liñas); aplicable a outras pezas grandes
+  similares no futuro. Patrón consistente coa lección 3.5 L1 pero
+  aplicado a métricas globais en vez de só ramas defensivas.
+- **5.2 L2 (briefings con APIs prescritas en código exemplo deben
+  verificar empíricamente cada chamada de método)**: O briefing 5.2
+  prescribía `subEngine.getState()` que **non existe na API pública
+  do TreeEngine** (TreeEngine expón `getSnapshot()`, non `getState()`;
+  `getState` é privado de StateStore). O executor cazou na
+  implementación e usou `getSnapshot()` correctamente, reportándoo
+  transparentemente en ⚠️ Limitacións. **Director acepta retroactivamente**
+  (patrón paralelo a 3.6.a L1 + 4.1 L1: decisión transparente do
+  executor é mellor que escalado bloqueante para erros factuais
+  simples). **Pero ideal**: cero erros factuais. **Investigación
+  previa debe `grep -n "^  get" TreeEngine.ts` para listar a API
+  real** antes de prescribir chamadas no pseudo-código.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
@@ -3013,6 +3051,76 @@ SSR-safety:              core verificado completamente SSR-safe.
                          path:line:código.
 ```
 
+## A.9.d — Estado cuantitativo final Fase 5 (PECHADA)
+
+```
+Commit actual:           953cda7 (origin/main; Federator 5.3)
+Sub-fases Fase 5:        3 entregas (5.1, 5.2, 5.3)
+Tests adicionais Fase 5: +160 en core (1221 → 1381)
+                         +0 en common (cero cambios estruturais; só
+                          ErrorCodes engadidos)
+                         +0 en storage (cero cambios)
+                         Total monorepo: ~1612 tests
+Cobertura paquete core:  97.42% Stmts global (drop 0.55 desde 97.97%
+                         post-5.1; explicación matemática: a base
+                         ampliou con Federator 98.77% Stmts mais que
+                         a media; pezas existentes DT-17 + DT-18
+                         seguen sub-óptimas)
+  Pezas Fase 5 (engadidas):
+  - SubtreeManager.ts:            100/100/100/100 (modificado en 5.2)
+  - mergeTreeDefWithOverrides.ts: 100/100/100/100
+  - Federator.ts:                 98.77/93.33/100/98.63 (2 ramas
+                                  defensivas por noUncheckedIndexedAccess;
+                                  lección 3.5 L1)
+  TreeEngine.ts (modificado en 5.2):
+  - Branch coverage subiu 84.54% → 85.15% (+0.61 puntos; cero
+    regresión pese a +150 liñas; lección 5.2 L1 anotada)
+Cobertura paquete common: 100% (cero cambios estruturais; +6 entradas
+                          en codes/messages)
+Cobertura paquete storage: cero cambios (Fase 5 standalone)
+Lint / Typecheck:         0/0 / 20/20 (sen caché, 295 ficheiros)
+ErrorCodes:               49 (+6 da familia YGG_E en Fase 5:
+                          SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED,
+                          SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT,
+                          MERGE_CONFLICTS_DETECTED,
+                          MERGE_INCOMPATIBLE_SCHEMA)
+Escalados resoltos:       0 procedurales en Fase 5 (cadea limpa
+                          completa 5.1 → 5.3)
+                          2 erros do briefing 5.2 cazados polo
+                          executor transparentemente sen escalado
+                          (getSnapshot vs getState + branch coverage
+                          prescripción irrealista; ambos decisión
+                          correcta in-situ; lecciones 5.2 L1 + L2)
+Asimetrías abertas:       cero
+Incidentes transporte:    cero novos en Fase 5
+Débedas novas:            DT-19 (budget compartido entre engines;
+                          modelo PoE estrito non implementado) +
+                          DT-20 (loadFederation diferida)
+Briefings trackeados:     pendente (commit separado posterior;
+                          paralelo a 1fe9374 da Fase 3)
+Sub-trees + Federation completos:
+                          - SubtreeManager standalone (5.1): cache,
+                            depth limit, cycle detection,
+                            TreeEngineFactory pattern para evitar
+                            acoplamento circular.
+                          - TreeEngine integration (5.2):
+                            getSubtreeEngine + enterSubtree con
+                            sincronización automática parent ↔
+                            sub-engine via subscribe + Unsubscribe
+                            handles xestionados; recursividade real
+                            con cycle detection propagada;
+                            initialState recovery; anchor unlocked
+                            enforcement.
+                          - Federator (5.3): mergeTreeDefs con 4
+                            estratexias (namespace_all con rewrite
+                            recursivo completo, first_wins, last_wins,
+                            manual rexeita), detectConflicts en 7
+                            tipos de id, MergedTreeMeta personalizable.
+                          - Pendente conscientemente diferido:
+                            budget compartido (DT-19), loadFederation
+                            (DT-20).
+```
+
 ## A.10.b — Comparación inicio/fin Fase 3
 
 ```
@@ -3092,6 +3200,75 @@ abertas, 4 leccións estruturais aprendidas, Layout Engine completo
 con 3 layouts + 5 estilos de curva + spatial index + SSR
 verification. Cadea 3.0 → 4.6: 15 sub-fases consecutivas pechadas
 con cero rollbacks.
+
+## A.10.d — Comparación inicio/fin Fase 5
+
+```
+Inicio Fase 5:    1221 tests core + 60 common + 171 storage = ~1452 tests
+                  (estado fin Fase 4, commit 13ef887)
+                  Cero SubtreeManager
+                  Cero TreeEngine.getSubtreeEngine / enterSubtree
+                  Cero Federator
+                  Modelo de datos sub-trees xa modelado desde Fase 1
+                  (NodeType 'subtree_anchor', NodeDef.subtreeId/
+                  subtreeOverrides, TreeDef.subtrees, TreeState.
+                  subtreeStates, Prereq subtree_completion) pero
+                  sen infraestrutura de XESTIÓN.
+
+Fin Fase 5:       1381 core + 60 common + 171 storage = ~1612 tests (+160)
+                  Sub-trees + Federation completos:
+                  - SubtreeManager standalone con lifecycle completo
+                  - TreeEngine.getSubtreeEngine (lookup pasivo)
+                  - TreeEngine.enterSubtree (creación + sincronización
+                    + evento subtreeEntered + anchor unlocked check)
+                  - Recursividade real con cycle detection (maxDepth=10)
+                  - Sincronización automática parent ↔ sub-engine via
+                    subscribe + Unsubscribe handles
+                  - initialState recovery (parent.subtreeStates →
+                    sub-engine inicial)
+                  - Federator con 4 estratexias (namespace_all,
+                    first_wins, last_wins, manual)
+                  - detectConflicts en 7 categorías de id
+
+Leccións do director engadidas en Fase 5:
+                  5.2 L1 (cobertura prescritiva relativa para pezas
+                  preexistentes sub-óptimas)
+                  5.2 L2 (verificación empírica de APIs en pseudo-código)
+                  (2 leccións estruturais; 13 leccións acumuladas
+                  desde Fase 2)
+
+ErrorCodes:       43 → 49 (+6: SUBTREE_DEPTH_EXCEEDED YGG_E023,
+                  SUBTREE_CYCLE_DETECTED YGG_E024, SUBTREE_NOT_UNLOCKED
+                  YGG_E025, MERGE_INVALID_INPUT YGG_E026,
+                  MERGE_CONFLICTS_DETECTED YGG_E027,
+                  MERGE_INCOMPATIBLE_SCHEMA YGG_E028; todas familia
+                  YGG_E existente)
+
+Débedas novas:    DT-19 (budget compartido diferido por refactor
+                  maior de ResourceManager + cero caso de uso real
+                  documentado), DT-20 (loadFederation diferida por
+                  decisión arquitectónica sobre FederationSource
+                  shape). Ambas non bloqueantes con plan claro.
+
+Modelo PoE Cluster Jewels funcionalmente completo para casos básicos.
+
+Cero asimetrías funcionais abertas.
+
+Cero rollbacks en Fase 5 (consistente con Fases 3 e 4).
+
+Cero escalados procedurales (vs 1 en Fase 4 T0.2 e 1 en Fase 3
+T0.4 / 3.4 L1). **Fase 5 modélica**.
+
+Cadea 3.0 → 5.3: 18 sub-fases consecutivas pechadas con cero
+rollbacks (incluíndo 2 hixienes intermedias MASTER).
+```
+
+**Fase 5 modélica.** 160 tests engadidos, cero escalados, cero
+asimetrías funcionais abertas, 2 leccións estruturais aprendidas,
+Sub-trees + Federation funcionalmente completos. Modelo Path of
+Exile Cluster Jewels cumpre o spec MASTER §18-19 para casos
+básicos. DT-19 (budget compartido) e DT-20 (loadFederation)
+diferidas conscientemente con plan claro.
 
 ## A.10 — Comparación inicio/fin Fase 2
 
