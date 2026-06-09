@@ -110,6 +110,9 @@ importers:
       '@yggdrasil-forge/common':
         specifier: workspace:*
         version: link:../common
+      '@yggdrasil-forge/storage':
+        specifier: workspace:*
+        version: link:../storage
       immer:
         specifier: ^10.1.1
         version: 10.2.0

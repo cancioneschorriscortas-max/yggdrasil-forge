@@ -8,6 +8,51 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `TreeRegistry` clase: xestor de múltiples TreeEngines compartindo
+  un só TreeDef.
+  - Lifecycle: `createEngine`, `getEngine`, `removeEngine`,
+    `listEngines`.
+  - Shared tree: `getSharedTreeDef`, `applyChangesToAll`.
+  - Build management completo: `saveBuild`, `loadBuild`,
+    `listBuilds`, `removeBuild`, `exportAllBuilds`, `importBuilds`.
+  - Persistence: `save`, `load` via StorageAdapter.
+  - Cleanup: `destroy`.
+- 3 cache strategies:
+  - `'all-in-memory'`: todos os engines en memoria; save persiste
+    todos; load carga todos eager.
+  - `'lru'`: cache LRU con `maxInMemory` + `ttlMs` opcionais;
+    engines cargan lazy.
+  - `'on-demand'`: cero cache; getEngine carga sempre desde storage.
+- `TreeRegistryOptions` + `TreeRegistryCacheConfig` types.
+- ErrorCodes novos:
+  - `TREE_REGISTRY_USER_NOT_FOUND` (YGG_E029)
+  - `TREE_REGISTRY_USER_EXISTS` (YGG_E030)
+  - `TREE_REGISTRY_BUILD_NOT_FOUND` (YGG_E031)
+  - `APPLY_CHANGES_FAILED` (YGG_E032) — engadido tras T0
+    confirmar inexistencia (§5.6)
+  Traducidos gl/es/en.
+
+### Note
+
+- Sub-fase 6.1 PRIMEIRA da Fase 6 (TreeRegistry + Multi-tenancy).
+- Aggregate queries (`getAggregateStats`, `getNodePopularity`,
+  `getProgressDistribution`, `getStuckUsers`) DIFERIDAS a 6.2.
+- `ScopedStorage` DIFERIDO a 6.3.
+- `Quotas` + `Permissions` DIFERIDOS a 6.4.
+- `applyChangesToAll` aplica changes só aos engines en cache;
+  engines en storage non cargados non se actualizan
+  automaticamente (decisión consciente; consumidor responsable).
+- `importBuilds` usa `build.author` como userId; builds sen
+  author son descartados silenciosamente.
+- Schema de claves: `engine:${userId}:state`, `build:${buildId}`,
+  `registry:userIds`, `registry:buildsIndex`, `registry:meta`.
+- 4 ErrorCodes (E029-E032) en lugar dos 3 previstos;
+  APPLY_CHANGES_FAILED engadido tras T0 confirmar inexistencia (§5.6).
+
+## [Unreleased]
+
+### Added
+
 - `Federator` clase: utilidade para combinar múltiples TreeDefs.
   Métodos puros:
   - `detectConflicts(trees)`: detecta colisións de id en 7

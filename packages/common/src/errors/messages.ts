@@ -146,6 +146,26 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'TreeDefs con schemaVersion incompatibles: primera={first}, árbol {treeIndex}={other}. Use MigrationRunner antes de federar',
     en: 'TreeDefs with incompatible schemaVersion: first={first}, tree {treeIndex}={other}. Use MigrationRunner before federating',
   },
+  [ErrorCode.TREE_REGISTRY_USER_NOT_FOUND]: {
+    gl: 'O usuario {userId} non está rexistrado no TreeRegistry',
+    es: 'El usuario {userId} no está registrado en el TreeRegistry',
+    en: 'User {userId} is not registered in the TreeRegistry',
+  },
+  [ErrorCode.TREE_REGISTRY_USER_EXISTS]: {
+    gl: 'O usuario {userId} xa existe no TreeRegistry',
+    es: 'El usuario {userId} ya existe en el TreeRegistry',
+    en: 'User {userId} already exists in the TreeRegistry',
+  },
+  [ErrorCode.TREE_REGISTRY_BUILD_NOT_FOUND]: {
+    gl: 'O build {buildId} non existe',
+    es: 'El build {buildId} no existe',
+    en: 'Build {buildId} not found',
+  },
+  [ErrorCode.APPLY_CHANGES_FAILED]: {
+    gl: 'applyChanges fallou en {count} engines',
+    es: 'applyChanges falló en {count} engines',
+    en: 'applyChanges failed in {count} engines',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

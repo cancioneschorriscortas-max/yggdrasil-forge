@@ -122,4 +122,9 @@ export type {
   MergeOptions,
   MergedTreeMeta,
 } from './Federator.js'
+export { TreeRegistry } from './TreeRegistry.js'
+export type {
+  TreeRegistryOptions,
+  TreeRegistryCacheConfig,
+} from './TreeRegistry.js'
 // ── FIN: engine public API ──
