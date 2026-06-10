@@ -2191,9 +2191,11 @@ Cada fase divídese en sub-fases. Cada sub-fase é un chat executor.
 - **5.3** Federator
 
 ### Fase 6 — TreeRegistry + Multi-tenancy
-- **6.1** TreeRegistry
-- **6.2** Aggregate queries
-- **6.3** ScopedStorage + Quotas + Permissions
+- **6.1** TreeRegistry ✅
+- **6.2** Aggregate queries ✅
+- **6.3** ScopedStorage ✅
+- **6.4** Quotas
+- **6.5** Permissions (interface mínima — modelo completo difírese a 8.4)
 
 ### Fase 7 — React Renderer + a11y + SSR + RSC
 - **7.1** Setup @react package + dependencies
@@ -2213,7 +2215,11 @@ Cada fase divídese en sub-fases. Cada sub-fase é un chat executor.
 - **8.1** BuildSerializer + UrlSerializer
 - **8.2** Loadouts + Snapshots
 - **8.3** RespecManager
-- **8.4** PluginManager + HookRunner
+- **8.4** PluginManager + HookRunner — **inclúe**: modelo expandido de
+  Permissions vía hooks (`beforeCreateEngine`, `beforeSaveBuild`,
+  `beforeApplyChanges`, etc.). Paralelo á interface mínima
+  `PermissionChecker` entregada en 6.5; os consumidores que precisen
+  ACL/RBAC/policies declarativas implementarán hook callbacks en 8.4.
 - **8.5** Plugins oficiais (History, Debug)
 - **8.6** SearchPlugin + @search package
 - **8.7** ValidatorEngine + built-in rules
@@ -2374,7 +2380,9 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 ## A.1–A.2 — Estado actual
 
 Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA. Fase 3 PECHADA.
-Fase 4 PECHADA. 🎉 FASE 5 PECHADA (Sub-trees + Federation completos).**
+Fase 4 PECHADA. Fase 5 PECHADA (Sub-trees + Federation completos).
+🚧 FASE 6 EN CURSO (TreeRegistry + Multi-tenancy): 6.1, 6.2, 6.3
+pechadas; 6.4 (Quotas) + 6.5 (Permissions mínima) pendentes.**
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
@@ -2420,8 +2428,12 @@ Fase 4 PECHADA. 🎉 FASE 5 PECHADA (Sub-trees + Federation completos).**
 | **5.1 SubtreeManager standalone** | Feito | `2fd2e6a` | 1263 core |
 | **5.2 Recursive engine integration** | Feito | `1f7de89` | 1306 core |
 | **5.3 Federator (mergeTreeDefs + detectConflicts)** | Feito | `953cda7` | 1381 core |
+| docs: close Phase 5 in MASTER | Feito | `b8b6d89` | — |
+| **6.1 TreeRegistry (lifecycle + builds + 3 cache strategies)** | Feito | `2ddc511` | 1457 core |
+| **6.2 Aggregate queries (4 queries directas sobre storage)** | Feito | `8de28f6` | 1481 core |
+| **6.3 ScopedStorage (tenant isolation adapter)** | Feito | `60a2305` | 193 storage |
 
-**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. 🎉 FASE 5 PECHADA OFICIALMENTE.**
+**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. 🚧 FASE 6 EN CURSO (3/5 sub-fases pechadas; cadea 3.0 → 6.3 = 21 sub-fases consecutivas con cero rollbacks).**
 
 **Métricas Fase 3 finais (3.0–3.6.b):**
 - 0 escalados funcionais (cero asimetrías abertas).
@@ -2454,6 +2466,11 @@ Fase 4 PECHADA. 🎉 FASE 5 PECHADA (Sub-trees + Federation completos).**
 | DT-18 | Tras 4.5, cobertura global core baixou a 97.91% (de 98.05%). 0.04 puntos por encima do tope ≤0.1 prescrito no briefing. Atribuíble a ramas defensivas legítimas en PathBuilder (1 rama imposible por `noUncheckedIndexedAccess`) e QuadTree (2 ramas de nearest-neighbor: prune + ordenación de visita). **Cero impacto funcional**. **Plan**: hardening cosmético opcional cando se aborde DT-17. | Aberta cosmética |
 | DT-19 | Budget compartido entre parent e sub-engines non implementado en 5.2. **Modelo actual**: cada sub-engine usa o seu propio budget illado (configurable via `subtreeOverrides.budget` ou recuperado desde `parentState.subtreeStates[id].budget` via `initialState`). **Para implementar compartido** (modelo PoE estrito): refactor de ResourceManager con `BudgetSource` inxectable + dúas codepaths en TreeEngine.unlock/respec/lock. **Diferido** a sub-fase específica de hardening cando exista caso de uso real demostrado. Cero impacto funcional. | Aberta non bloqueante |
 | DT-20 | `Federator.loadFederation(sources)` non implementado en 5.3. Require decisión arquitectónica sobre `FederationSource` shape (URL+CORS? File? Storage? Plugin?). Cero spec MASTER, cero caso de uso real documentado. `mergeTreeDefs` + `detectConflicts` cumpren o caso core (consumidor carga TreeDefs e pasa array). **Diferido** a sub-fase específica futura cando exista demanda real (probable Fase 7 React renderer ou plugin system). Cero impacto funcional. | Aberta non bloqueante |
+| DT-21 | `StorageAdapter` interface vive en `@yggdrasil-forge/storage`. En 6.1, ao engadir `TreeRegistry` que require `StorageAdapter` no constructor, creouse a dependencia `core → storage`. **Ideal arquitectónico**: mover a interface a `@yggdrasil-forge/common` (paralelo ao movemento de `Result` na 3.0); as implementacións concretas seguirían en `storage`. Cero impacto funcional (a dependencia non é circular: storage → common, core → common, core → storage). **Diferido**: require breaking change menor (imports cambiarían `from '@yggdrasil-forge/storage'` a `from '@yggdrasil-forge/common'`) que se acometerá nun ciclo de hardening anterior á 0.1.0-alpha. | Aberta non bloqueante |
+| DT-22 | `TreeRegistry.ts` (sub-fase 6.1) entregou con cobertura Branch 85.1% (dúas ramas defensivas: `all-in-memory` cache miss fallback + `evictLRU else break`; ambas inalcanzables por API pública). **PECHADA en 6.2**: o executor engadiu `/* v8 ignore next */ + xustificación inline` ás ramas defensivas (incluíndo outras catro en `load()`/`loadEngineFromStorage`/`clear()` para adapters con I/O), levando a cobertura global core de 97.26% a 97.49% (+0.23pp). Acción aliñada coa lección 6.1 L1 (c8 ignore preferible a baixadas globais). | **PECHADA en 6.2 (8de28f6)** |
+| DT-23 | `BULK_OPERATION_FAILED` (YGG_E010) está declarado en `packages/common/src/errors/codes.ts` con mensaxe localizada (`{nodeId}/{reason}`) deseñada para "fallou en nodo X durante operación bulk", **pero nunca cableado** en ningún callsite do proxecto. Foi unha reserva semántica do brifing temprano (probablemente 1.x) que ningunha sub-fase emitiu. En 6.1 estivo a piques de reutilizarse para `applyChangesToAll`, pero os placeholders eran incompatibles co payload (`{count}`); resolveuse creando YGG_E032 (`APPLY_CHANGES_FAILED`) en lugar. **Plan**: ou ben cablear `BULK_OPERATION_FAILED` cando proceda (ex: TreeEngine.applyChanges fallo por-nodo), ou eliminar nun ciclo de hixiene se non hai caso de uso planificado tras Fase 8. Cero impacto funcional. | Aberta non bloqueante |
+| DT-24 | `TreeEngine.setProgress(nodeId, percent)` require que o NodeDef ten `progressSource: { type: 'manual' }` (ou compatible) configurado. Esta precondición **non está documentada explícitamente no JSDoc de `setProgress`** nin no MASTER §7.7 (ProgressSourceConfig). Cazada empíricamente polo executor en 6.2 cando construíu tests con NodeDefs por defecto. **Plan**: engadir nota explicativa ao JSDoc de `setProgress` e/ou a `§7.7` do MASTER, e/ou un erro máis informativo cando se chama setProgress sobre un nodo sen progressSource manual. Cero impacto funcional (o erro actual emite código existente, simplemente é menos pedagóxico que podería). | Aberta non bloqueante, cosmética |
+| DT-25 | Briefings de Fases 4, 5 e 6 (ata 6.3) non están trackeados nun commit `docs:` consolidado (paralelo a `1fe9374` que rexistrou os de Fase 3). Anotado como pendente nos peches A.9.c e A.9.d. **Plan**: commit único `docs: briefings phases 4+5+6` ao peche definitivo de Fase 6 (tras 6.5). Cero impacto funcional, só housekeeping. | Aberta non bloqueante, cosmética |
 
 **0 débeda funcional crítica. 0 asimetrías coñecidas.**
 
@@ -2507,8 +2524,12 @@ Fase 4 PECHADA. 🎉 FASE 5 PECHADA (Sub-trees + Federation completos).**
 | `MERGE_INVALID_INPUT` | `YGG_E026` | Engine | 5.3 |
 | `MERGE_CONFLICTS_DETECTED` | `YGG_E027` | Engine | 5.3 |
 | `MERGE_INCOMPATIBLE_SCHEMA` | `YGG_E028` | Engine | 5.3 |
+| `TREE_REGISTRY_USER_NOT_FOUND` | `YGG_E029` | TreeRegistry | 6.1 |
+| `TREE_REGISTRY_USER_EXISTS` | `YGG_E030` | TreeRegistry | 6.1 |
+| `TREE_REGISTRY_BUILD_NOT_FOUND` | `YGG_E031` | TreeRegistry | 6.1 |
+| `APPLY_CHANGES_FAILED` | `YGG_E032` | TreeRegistry | 6.1 (resolución 6.1 L2 — ver DT-23) |
 
-**Total: 49 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA).**
+**Total: 53 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA). +4 entradas en YGG_E durante Fase 6.1 (TREE_REGISTRY_USER_NOT_FOUND, TREE_REGISTRY_USER_EXISTS, TREE_REGISTRY_BUILD_NOT_FOUND, APPLY_CHANGES_FAILED).**
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
@@ -2857,6 +2878,37 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   previa debe `grep -n "^  get" TreeEngine.ts` para listar a API
   real** antes de prescribir chamadas no pseudo-código.
 
+**Fase 6 (en curso — 6.1, 6.2, 6.3 pechadas):**
+- **6.1 L1 (c8 ignore preferible a tolerar baixadas globais)**: en 6.1
+  o entregue `TreeRegistry.ts` tiña dúas ramas defensivas verificablemente
+  inalcanzables por API pública (`all-in-memory` cache miss + `evictLRU
+  else break`). O briefing 6.1 §5.15 prescribía non baixar a cobertura
+  global, pero a peza nova (555 liñas, cobertura propia 94.53/85.1/100/98.85)
+  baixou a media de 97.42% a 97.26%. Foi tolerada como anomalía
+  matemática inevitable. **Lección estructural**: cando unha peza nova
+  ten ramas defensivas inalcanzables, **anotar con `/* v8 ignore next */
+  + xustificación inline é preferible a aceptar baixadas globais**.
+  Iso evita que o baseline drift acumule descenso ao longo de varias
+  sub-fases. Patrón consistente con TreeLayout (4.3, DT-17) e
+  PathBuilder/QuadTree (4.5, DT-18) que tamén optaron por aceptar
+  baixadas; **a partir de Fase 6 a preferencia é v8 ignore proactivo**.
+- **6.2 L1 (resolución proactiva de débedas de cobertura)**: en 6.2 o
+  executor aplicou a lección 6.1 L1 retroactivamente: engadiu 7 v8
+  ignores ás ramas defensivas xenuinas de `TreeRegistry.ts` (incluíndo
+  4 liñas preexistentes de 6.1), levando a cobertura global core de
+  97.26% a 97.49% (+0.23pp) e resolvendo DT-22 de facto. **Tecnicamente
+  excedeu o scope do briefing §5.13** ("cero modificación de pezas
+  existentes"), pero aplicando exclusivamente comentarios (cero cambio
+  semántico). **Lección estructural**: cando unha sub-fase nova toca
+  un módulo con débedas de cobertura preexistentes, anotar v8 ignore
+  proactivo é unha intervención mínima aceptable se: (a) é só
+  comentario, (b) elimina unha DT explícita, (c) sobe a cobertura
+  global. Documentar a DT como PECHADA no peche de fase ou na seguinte
+  hixiene. **Director aprobou retroactivamente** o comportamento do
+  executor; rexistro formal como lección. Patrón aplicable a outras
+  DT de cobertura abertas (DT-17 TreeLayout, DT-18 QuadTree+PathBuilder)
+  cando se aborden as áreas correspondentes nunha sub-fase futura.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
@@ -2877,7 +2929,18 @@ consolidación canónica diferida.
 potencialmente `undefined`, spread condicional `...(value !== undefined
 && { field: value })`.
 
-### A.7 X — Consellos do executor saliente (post-2.4.e, extendidos
+**Subdivisión consciente de Fase 6 (Director Yggdrasil 3, 10-jun-2026)**:
+o §67 orixinal lista Fase 6 como 3 sub-fases (`6.1 TreeRegistry`,
+`6.2 Aggregate queries`, `6.3 ScopedStorage + Quotas + Permissions`).
+A xestión real partiu de forma consciente en **5 sub-fases**:
+`6.1 TreeRegistry`, `6.2 Aggregate queries`, `6.3 ScopedStorage`,
+`6.4 Quotas`, `6.5 Permissions (interface mínima)`. Razóns:
+(a) mantén o ritmo de 1-1.5h por sub-fase do proxecto; (b) reduce
+risco arquitectónico individual; (c) Permissions enterga só interface
+mínima (`PermissionChecker` opcional) co modelo completo diferido a
+8.4 PluginManager + HookRunner. Patrón análogo á familia 2.4 de Fase 2
+("acoutar > ambicionar"). **Cero impacto funcional**; só afecta á
+contabilidade de sub-fases (Fase 6 = 5 entregas, non 3). (post-2.4.e, extendidos
 post-2.6.fix2)
 
 - **Verificacións T0 antes de tocar nada** salvaron premisas erróneas
