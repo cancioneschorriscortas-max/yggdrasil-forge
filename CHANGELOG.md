@@ -8,6 +8,34 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `@yggdrasil-forge/storage`: nova clase `ScopedStorage` que envolve
+  outro `StorageAdapter` e prefixa todas as claves cun `scope:`, para
+  illar tenants nun storage compartido.
+  - Constructor: `new ScopedStorage(base, scope)` (2 args posicionais,
+    sen options).
+  - Validación síncrona: rexeita scope vacío e scope con `':'`.
+  - `clear()` itera `list(scope:) + delete` cada clave (O(n)) para
+    preservar isolation cross-scope; NUNCA delega a `base.clear()`.
+  - `watch` exposta condicionalmente só se o base storage a soporta.
+  - Anidación soportada transparentemente
+    (`ScopedStorage(ScopedStorage(base, 's1'), 's2')` resulta en
+    claves `s2:s1:key`).
+
+### Note
+
+- Sub-fase 6.3 TERCEIRA da Fase 6.
+- Quotas + Permissions DIFERIDOS a 6.4.
+- **Subdivisión consciente**: MASTER §67 consolida `6.3 = ScopedStorage
+  + Quotas + Permissions`; o director mantén a subdivisión adoptada en
+  briefings 6.1+6.2 para reducir scope por sub-fase.
+- **Cero modificación** de outros adapters, de `StorageAdapter`
+  interface, de `packages/common/`, ou de `packages/core/`.
+- **Cero ErrorCodes novos**.
+
+## [Unreleased]
+
+### Added
+
 - `TreeRegistry` aggregate queries (todas operan directamente sobre
   storage sen instanciar TreeEngines):
   - `getAggregateStats(): Promise<AggregateStats>` — métricas globais

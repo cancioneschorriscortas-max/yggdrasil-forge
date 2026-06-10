@@ -12,6 +12,7 @@ export { SessionStorageAdapter } from './SessionStorageAdapter.js'
 export type { SessionStorageAdapterOptions } from './SessionStorageAdapter.js'
 export { FileSystemAdapter } from './FileSystemAdapter.js'
 export type { FileSystemAdapterOptions } from './FileSystemAdapter.js'
+export { ScopedStorage } from './ScopedStorage.js'
 
 /**
  * Versión actual do paquete.
