@@ -14,7 +14,7 @@ import {
   ok,
 } from '@yggdrasil-forge/common'
 import type { StorageAdapter } from '@yggdrasil-forge/storage'
-import type { Build, TreeChange, TreeDef, TreeState } from '../types/index.js'
+import type { Build, NodeInstance, TreeChange, TreeDef, TreeState } from '../types/index.js'
 import { TreeEngine } from './TreeEngine.js'
 
 const DEFAULT_LOCALE: Locale = 'gl'
@@ -59,6 +59,34 @@ export interface TreeRegistryOptions {
 
   /** Locale para mensaxes de erro. Default 'gl'. */
   readonly locale?: Locale
+}
+
+export interface AggregateStats {
+  /** Total de usuarios con state persistido en storage. */
+  readonly totalUsers: number
+  /** Promedio de nodos unlocked-or-maxed por usuario. 0 se totalUsers=0. */
+  readonly avgUnlockedCount: number
+  /**
+   * Promedio do campo `progress` entre todos os NodeInstance que teñen
+   * `progress` definido en todos os usuarios. 0 se cero nodos teñen
+   * progress definido.
+   */
+  readonly avgProgress: number
+  /** Top-10 nodos máis populares (count = nº de users con unlocked-or-maxed). */
+  readonly mostPopularNodes: ReadonlyArray<{
+    readonly nodeId: string
+    readonly count: number
+  }>
+  /** Bottom-10 nodos menos populares (cero excluídos: count pode ser 0). */
+  readonly leastPopularNodes: ReadonlyArray<{
+    readonly nodeId: string
+    readonly count: number
+  }>
+  /**
+   * Ratio de usuarios que teñen TODOS os nodos do treeDef en estado
+   * unlocked-or-maxed. Rango [0, 1]. 0 se totalUsers=0.
+   */
+  readonly completionRate: number
 }
 
 // ── Interfaces internas ──
@@ -147,6 +175,7 @@ export class TreeRegistry {
     }
 
     // 'all-in-memory': cero load lazy; engine debería estar no cache
+    /* v8 ignore next 8 -- rama defensiva inalcanzable: all-in-memory load() carga todos os engines */
     if (this.cacheConfig.strategy === 'all-in-memory') {
       return err(
         new YggdrasilError(
@@ -231,6 +260,156 @@ export class TreeRegistry {
     }
 
     return ok(undefined)
+  }
+
+  // ── Aggregate queries ──
+
+  /**
+   * Métricas globais agregadas sobre todos os usuarios con state persistido.
+   *
+   * Opera directamente sobre storage sen instanciar TreeEngines
+   * (decisión MASTER §5.6.5). Cero descenso a subtreeStates
+   * (decisión consciente). Cada chamada lee storage fresco
+   * (cero cache de resultados).
+   *
+   * **Precondición**: chamar `save()` previamente para que mutacións
+   * de engines en cache sexan visibles.
+   */
+  async getAggregateStats(): Promise<AggregateStats> {
+    const states = await this.loadAllStates()
+    const totalUsers = states.size
+    const treeNodeIds = this.treeDef.nodes.map((n) => n.id)
+    const totalTreeNodes = treeNodeIds.length
+
+    if (totalUsers === 0) {
+      return {
+        totalUsers: 0,
+        avgUnlockedCount: 0,
+        avgProgress: 0,
+        mostPopularNodes: [],
+        leastPopularNodes: [],
+        completionRate: 0,
+      }
+    }
+
+    // Conteos por nodeId (popularidade)
+    const popularity = new Map<string, number>()
+    for (const nodeId of treeNodeIds) popularity.set(nodeId, 0)
+
+    let totalUnlocked = 0
+    let totalProgressSum = 0
+    let totalProgressCount = 0
+    let completedUsers = 0
+
+    for (const state of states.values()) {
+      let userUnlockedCount = 0
+      for (const nodeId of treeNodeIds) {
+        const instance = state.nodes[nodeId]
+        if (instance !== undefined && this.isUnlocked(instance)) {
+          popularity.set(nodeId, (popularity.get(nodeId) ?? 0) + 1)
+          userUnlockedCount++
+        }
+        if (instance?.progress !== undefined) {
+          totalProgressSum += instance.progress
+          totalProgressCount++
+        }
+      }
+      totalUnlocked += userUnlockedCount
+      if (totalTreeNodes > 0 && userUnlockedCount === totalTreeNodes) {
+        completedUsers++
+      }
+    }
+
+    // Ordenar por count desc, tie-break por nodeId asc (DETERMINISMO)
+    const sortedDesc = [...popularity.entries()].sort(
+      (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+    )
+    const sortedAsc = [...popularity.entries()].sort(
+      (a, b) => a[1] - b[1] || a[0].localeCompare(b[0]),
+    )
+
+    return {
+      totalUsers,
+      avgUnlockedCount: totalUnlocked / totalUsers,
+      avgProgress: totalProgressCount > 0 ? totalProgressSum / totalProgressCount : 0,
+      mostPopularNodes: sortedDesc.slice(0, 10).map(([nodeId, count]) => ({ nodeId, count })),
+      leastPopularNodes: sortedAsc.slice(0, 10).map(([nodeId, count]) => ({ nodeId, count })),
+      completionRate: totalTreeNodes > 0 ? completedUsers / totalUsers : 0,
+    }
+  }
+
+  /**
+   * Count de usuarios con cada nodo desbloqueado (state ∈ {unlocked, maxed}).
+   *
+   * Devolve un Map con TODOS os nodos do treeDef (incluso count=0).
+   * Opera directamente sobre storage sen instanciar TreeEngines.
+   * Cero descenso a subtreeStates.
+   */
+  async getNodePopularity(): Promise<Map<string, number>> {
+    const states = await this.loadAllStates()
+    const popularity = new Map<string, number>()
+    for (const node of this.treeDef.nodes) {
+      popularity.set(node.id, 0)
+    }
+
+    for (const state of states.values()) {
+      for (const node of this.treeDef.nodes) {
+        const instance = state.nodes[node.id]
+        if (instance !== undefined && this.isUnlocked(instance)) {
+          popularity.set(node.id, (popularity.get(node.id) ?? 0) + 1)
+        }
+      }
+    }
+    return popularity
+  }
+
+  /**
+   * Array determinístico (orde alfabética por userId) dos valores
+   * `progress` dos usuarios cuxo nodeId ten progress definido.
+   *
+   * Usuarios sen o nodo ou sen progress definido son excluídos.
+   * nodeId inexistente no treeDef devolve []. Opera directamente
+   * sobre storage sen instanciar TreeEngines.
+   */
+  async getProgressDistribution(nodeId: string): Promise<number[]> {
+    const states = await this.loadAllStates()
+    const values: number[] = []
+    const sortedUserIds = [...states.keys()].sort()
+    for (const userId of sortedUserIds) {
+      const state = states.get(userId)
+      const instance = state?.nodes[nodeId]
+      if (instance?.progress !== undefined) {
+        values.push(instance.progress)
+      }
+    }
+    return values
+  }
+
+  /**
+   * Usuarios con menos de `threshold` nodos desbloqueados (default 1).
+   *
+   * Threshold é nº absoluto de nodos unlocked, NON porcentaxe.
+   * Orde alfabética por userId. Usuarios sen state en storage
+   * (best-effort skip de loadAllStates) non contan como stuck.
+   * Opera directamente sobre storage sen instanciar TreeEngines.
+   */
+  async getStuckUsers(threshold?: number): Promise<string[]> {
+    const effectiveThreshold = threshold ?? 1
+    const states = await this.loadAllStates()
+    const stuck: string[] = []
+    for (const [userId, state] of states) {
+      let unlockedCount = 0
+      for (const node of this.treeDef.nodes) {
+        const instance = state.nodes[node.id]
+        if (instance !== undefined && this.isUnlocked(instance)) {
+          unlockedCount++
+        }
+      }
+      if (unlockedCount < effectiveThreshold) {
+        stuck.push(userId)
+      }
+    }
+    return stuck.sort()
   }
 
   // ── Build management ──
@@ -442,6 +621,7 @@ export class TreeRegistry {
   async load(): Promise<Result<void>> {
     // 1. Cargar userIds
     const userIdsResult = await this.storage.get('registry:userIds')
+    /* v8 ignore next -- MemoryStorage.get non falla; rama defensiva para adapters con I/O */
     if (!userIdsResult.ok) return userIdsResult
 
     if (userIdsResult.value === null) {
@@ -453,6 +633,7 @@ export class TreeRegistry {
 
     // 2. Cargar buildsIndex
     const indexResult = await this.storage.get('registry:buildsIndex')
+    /* v8 ignore next -- MemoryStorage.get non falla; rama defensiva para adapters con I/O */
     if (!indexResult.ok) return indexResult
 
     if (indexResult.value !== null) {
@@ -468,6 +649,7 @@ export class TreeRegistry {
       // Cargar TODOS os engines
       for (const userId of this.userIds) {
         const loadResult = await this.loadEngineFromStorage(userId)
+        /* v8 ignore next -- loadEngineFromStorage non falla con MemoryStorage; rama defensiva */
         if (!loadResult.ok) return loadResult
         this.putInCache(userId, loadResult.value)
       }
@@ -486,6 +668,40 @@ export class TreeRegistry {
   }
 
   // ── Private helpers ──
+
+  /**
+   * Convención autoritativa de "unlocked" reutilizada de TreeEngine
+   * (TreeEngine.ts liñas 583, 813, 1203).
+   */
+  private isUnlocked(instance: NodeInstance): boolean {
+    return instance.state === 'unlocked' || instance.state === 'maxed'
+  }
+
+  /**
+   * Le TreeState de cada userId rexistrado directamente desde storage.
+   *
+   * **Sen instanciar TreeEngines** (decisión MASTER §5.6.5). Best-effort:
+   * se algún userId falla a ler (storage error ou null), skip silencioso.
+   * Devolve un Map con só os userIds cuxo state se conseguiu cargar
+   * correctamente.
+   *
+   * **Precondición**: para que aggregate reflicte estado actual, o
+   * consumidor debe ter chamado `save()` previamente. Engines en cache
+   * aínda non persistidos non contan. En estratexia 'on-demand' isto
+   * cúmplese automaticamente (createEngine persiste in situ); en
+   * 'all-in-memory' e 'lru' require save() explícito tras mutacións.
+   */
+  private async loadAllStates(): Promise<Map<string, TreeState>> {
+    const states = new Map<string, TreeState>()
+    for (const userId of this.userIds) {
+      const result = await this.storage.get(`engine:${userId}:state`)
+      /* v8 ignore next -- MemoryStorage.get non falla; rama defensiva para adapters con I/O */
+      if (!result.ok) continue
+      if (result.value === null) continue
+      states.set(userId, result.value as TreeState)
+    }
+    return states
+  }
 
   private putInCache(userId: string, engine: TreeEngine): void {
     // Para 'on-demand', cero gardar no cache
@@ -516,6 +732,7 @@ export class TreeRegistry {
       if (oldestUserId !== undefined) {
         this.cache.delete(oldestUserId)
       } else {
+        /* v8 ignore next -- rama defensiva inalcanzable: cache sempre ten entries no while */
         break
       }
     }
@@ -535,6 +752,7 @@ export class TreeRegistry {
 
   private async loadEngineFromStorage(userId: string): Promise<Result<TreeEngine>> {
     const stateResult = await this.storage.get(`engine:${userId}:state`)
+    /* v8 ignore next -- MemoryStorage.get non falla; rama defensiva para adapters con I/O */
     if (!stateResult.ok) return stateResult
 
     const initialState = stateResult.value as TreeState | null

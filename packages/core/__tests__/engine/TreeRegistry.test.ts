@@ -1041,3 +1041,351 @@ describe('TreeRegistry — edge cases de cobertura', () => {
     expect(result.ok).toBe(true)
   })
 })
+
+// ── Aggregate queries ──
+
+/** TreeDef con supportsProgress para tests de progress. */
+function makeProgressTreeDef(): TreeDef {
+  return {
+    id: 'prog-tree',
+    schemaVersion: '1.0.0',
+    version: '1.0.0',
+    label: 'Progress Tree',
+    nodes: [
+      {
+        id: 'p1',
+        type: 'skill',
+        label: 'P1',
+        supportsProgress: true,
+        progressSource: { type: 'manual' },
+      },
+      {
+        id: 'p2',
+        type: 'skill',
+        label: 'P2',
+        supportsProgress: true,
+        progressSource: { type: 'manual' },
+      },
+      { id: 'p3', type: 'skill', label: 'P3' },
+    ],
+    edges: [],
+    layout: { type: 'identity' },
+  }
+}
+
+/**
+ * Crea un registry con usuarios, desbloquea nodos e opcionalmente
+ * establece progress. Chama save() ao final para persistir.
+ */
+async function setupRegistryWithUsers(
+  users: Array<{
+    id: string
+    unlockedNodes: string[]
+    progress?: Record<string, number>
+  }>,
+  treeDef: TreeDef = makeTreeDef(),
+): Promise<TreeRegistry> {
+  const registry = new TreeRegistry(treeDef, makeOptions({ strategy: 'all-in-memory' }))
+  for (const u of users) {
+    const createRes = await registry.createEngine(u.id)
+    if (!createRes.ok) {
+      throw new Error(`createEngine fallou: ${createRes.error.code}`)
+    }
+    const eng = createRes.value
+    for (const nodeId of u.unlockedNodes) {
+      const r = await eng.unlock(nodeId)
+      if (!r.ok) {
+        throw new Error(`unlock fallou: ${r.error.code}`)
+      }
+    }
+    if (u.progress !== undefined) {
+      for (const [nodeId, value] of Object.entries(u.progress)) {
+        const r = eng.setProgress(nodeId, value)
+        if (!r.ok) {
+          throw new Error(`setProgress fallou: ${r.error.code}`)
+        }
+      }
+    }
+  }
+  await registry.save()
+  return registry
+}
+
+describe('TreeRegistry — aggregate queries — getAggregateStats', () => {
+  it('0 usuarios: todos os campos en 0, arrays vacíos', async () => {
+    const registry = new TreeRegistry(makeTreeDef(), makeOptions({ strategy: 'all-in-memory' }))
+    const stats = await registry.getAggregateStats()
+    expect(stats.totalUsers).toBe(0)
+    expect(stats.avgUnlockedCount).toBe(0)
+    expect(stats.avgProgress).toBe(0)
+    expect(stats.mostPopularNodes).toEqual([])
+    expect(stats.leastPopularNodes).toEqual([])
+    expect(stats.completionRate).toBe(0)
+  })
+
+  it('createEngine sen save: totalUsers=0 (non persistido)', async () => {
+    const registry = new TreeRegistry(makeTreeDef(), makeOptions({ strategy: 'all-in-memory' }))
+    await registry.createEngine('alice')
+    // SEN chamar save()
+    const stats = await registry.getAggregateStats()
+    expect(stats.totalUsers).toBe(0)
+  })
+
+  it('N usuarios con unlocks mixtos: avgUnlockedCount correcto', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1'] },
+      { id: 'bob', unlockedNodes: ['n1', 'n2'] },
+    ])
+    const stats = await registry.getAggregateStats()
+    expect(stats.totalUsers).toBe(2)
+    expect(stats.avgUnlockedCount).toBe(1.5)
+  })
+
+  it('N usuarios con progress parcial: avgProgress correcto', async () => {
+    const td = makeProgressTreeDef()
+    const registry = await setupRegistryWithUsers(
+      [
+        { id: 'alice', unlockedNodes: [], progress: { p1: 50 } },
+        { id: 'bob', unlockedNodes: [], progress: { p1: 100, p2: 80 } },
+      ],
+      td,
+    )
+    const stats = await registry.getAggregateStats()
+    // 3 valores: 50+100+80 = 230, media = 230/3
+    expect(stats.avgProgress).toBeCloseTo(230 / 3)
+  })
+
+  it('mostPopular / leastPopular con tie-break alfabético', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1'] },
+      { id: 'bob', unlockedNodes: ['n1'] },
+    ])
+    const stats = await registry.getAggregateStats()
+    // n1 count=2, n2 count=0
+    expect(stats.mostPopularNodes[0]).toEqual({
+      nodeId: 'n1',
+      count: 2,
+    })
+    expect(stats.leastPopularNodes[0]).toEqual({
+      nodeId: 'n2',
+      count: 0,
+    })
+  })
+
+  it('completionRate=1 cando todos completaron', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1', 'n2'] },
+      { id: 'bob', unlockedNodes: ['n1', 'n2'] },
+    ])
+    const stats = await registry.getAggregateStats()
+    expect(stats.completionRate).toBe(1)
+  })
+
+  it('completionRate mixto: algúns completaron, algúns non', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1', 'n2'] },
+      { id: 'bob', unlockedNodes: ['n1'] },
+    ])
+    const stats = await registry.getAggregateStats()
+    expect(stats.completionRate).toBe(0.5)
+  })
+})
+
+describe('TreeRegistry — aggregate queries — getNodePopularity', () => {
+  it('0 usuarios: Map con todos nodos a 0', async () => {
+    const registry = new TreeRegistry(makeTreeDef(), makeOptions({ strategy: 'all-in-memory' }))
+    const pop = await registry.getNodePopularity()
+    expect(pop.get('n1')).toBe(0)
+    expect(pop.get('n2')).toBe(0)
+  })
+
+  it('N usuarios con unlocks diferentes: count correcto', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1'] },
+      { id: 'bob', unlockedNodes: ['n1', 'n2'] },
+      { id: 'carol', unlockedNodes: [] },
+    ])
+    const pop = await registry.getNodePopularity()
+    expect(pop.get('n1')).toBe(2)
+    expect(pop.get('n2')).toBe(1)
+  })
+
+  it('inclúe nodos nunca desbloqueados (count=0)', async () => {
+    const registry = await setupRegistryWithUsers([{ id: 'alice', unlockedNodes: ['n1'] }])
+    const pop = await registry.getNodePopularity()
+    expect(pop.has('n2')).toBe(true)
+    expect(pop.get('n2')).toBe(0)
+  })
+
+  it('determinismo: dúas chamadas devolven Maps equivalentes', async () => {
+    const registry = await setupRegistryWithUsers([{ id: 'alice', unlockedNodes: ['n1'] }])
+    const pop1 = await registry.getNodePopularity()
+    const pop2 = await registry.getNodePopularity()
+    expect([...pop1.entries()]).toEqual([...pop2.entries()])
+  })
+})
+
+describe('TreeRegistry — aggregate queries — getProgressDistribution', () => {
+  it('0 usuarios: []', async () => {
+    const registry = new TreeRegistry(
+      makeProgressTreeDef(),
+      makeOptions({ strategy: 'all-in-memory' }),
+    )
+    const dist = await registry.getProgressDistribution('p1')
+    expect(dist).toEqual([])
+  })
+
+  it('nodeId inexistente no treeDef: []', async () => {
+    const td = makeProgressTreeDef()
+    const registry = await setupRegistryWithUsers(
+      [{ id: 'alice', unlockedNodes: [], progress: { p1: 50 } }],
+      td,
+    )
+    const dist = await registry.getProgressDistribution('nonexistent')
+    expect(dist).toEqual([])
+  })
+
+  it('N usuarios con progress: array ordenado por userId', async () => {
+    const td = makeProgressTreeDef()
+    const registry = await setupRegistryWithUsers(
+      [
+        { id: 'carol', unlockedNodes: [], progress: { p1: 30 } },
+        { id: 'alice', unlockedNodes: [], progress: { p1: 70 } },
+        { id: 'bob', unlockedNodes: [], progress: { p1: 50 } },
+      ],
+      td,
+    )
+    const dist = await registry.getProgressDistribution('p1')
+    // Orde alfabética por userId: alice=70, bob=50, carol=30
+    expect(dist).toEqual([70, 50, 30])
+  })
+
+  it('usuarios sen progress para o nodeId: excluídos', async () => {
+    const td = makeProgressTreeDef()
+    const registry = await setupRegistryWithUsers(
+      [
+        { id: 'alice', unlockedNodes: [], progress: { p1: 50 } },
+        { id: 'bob', unlockedNodes: [] },
+      ],
+      td,
+    )
+    const dist = await registry.getProgressDistribution('p1')
+    expect(dist).toEqual([50])
+  })
+})
+
+describe('TreeRegistry — aggregate queries — getStuckUsers', () => {
+  it('threshold default (1): usuarios con 0 unlocks', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1'] },
+      { id: 'bob', unlockedNodes: [] },
+    ])
+    const stuck = await registry.getStuckUsers()
+    expect(stuck).toEqual(['bob'])
+  })
+
+  it('threshold custom: usuarios con <N unlocks', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1', 'n2'] },
+      { id: 'bob', unlockedNodes: ['n1'] },
+      { id: 'carol', unlockedNodes: [] },
+    ])
+    const stuck = await registry.getStuckUsers(2)
+    // bob ten 1 <2, carol ten 0 <2
+    expect(stuck).toEqual(['bob', 'carol'])
+  })
+
+  it('0 usuarios: []', async () => {
+    const registry = new TreeRegistry(makeTreeDef(), makeOptions({ strategy: 'all-in-memory' }))
+    const stuck = await registry.getStuckUsers()
+    expect(stuck).toEqual([])
+  })
+
+  it('orde alfabética determinística', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'zara', unlockedNodes: [] },
+      { id: 'alice', unlockedNodes: [] },
+      { id: 'mike', unlockedNodes: [] },
+    ])
+    const stuck = await registry.getStuckUsers()
+    expect(stuck).toEqual(['alice', 'mike', 'zara'])
+  })
+})
+
+describe('TreeRegistry — aggregate queries — integración + edge cases', () => {
+  it('roundtrip: create → unlock → save → getAggregateStats consistente', async () => {
+    const registry = await setupRegistryWithUsers([{ id: 'alice', unlockedNodes: ['n1'] }])
+    const stats = await registry.getAggregateStats()
+    expect(stats.totalUsers).toBe(1)
+    expect(stats.avgUnlockedCount).toBe(1)
+  })
+
+  it('create → unlock → SEN save → getAggregateStats devolve stale', async () => {
+    const registry = await setupRegistryWithUsers([{ id: 'alice', unlockedNodes: ['n1'] }])
+    // Desbloquear n2 SEN save
+    const engR = await registry.getEngine('alice')
+    if (!engR.ok) throw new Error('getEngine fallou')
+    await engR.value.unlock('n2')
+    // SEN chamar save() → aggregate non ve n2
+    const stats = await registry.getAggregateStats()
+    expect(stats.avgUnlockedCount).toBe(1) // stale: só n1
+  })
+
+  it('storage error → skip silencioso, funciona coas restantes', async () => {
+    const storage = new MemoryStorage()
+    const registry = new TreeRegistry(
+      makeTreeDef(),
+      makeOptions({ strategy: 'all-in-memory' }, storage),
+    )
+    await registry.createEngine('alice')
+    const engR = await registry.getEngine('alice')
+    if (!engR.ok) throw new Error('getEngine fallou')
+    await engR.value.unlock('n1')
+    await registry.save()
+    // Corromper storage para un userId falso
+    // Engadir userId manualmente que non ten state
+    ;(registry as unknown as { userIds: Set<string> }).userIds.add('ghost')
+    const stats = await registry.getAggregateStats()
+    // Ghost é skipeado; alice persiste con n1 unlocked
+    expect(stats.totalUsers).toBe(1)
+    expect(stats.avgUnlockedCount).toBe(1)
+  })
+
+  it('subtreeStates non se descenden', async () => {
+    const storage = new MemoryStorage()
+    const registry = new TreeRegistry(
+      makeTreeDef(),
+      makeOptions({ strategy: 'all-in-memory' }, storage),
+    )
+    await registry.createEngine('alice')
+    await registry.save()
+    // Inxectar subtreeStates manualmente en storage
+    const stateR = await storage.get('engine:alice:state')
+    if (!stateR.ok || stateR.value === null) {
+      throw new Error('state non atopado')
+    }
+    const state = stateR.value as Record<string, unknown>
+    state.subtreeStates = {
+      sub1: {
+        nodes: { x: { id: 'x', state: 'unlocked', currentTier: 1 } },
+        budget: { resources: {} },
+      },
+    }
+    await storage.set('engine:alice:state', state)
+    const stats = await registry.getAggregateStats()
+    // Cero descenso: x non conta
+    expect(stats.avgUnlockedCount).toBe(0)
+  })
+
+  it('determinismo cross-call: mesmos datos, mesmos resultados', async () => {
+    const registry = await setupRegistryWithUsers([
+      { id: 'alice', unlockedNodes: ['n1'] },
+      { id: 'bob', unlockedNodes: ['n1', 'n2'] },
+    ])
+    const s1 = await registry.getAggregateStats()
+    const s2 = await registry.getAggregateStats()
+    const s3 = await registry.getAggregateStats()
+    expect(s1).toEqual(s2)
+    expect(s2).toEqual(s3)
+  })
+})

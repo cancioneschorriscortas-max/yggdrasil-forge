@@ -8,6 +8,43 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `TreeRegistry` aggregate queries (todas operan directamente sobre
+  storage sen instanciar TreeEngines):
+  - `getAggregateStats(): Promise<AggregateStats>` — métricas globais
+    (totalUsers, avgUnlockedCount, avgProgress, top/bottom-10 nodos
+    máis/menos populares, completionRate).
+  - `getNodePopularity(): Promise<Map<string, number>>` — count de
+    usuarios con cada nodo desbloqueado (state ∈ {unlocked, maxed}).
+    Inclúe nodos nunca desbloqueados (count=0).
+  - `getProgressDistribution(nodeId): Promise<number[]>` — array
+    determinístico (orde alfabética por userId) dos valores `progress`
+    dos usuarios cuxo nodeId ten progress definido.
+  - `getStuckUsers(threshold?): Promise<string[]>` — usuarios con
+    menos de `threshold` nodos desbloqueados (default 1). Orde
+    alfabética.
+- `AggregateStats` interface pública exportada desde core.
+
+### Note
+
+- Sub-fase 6.2 SEGUNDA da Fase 6. ScopedStorage (6.3), Quotas +
+  Permissions (6.4) seguen DIFERIDOS.
+- **Precondición de consistencia**: aggregate queries leen storage
+  directamente; para ver mutacións recentes de engines en cache
+  (estratexia 'all-in-memory' ou 'lru'), o consumidor debe chamar
+  `save()` previamente. 'on-demand' actualiza inmediatamente.
+- **Subtree handling**: cero descenso a `subtreeStates`. Análise de
+  sub-árbores diferida (sen signature prescrita).
+- **Determinismo**: tie-breaks alfabéticos por nodeId/userId.
+  `getProgressDistribution` devolve array ordenado por userId.
+- **Best-effort**: storage failures por usuario individual son
+  skipeados silenciosamente. `totalUsers` reflicte só usuarios con
+  state persistido.
+- **Cero ErrorCodes novos**, cero modificación de `@yggdrasil-forge/common`.
+
+## [Unreleased]
+
+### Added
+
 - `TreeRegistry` clase: xestor de múltiples TreeEngines compartindo
   un só TreeDef.
   - Lifecycle: `createEngine`, `getEngine`, `removeEngine`,
