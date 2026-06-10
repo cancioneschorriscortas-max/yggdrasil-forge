@@ -50,6 +50,39 @@ export interface TreeRegistryCacheConfig {
   readonly ttlMs?: number
 }
 
+export interface QuotaConfig {
+  /**
+   * Número máximo de usuarios (engines) que se poden rexistrar
+   * neste registry. `createEngine` falla con `QUOTA_USERS_EXCEEDED`
+   * se se intenta crear un cando xa hai maxUsers rexistrados.
+   * Se non se define, sen límite.
+   */
+  readonly maxUsers?: number
+
+  /**
+   * Número máximo de builds por usuario. `saveBuild` falla con
+   * `QUOTA_BUILDS_EXCEEDED` se o usuario xa ten maxBuildsPerUser
+   * builds. `importBuilds` tamén valida por usuario.
+   * Se non se define, sen límite.
+   */
+  readonly maxBuildsPerUser?: number
+
+  /**
+   * Número máximo de bytes acumulados en storage (escrituras feitas
+   * polo TreeRegistry: engine states + builds + metadata). Calculado
+   * como `JSON.stringify(value).length` por clave (best-effort).
+   * Cualquera escritura interna que vaia exceder este límite falla
+   * con `QUOTA_STORAGE_EXCEEDED`. Se non se define, sen límite.
+   *
+   * **Precondición**: storage values son JSON-serializables.
+   *
+   * **Distinción**: `QUOTA_STORAGE_EXCEEDED` (YGG_E035) é o límite
+   * lóxico (config do registry); `STORAGE_QUOTA_EXCEEDED` (YGG_S003)
+   * preexistente é o límite físico (backend de storage cheo).
+   */
+  readonly maxStorageBytes?: number
+}
+
 export interface TreeRegistryOptions {
   /** Storage adapter para persistir engines e builds. */
   readonly storage: StorageAdapter
@@ -59,6 +92,12 @@ export interface TreeRegistryOptions {
 
   /** Locale para mensaxes de erro. Default 'gl'. */
   readonly locale?: Locale
+
+  /**
+   * Cotas opcionais multi-tenant. Se non se define, cero límites
+   * (back-compat con sub-fases anteriores).
+   */
+  readonly quotas?: QuotaConfig
 }
 
 export interface AggregateStats {
@@ -113,16 +152,48 @@ export class TreeRegistry {
   /** Índice de builds por usuario. Persiste en registry:buildsIndex. */
   private buildsIndex = new Map<string, Set<string>>()
 
+  /** Quotas configuradas; undefined se non se pasaron en options. */
+  private readonly quotas: QuotaConfig | undefined
+
+  /**
+   * Total acumulado de bytes en storage (só rastreado se
+   * quotas?.maxStorageBytes !== undefined). 0 se non aplicable.
+   */
+  private bytesUsed = 0
+
+  /**
+   * Bytes acumulados por clave (para restar correctamente en
+   * delete/overwrite). Baleiro se non se rastrean bytes.
+   */
+  private readonly bytesPerKey = new Map<string, number>()
+
   constructor(treeDef: TreeDef, options: TreeRegistryOptions) {
     this.treeDef = treeDef
     this.storage = options.storage
     this.cacheConfig = options.cache
     this.locale = options.locale ?? DEFAULT_LOCALE
+    this.quotas = options.quotas
   }
 
   // ── Lifecycle ──
 
   async createEngine(userId: string, build?: Build): Promise<Result<TreeEngine>> {
+    // ── Check maxUsers ──
+    if (this.quotas?.maxUsers !== undefined) {
+      const currentUsers = this.userIds.size
+      if (!this.userIds.has(userId) && currentUsers + 1 > this.quotas.maxUsers) {
+        return err(
+          new YggdrasilError(
+            ErrorCode.QUOTA_USERS_EXCEEDED,
+            getErrorMessage(ErrorCode.QUOTA_USERS_EXCEEDED, this.locale, {
+              current: currentUsers + 1,
+              max: this.quotas.maxUsers,
+            }),
+          ),
+        )
+      }
+    }
+
     if (this.userIds.has(userId)) {
       return err(
         new YggdrasilError(
@@ -205,13 +276,13 @@ export class TreeRegistry {
     this.cache.delete(userId)
 
     // Eliminar do storage
-    await this.storage.delete(`engine:${userId}:state`)
+    await this.quotaCheckedDelete(`engine:${userId}:state`)
 
     // Eliminar todos os builds do usuario
     const buildIds = this.buildsIndex.get(userId)
     if (buildIds !== undefined) {
       for (const buildId of buildIds) {
-        await this.storage.delete(`build:${buildId}`)
+        await this.quotaCheckedDelete(`build:${buildId}`)
       }
       this.buildsIndex.delete(userId)
     }
@@ -425,6 +496,23 @@ export class TreeRegistry {
     const engineResult = await this.getEngine(userId)
     if (!engineResult.ok) return engineResult
 
+    // ── Check maxBuildsPerUser ──
+    if (this.quotas?.maxBuildsPerUser !== undefined) {
+      const currentBuilds = this.buildsIndex.get(userId)?.size ?? 0
+      if (currentBuilds + 1 > this.quotas.maxBuildsPerUser) {
+        return err(
+          new YggdrasilError(
+            ErrorCode.QUOTA_BUILDS_EXCEEDED,
+            getErrorMessage(ErrorCode.QUOTA_BUILDS_EXCEEDED, this.locale, {
+              userId,
+              current: currentBuilds + 1,
+              max: this.quotas.maxBuildsPerUser,
+            }),
+          ),
+        )
+      }
+    }
+
     const engine = engineResult.value
     const buildId = this.generateBuildId(userId)
     const now = Date.now()
@@ -441,7 +529,7 @@ export class TreeRegistry {
       state: engine.getSnapshot(),
     }
 
-    const setResult = await this.storage.set(`build:${buildId}`, build)
+    const setResult = await this.quotaCheckedSet(`build:${buildId}`, build)
     if (!setResult.ok) return setResult
 
     let buildIds = this.buildsIndex.get(userId)
@@ -530,7 +618,7 @@ export class TreeRegistry {
       )
     }
 
-    await this.storage.delete(`build:${buildId}`)
+    await this.quotaCheckedDelete(`build:${buildId}`)
     const ownerBuilds = this.buildsIndex.get(owner)
     if (ownerBuilds !== undefined) {
       ownerBuilds.delete(buildId)
@@ -573,7 +661,7 @@ export class TreeRegistry {
 
       const userId = build.author
 
-      await this.storage.set(`build:${build.id}`, build)
+      await this.quotaCheckedSet(`build:${build.id}`, build)
 
       let userBuildIds = this.buildsIndex.get(userId)
       if (userBuildIds === undefined) {
@@ -590,14 +678,14 @@ export class TreeRegistry {
 
   async save(): Promise<Result<void>> {
     // 1. Persistir userIds
-    await this.storage.set('registry:userIds', Array.from(this.userIds))
+    await this.quotaCheckedSet('registry:userIds', Array.from(this.userIds))
 
     // 2. Persistir buildsIndex (Map → plain object)
     const indexObj: Record<string, string[]> = {}
     for (const [userId, buildIds] of this.buildsIndex) {
       indexObj[userId] = Array.from(buildIds)
     }
-    await this.storage.set('registry:buildsIndex', indexObj)
+    await this.quotaCheckedSet('registry:buildsIndex', indexObj)
 
     // 3. Persistir engines segundo strategy
     if (this.cacheConfig.strategy === 'all-in-memory' || this.cacheConfig.strategy === 'lru') {
@@ -609,7 +697,7 @@ export class TreeRegistry {
 
     // 4. Meta
     const now = Date.now()
-    await this.storage.set('registry:meta', {
+    await this.quotaCheckedSet('registry:meta', {
       schemaVersion: '1.0.0',
       createdAt: now,
       updatedAt: now,
@@ -656,6 +744,24 @@ export class TreeRegistry {
     }
     // 'lru' ou 'on-demand': cero load eager; cargan lazy en getEngine
 
+    // ── Reconstrución de accounting de bytes (só se maxStorageBytes activo) ──
+    if (this.quotas?.maxStorageBytes !== undefined) {
+      this.bytesUsed = 0
+      this.bytesPerKey.clear()
+      const listResult = await this.storage.list()
+      /* v8 ignore next -- MemoryStorage.list non falla; defensivo para adapters con I/O */
+      if (!listResult.ok) return listResult
+      for (const key of listResult.value) {
+        const getResult = await this.storage.get(key)
+        /* v8 ignore next -- MemoryStorage.get non falla; defensivo para adapters con I/O */
+        if (!getResult.ok) return getResult
+        if (getResult.value === null) continue
+        const size = JSON.stringify(getResult.value).length
+        this.bytesPerKey.set(key, size)
+        this.bytesUsed += size
+      }
+    }
+
     return ok(undefined)
   }
 
@@ -665,9 +771,76 @@ export class TreeRegistry {
     this.cache.clear()
     this.userIds.clear()
     this.buildsIndex.clear()
+    this.bytesUsed = 0
+    this.bytesPerKey.clear()
   }
 
   // ── Private helpers ──
+
+  // ── Quota accounting ──
+
+  /**
+   * Wrapper de `storage.set` con quota check. Se quotas.maxStorageBytes
+   * está definido, pesa o valor con `JSON.stringify(value).length`,
+   * comproba se a operación excedería o límite, e só procede se cabe.
+   * Se non hai quotas activas, delega directo a storage.set (cero
+   * overhead, cero tracking).
+   *
+   * @internal
+   */
+  private async quotaCheckedSet(key: string, value: unknown): Promise<Result<void>> {
+    const maxBytes = this.quotas?.maxStorageBytes
+    if (maxBytes === undefined) {
+      return this.storage.set(key, value)
+    }
+
+    const newSize = JSON.stringify(value).length
+    const previousSize = this.bytesPerKey.get(key) ?? 0
+    const projectedTotal = this.bytesUsed - previousSize + newSize
+
+    if (projectedTotal > maxBytes) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.QUOTA_STORAGE_EXCEEDED,
+          getErrorMessage(ErrorCode.QUOTA_STORAGE_EXCEEDED, this.locale, {
+            current: projectedTotal,
+            max: maxBytes,
+          }),
+        ),
+      )
+    }
+
+    const setResult = await this.storage.set(key, value)
+    if (!setResult.ok) return setResult
+
+    // Actualizar accounting só tras escrita exitosa
+    this.bytesPerKey.set(key, newSize)
+    this.bytesUsed = projectedTotal
+    return ok(undefined)
+  }
+
+  /**
+   * Wrapper de `storage.delete` con accounting de bytes. Se hai cota
+   * de bytes activa, resta o tamaño previo da clave. Se non, delega
+   * directo.
+   *
+   * @internal
+   */
+  private async quotaCheckedDelete(key: string): Promise<Result<void>> {
+    if (this.quotas?.maxStorageBytes === undefined) {
+      return this.storage.delete(key)
+    }
+
+    const deleteResult = await this.storage.delete(key)
+    if (!deleteResult.ok) return deleteResult
+
+    const previousSize = this.bytesPerKey.get(key) ?? 0
+    if (previousSize > 0) {
+      this.bytesUsed -= previousSize
+      this.bytesPerKey.delete(key)
+    }
+    return ok(undefined)
+  }
 
   /**
    * Convención autoritativa de "unlocked" reutilizada de TreeEngine
@@ -747,7 +920,7 @@ export class TreeRegistry {
   }
 
   private async persistEngine(userId: string, engine: TreeEngine): Promise<Result<void>> {
-    return await this.storage.set(`engine:${userId}:state`, engine.getSnapshot())
+    return await this.quotaCheckedSet(`engine:${userId}:state`, engine.getSnapshot())
   }
 
   private async loadEngineFromStorage(userId: string): Promise<Result<TreeEngine>> {

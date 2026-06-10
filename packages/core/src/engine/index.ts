@@ -127,5 +127,6 @@ export type {
   TreeRegistryOptions,
   TreeRegistryCacheConfig,
   AggregateStats,
+  QuotaConfig,
 } from './TreeRegistry.js'
 // ── FIN: engine public API ──

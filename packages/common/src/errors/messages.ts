@@ -166,6 +166,21 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'applyChanges falló en {count} engines',
     en: 'applyChanges failed in {count} engines',
   },
+  [ErrorCode.QUOTA_USERS_EXCEEDED]: {
+    gl: 'Cota de usuarios excedida: {current}/{max}',
+    es: 'Cuota de usuarios excedida: {current}/{max}',
+    en: 'User quota exceeded: {current}/{max}',
+  },
+  [ErrorCode.QUOTA_BUILDS_EXCEEDED]: {
+    gl: 'Cota de builds excedida para usuario {userId}: {current}/{max}',
+    es: 'Cuota de builds excedida para usuario {userId}: {current}/{max}',
+    en: 'Build quota exceeded for user {userId}: {current}/{max}',
+  },
+  [ErrorCode.QUOTA_STORAGE_EXCEEDED]: {
+    gl: 'Cota de bytes en storage excedida: {current}/{max}',
+    es: 'Cuota de bytes en storage excedida: {current}/{max}',
+    en: 'Storage bytes quota exceeded: {current}/{max}',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

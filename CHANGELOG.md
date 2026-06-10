@@ -8,6 +8,40 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `@yggdrasil-forge/core`: cotas configurables no `TreeRegistry` para
+  multi-tenancy. Nova interface pública `QuotaConfig` con tres campos
+  opcionais individuais:
+  - `maxUsers`: número máximo de usuarios rexistrados (`createEngine`
+    falla con `QUOTA_USERS_EXCEEDED` cando se excede).
+  - `maxBuildsPerUser`: builds máximos por usuario (`saveBuild` falla
+    con `QUOTA_BUILDS_EXCEEDED` cando se excede; `importBuilds` bypassa
+    intencionalmente para permitir restauración).
+  - `maxStorageBytes`: total de bytes acumulados nas escrituras de
+    TreeRegistry (`JSON.stringify(value).length` por clave; helper
+    privado `quotaCheckedSet`/`Delete` envolve os 9 callsites
+    existentes). Reconstrución do accounting en `load()` (escaneo
+    O(n) só se maxStorageBytes está activo).
+- `@yggdrasil-forge/common`: 3 ErrorCodes novos `YGG_E033`
+  `QUOTA_USERS_EXCEEDED`, `YGG_E034` `QUOTA_BUILDS_EXCEEDED`,
+  `YGG_E035` `QUOTA_STORAGE_EXCEEDED`. Mensaxes localizadas gl/es/en
+  con placeholders `{current}/{max}` (e `{userId}` para builds).
+
+### Note
+
+- Sub-fase 6.4 CUARTA da Fase 6. Permissions (6.5) DIFERIDAS.
+- **Cero opt-in necesario para back-compat**: `quotas: undefined`
+  resulta en pass-through directo (cero JSON.stringify, cero tracking).
+- **Distinción semántica**: `QUOTA_STORAGE_EXCEEDED` (YGG_E035) é o
+  límite **lóxico** (config do registry); `STORAGE_QUOTA_EXCEEDED`
+  (YGG_S003) preexistente é o límite **físico** (backend de storage
+  cheo). Son dominios distintos; ambos coexisten.
+- **Cero modificación de packages/storage/**. Cero modificación de
+  pezas de core fora de TreeRegistry.
+
+## [Unreleased]
+
+### Added
+
 - `@yggdrasil-forge/storage`: nova clase `ScopedStorage` que envolve
   outro `StorageAdapter` e prefixa todas as claves cun `scope:`, para
   illar tenants nun storage compartido.
