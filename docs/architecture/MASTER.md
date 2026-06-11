@@ -2190,12 +2190,12 @@ Cada fase divídese en sub-fases. Cada sub-fase é un chat executor.
 - **5.2** Recursive engine
 - **5.3** Federator
 
-### Fase 6 — TreeRegistry + Multi-tenancy
+### Fase 6 — TreeRegistry + Multi-tenancy ✅ PECHADA
 - **6.1** TreeRegistry ✅
 - **6.2** Aggregate queries ✅
 - **6.3** ScopedStorage ✅
-- **6.4** Quotas
-- **6.5** Permissions (interface mínima — modelo completo difírese a 8.4)
+- **6.4** Quotas ✅
+- **6.5** Permissions (interface mínima — modelo completo difírese a 8.4) ✅
 
 ### Fase 7 — React Renderer + a11y + SSR + RSC
 - **7.1** Setup @react package + dependencies
@@ -2381,8 +2381,10 @@ function OberonSkillTree({ studentId }: { studentId: string }) {
 
 Fase 1 pechada + addendum 1.19. **Fase 2 PECHADA. Fase 3 PECHADA.
 Fase 4 PECHADA. Fase 5 PECHADA (Sub-trees + Federation completos).
-🚧 FASE 6 EN CURSO (TreeRegistry + Multi-tenancy): 6.1, 6.2, 6.3
-pechadas; 6.4 (Quotas) + 6.5 (Permissions mínima) pendentes.**
+🎉 FASE 6 PECHADA (TreeRegistry + Multi-tenancy completos): 5 sub-fases
+(TreeRegistry + Aggregate queries + ScopedStorage + Quotas + Permissions
+mínima). Modelo enriquecido de Permissions difírido a 8.4
+PluginManager + HookRunner.**
 
 | Sub-fase | Estado | Commit | Tests |
 |---|---|---|---|
@@ -2432,8 +2434,11 @@ pechadas; 6.4 (Quotas) + 6.5 (Permissions mínima) pendentes.**
 | **6.1 TreeRegistry (lifecycle + builds + 3 cache strategies)** | Feito | `2ddc511` | 1457 core |
 | **6.2 Aggregate queries (4 queries directas sobre storage)** | Feito | `8de28f6` | 1481 core |
 | **6.3 ScopedStorage (tenant isolation adapter)** | Feito | `60a2305` | 193 storage |
+| docs: hygiene post-6.3 (close 6.1+6.2+6.3 + DT-21..24 + lessons) | Feito | `f6c41b5` | — |
+| **6.4 Quotas (maxUsers / maxBuildsPerUser / maxStorageBytes)** | Feito | `e52fc33` | 1506 core |
+| **6.5 Permissions (interface mínima) + DT-26 fix (save() error propagation)** | Feito | `ecb08e9` | 1523 core |
 
-**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. 🚧 FASE 6 EN CURSO (3/5 sub-fases pechadas; cadea 3.0 → 6.3 = 21 sub-fases consecutivas con cero rollbacks).**
+**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. 🎉 FASE 6 PECHADA OFICIALMENTE (5/5 sub-fases; cadea 3.0 → 6.5 = 23 sub-fases consecutivas con cero rollbacks).**
 
 **Métricas Fase 3 finais (3.0–3.6.b):**
 - 0 escalados funcionais (cero asimetrías abertas).
@@ -2471,6 +2476,7 @@ pechadas; 6.4 (Quotas) + 6.5 (Permissions mínima) pendentes.**
 | DT-23 | `BULK_OPERATION_FAILED` (YGG_E010) está declarado en `packages/common/src/errors/codes.ts` con mensaxe localizada (`{nodeId}/{reason}`) deseñada para "fallou en nodo X durante operación bulk", **pero nunca cableado** en ningún callsite do proxecto. Foi unha reserva semántica do brifing temprano (probablemente 1.x) que ningunha sub-fase emitiu. En 6.1 estivo a piques de reutilizarse para `applyChangesToAll`, pero os placeholders eran incompatibles co payload (`{count}`); resolveuse creando YGG_E032 (`APPLY_CHANGES_FAILED`) en lugar. **Plan**: ou ben cablear `BULK_OPERATION_FAILED` cando proceda (ex: TreeEngine.applyChanges fallo por-nodo), ou eliminar nun ciclo de hixiene se non hai caso de uso planificado tras Fase 8. Cero impacto funcional. | Aberta non bloqueante |
 | DT-24 | `TreeEngine.setProgress(nodeId, percent)` require que o NodeDef ten `progressSource: { type: 'manual' }` (ou compatible) configurado. Esta precondición **non está documentada explícitamente no JSDoc de `setProgress`** nin no MASTER §7.7 (ProgressSourceConfig). Cazada empíricamente polo executor en 6.2 cando construíu tests con NodeDefs por defecto. **Plan**: engadir nota explicativa ao JSDoc de `setProgress` e/ou a `§7.7` do MASTER, e/ou un erro máis informativo cando se chama setProgress sobre un nodo sen progressSource manual. Cero impacto funcional (o erro actual emite código existente, simplemente é menos pedagóxico que podería). | Aberta non bloqueante, cosmética |
 | DT-25 | Briefings de Fases 4, 5 e 6 (ata 6.3) non están trackeados nun commit `docs:` consolidado (paralelo a `1fe9374` que rexistrou os de Fase 3). Anotado como pendente nos peches A.9.c e A.9.d. **Plan**: commit único `docs: briefings phases 4+5+6` ao peche definitivo de Fase 6 (tras 6.5). Cero impacto funcional, só housekeeping. | Aberta non bloqueante, cosmética |
+| DT-26 | `TreeRegistry.save()` ten patrón fire-and-forget preexistente desde sub-fase 6.1: as 4 chamadas internas a `storage.set` (despois `quotaCheckedSet` en 6.4) estaban `await`-ed pero non capturaban resultado, polo que save() devolvía `ok(undefined)` aínda que algunha escritura interna fallase. **Identificada post-6.4** durante a auditoría do director (e52fc33). **Crítico para 6.4 porque silenciaba `QUOTA_STORAGE_EXCEEDED`** durante save. **PECHADA en 6.5 (ecb08e9)**: refactor de save() para capturar resultado de cada chamada (`quotaCheckedSet` x3 + `persistEngine` x N) e devolver early en erro. Garantía actual: "first error wins" — se a primeira escritura falla, as posteriores non se executan (cero estado intermedio adicional). Cero modificación de `persistEngine` ou `load()` (ambos xa propagaban correctamente). | **PECHADA en 6.5 (ecb08e9)** |
 
 **0 débeda funcional crítica. 0 asimetrías coñecidas.**
 
@@ -2528,8 +2534,12 @@ pechadas; 6.4 (Quotas) + 6.5 (Permissions mínima) pendentes.**
 | `TREE_REGISTRY_USER_EXISTS` | `YGG_E030` | TreeRegistry | 6.1 |
 | `TREE_REGISTRY_BUILD_NOT_FOUND` | `YGG_E031` | TreeRegistry | 6.1 |
 | `APPLY_CHANGES_FAILED` | `YGG_E032` | TreeRegistry | 6.1 (resolución 6.1 L2 — ver DT-23) |
+| `QUOTA_USERS_EXCEEDED` | `YGG_E033` | TreeRegistry quotas | 6.4 |
+| `QUOTA_BUILDS_EXCEEDED` | `YGG_E034` | TreeRegistry quotas | 6.4 |
+| `QUOTA_STORAGE_EXCEEDED` | `YGG_E035` | TreeRegistry quotas (lóxico; distinto de YGG_S003 STORAGE_QUOTA_EXCEEDED que é físico) | 6.4 |
+| `PERMISSION_DENIED` | `YGG_E036` | TreeRegistry permissions (cero conflito con `PLUGIN_PERMISSION_DENIED` YGG_P003 que é específico de plugins) | 6.5 |
 
-**Total: 53 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA). +4 entradas en YGG_E durante Fase 6.1 (TREE_REGISTRY_USER_NOT_FOUND, TREE_REGISTRY_USER_EXISTS, TREE_REGISTRY_BUILD_NOT_FOUND, APPLY_CHANGES_FAILED).**
+**Total: 57 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA). +4 entradas en YGG_E durante Fase 6.1 (TREE_REGISTRY_USER_NOT_FOUND, TREE_REGISTRY_USER_EXISTS, TREE_REGISTRY_BUILD_NOT_FOUND, APPLY_CHANGES_FAILED). +4 entradas en YGG_E durante Fase 6.4-6.5 (QUOTA_USERS_EXCEEDED, QUOTA_BUILDS_EXCEEDED, QUOTA_STORAGE_EXCEEDED, PERMISSION_DENIED).**
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
@@ -2878,7 +2888,7 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   previa debe `grep -n "^  get" TreeEngine.ts` para listar a API
   real** antes de prescribir chamadas no pseudo-código.
 
-**Fase 6 (en curso — 6.1, 6.2, 6.3 pechadas):**
+**Fase 6 (PECHADA — 5 sub-fases, 6.1 → 6.5):**
 - **6.1 L1 (c8 ignore preferible a tolerar baixadas globais)**: en 6.1
   o entregue `TreeRegistry.ts` tiña dúas ramas defensivas verificablemente
   inalcanzables por API pública (`all-in-memory` cache miss + `evictLRU
@@ -2908,6 +2918,28 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   executor; rexistro formal como lección. Patrón aplicable a outras
   DT de cobertura abertas (DT-17 TreeLayout, DT-18 QuadTree+PathBuilder)
   cando se aborden as áreas correspondentes nunha sub-fase futura.
+- **6.5 L1 (recurrencia da 5.2 L2: sinaturas multi-parámetro)**: o
+  briefing 6.5 §5.8.5 prescribía `removeBuild(userId, buildId)` cando
+  a sinatura real é `removeBuild(buildId)` — o método **deduce o owner**
+  percorrendo internamente `buildsIndex`. **É unha recurrencia da
+  lección 5.2 L2**: o director debe `grep -nE "^  async (createEngine|
+  removeEngine|saveBuild|loadBuild|removeBuild)"` para listar
+  **sinaturas literais completas** antes de prescribir bodies. **Patrón
+  futuro para briefings que tocan métodos por nome**: o `T0.X` debe
+  listar non só nomes senón **sinaturas reais empíricas**.
+  **Resolución elegante do executor** (§0.6 transparente): lookup do
+  owner via `buildsIndex` antes do check de permiso (cero modificación
+  de API pública). Aplica **lección 5.2 L1 ampliada**: cazar e corrixir
+  transparentemente cando hai unha solución arquitectonicamente correcta.
+- **Nota de seguridade colateral 6.5 (información leak)**: a solución
+  do executor para `removeBuild` introduce un information-leak teórico
+  — un atacante pode distinguir "buildId inexistente" (BUILD_NOT_FOUND)
+  de "buildId existente sen permiso" (PERMISSION_DENIED) polo código
+  de erro devolto. **Non é unha DT formal** (consideración de seguridade,
+  non bug); o modelo enriquecido en 8.4 PluginManager + HookRunner
+  pode mitigar (ex: devolver PERMISSION_DENIED nos dous casos como
+  política configurable do plugin). Anotar como **consideración para
+  Fase 8.4**.
 
 ## A.7 — Protocolo consolidado
 
@@ -2940,7 +2972,10 @@ risco arquitectónico individual; (c) Permissions enterga só interface
 mínima (`PermissionChecker` opcional) co modelo completo diferido a
 8.4 PluginManager + HookRunner. Patrón análogo á familia 2.4 de Fase 2
 ("acoutar > ambicionar"). **Cero impacto funcional**; só afecta á
-contabilidade de sub-fases (Fase 6 = 5 entregas, non 3). (post-2.4.e, extendidos
+contabilidade de sub-fases (Fase 6 = 5 entregas, non 3).
+**Resultado tras peche (11-jun-2026)**: cadea 6.1 → 6.5 = 5 sub-fases
+consecutivas pechadas con cero rollbacks. Decisión subdivisión
+ratificada como exitosa. (post-2.4.e, extendidos
 post-2.6.fix2)
 
 - **Verificacións T0 antes de tocar nada** salvaron premisas erróneas
@@ -3184,6 +3219,128 @@ Sub-trees + Federation completos:
                             (DT-20).
 ```
 
+
+## A.9.e — Estado cuantitativo final Fase 6 (PECHADA)
+
+```
+Commit actual:           ecb08e9 (origin/main; Permissions + DT-26 fix 6.5)
+Sub-fases Fase 6:        5 entregas (6.1, 6.2, 6.3, 6.4, 6.5)
+                         + 2 commits docs (f6c41b5 hixiene post-6.3,
+                                           <hash> hixiene post-6.5)
+Tests adicionais Fase 6: +142 en core (1381 → 1523)
+                         +0 en common (cero cambios estruturais; 7
+                          ErrorCodes engadidos en codes/messages:
+                          E029-E032 en 6.1, E033-E035 en 6.4, E036 en 6.5)
+                         +22 en storage (171 → 193: ScopedStorage en 6.3)
+                         Total monorepo: ~1776 tests (+164 vs Fase 5)
+Cobertura paquete core:  97.51% Stmts global (+0.09 vs 97.42% baseline
+                         Fase 5; mellora consciente vía leccións 6.1 L1
+                         + 6.2 L1 que substituíron "aceptar baixadas"
+                         por "v8 ignore proactivo + xustificación").
+  Pezas Fase 6 (engadidas en TreeRegistry.ts; 6.1 + 6.2 + 6.4 + 6.5):
+  - TreeRegistry.ts:    98.41/92.44/100/100 (modificado en 6.2, 6.4, 6.5)
+                        Branch coverage subiu 85.1% (post-6.1) →
+                        92.44% (post-6.5) = +7.34 puntos. Aplicación
+                        proactiva de leccións 6.1 L1 + 6.2 L1.
+  Pezas Fase 6 (engadidas en storage; 6.3):
+  - ScopedStorage.ts:   100/100/100/100 (peza nova autocontida)
+Cobertura paquete common: 100% (cero cambios estruturais; +7 entradas
+                          en codes/messages)
+Cobertura paquete storage: 100/96.73/100/100 (Stmts subiu a 100% con
+                           ScopedStorage)
+Lint / Typecheck:         0/0 / 21/21 (sen caché, 299 ficheiros)
+ErrorCodes:               57 (+7 da familia YGG_E en Fase 6 post-6.1:
+                          E029 TREE_REGISTRY_USER_NOT_FOUND,
+                          E030 TREE_REGISTRY_USER_EXISTS,
+                          E031 TREE_REGISTRY_BUILD_NOT_FOUND,
+                          E032 APPLY_CHANGES_FAILED (resolveu colisión
+                               de placeholders con E010 reservado;
+                               lección 6.1 L2),
+                          E033 QUOTA_USERS_EXCEEDED,
+                          E034 QUOTA_BUILDS_EXCEEDED,
+                          E035 QUOTA_STORAGE_EXCEEDED (lóxico;
+                               coexiste con YGG_S003 físico),
+                          E036 PERMISSION_DENIED (interface mínima;
+                               modelo enriquecido en 8.4))
+Escalados resoltos:       0 procedurales en Fase 6 (cadea limpa
+                          completa 6.1 → 6.5)
+                          3 erros do briefing cazados polo executor
+                          transparentemente sen escalado:
+                          - 6.1: progressSource manual non documentado
+                                 (→ DT-24)
+                          - 6.4: campo scope privado non lido (TS6133;
+                                 substituído por prefix precalculado)
+                          - 6.5: sinatura real de removeBuild (1 param,
+                                 non 2; → lección 6.5 L1)
+Asimetrías abertas:       cero
+Incidentes transporte:    cero novos en Fase 6
+Débedas resoltas Fase 6:  DT-22 (cobertura defensiva TreeRegistry,
+                          PECHADA en 6.2; aplicou lección 6.1 L1)
+                          DT-26 (save() fire-and-forget preexistente
+                          desde 6.1, PECHADA en 6.5 con refactor "first
+                          error wins")
+Débedas novas Fase 6:     DT-21 (StorageAdapter en common idealmente;
+                          decisión arquitectónica diferida á 0.1.0-alpha),
+                          DT-23 (BULK_OPERATION_FAILED YGG_E010 declarado
+                          mais non cableado dende Fase 1; review en
+                          hixiene futura),
+                          DT-24 (progressSource manual non documentado
+                          no JSDoc de setProgress; cosmética),
+                          DT-25 (briefings trackeados Fases 4+5+6
+                          pendentes nun único commit docs; cosmética)
+Briefings trackeados:     pendente (DT-25; commit consolidado tras
+                          peche dunha fase futura)
+TreeRegistry + Multi-tenancy completos:
+                          - TreeRegistry (6.1): lifecycle (createEngine
+                            + getEngine + removeEngine + listEngines),
+                            3 estratexias de cache ('all-in-memory',
+                            'lru', 'on-demand'), build management
+                            completo (saveBuild + loadBuild + listBuilds
+                            + removeBuild + exportAllBuilds +
+                            importBuilds), persistence vía StorageAdapter.
+                          - Aggregate queries (6.2): 4 queries operando
+                            directamente sobre storage sen instanciar
+                            engines (MASTER §5.6.5):
+                            getAggregateStats, getNodePopularity,
+                            getProgressDistribution, getStuckUsers.
+                            Determinismo via tie-breaks alfabéticos.
+                          - ScopedStorage (6.3): adapter envolvendo
+                            outro StorageAdapter cunha clave de scope.
+                            Isolation cross-tenant segura
+                            (clear() iterativo, NUNCA delega a
+                            base.clear()). Anidación transparente.
+                            watch condicional.
+                          - Quotas (6.4): maxUsers + maxBuildsPerUser
+                            + maxStorageBytes. Helpers privados
+                            quotaCheckedSet/Delete envolvendo 9
+                            callsites existentes. Cero opt-in para
+                            back-compat (undefined → pass-through).
+                            Reconstrución de accounting en load().
+                          - Permissions mínima (6.5): PermissionChecker
+                            interface co método único check(action,
+                            userId). 5 acciones de mutación per-user
+                            (createEngine, removeEngine, saveBuild,
+                            loadBuild, removeBuild). Ordering:
+                            permiso ANTES que quota. Modelo enriquecido
+                            (ACL/RBAC/policies) difírido a 8.4
+                            PluginManager + HookRunner.
+                          - Pendente conscientemente diferido:
+                            DT-21 (StorageAdapter en common),
+                            modelo enriquecido de Permissions (8.4),
+                            análise de subtreeStates en aggregate
+                            queries (sub-fase futura sen spec en MASTER).
+```
+
+**Fase 6 modélica.** 142 tests engadidos en core + 22 en storage = +164
+tests totais, cero asimetrías funcionais abertas, 3 leccións estruturais
+aprendidas (6.1 L1 + 6.2 L1 + 6.5 L1), TreeRegistry como interface
+canónica para multi-tenancy (3 estratexias de cache + builds + persistence),
+ScopedStorage como wrapper de isolation, Quotas e Permissions integradas
+opcionalmente con back-compat absoluta. 2 DT resoltas (DT-22, DT-26)
+mediante aplicación proactiva das súas propias leccións. Decisión de
+subdividir Fase 6 en 5 sub-fases (en vez das 3 do §67 orixinal)
+ratificada exitosa: cadea sen rollback completa.
+
 ## A.10.b — Comparación inicio/fin Fase 3
 
 ```
@@ -3333,6 +3490,74 @@ Exile Cluster Jewels cumpre o spec MASTER §18-19 para casos
 básicos. DT-19 (budget compartido) e DT-20 (loadFederation)
 diferidas conscientemente con plan claro.
 
+
+## A.10.e — Comparación inicio/fin Fase 6
+
+```
+Inicio Fase 6:    1381 tests core + 60 common + 171 storage = ~1612 tests
+                  (estado fin Fase 5, commit 953cda7 / b8b6d89)
+                  Cero TreeRegistry (engines aislados de a un)
+                  Cero Build management (snapshots persistidos)
+                  Cero Aggregate queries (analíticas multi-user)
+                  Cero ScopedStorage (tenants compartindo backend)
+                  Cero Quotas
+                  Cero Permissions interface
+                  Cobertura global core: 97.42% (baseline post-5.3)
+
+Fin Fase 6:       1523 core + 60 common + 193 storage = ~1776 tests (+164)
+                  TreeRegistry completo (lifecycle + builds + 3 cache
+                  strategies + persistence vía StorageAdapter)
+                  4 Aggregate queries directas sobre storage
+                  ScopedStorage como adapter de isolation multi-tenant
+                  Quotas (3 dimensións: users, builds/user, bytes) con
+                  back-compat absoluta
+                  Permissions interface mínima (PermissionChecker
+                  opcional, 5 acciones de mutación per-user)
+                  Cobertura global core: 97.51% (+0.09 vs Fase 5)
+
+Leccións do director engadidas en Fase 6:
+                  6.1 L1 (c8 ignore preferible a tolerar baixadas),
+                  6.2 L1 (resolución proactiva de débedas cobertura),
+                  6.5 L1 (sinaturas multi-parámetro empíricas)
+                  (3 leccións estruturais; 14 leccións acumuladas
+                  desde Fase 2)
+
+ErrorCodes:       49 → 57 (+8: 4 en 6.1 [E029-E032] + 3 en 6.4
+                  [E033-E035] + 1 en 6.5 [E036]).
+                  E032 APPLY_CHANGES_FAILED creado para evitar
+                  colisión de placeholders con YGG_E010
+                  BULK_OPERATION_FAILED reservado (lección 6.1 L2).
+                  E035 QUOTA_STORAGE_EXCEEDED é lóxico; cero conflito
+                  con YGG_S003 STORAGE_QUOTA_EXCEEDED preexistente
+                  físico.
+
+Débeda pechada:   DT-22 (cobertura defensiva TreeRegistry, PECHADA
+                  en 6.2 vía v8 ignore proactivo).
+                  DT-26 (save() fire-and-forget, PECHADA en 6.5
+                  vía refactor "first error wins").
+
+Débeda nova:      DT-21, DT-23, DT-24, DT-25 (4 cosméticas / non
+                  bloqueantes; ver §A.3).
+
+Bugs latentes arranxados: 1 (save() fire-and-forget preexistente
+                          desde 6.1; arranxado en 6.5 como `Fixed`
+                          declarado no CHANGELOG).
+```
+
+**Fase 6 modélica.** 164 tests engadidos, cero asimetrías funcionais
+abertas, 3 leccións estruturais aprendidas, TreeRegistry + Multi-tenancy
+como capa completa para SaaS sobre o motor (5 estratexias de cache,
+build management, queries agregadas, isolation multi-tenant, cotas
+configurables, control de permisos opcional). Decisión consciente de
+subdividir Fase 6 en 5 sub-fases (en vez das 3 do §67 orixinal)
+ratificada exitosa: cadea 6.1 → 6.5 = 5 sub-fases consecutivas con
+cero rollbacks; cadea total 3.0 → 6.5 = 23 sub-fases sen rollback.
+Aplicación proactiva de leccións de cobertura (6.1 L1 + 6.2 L1)
+permitiu pechar DT-22 retroactivamente e levar Branch coverage de
+TreeRegistry.ts de 85.1% a 92.44% (+7.34 puntos). save() refactor
+en 6.5 arranxou un bug latente desde 6.1 que silenciaba erros internos
+(incluído `QUOTA_STORAGE_EXCEEDED` durante save).
+
 ## A.10 — Comparación inicio/fin Fase 2
 
 ```
@@ -3355,5 +3580,5 @@ como contratos observables silenciosos.
 
 *Yggdrasil Forge — Forxando árbores de habilidades para a web.*
 
-**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 completa + Fase 2
-PECHADA)**
+**FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 completa + Fases
+2, 3, 4, 5, 6 PECHADAS; cadea 23 sub-fases sen rollback)**
