@@ -98,6 +98,13 @@ export interface TreeRegistryOptions {
    * (back-compat con sub-fases anteriores).
    */
   readonly quotas?: QuotaConfig
+
+  /**
+   * Verificador de permisos opcional. Se non se define, todas as
+   * operacións de mutación per-user permítense (back-compat).
+   * Modelo enriquecido (ACL/RBAC/policies) difírido a Fase 8.4.
+   */
+  readonly permissions?: PermissionChecker
 }
 
 export interface AggregateStats {
@@ -128,6 +135,40 @@ export interface AggregateStats {
   readonly completionRate: number
 }
 
+/**
+ * Acciones sometidas a verificación de permiso polo `PermissionChecker`
+ * opcional do TreeRegistry. Limitada a 5 operacións de mutación per-user.
+ * Operacións de lectura e administrativas NON son sometidas a permiso en
+ * 6.5; o modelo enriquecido vía hooks de 8.4 PluginManager poderá
+ * estender.
+ */
+export type PermissionAction =
+  | 'createEngine'
+  | 'removeEngine'
+  | 'saveBuild'
+  | 'loadBuild'
+  | 'removeBuild'
+
+/**
+ * Interface mínima de verificación de permisos para o TreeRegistry.
+ * Se se pasa en `TreeRegistryOptions.permissions`, o TreeRegistry chama
+ * `check(action, userId)` antes de cada operación de mutación per-user.
+ * Se devolve `false` (ou Promise resolved a false), a operación falla
+ * con `PERMISSION_DENIED` (YGG_E036) sen efectos colaterais.
+ *
+ * **Default cando undefined**: todas as operacións permitidas.
+ *
+ * **Modelo expandido**: Fase 8.4 PluginManager + HookRunner ofrecerá
+ * hooks máis ricos.
+ */
+export interface PermissionChecker {
+  /**
+   * Verifica se a `action` está permitida para `userId`. Pode ser
+   * síncrono (boolean) ou asíncrono (Promise<boolean>).
+   */
+  check(action: PermissionAction, userId: string): boolean | Promise<boolean>
+}
+
 // ── Interfaces internas ──
 
 interface CacheEntry {
@@ -155,6 +196,9 @@ export class TreeRegistry {
   /** Quotas configuradas; undefined se non se pasaron en options. */
   private readonly quotas: QuotaConfig | undefined
 
+  /** Verificador de permisos opcional; undefined se non se pasou. */
+  private readonly permissions: PermissionChecker | undefined
+
   /**
    * Total acumulado de bytes en storage (só rastreado se
    * quotas?.maxStorageBytes !== undefined). 0 se non aplicable.
@@ -173,12 +217,17 @@ export class TreeRegistry {
     this.cacheConfig = options.cache
     this.locale = options.locale ?? DEFAULT_LOCALE
     this.quotas = options.quotas
+    this.permissions = options.permissions
   }
 
   // ── Lifecycle ──
 
   async createEngine(userId: string, build?: Build): Promise<Result<TreeEngine>> {
-    // ── Check maxUsers ──
+    // ── Check permiso (6.5) ──
+    const permResult = await this.checkPermission('createEngine', userId)
+    if (!permResult.ok) return permResult
+
+    // ── Check maxUsers (6.4) ──
     if (this.quotas?.maxUsers !== undefined) {
       const currentUsers = this.userIds.size
       if (!this.userIds.has(userId) && currentUsers + 1 > this.quotas.maxUsers) {
@@ -268,6 +317,10 @@ export class TreeRegistry {
   }
 
   async removeEngine(userId: string): Promise<Result<void>> {
+    // ── Check permiso (6.5) ──
+    const permResult = await this.checkPermission('removeEngine', userId)
+    if (!permResult.ok) return permResult
+
     if (!this.userIds.has(userId)) {
       return ok(undefined) // idempotent
     }
@@ -493,10 +546,14 @@ export class TreeRegistry {
    * compatibilidade con importBuilds (que usa author como userId).
    */
   async saveBuild(userId: string, buildLabel?: LocalizedString): Promise<Result<Build>> {
+    // ── Check permiso (6.5) ──
+    const permResult = await this.checkPermission('saveBuild', userId)
+    if (!permResult.ok) return permResult
+
     const engineResult = await this.getEngine(userId)
     if (!engineResult.ok) return engineResult
 
-    // ── Check maxBuildsPerUser ──
+    // ── Check maxBuildsPerUser (6.4) ──
     if (this.quotas?.maxBuildsPerUser !== undefined) {
       const currentBuilds = this.buildsIndex.get(userId)?.size ?? 0
       if (currentBuilds + 1 > this.quotas.maxBuildsPerUser) {
@@ -548,6 +605,10 @@ export class TreeRegistry {
    * Require que userId estea rexistrado previamente con createEngine.
    */
   async loadBuild(userId: string, buildId: string): Promise<Result<TreeEngine>> {
+    // ── Check permiso (6.5) ──
+    const permResult = await this.checkPermission('loadBuild', userId)
+    if (!permResult.ok) return permResult
+
     if (!this.userIds.has(userId)) {
       return err(
         new YggdrasilError(
@@ -618,6 +679,10 @@ export class TreeRegistry {
       )
     }
 
+    // ── Check permiso (6.5) — usa owner como userId ──
+    const permResult = await this.checkPermission('removeBuild', owner)
+    if (!permResult.ok) return permResult
+
     await this.quotaCheckedDelete(`build:${buildId}`)
     const ownerBuilds = this.buildsIndex.get(owner)
     if (ownerBuilds !== undefined) {
@@ -678,30 +743,34 @@ export class TreeRegistry {
 
   async save(): Promise<Result<void>> {
     // 1. Persistir userIds
-    await this.quotaCheckedSet('registry:userIds', Array.from(this.userIds))
+    const userIdsResult = await this.quotaCheckedSet('registry:userIds', Array.from(this.userIds))
+    if (!userIdsResult.ok) return userIdsResult
 
     // 2. Persistir buildsIndex (Map → plain object)
     const indexObj: Record<string, string[]> = {}
     for (const [userId, buildIds] of this.buildsIndex) {
       indexObj[userId] = Array.from(buildIds)
     }
-    await this.quotaCheckedSet('registry:buildsIndex', indexObj)
+    const indexResult = await this.quotaCheckedSet('registry:buildsIndex', indexObj)
+    if (!indexResult.ok) return indexResult
 
     // 3. Persistir engines segundo strategy
     if (this.cacheConfig.strategy === 'all-in-memory' || this.cacheConfig.strategy === 'lru') {
       for (const [userId, entry] of this.cache) {
-        await this.persistEngine(userId, entry.engine)
+        const persistResult = await this.persistEngine(userId, entry.engine)
+        if (!persistResult.ok) return persistResult
       }
     }
     // 'on-demand': cada createEngine xa persistiu; cero acción extra
 
     // 4. Meta
     const now = Date.now()
-    await this.quotaCheckedSet('registry:meta', {
+    const metaResult = await this.quotaCheckedSet('registry:meta', {
       schemaVersion: '1.0.0',
       createdAt: now,
       updatedAt: now,
     })
+    if (!metaResult.ok) return metaResult
 
     return ok(undefined)
   }
@@ -755,6 +824,7 @@ export class TreeRegistry {
         const getResult = await this.storage.get(key)
         /* v8 ignore next -- MemoryStorage.get non falla; defensivo para adapters con I/O */
         if (!getResult.ok) return getResult
+        /* v8 ignore next -- MemoryStorage.get never returns null for listed keys; defensivo */
         if (getResult.value === null) continue
         const size = JSON.stringify(getResult.value).length
         this.bytesPerKey.set(key, size)
@@ -778,6 +848,30 @@ export class TreeRegistry {
   // ── Private helpers ──
 
   // ── Quota accounting ──
+
+  /**
+   * Verifica permiso para unha acción mediante `this.permissions` se
+   * está configurado. Devolve `err(PERMISSION_DENIED)` se o checker
+   * devolve `false`. Devolve `ok(undefined)` se é `true` ou se
+   * `this.permissions` é undefined (default open).
+   *
+   * @internal
+   */
+  private async checkPermission(action: PermissionAction, userId: string): Promise<Result<void>> {
+    if (this.permissions === undefined) {
+      return ok(undefined)
+    }
+    const result = await this.permissions.check(action, userId)
+    if (result === false) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.PERMISSION_DENIED,
+          getErrorMessage(ErrorCode.PERMISSION_DENIED, this.locale, { action, userId }),
+        ),
+      )
+    }
+    return ok(undefined)
+  }
 
   /**
    * Wrapper de `storage.set` con quota check. Se quotas.maxStorageBytes
@@ -811,6 +905,7 @@ export class TreeRegistry {
     }
 
     const setResult = await this.storage.set(key, value)
+    /* v8 ignore next -- MemoryStorage.set non falla; defensivo para adapters con I/O */
     if (!setResult.ok) return setResult
 
     // Actualizar accounting só tras escrita exitosa
@@ -832,8 +927,10 @@ export class TreeRegistry {
     }
 
     const deleteResult = await this.storage.delete(key)
+    /* v8 ignore next -- MemoryStorage.delete non falla; defensivo para adapters con I/O */
     if (!deleteResult.ok) return deleteResult
 
+    /* v8 ignore next 5 -- previousSize=0 cando a clave non foi rastreada previamente (defensivo) */
     const previousSize = this.bytesPerKey.get(key) ?? 0
     if (previousSize > 0) {
       this.bytesUsed -= previousSize

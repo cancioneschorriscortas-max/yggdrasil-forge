@@ -8,6 +8,46 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ### Added
 
+- `@yggdrasil-forge/core`: interface mínima de control de permisos no
+  `TreeRegistry` para multi-tenancy. Novos tipos públicos
+  `PermissionAction` (union de 5 literais: 'createEngine',
+  'removeEngine', 'saveBuild', 'loadBuild', 'removeBuild') e
+  `PermissionChecker` interface (un só método `check(action, userId):
+  boolean | Promise<boolean>`). Engadido campo opcional
+  `permissions?: PermissionChecker` a `TreeRegistryOptions`.
+  TreeRegistry consulta o checker antes das 5 operacións de mutación
+  per-user; se devolve `false`, a operación falla con
+  `PERMISSION_DENIED` (YGG_E036). Operacións de lectura e
+  administrativas NON consultan permissions — modelo enriquecido vía
+  hooks de 8.4 PluginManager poderá estender.
+- `@yggdrasil-forge/common`: ErrorCode `YGG_E036` `PERMISSION_DENIED`
+  con mensaxes localizadas gl/es/en e placeholders `{action}/{userId}`.
+
+### Fixed
+
+- `@yggdrasil-forge/core`: `TreeRegistry.save()` agora propaga
+  correctamente erros internos de `quotaCheckedSet` e `persistEngine`.
+  Antes ignorábaos silenciosamente (patrón fire-and-forget preexistente
+  desde 6.1; documentado como DT-26 post-6.4). Garantía actual: "first
+  error wins". **Resolve DT-26**.
+
+### Note
+
+- Sub-fase 6.5 QUINTA E ÚLTIMA da Fase 6. **Fase 6 (TreeRegistry +
+  Multi-tenancy) completa**.
+- **Cero opt-in necesario para back-compat**: `permissions: undefined`
+  → cero overhead, comportamento idéntico a 6.4.
+- **Modelo enriquecido difírido a 8.4** (MASTER §67).
+- **Orde de checks**: PERMISSION primeiro, QUOTA despois.
+- **`removeBuild(buildId)`** non ten `userId` param; o executor
+  resolve co `owner` do build atopado polo lookup interno (§0.6).
+- **Cero modificación de packages/storage/**. Cero modificación de
+  pezas de core fora de TreeRegistry.
+
+## [Unreleased]
+
+### Added
+
 - `@yggdrasil-forge/core`: cotas configurables no `TreeRegistry` para
   multi-tenancy. Nova interface pública `QuotaConfig` con tres campos
   opcionais individuais:

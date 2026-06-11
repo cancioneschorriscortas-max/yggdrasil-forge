@@ -181,6 +181,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Cuota de bytes en storage excedida: {current}/{max}',
     en: 'Storage bytes quota exceeded: {current}/{max}',
   },
+  [ErrorCode.PERMISSION_DENIED]: {
+    gl: 'Permiso denegado: {action} para usuario {userId}',
+    es: 'Permiso denegado: {action} para usuario {userId}',
+    en: 'Permission denied: {action} for user {userId}',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',
