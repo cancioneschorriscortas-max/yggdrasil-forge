@@ -6,7 +6,7 @@ export default mergeConfig(
   rootConfig,
   defineConfig({
     test: {
-      include: ['__tests__/**/*.{test,spec}.ts', 'src/**/*.{test,spec}.ts'],
+      include: ['__tests__/**/*.{test,spec}.{ts,tsx}', 'src/**/*.{test,spec}.{ts,tsx}'],
     },
   }),
 )

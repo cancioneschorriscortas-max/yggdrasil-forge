@@ -7,6 +7,38 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: dependencias de React 19 + configuración
+  inicial. React 19.2.7 (latest stable) e react-dom 19.2.7 declarados
+  como `peerDependencies` (`^19.2.7`) e como `devDependencies` exactas
+  (via catálogo pnpm) para tests internos. `@types/react` ^19.0.0 e
+  `@types/react-dom` ^19.0.0 engadidos a devDependencies. Catálogo
+  pnpm-workspace.yaml ampliado con 4 entradas (react, react-dom,
+  @types/react, @types/react-dom) para reutilización en futuros paquetes
+  da Fase 7+ (devtools, themes, heatmap).
+- Configuración JSX no tsconfig do paquete (`"jsx": "react-jsx"`)
+  para usar o automatic runtime moderno (cero `import React` necesario
+  en ficheiros TSX).
+- Smoke test ampliado (3 tests): verifica que React 19 pode renderizar
+  un compoñente trivial vía `react-dom/server.renderToString` (cero
+  DOM environment requerido para 7.1; jsdom engadirase cando 7.2+
+  introduza compoñentes para renderizar no cliente).
+
+### Note
+- Sub-fase 7.1 PRIMEIRA da Fase 7 (React Renderer + a11y + SSR + RSC).
+- **Cero compoñentes reais**: `SkillTree`, `SkillNode`, `SkillEdge` van
+  en 7.2. `ThemeProvider` + temas en 7.4. Hooks en 7.5. SSR + RSC
+  entry points (`/server`, `/headless`) en 7.9.
+- **Critical security context**: React 19.2.7 escollido (latest stable
+  do 1-jun-2026) por seguranza ante CVE-2025-55182 (React2Shell) que
+  afecta 19.0.0–19.2.2.
+- **Cero modificación de packages/core/, packages/common/,
+  packages/storage/ ou outros 15 paquetes scaffold**. Sub-fase
+  infraestrutura pura.
+- **Cero ErrorCodes novos**.
+
+## [Unreleased]
+
+### Added
 
 - `@yggdrasil-forge/core`: interface mínima de control de permisos no
   `TreeRegistry` para multi-tenancy. Novos tipos públicos

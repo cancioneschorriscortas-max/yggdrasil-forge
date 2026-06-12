@@ -12,6 +12,10 @@ catalog:
   fake-indexeddb: ^6.2.5
   opfs-mock: ^2.7.0
   typescript: ^5.4.0
+  react: 19.2.7
+  react-dom: 19.2.7
+  '@types/react': ^19.0.0
+  '@types/react-dom': ^19.0.0
 
 # Build scripts aprobados (pnpm 11 require aprobación explícita).
 allowBuilds:
