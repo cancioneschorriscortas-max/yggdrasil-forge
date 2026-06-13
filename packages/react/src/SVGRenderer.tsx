@@ -1,58 +1,21 @@
+'use client'
+
 import type { Bounds } from '@yggdrasil-forge/core'
 // ── INICIO: SVGRenderer ──
-import type { JSX, ReactNode } from 'react'
+import { type CSSProperties, type JSX, type ReactNode, useId } from 'react'
+import { useTheme } from './ThemeProvider.js'
 import { buildViewBox } from './svg-helpers.js'
+import type { Theme } from './theme-types.js'
 
 export interface SVGRendererProps {
-  /**
-   * Bounds do contido (do layoutResult). Se non se pasa, viewBox
-   * defaultea a `'0 0 0 0'` (estado vacío; mostra cero contido).
-   */
   readonly bounds?: Bounds
-
-  /**
-   * Padding ao redor dos bounds (en unidades do layout). Default 16.
-   * Cero pasa = sen marxen.
-   */
   readonly padding?: number
-
-  /**
-   * Tipo de layout activo (p.ex. 'custom', 'radial', 'tree').
-   * Renderizado como `data-layout` no `<svg>`. Útil para CSS por
-   * layout.
-   */
   readonly layoutType?: string
-
-  /**
-   * Modo de erro. Se `error` está definido, renderízase un svg
-   * con `class="yf-skill-tree--error"` + `data-error={error}` e
-   * un `aria-label` específico. Cero children renderízanse en
-   * estado de erro.
-   */
   readonly error?: string
-
-  /**
-   * Etiqueta aria do svg. Default 'Skill tree' (ou 'Skill tree
-   * (layout error)' en estado erro).
-   */
   readonly ariaLabel?: string
-
-  /**
-   * Contido SVG interior. Tipicamente `<MeshOverlay />` + `<g>`s
-   * con SkillEdges e SkillNodes.
-   */
   readonly children?: ReactNode
 }
 
-/**
- * Compoñente público wrapper para `<svg>` co viewBox calculado
- * automáticamente desde `bounds + padding`, role/aria, classes
- * documentadas e modo de erro. Usado internamente por SkillTree;
- * exportado publicamente para que consumidores poidan compoñer
- * vistas custom (combinando con SkillNode, SkillEdge, MeshOverlay).
- *
- * Compoñente puro (cero hooks). SSR-safe.
- */
 export function SVGRenderer({
   bounds,
   padding = 16,
@@ -61,6 +24,8 @@ export function SVGRenderer({
   ariaLabel,
   children,
 }: SVGRendererProps): JSX.Element {
+  const theme = useTheme()
+  const themeId = useId()
   const viewBox = buildViewBox(bounds, padding)
 
   if (error !== undefined) {
@@ -75,16 +40,72 @@ export function SVGRenderer({
     )
   }
 
+  const themeStyle = theme !== null ? buildThemeStyle(theme) : undefined
+  const themeRulesCSS = theme !== null ? buildThemeRules(theme, themeId) : null
+
   return (
     <svg
       className="yf-skill-tree"
       {...(layoutType !== undefined && { 'data-layout': layoutType })}
+      {...(theme !== null && { 'data-theme-id': themeId })}
       viewBox={viewBox}
       role="img"
       aria-label={ariaLabel ?? 'Skill tree'}
+      {...(themeStyle !== undefined && { style: themeStyle })}
     >
+      {themeRulesCSS !== null && <style>{themeRulesCSS}</style>}
       {children}
     </svg>
+  )
+}
+
+/**
+ * Constrúe o objeto `style` con CSS variables a partir do tema.
+ */
+function buildThemeStyle(theme: Theme): CSSProperties {
+  const style: Record<string, string | number> = {
+    '--yf-color-text': theme.colors.text,
+    '--yf-color-node-locked': theme.colors.nodeLocked,
+    '--yf-color-node-unlockable': theme.colors.nodeUnlockable,
+    '--yf-color-node-unlocked': theme.colors.nodeUnlocked,
+    '--yf-color-node-maxed': theme.colors.nodeMaxed,
+    '--yf-color-node-in-progress': theme.colors.nodeInProgress,
+    '--yf-color-node-stroke': theme.colors.nodeStroke,
+    '--yf-color-edge': theme.colors.edge,
+    '--yf-color-mesh': theme.colors.mesh,
+    '--yf-stroke-width': theme.sizes.strokeWidth,
+    '--yf-font-size': theme.sizes.fontSize,
+    '--yf-font-size-small': theme.sizes.fontSizeSmall,
+  }
+  if (theme.colors.background !== undefined) {
+    style['--yf-color-background'] = theme.colors.background
+  }
+  return style as CSSProperties
+}
+
+/**
+ * Constrúe as regras CSS internas scopeadas via `[data-theme-id="..."]`
+ * para evitar interferencia entre múltiples SkillTree na mesma páxina.
+ */
+function buildThemeRules(theme: Theme, themeId: string): string {
+  const sel = `[data-theme-id="${themeId}"]`
+  const bgRule =
+    theme.colors.background !== undefined
+      ? `${sel} { background: var(--yf-color-background); }\n`
+      : ''
+  return (
+    `${bgRule}` +
+    `${sel} .yf-skill-node__circle { fill: var(--yf-color-node-locked); stroke: var(--yf-color-node-stroke); stroke-width: var(--yf-stroke-width); }\n` +
+    `${sel} .yf-skill-node[data-state="unlockable"] .yf-skill-node__circle { fill: var(--yf-color-node-unlockable); }\n` +
+    `${sel} .yf-skill-node[data-state="unlocked"] .yf-skill-node__circle { fill: var(--yf-color-node-unlocked); }\n` +
+    `${sel} .yf-skill-node[data-state="maxed"] .yf-skill-node__circle { fill: var(--yf-color-node-maxed); }\n` +
+    `${sel} .yf-skill-node[data-state="in_progress"] .yf-skill-node__circle { fill: var(--yf-color-node-in-progress); }\n` +
+    `${sel} .yf-skill-node__label { font-size: var(--yf-font-size); fill: var(--yf-color-text); }\n` +
+    `${sel} .yf-skill-node__progress { font-size: var(--yf-font-size-small); fill: var(--yf-color-text); }\n` +
+    `${sel} .yf-skill-edge { stroke: var(--yf-color-edge); stroke-width: var(--yf-stroke-width); }\n` +
+    `${sel} .yf-mesh-overlay__line { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }\n` +
+    `${sel} .yf-mesh-overlay__circle { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }\n` +
+    `${sel} .yf-mesh-overlay__polygon { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }`
   )
 }
 // ── FIN: SVGRenderer ──

@@ -2,6 +2,8 @@ import { render } from '@testing-library/react'
 // ── INICIO: tests SVGRenderer ──
 import { describe, expect, it } from 'vitest'
 import { SVGRenderer } from '../src/SVGRenderer.js'
+import { ThemeProvider } from '../src/ThemeProvider.js'
+import { minimal } from '../src/themes/minimal.js'
 
 /** Helper: busca ou falla. */
 function q(container: HTMLElement, selector: string): Element {
@@ -59,6 +61,64 @@ describe('SVGRenderer', () => {
     const child = container.querySelector('[data-testid="child"]')
     expect(child).not.toBeNull()
     expect(child?.tagName.toLowerCase()).toBe('rect')
+  })
+})
+
+// ── Bloque 2: Integración con tema ──
+
+describe('SVGRenderer — integración con tema', () => {
+  it('sen Provider: cero CSS vars, cero <style>, cero data-theme-id', () => {
+    const { container } = render(
+      <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />,
+    )
+    const svg = q(container, 'svg')
+    expect(container.querySelector('style')).toBeNull()
+    expect(svg.getAttribute('data-theme-id')).toBeNull()
+    expect(svg.getAttribute('style')).toBeNull()
+  })
+
+  it('con Provider(minimal): inxecta CSS vars + <style> + data-theme-id', () => {
+    const { container } = render(
+      <ThemeProvider theme={minimal}>
+        <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />
+      </ThemeProvider>,
+    )
+    const svg = q(container, 'svg')
+    expect(svg.getAttribute('data-theme-id')).toBeTruthy()
+    expect(svg.getAttribute('style')).toContain('--yf-color-text')
+    const styleEl = container.querySelector('style')
+    expect(styleEl).not.toBeNull()
+    expect(styleEl?.textContent).toContain('.yf-skill-node__circle')
+  })
+
+  it('modo error con Provider: cero CSS vars, cero <style>', () => {
+    const { container } = render(
+      <ThemeProvider theme={minimal}>
+        <SVGRenderer error="YGG_E018" />
+      </ThemeProvider>,
+    )
+    const svg = q(container, 'svg')
+    expect(svg.getAttribute('class')).toContain('yf-skill-tree--error')
+    expect(container.querySelector('style')).toBeNull()
+    expect(svg.getAttribute('data-theme-id')).toBeNull()
+  })
+
+  it('dúas instances teñen data-theme-id distintos', () => {
+    const { container } = render(
+      <ThemeProvider theme={minimal}>
+        <div>
+          <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 10, maxY: 10 }} />
+          <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 20, maxY: 20 }} />
+        </div>
+      </ThemeProvider>,
+    )
+    const svgs = container.querySelectorAll('svg')
+    expect(svgs.length).toBe(2)
+    const id1 = svgs[0]?.getAttribute('data-theme-id')
+    const id2 = svgs[1]?.getAttribute('data-theme-id')
+    expect(id1).toBeTruthy()
+    expect(id2).toBeTruthy()
+    expect(id1).not.toBe(id2)
   })
 })
 // ── FIN: tests SVGRenderer ──

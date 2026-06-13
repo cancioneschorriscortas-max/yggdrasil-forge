@@ -7,6 +7,52 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: sistema de temas completo:
+  - **`Theme` interface** + tipos auxiliares (`ThemeColors`, `ThemeSizes`).
+    Tokens documentados como contrato público estable.
+  - **`minimal: Theme`** const exportada: tema default minimalista neutro.
+    Aplicado automáticamente cando se importa `SkillTree` desde o entry
+    point principal.
+  - **`ThemeProvider`** compoñente público que distribúe un tema aos
+    descendentes via React Context.
+- **Refactor de SVGRenderer**: consume internamente `useTheme()` +
+  `useId()`. Cando hai un tema activo, inxecta CSS variables como
+  `style` inline no `<svg>` raíz + un `<style>` element interno con
+  regras default scopeadas via `[data-theme-id="..."]`.
+- **Autoload do tema `minimal`**: `SkillTree` exportado desde o root
+  entry é un wrapper (`SkillTreeWithDefaultTheme`) que envolve o core
+  `SkillTree` cun `<ThemeProvider theme={minimal}>`.
+- **Novo entry point `/headless`**: `@yggdrasil-forge/react/headless`
+  re-exporta os mesmos compoñentes **sen** o wrapper de autoload.
+  Non re-exporta `ThemeProvider`, `Theme`, ou `minimal`.
+- CSS variables públicas: `--yf-color-text`,
+  `--yf-color-node-locked/unlockable/unlocked/maxed/in_progress`,
+  `--yf-color-node-stroke`, `--yf-color-edge`, `--yf-color-mesh`,
+  `--yf-stroke-width`, `--yf-font-size`, `--yf-font-size-small`,
+  `--yf-color-background` (opcional).
+
+### Note
+- Sub-fase 7.4 CUARTA da Fase 7 (12 sub-fases totais).
+- **DIFERIDO**: tema `oberon` (vive en `@yggdrasil-forge/themes`).
+- **DIFERIDOS**: hooks customizados (7.5), animacións CSS (7.6),
+  keyboard/ARIA (7.7), prefers-reduced-motion (7.8), SSR/RSC entry
+  points (7.9), mobile/touch (7.10), error boundaries (7.11), tests
+  visuais (7.12).
+- **`SVGRenderer` deixa de ser compoñente puro**: engadiuse
+  `'use client'`. Mantén SSR-safe via useId.
+- **Convención sobre ThemeProvider + autoload**: o wrapper do root
+  entry envolve incondicionalmente en `<ThemeProvider theme={minimal}>`.
+  Para temas custom, importar `SkillTree` desde `/headless` e envolver
+  explicitamente.
+- **Cero deps de npm engadidas**.
+- **Cero ErrorCodes novos**. Cero modificación de packages/common/.
+- **Cero modificación de SkillTree.tsx, SkillNode.tsx, SkillEdge.tsx,
+  MeshOverlay.tsx, svg-helpers.ts, createDefaultLayoutRegistry.ts**
+  ou os seus tests.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: dous compoñentes públicos novos:
   - `MeshOverlay`: compoñente puro que renderiza `layoutResult.mesh`
     como `<g>` con `<line>` / `<circle>` / `<polygon>` segundo o
