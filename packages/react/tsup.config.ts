@@ -2,7 +2,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: ['src/index.ts', 'src/headless.ts'],
+  entry: ['src/index.ts', 'src/headless.ts', 'src/server.ts'],
   format: ['esm', 'cjs'],
   dts: {
     compilerOptions: {

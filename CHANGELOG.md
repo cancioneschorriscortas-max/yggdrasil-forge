@@ -7,6 +7,28 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: terceiro entry point `/server` (RSC-safe):
+  - **`SkillTreeStatic`**: compoñente puro sen hooks que renderiza
+    estaticamente con treeDef + state. Cero 'use client', cero
+    `<style>` interno.
+  - **`computeLayout`**: re-exportado do core (función pura).
+  - **`serializeForClient(treeDef, state?)`**: serializa a JSON con
+    escape de `<`/`>` para inxección segura en `<script>` tags.
+- package.json exports + tsup.config.ts: 3 entry points
+  (root, /headless, /server).
+
+### Note
+- Sub-fase 7.9 NOVENA da Fase 7 (12 sub-fases totais).
+- getServerSnapshot funcionalmente idéntico a getSnapshot; migración
+  diferida a hixiene MASTER post-Fase 7.
+- DIFERIDOS: 7.10 (mobile/touch), 7.11 (error boundaries), 7.12
+  (tests visuais).
+- Cero deps de npm engadidas. Cero ErrorCodes novos.
+- Cero modificación de compoñentes ou tests existentes.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: respect for `prefers-reduced-motion`.
   O output de `buildAnimationsCSS` inclúe un bloque
   `@media (prefers-reduced-motion: reduce)` que aplica
