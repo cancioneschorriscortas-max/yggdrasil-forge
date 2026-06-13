@@ -32,4 +32,8 @@ export {
   useNodeSelector,
   useStat,
 } from './hooks/index.js'
+
+// Compoñente de accesibilidade (mesmo set que root entry).
+export { SkillTreeAnnouncer } from './SkillTreeAnnouncer.js'
+export type { SkillTreeAnnouncerProps } from './SkillTreeAnnouncer.js'
 // ── FIN: headless entry point ──

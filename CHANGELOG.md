@@ -7,6 +7,28 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: novo compoñente público **`SkillTreeAnnouncer`**:
+  live region ARIA invisible que anuncia eventos `unlock` e `lock` do
+  engine. Mensaxes localizadas gl/es/en. Override vía `formatMessage`.
+  Estilo sr-only inline. Exportado desde root e `/headless`.
+- `SkillNode`: aria-label mellorado con info de estado actual
+  (patrón: `"{label}, {stateLabel}"`).
+
+### Fixed
+- Resolve débeda de cobertura histórica de SkillNode desde 7.2:
+  novos tests cobren keyboard handlers e resolveLabel fallbacks.
+
+### Note
+- Sub-fase 7.7 SÉTIMA da Fase 7 (12 sub-fases totais).
+- DIFERIDOS: jest-axe, arrow-key navigation 2D, focus management,
+  aria-pressed/aria-current, announcements para outros eventos.
+- Cero deps de npm engadidas. Cero ErrorCodes novos.
+- Cero modificación de compoñentes ou tests existentes (salvo
+  SkillNode: aria-label mellorado).
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: animation framework básico (CSS-only):
   - Módulo interno `animations.ts` con `buildAnimationsCSS(themeId)`.
   - SVGRenderer integra animacións ao `<style>` interno con tema activo.

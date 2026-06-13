@@ -39,4 +39,8 @@ export {
   useNodeSelector,
   useStat,
 } from './hooks/index.js'
+
+// Compoñente de accesibilidade (announcements vía live region ARIA).
+export { SkillTreeAnnouncer } from './SkillTreeAnnouncer.js'
+export type { SkillTreeAnnouncerProps } from './SkillTreeAnnouncer.js'
 // ── FIN: @yggdrasil-forge/react ──
