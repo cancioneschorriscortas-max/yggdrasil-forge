@@ -24,4 +24,12 @@ export type { MeshOverlayProps } from './MeshOverlay.js'
 
 export { SVGRenderer } from './SVGRenderer.js'
 export type { SVGRendererProps } from './SVGRenderer.js'
+
+// Hooks customizados (mesmo set que root entry; independentes do tema).
+export {
+  useSkillTree,
+  useNodeState,
+  useNodeSelector,
+  useStat,
+} from './hooks/index.js'
 // ── FIN: headless entry point ──

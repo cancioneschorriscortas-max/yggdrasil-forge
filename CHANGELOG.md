@@ -7,6 +7,30 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: módulo de hooks customizados:
+  - **`useSkillTree(engine)`**: devolve `TreeState` reactivo.
+  - **`useNodeState(engine, nodeId)`**: devolve `NodeInstance | null`.
+  - **`useNodeSelector<T>(engine, nodeId, selector)`**: subscribe
+    selectivamente. O selector debe ser referencialmente estable.
+  - **`useStat(engine, statId)`**: devolve `number` reactivo.
+- Tódolos hooks dispoñibles tanto desde root entry como desde
+  `/headless` (independentes do tema).
+
+### Note
+- Sub-fase 7.5 QUINTA da Fase 7 (12 sub-fases totais).
+- **DIFERIDOS** (require APIs en core): useTreeChanges, useGroupNodes,
+  useVisibleNodes.
+- **DIFERIDOS Fase 7**: animacións (7.6), keyboard/ARIA (7.7),
+  prefers-reduced-motion (7.8), SSR/RSC (7.9), mobile/touch (7.10),
+  error boundaries (7.11), tests visuais (7.12).
+- SkillTree NON refactorizado para usar useSkillTree internamente.
+- Cero deps de npm engadidas.
+- Cero ErrorCodes novos.
+- Cero modificación de compoñentes ou tests existentes.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: sistema de temas completo:
   - **`Theme` interface** + tipos auxiliares (`ThemeColors`, `ThemeSizes`).
     Tokens documentados como contrato público estable.
