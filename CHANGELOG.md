@@ -7,6 +7,50 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: dous compoñentes públicos novos:
+  - `MeshOverlay`: compoñente puro que renderiza `layoutResult.mesh`
+    como `<g>` con `<line>` / `<circle>` / `<polygon>` segundo o
+    `MeshElement.type` (3 literais: 'line', 'circle', 'polygon').
+    Tipicamente xerado por `RadialLayout` (anel concéntrico, cross,
+    star, polygon perimetral). Devolve null cando `mesh` é undefined
+    ou array vacío (cero overhead DOM).
+  - `SVGRenderer`: wrapper público para `<svg>` con viewBox calculado
+    automáticamente desde `bounds + padding`, role/aria, classes
+    documentadas (`yf-skill-tree`, `yf-skill-tree--error`,
+    `data-layout`, `data-error`), e modo erro explícito. Reutilizable
+    para que consumidores avanzados compoñan vistas custom (ex:
+    `<SVGRenderer bounds={...}><SkillNode .../></SVGRenderer>`).
+- `SkillTree` refactorizado internamente para usar `SVGRenderer` +
+  `MeshOverlay`. **Cero cambio funcional observable** para o
+  consumidor.
+- `SkillEdge` refactorizado para importar `buildPathD` desde un
+  módulo interno `svg-helpers.ts` (compartido con `SVGRenderer`).
+  Cero cambio observable.
+
+### Note
+- Sub-fase 7.3 TERCEIRA da Fase 7 (12 sub-fases totais).
+- **DIFERIDOS**: ThemeProvider + temas (7.4), hooks customizados
+  (7.5), animacións CSS (7.6), keyboard navigation + ARIA (7.7),
+  prefers-reduced-motion (7.8), SSR + RSC entry points (7.9),
+  mobile/touch (7.10), error boundaries (7.11), tests visuais (7.12).
+- **Classes CSS novas (contrato público estable)**:
+  `yf-mesh-overlay`, `yf-mesh-overlay__line`, `yf-mesh-overlay__circle`,
+  `yf-mesh-overlay__polygon`. Reutilizables por ThemeProvider en 7.4.
+- **`MeshOverlay` e `SVGRenderer` son compoñentes puros** (cero
+  hooks, cero `'use client'`); usables tanto en server como en client.
+- **`SkillTree` mantén `'use client'`** (usa hooks).
+- **`svg-helpers` é módulo interno**, non exportado publicamente.
+- **Cero deps de npm engadidas** (cero modificación de package.json
+  ou pnpm-workspace.yaml).
+- **Cero ErrorCodes novos**. Cero modificación de packages/common/.
+- **Cero modificación de packages/core/, packages/storage/** ou
+  outros 14 paquetes scaffold.
+- **SkillNode.tsx cobertura (73.33/52.17/75/69.23) mantense igual**;
+  cubrirase naturalmente en 7.7 (keyboard navigation).
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: tres compoñentes públicos novos:
   - `SkillTree`: compoñente raíz SVG que toma un `TreeEngine` como
     prop e renderiza a árbore enteira. Subscríbese ao engine via

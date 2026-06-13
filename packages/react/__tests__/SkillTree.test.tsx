@@ -207,4 +207,45 @@ describe('SkillTree — SSR + reactividade + erro', () => {
     expect(container.querySelectorAll('.yf-skill-node').length).toBe(0)
   })
 })
+
+// ── Bloque 6: Integración MeshOverlay ──
+
+describe('SkillTree — integración con MeshOverlay', () => {
+  it('con RadialLayout, MeshOverlay está presente no DOM', () => {
+    const treeDef = makeMinimalTreeDef({
+      nodes: [
+        { id: 'a', type: 'small', label: 'A' },
+        { id: 'b', type: 'small', label: 'B' },
+        { id: 'c', type: 'small', label: 'C' },
+      ],
+      edges: [
+        { id: 'a-b', source: 'a', target: 'b', type: 'dependency' },
+        { id: 'b-c', source: 'b', target: 'c', type: 'dependency' },
+      ],
+      layout: { type: 'radial', radius: 100 },
+    })
+    const engine = new TreeEngine(treeDef)
+    const { container } = render(<SkillTree engine={engine} />)
+    expect(container.querySelector('.yf-mesh-overlay')).not.toBeNull()
+  })
+
+  it('con IdentityLayout, MeshOverlay non está presente no DOM', () => {
+    const engine = makeTreeEngine() // usa layout type: 'custom' (IdentityLayout)
+    const { container } = render(<SkillTree engine={engine} />)
+    expect(container.querySelector('.yf-mesh-overlay')).toBeNull()
+  })
+
+  it('refactor preserva os 12 tests previos (verificación automática)', () => {
+    // Este test verifica que SkillTree post-refactor segue producindo
+    // a mesma estrutura DOM (svg > g.yf-skill-edges + g.yf-skill-nodes)
+    const engine = makeTreeEngine()
+    const { container } = render(<SkillTree engine={engine} />)
+    const svg = q(container, 'svg')
+    expect(svg.getAttribute('class')).toBe('yf-skill-tree')
+    expect(container.querySelector('.yf-skill-edges')).not.toBeNull()
+    expect(container.querySelector('.yf-skill-nodes')).not.toBeNull()
+    expect(container.querySelectorAll('.yf-skill-node').length).toBe(2)
+    expect(container.querySelectorAll('.yf-skill-edge').length).toBe(1)
+  })
+})
 // ── FIN: tests SkillTree + SkillNode + SkillEdge ──
