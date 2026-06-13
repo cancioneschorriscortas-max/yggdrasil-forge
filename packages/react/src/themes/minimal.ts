@@ -19,6 +19,11 @@ export const minimal: Theme = {
     nodeUnlocked: '#4a90e2',
     nodeMaxed: '#f5a623',
     nodeInProgress: '#7ed321',
+    // Decisión de design intencional (hixiene post-Fase 7):
+    // Os estados `disabled` e `expired` NON teñen cor específica neste
+    // tema "minimal" — caen no fallback ao color de `nodeLocked` polo
+    // mecanismo de SVGRenderer. Consumidores que requirean cores
+    // específicas inxectan tema custom vía <ThemeProvider theme={...}>.
     nodeStroke: '#555555',
     edge: '#999999',
     mesh: '#dddddd',

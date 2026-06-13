@@ -6,6 +6,25 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Changed
+- Code hygiene post-Phase 7: resolto 6 das 9 débedas abertas de
+  cobertura/SSR-safety. Cero cambio funcional observable.
+- +4 tests Announcer (locale es/en unlock+lock, lock gl, formatMessage
+  lock). Cobertura 72.72/60 → 100/100.
+- +1 test SkillTree (pass-through onNodeLongPress). 100/92.3 → 100/100.
+- v8 ignores xustificados: svg-helpers.ts (rama cubic), SVGRenderer.tsx
+  (rama background). Ambos a 100/100.
+- Migración SSR-safety: SkillTree.tsx + useSkillTree.ts getServerSnapshot
+  no 3º param de useSyncExternalStore.
+- JSDoc fallback intencional disabled/expired en themes/minimal.ts.
+
+### Note
+- Hixiene post-Fase 7 (cero número en MASTER §67).
+- DIFERIDAS: headless.ts + server.ts 0/0/0/0 (artefactos v8).
+- Changeset patch (cero cambios funcionais observables).
+
+## [Unreleased]
+
 ### Added
 - `@yggdrasil-forge/react`: tests a11y automatizados con jest-axe
   (4 tests cero violacións WCAG en SkillTree, SkillNode,

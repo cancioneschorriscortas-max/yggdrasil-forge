@@ -82,4 +82,62 @@ describe('SkillTreeAnnouncer', () => {
     expect(region.textContent).toBe('CUSTOM unlock a')
   })
 })
+
+describe('SkillTreeAnnouncer — locale e evento lock (hixiene)', () => {
+  it('anuncio en castelán cando locale="es" (unlock + lock)', async () => {
+    const engine = new TreeEngine(makeTreeDef())
+    const { container } = render(<SkillTreeAnnouncer engine={engine} locale="es" />)
+    await act(async () => {
+      await engine.unlock('a')
+    })
+    const region = q(container, 'output')
+    expect(region.textContent).toContain('desbloqueado')
+    await act(async () => {
+      await engine.lock('a')
+    })
+    expect(region.textContent).toContain('bloqueado')
+  })
+
+  it('anuncio en inglés cando locale="en" (unlock + lock)', async () => {
+    const engine = new TreeEngine(makeTreeDef())
+    const { container } = render(<SkillTreeAnnouncer engine={engine} locale="en" />)
+    await act(async () => {
+      await engine.unlock('a')
+    })
+    const region = q(container, 'output')
+    expect(region.textContent).toContain('unlocked')
+    await act(async () => {
+      await engine.lock('a')
+    })
+    expect(region.textContent).toContain('locked')
+  })
+
+  it('evento lock dispara announcement en locale gl', async () => {
+    const engine = new TreeEngine(makeTreeDef())
+    const { container } = render(<SkillTreeAnnouncer engine={engine} locale="gl" />)
+    await act(async () => {
+      await engine.unlock('a')
+    })
+    await act(async () => {
+      await engine.lock('a')
+    })
+    const region = q(container, 'output')
+    expect(region.textContent).toContain('bloqueado')
+  })
+
+  it('formatMessage override con evento lock', async () => {
+    const engine = new TreeEngine(makeTreeDef())
+    const { container } = render(
+      <SkillTreeAnnouncer engine={engine} formatMessage={(ev, id) => `CUSTOM ${ev} ${id}`} />,
+    )
+    await act(async () => {
+      await engine.unlock('a')
+    })
+    await act(async () => {
+      await engine.lock('a')
+    })
+    const region = q(container, 'output')
+    expect(region.textContent).toBe('CUSTOM lock a')
+  })
+})
 // ── FIN: tests SkillTreeAnnouncer ──

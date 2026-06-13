@@ -25,7 +25,7 @@ export function useSkillTree(engine: TreeEngine): TreeState {
   return useSyncExternalStore(
     engine.subscribe.bind(engine),
     engine.getSnapshot.bind(engine),
-    engine.getSnapshot.bind(engine),
+    engine.getServerSnapshot.bind(engine),
   )
 }
 // ── FIN: useSkillTree hook ──

@@ -247,5 +247,22 @@ describe('SkillTree — integración con MeshOverlay', () => {
     expect(container.querySelectorAll('.yf-skill-node').length).toBe(2)
     expect(container.querySelectorAll('.yf-skill-edge').length).toBe(1)
   })
+
+  it('SkillTree pasa onNodeLongPress a SkillNode (pass-through)', () => {
+    vi.useFakeTimers()
+    const onNodeLongPress = vi.fn()
+    const treeDef = makeMinimalTreeDef({
+      nodes: [{ id: 'root', type: 'small', label: 'Root' }],
+      edges: [],
+    })
+    const engine = new TreeEngine(treeDef)
+    const { container } = render(<SkillTree engine={engine} onNodeLongPress={onNodeLongPress} />)
+    const node = container.querySelector('[data-node-id="root"]')
+    expect(node).not.toBeNull()
+    fireEvent.pointerDown(node as Element)
+    vi.advanceTimersByTime(700)
+    expect(onNodeLongPress).toHaveBeenCalledWith('root')
+    vi.useRealTimers()
+  })
 })
 // ── FIN: tests SkillTree + SkillNode + SkillEdge ──

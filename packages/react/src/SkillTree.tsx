@@ -39,7 +39,7 @@ export function SkillTree({
   const state = useSyncExternalStore(
     engine.subscribe.bind(engine),
     engine.getSnapshot.bind(engine),
-    engine.getSnapshot.bind(engine),
+    engine.getServerSnapshot.bind(engine),
   )
 
   const treeDef = engine.getTreeDef()
