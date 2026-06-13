@@ -43,4 +43,8 @@ export {
 // Compoñente de accesibilidade (announcements vía live region ARIA).
 export { SkillTreeAnnouncer } from './SkillTreeAnnouncer.js'
 export type { SkillTreeAnnouncerProps } from './SkillTreeAnnouncer.js'
+
+// Error boundary para SkillTree (class component; require 'use client').
+export { SkillTreeErrorBoundary } from './SkillTreeErrorBoundary.js'
+export type { SkillTreeErrorBoundaryProps } from './SkillTreeErrorBoundary.js'
 // ── FIN: @yggdrasil-forge/react ──

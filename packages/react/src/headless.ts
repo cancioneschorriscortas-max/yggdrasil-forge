@@ -36,4 +36,8 @@ export {
 // Compoñente de accesibilidade (mesmo set que root entry).
 export { SkillTreeAnnouncer } from './SkillTreeAnnouncer.js'
 export type { SkillTreeAnnouncerProps } from './SkillTreeAnnouncer.js'
+
+// Error boundary (class component; require 'use client').
+export { SkillTreeErrorBoundary } from './SkillTreeErrorBoundary.js'
+export type { SkillTreeErrorBoundaryProps } from './SkillTreeErrorBoundary.js'
 // ── FIN: headless entry point ──

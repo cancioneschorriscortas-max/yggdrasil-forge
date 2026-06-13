@@ -7,6 +7,22 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: novo compoñente **`SkillTreeErrorBoundary`**
+  (class component). Captura erros de render nos descendants e
+  renderiza fallback (ReactNode ou render prop con error+reset).
+  Props: `fallback`, `onError?`, `children`. Method `reset()` para
+  retry. Exportado desde root e `/headless`; cero exposición en
+  `/server`.
+
+### Note
+- Sub-fase 7.11 DÉCIMA PRIMEIRA da Fase 7 (12 sub-fases totais).
+- Primeiro class component en packages/react.
+- DIFERIDO: 7.12 (tests visuais + a11y + SSR).
+- Cero deps de npm engadidas. Cero ErrorCodes novos.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: soporte para long press en mobile/touch:
   - `SkillNode`: prop `onLongPress?` + `longPressDuration?` (700ms).
     Implementación con useRef + setTimeout + 4 PointerEvent handlers.
