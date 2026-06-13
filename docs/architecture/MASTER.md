@@ -2437,8 +2437,21 @@ PluginManager + HookRunner.**
 | docs: hygiene post-6.3 (close 6.1+6.2+6.3 + DT-21..24 + lessons) | Feito | `f6c41b5` | — |
 | **6.4 Quotas (maxUsers / maxBuildsPerUser / maxStorageBytes)** | Feito | `e52fc33` | 1506 core |
 | **6.5 Permissions (interface mínima) + DT-26 fix (save() error propagation)** | Feito | `ecb08e9` | 1523 core |
+| **7.1 React 19 deps + JSX config** | Feito | `02a9c52` | 3 react |
+| **7.2 SkillTree + SkillNode + SkillEdge** | Feito | `12df2f9` | 18 react |
+| **7.3 MeshOverlay + SVGRenderer** | Feito | `d2f2296` | ~25 react |
+| **7.4 ThemeProvider + minimal + /headless** | Feito | `6860f76` | ~40 react |
+| **7.5 Hooks (useSkillTree/useNodeState/etc.)** | Feito | `86d5157` | 55 react |
+| **7.6 CSS animation framework** | Feito | `2b4f8d3` | 63 react |
+| **7.7 SkillTreeAnnouncer + aria-label + cover SkillNode** | Feito | `8e9a146` | 75 react |
+| **7.8 prefers-reduced-motion** | Feito | `c329774` | 78 react |
+| **7.9 SSR/RSC: SkillTreeStatic + /server entry** | Feito | `b4f35d5` | 92 react |
+| **7.10 Long press mobile/touch** | Feito | `e4c594e` | 97 react |
+| **7.11 SkillTreeErrorBoundary (class component)** | Feito | `856bdb4` | 104 react |
+| **7.12 jest-axe a11y + SSR no-dom-imports** | Feito | `f94f225` | 111 react |
+| docs: hygiene post-Phase 7 (code) | Feito | `79b6ad2` | 116 react |
 
-**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. 🎉 FASE 6 PECHADA OFICIALMENTE (5/5 sub-fases; cadea 3.0 → 6.5 = 23 sub-fases consecutivas con cero rollbacks).**
+**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. Fase 6 PECHADA. 🎉 FASE 7 PECHADA OFICIALMENTE (12/12 sub-fases + 1 hixiene de código; cadea 3.0 → hixiene = 36 sub-fases consecutivas con cero rollbacks).**
 
 **Métricas Fase 3 finais (3.0–3.6.b):**
 - 0 escalados funcionais (cero asimetrías abertas).
@@ -2454,6 +2467,36 @@ PluginManager + HookRunner.**
 - Reconciler completo (4/4 opcións de ReconcileOptions implementadas:
   refundRemovedNodes en 3.6.a; grandfatherIncreasedCosts +
   refundDecreasedCosts + invalidateOnPrereqFailure en 3.6.b).
+
+**Métricas Fase 7 finais (7.1–hixiene):**
+- 0 rollbacks (12 sub-fases + 1 hixiene = 13 commits limpos).
+- 0 escalados funcionais.
+- 0 ErrorCodes novos en toda a Fase 7.
+- 0 modificacións de packages/core/, packages/common/, packages/storage/.
+- Tests packages/react: 3 → 116 (+113).
+- 9 compoñentes públicos: SkillTree, SkillNode, SkillEdge,
+  MeshOverlay, SVGRenderer, ThemeProvider, SkillTreeAnnouncer,
+  SkillTreeStatic, SkillTreeErrorBoundary.
+- 1 wrapper interno: SkillTreeWithDefaultTheme (autoload do tema
+  minimal no root entry).
+- 4 hooks customizados: useSkillTree, useNodeState,
+  useNodeSelector, useStat.
+- 3 entry points: root (autoload theme), `/headless` (cero
+  estilos), `/server` (RSC-safe).
+- 4 módulos internos: svg-helpers, animations,
+  createDefaultLayoutRegistry, serializeForClient.
+- 1 class component (primeiro do paquete): SkillTreeErrorBoundary.
+- 4 devDeps engadidas (testing infrastructure só): jsdom,
+  @testing-library/react, jest-axe, @types/jest-axe. Cero deps
+  runtime.
+- Cobertura final packages/react: **100% / 100% / 100% / 100%**
+  en tódolos ficheiros instrumentados (post-hixiene).
+- Known limitations documentadas:
+  - `headless.ts` cobertura 0/0/0/0 — artefacto v8 inherente
+    (módulo puramente de re-exports + dynamic import en tests).
+  - `server.ts` cobertura 0/0/0/0 — mesmo patrón.
+- Patrón mantido: cero deps runtime engadidas durante Fase 7
+  completa.
 
 ## A.3 — Débeda técnica
 
@@ -2940,6 +2983,34 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   pode mitigar (ex: devolver PERMISSION_DENIED nos dous casos como
   política configurable do plugin). Anotar como **consideración para
   Fase 8.4**.
+
+**Fase 7 (pechada):**
+- **7.2 L1 (verificación empírica de literais)**: antes de prescribir
+  literais (e.g. valores aceptables de `node.type`, NodeState
+  unions), grep o source real do core en lugar de asumir. Aplicado
+  preventivamente desde 7.3.
+- **7.3 L1 (verificación de fixtures)**: cando reutilizo
+  fixtures/helpers entre sub-fases, verificar que tódolos campos
+  obrigatorios están (e.g. RadialLayout require `radius`; sen iso
+  computeLayout falla silenciosamente). Verificar shape do tipo
+  destino antes de usar.
+- **7.5 L1 (scripts de verificación runtime de APIs)**: para APIs
+  complexas (engine.getSnapshot semantics, TreeState.nodes sparse
+  vs dense, getStat behavior con unknownId), executar **scripts tsx
+  empíricos** en T0.2 do briefing en lugar de asumir
+  comportamento. Aplicado en 7.5, 7.9, 7.10, hixiene.
+- **7.6 L1 (single template literal multiline)**: Biome
+  `noUselessConcat` rexeita concatenación `+` entre múltiples
+  template literals. Prescribir desde o briefing usando **un só
+  template literal multiline** con interpolación en lugar de
+  múltiples literais concatenados. Aplicado retroactivamente desde
+  7.7 en adiante.
+- **7.7 L1 (preferir elementos HTML5 semánticos)**: Biome
+  `useSemanticElements` rexeita `<div role="status">` (e similares).
+  Preferir **elementos HTML5 con role implícito**: `<output>` para
+  status, `<main>` para main, `<nav>` para nav, `<aside>` para
+  complementary, etc. Aplicado en SkillTreeAnnouncer (7.7) e
+  documentado para futuras pezas con role ARIA.
 
 ## A.7 — Protocolo consolidado
 

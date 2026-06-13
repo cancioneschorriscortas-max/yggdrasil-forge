@@ -6,6 +6,13 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Documentation
+- 🎉 FASE 7 PECHADA OFICIALMENTE no MASTER: Anexo A (13 entradas),
+  cadea pechada (36 sub-fases sen rollback), métricas finais, A.6
+  leccións (7.2 L1, 7.3 L1, 7.5 L1, 7.6 L1, 7.7 L1). Cero código.
+
+## [Unreleased]
+
 ### Changed
 - Code hygiene post-Phase 7: resolto 6 das 9 débedas abertas de
   cobertura/SSR-safety. Cero cambio funcional observable.
