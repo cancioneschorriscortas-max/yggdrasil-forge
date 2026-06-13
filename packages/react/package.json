@@ -50,17 +50,19 @@
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "tsup": "catalog:",
-    "vitest": "catalog:",
-    "@vitest/coverage-v8": "catalog:",
-    "typescript": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@types/jest-axe": "^3.5.9",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jest-axe": "^10.0.0",
     "jsdom": "catalog:",
-    "@testing-library/react": "catalog:",
-    "@vitejs/plugin-react": "catalog:"
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "publishConfig": {
     "access": "public"

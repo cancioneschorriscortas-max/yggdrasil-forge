@@ -7,6 +7,26 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: tests a11y automatizados con jest-axe
+  (4 tests cero violacións WCAG en SkillTree, SkillNode,
+  SkillTreeStatic, SkillTreeAnnouncer).
+- Tests SSR no-dom-imports guard (3 tests sobre 9 ficheiros
+  server-safe: cero acceso a window/document/navigator).
+
+### devDependencies
+- jest-axe + @types/jest-axe (testing infrastructure; única
+  excepción "cero deps" xustificada por MASTER §32+§107).
+
+### Note
+- Sub-fase 7.12 DÉCIMA SEGUNDA E ÚLTIMA da Fase 7.
+- 🎉 FASE 7 PECHADA OFICIALMENTE — 12 sub-fases sen rollbacks.
+- DIFERIDOS: Playwright + visual regression + tests E2E.
+- Cero modificación de compoñentes ou tests existentes.
+- Próximo: hixiene MASTER post-Fase 7 (10 débedas acumuladas).
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: novo compoñente **`SkillTreeErrorBoundary`**
   (class component). Captura erros de render nos descendants e
   renderiza fallback (ReactNode ou render prop con error+reset).
