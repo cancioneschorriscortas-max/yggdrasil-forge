@@ -7,9 +7,10 @@
 // porque o output de useId non é un CSS identifier válido directo).
 // Prefixo `yf-` reservado polo paquete.
 //
-// **Preparación para 7.8 (prefers-reduced-motion)**: tódalas regras
-// están agrupadas entre "ANIMATION BLOCK START" e "ANIMATION BLOCK
-// END" no string final, para que 7.8 só envolva con @media query.
+// **Reduced motion (7.8)**: o bloque inclúe un override
+// `@media (prefers-reduced-motion: reduce)` que aplica
+// transition: none e animation: none aos elementos animados,
+// respectando a preferencia do usuario.
 
 /**
  * Devolve un string con regras CSS de animación scopeadas por
@@ -38,6 +39,14 @@ ${sel} .yf-skill-node[data-state="unlockable"] .yf-skill-node__circle { animatio
 ${sel} .yf-skill-node[role="button"] { cursor: pointer; transition: opacity 0.2s ease; }
 ${sel} .yf-skill-node[role="button"]:hover .yf-skill-node__circle { opacity: 0.9; }
 ${sel} .yf-skill-edge { transition: stroke 0.3s ease, stroke-width 0.3s ease; }
+@media (prefers-reduced-motion: reduce) {
+  ${sel} .yf-skill-node__circle,
+  ${sel} .yf-skill-node[role="button"],
+  ${sel} .yf-skill-edge {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 /* ANIMATION BLOCK END */`
 }
 // ── FIN: animations ──

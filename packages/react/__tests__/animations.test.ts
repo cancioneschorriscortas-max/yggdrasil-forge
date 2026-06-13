@@ -37,5 +37,23 @@ describe('buildAnimationsCSS', () => {
     expect(css).toContain('/* ANIMATION BLOCK START */')
     expect(css).toContain('/* ANIMATION BLOCK END */')
   })
+
+  it('contén media query @media (prefers-reduced-motion: reduce)', () => {
+    const css = buildAnimationsCSS('test-id')
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+  })
+
+  it('aplica transition: none e animation: none no override reducido', () => {
+    const css = buildAnimationsCSS('test-id')
+    expect(css).toContain('transition: none')
+    expect(css).toContain('animation: none')
+  })
+
+  it('usa !important nas regras de override', () => {
+    const css = buildAnimationsCSS('test-id')
+    const matches = css.match(/!important/g)
+    expect(matches).not.toBeNull()
+    expect(matches?.length).toBeGreaterThanOrEqual(2)
+  })
 })
 // ── FIN: tests animations ──

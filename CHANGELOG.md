@@ -7,6 +7,23 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: respect for `prefers-reduced-motion`.
+  O output de `buildAnimationsCSS` inclúe un bloque
+  `@media (prefers-reduced-motion: reduce)` que aplica
+  `transition: none !important` e `animation: none !important`
+  aos elementos animados. Graceful degradation para browsers sen
+  soporte.
+
+### Note
+- Sub-fase 7.8 OITAVA da Fase 7 (12 sub-fases totais).
+- Cero modificación de SVGRenderer (integración xa feita en 7.6).
+- DIFERIDOS: 7.9 (SSR/RSC), 7.10 (mobile/touch), 7.11 (error
+  boundaries), 7.12 (tests visuais).
+- Cero deps de npm engadidas. Cero ErrorCodes novos.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: novo compoñente público **`SkillTreeAnnouncer`**:
   live region ARIA invisible que anuncia eventos `unlock` e `lock` do
   engine. Mensaxes localizadas gl/es/en. Override vía `formatMessage`.
