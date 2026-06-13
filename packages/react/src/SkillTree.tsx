@@ -18,6 +18,11 @@ export interface SkillTreeProps {
   readonly locale?: string
   readonly onNodeClick?: (nodeId: string) => void
   readonly onEdgeClick?: (edgeId: string) => void
+  /**
+   * Handler opcional disparado tras un long press (700ms default)
+   * sobre un nodo. Propágase a SkillNode internamente.
+   */
+  readonly onNodeLongPress?: (nodeId: string) => void
   readonly layoutRegistry?: LayoutEngineRegistry
   readonly padding?: number
 }
@@ -27,6 +32,7 @@ export function SkillTree({
   locale,
   onNodeClick,
   onEdgeClick,
+  onNodeLongPress,
   layoutRegistry,
   padding = 16,
 }: SkillTreeProps): JSX.Element {
@@ -87,6 +93,7 @@ export function SkillTree({
               instance={state.nodes[node.id]}
               position={position}
               {...(onNodeClick !== undefined && { onClick: onNodeClick })}
+              {...(onNodeLongPress !== undefined && { onLongPress: onNodeLongPress })}
             />
           )
         })}

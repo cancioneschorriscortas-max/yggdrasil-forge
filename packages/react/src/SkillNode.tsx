@@ -1,9 +1,10 @@
+'use client'
+
 // ── INICIO: SkillNode ──
 // Compoñente átomo de nodo. Renderiza <g> con <circle> + <text>.
-// Compoñente puro (sen hooks; usable tanto en server como en client).
 
 import type { NodeDef, NodeInstance, NodeState, Position } from '@yggdrasil-forge/core'
-import type { JSX, KeyboardEvent, MouseEvent } from 'react'
+import { type JSX, type KeyboardEvent, type MouseEvent, type PointerEvent, useRef } from 'react'
 
 export interface SkillNodeProps {
   /** Definición do nodo (do TreeDef). */
@@ -20,11 +21,32 @@ export interface SkillNodeProps {
 
   /** Callback cando o usuario clica/activa este nodo. */
   readonly onClick?: (nodeId: string) => void
+
+  /**
+   * Handler opcional que se dispara cando o usuario mantén premido
+   * o nodo durante `longPressDuration` ms sen levantar o pointer.
+   * Útil para mobile/touch (long press como gesture de contexto).
+   */
+  readonly onLongPress?: (nodeId: string) => void
+
+  /**
+   * Duración en ms para considerar un long press. Default 700.
+   * Cero efecto se `onLongPress` é undefined.
+   */
+  readonly longPressDuration?: number
 }
 
 const NODE_RADIUS = 24
+const DEFAULT_LONG_PRESS_MS = 700
 
-export function SkillNode({ node, instance, position, onClick }: SkillNodeProps): JSX.Element {
+export function SkillNode({
+  node,
+  instance,
+  position,
+  onClick,
+  onLongPress,
+  longPressDuration,
+}: SkillNodeProps): JSX.Element {
   const state = instance?.state ?? 'locked'
   const tier = instance?.currentTier ?? 0
   const progress = instance?.progress
@@ -42,6 +64,29 @@ export function SkillNode({ node, instance, position, onClick }: SkillNodeProps)
         }
       : undefined
 
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelLongPress = (): void => {
+    if (longPressTimerRef.current !== null) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  const handlePointerDown =
+    onLongPress !== undefined
+      ? (_e: PointerEvent<SVGGElement>) => {
+          cancelLongPress()
+          longPressTimerRef.current = setTimeout(() => {
+            onLongPress(node.id)
+            longPressTimerRef.current = null
+          }, longPressDuration ?? DEFAULT_LONG_PRESS_MS)
+        }
+      : undefined
+
+  const handlePointerEnd =
+    onLongPress !== undefined ? (_e: PointerEvent<SVGGElement>) => cancelLongPress() : undefined
+
   return (
     <g
       className="yf-skill-node"
@@ -55,6 +100,12 @@ export function SkillNode({ node, instance, position, onClick }: SkillNodeProps)
         tabIndex: 0,
         role: 'button',
         'aria-label': formatAriaLabel(node, state),
+      })}
+      {...(handlePointerDown !== undefined && {
+        onPointerDown: handlePointerDown,
+        onPointerUp: handlePointerEnd,
+        onPointerCancel: handlePointerEnd,
+        onPointerLeave: handlePointerEnd,
       })}
     >
       <circle r={NODE_RADIUS} className="yf-skill-node__circle" />

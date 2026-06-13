@@ -102,4 +102,121 @@ describe('SkillNode — aria-label + keyboard + resolveLabel', () => {
     expect(label.textContent).toBe('fallback-id')
   })
 })
+
+describe('SkillNode — long press (7.10)', () => {
+  it('onLongPress dispara tras 700ms de pointerDown sostido', () => {
+    vi.useFakeTimers()
+    const onLongPress = vi.fn()
+    const { container } = render(
+      <svg role="img" aria-label="test">
+        <SkillNode
+          node={{ id: 'a', type: 'small', label: 'A' }}
+          instance={undefined}
+          position={{ x: 0, y: 0 }}
+          onLongPress={onLongPress}
+        />
+      </svg>,
+    )
+    const g = q(container, '[data-node-id="a"]')
+    fireEvent.pointerDown(g)
+    vi.advanceTimersByTime(699)
+    expect(onLongPress).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(onLongPress).toHaveBeenCalledWith('a')
+    vi.useRealTimers()
+  })
+
+  it('pointerUp antes de 700ms cancela o long press', () => {
+    vi.useFakeTimers()
+    const onLongPress = vi.fn()
+    const { container } = render(
+      <svg role="img" aria-label="test">
+        <SkillNode
+          node={{ id: 'a', type: 'small', label: 'A' }}
+          instance={undefined}
+          position={{ x: 0, y: 0 }}
+          onLongPress={onLongPress}
+        />
+      </svg>,
+    )
+    const g = q(container, '[data-node-id="a"]')
+    fireEvent.pointerDown(g)
+    vi.advanceTimersByTime(500)
+    fireEvent.pointerUp(g)
+    vi.advanceTimersByTime(1000)
+    expect(onLongPress).not.toHaveBeenCalled()
+    vi.useRealTimers()
+  })
+
+  it('pointerCancel cancela o long press', () => {
+    vi.useFakeTimers()
+    const onLongPress = vi.fn()
+    const { container } = render(
+      <svg role="img" aria-label="test">
+        <SkillNode
+          node={{ id: 'a', type: 'small', label: 'A' }}
+          instance={undefined}
+          position={{ x: 0, y: 0 }}
+          onLongPress={onLongPress}
+        />
+      </svg>,
+    )
+    const g = q(container, '[data-node-id="a"]')
+    fireEvent.pointerDown(g)
+    vi.advanceTimersByTime(400)
+    fireEvent.pointerCancel(g)
+    vi.advanceTimersByTime(1000)
+    expect(onLongPress).not.toHaveBeenCalled()
+    vi.useRealTimers()
+  })
+
+  it('longPressDuration customizado respéctase (300ms)', () => {
+    vi.useFakeTimers()
+    const onLongPress = vi.fn()
+    const { container } = render(
+      <svg role="img" aria-label="test">
+        <SkillNode
+          node={{ id: 'a', type: 'small', label: 'A' }}
+          instance={undefined}
+          position={{ x: 0, y: 0 }}
+          onLongPress={onLongPress}
+          longPressDuration={300}
+        />
+      </svg>,
+    )
+    const g = q(container, '[data-node-id="a"]')
+    fireEvent.pointerDown(g)
+    vi.advanceTimersByTime(299)
+    expect(onLongPress).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(onLongPress).toHaveBeenCalled()
+    vi.useRealTimers()
+  })
+
+  it('coexistencia onClick + onLongPress: tap rápido dispara onClick', () => {
+    vi.useFakeTimers()
+    const onLongPress = vi.fn()
+    const onClick = vi.fn()
+    const { container } = render(
+      <svg role="img" aria-label="test">
+        <SkillNode
+          node={{ id: 'a', type: 'small', label: 'A' }}
+          instance={undefined}
+          position={{ x: 0, y: 0 }}
+          onClick={onClick}
+          onLongPress={onLongPress}
+        />
+      </svg>,
+    )
+    const g = q(container, '[data-node-id="a"]')
+    fireEvent.pointerDown(g)
+    vi.advanceTimersByTime(200)
+    fireEvent.pointerUp(g)
+    fireEvent.click(g)
+    vi.advanceTimersByTime(1000)
+    expect(onLongPress).not.toHaveBeenCalled()
+    expect(onClick).toHaveBeenCalledWith('a')
+    vi.useRealTimers()
+  })
+})
 // ── FIN: tests SkillNode ──

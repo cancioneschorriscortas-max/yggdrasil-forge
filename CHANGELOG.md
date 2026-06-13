@@ -7,6 +7,24 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: soporte para long press en mobile/touch:
+  - `SkillNode`: prop `onLongPress?` + `longPressDuration?` (700ms).
+    Implementación con useRef + setTimeout + 4 PointerEvent handlers.
+  - `SkillTree`: prop `onNodeLongPress?` con pass-through a SkillNode.
+- Touch target 44x44px xa cuberto (NODE_RADIUS=24, diámetro=48).
+
+### Changed
+- `SkillNode.tsx` agora ten `'use client'` (consecuencia de useRef).
+  renderToString segue funcionando (SSR-safety mantida).
+
+### Note
+- Sub-fase 7.10 DÉCIMA da Fase 7 (12 sub-fases totais).
+- DIFERIDOS: pinch+pan (Fase 9), double tap, bottom sheets.
+- Cero deps de npm engadidas. Cero ErrorCodes novos.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: terceiro entry point `/server` (RSC-safe):
   - **`SkillTreeStatic`**: compoñente puro sen hooks que renderiza
     estaticamente con treeDef + state. Cero 'use client', cero
