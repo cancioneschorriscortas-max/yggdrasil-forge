@@ -7,6 +7,51 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: tres compoñentes públicos novos:
+  - `SkillTree`: compoñente raíz SVG que toma un `TreeEngine` como
+    prop e renderiza a árbore enteira. Subscríbese ao engine via
+    `useSyncExternalStore` nativo de React 18+ (re-render automático).
+    Computa layout internamente via `computeLayout` cun
+    `LayoutEngineRegistry` default (Identity + Radial + Tree). Acepta
+    props opcionais: `locale`, `onNodeClick`, `onEdgeClick`,
+    `layoutRegistry` (override), `padding`. Marcado `'use client'`.
+  - `SkillNode`: átomo de nodo. Renderiza `<g>` con `<circle>` +
+    `<text>`. Props: `node`, `instance`, `position`, `onClick`. Compoñente
+    puro (sen hooks; usable tanto en server como en client).
+  - `SkillEdge`: átomo de edge. Renderiza `<path>` SVG cun `d`
+    derivado de `EdgePath.points` + `EdgePath.kind` (`'line'`,
+    `'cubic'`, `'polyline'`). Props: `edgeId`, `edge`, `path`,
+    `onClick`. Compoñente puro.
+- **Headless por defecto**: cero estilos hardcoded. Classes CSS
+  documentadas (yf-skill-tree, yf-skill-tree--error, yf-skill-edges,
+  yf-skill-nodes, yf-skill-node, yf-skill-node__circle,
+  yf-skill-node__label, yf-skill-node__progress, yf-skill-edge) +
+  data-attributes como contrato público estable para ThemeProvider
+  (7.4) e temas.
+- **SSR-safe**: verificable con `renderToString` (cero DOM access).
+- `@yggdrasil-forge/core` engadido como dependency (require os tipos
+  + 3 layout classes + computeLayout).
+- Catálogo pnpm-workspace.yaml ampliado con 3 entradas: jsdom ^25.0.0,
+  @testing-library/react ^16.0.0, @vitejs/plugin-react ^4.3.0
+  (reutilizables en sub-fases 7.3-7.12).
+
+### Note
+- Sub-fase 7.2 SEGUNDA da Fase 7 (12 sub-fases totais).
+- **DIFERIDOS**: MeshOverlay/SVGRenderer dedicados (7.3), ThemeProvider +
+  temas Oberón/minimal (7.4), hooks customizados (7.5), animacións
+  CSS (7.6), keyboard navigation + ARIA (7.7), prefers-reduced-motion
+  (7.8), SSR + RSC entry points (7.9), mobile/touch (7.10), error
+  boundaries (7.11), tests visuais (7.12).
+- **Reactividade**: SkillTree usa `useSyncExternalStore` (hook NATIVO
+  de React; cero hook customizado do paquete).
+- **Cero `'use client'` en SkillNode e SkillEdge** (puros sen hooks).
+- **Cero ErrorCodes novos**. Cero modificación de packages/common/.
+- **Cero modificación de packages/core/, packages/storage/** ou
+  outros 14 paquetes scaffold.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: dependencias de React 19 + configuración
   inicial. React 19.2.7 (latest stable) e react-dom 19.2.7 declarados
   como `peerDependencies` (`^19.2.7`) e como `devDependencies` exactas
