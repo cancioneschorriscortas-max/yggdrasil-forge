@@ -121,4 +121,28 @@ describe('SVGRenderer — integración con tema', () => {
     expect(id1).not.toBe(id2)
   })
 })
+
+// ── Bloque 3: Integración con animacións ──
+
+describe('SVGRenderer — integración con animacións', () => {
+  it('con tema activo, <style> contén @keyframes yf-pulse', () => {
+    const { container } = render(
+      <ThemeProvider theme={minimal}>
+        <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />
+      </ThemeProvider>,
+    )
+    const styleEl = container.querySelector('style')
+    expect(styleEl).not.toBeNull()
+    expect(styleEl?.textContent).toContain('@keyframes yf-pulse')
+    expect(styleEl?.textContent).toContain('ANIMATION BLOCK START')
+  })
+
+  it('sen tema (headless), cero animacións no DOM', () => {
+    const { container } = render(
+      <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />,
+    )
+    expect(container.querySelector('style')).toBeNull()
+    expect(container.innerHTML).not.toContain('@keyframes')
+  })
+})
 // ── FIN: tests SVGRenderer ──

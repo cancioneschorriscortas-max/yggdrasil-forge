@@ -4,6 +4,7 @@ import type { Bounds } from '@yggdrasil-forge/core'
 // ── INICIO: SVGRenderer ──
 import { type CSSProperties, type JSX, type ReactNode, useId } from 'react'
 import { useTheme } from './ThemeProvider.js'
+import { buildAnimationsCSS } from './animations.js'
 import { buildViewBox } from './svg-helpers.js'
 import type { Theme } from './theme-types.js'
 
@@ -105,7 +106,8 @@ function buildThemeRules(theme: Theme, themeId: string): string {
     `${sel} .yf-skill-edge { stroke: var(--yf-color-edge); stroke-width: var(--yf-stroke-width); }\n` +
     `${sel} .yf-mesh-overlay__line { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }\n` +
     `${sel} .yf-mesh-overlay__circle { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }\n` +
-    `${sel} .yf-mesh-overlay__polygon { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }`
+    `${sel} .yf-mesh-overlay__polygon { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }` +
+    `\n${buildAnimationsCSS(themeId)}`
   )
 }
 // ── FIN: SVGRenderer ──

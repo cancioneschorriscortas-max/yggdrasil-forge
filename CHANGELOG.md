@@ -7,6 +7,25 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/react`: animation framework básico (CSS-only):
+  - Módulo interno `animations.ts` con `buildAnimationsCSS(themeId)`.
+  - SVGRenderer integra animacións ao `<style>` interno con tema activo.
+  - 4 efectos: transitions fill/stroke nos nodos, hover en nodos
+    clickables, pulse para `data-state="unlockable"` (`@keyframes
+    yf-pulse`), transitions de stroke en edges.
+  - Comments delimitadores `ANIMATION BLOCK START/END` (prep 7.8).
+
+### Note
+- Sub-fase 7.6 SEXTA da Fase 7 (12 sub-fases totais).
+- Modo headless: cero animacións automáticas.
+- DIFERIDOS: prefers-reduced-motion (7.8), Framer Motion (futura).
+- Cero deps de npm engadidas. Cero ErrorCodes novos.
+- Cero modificación de compoñentes ou tests existentes (salvo
+  SVGRenderer ampliouse con +2 tests).
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/react`: módulo de hooks customizados:
   - **`useSkillTree(engine)`**: devolve `TreeState` reactivo.
   - **`useNodeState(engine, nodeId)`**: devolve `NodeInstance | null`.
