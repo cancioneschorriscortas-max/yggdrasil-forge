@@ -381,5 +381,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Hook del plugin "{pluginId}" lanzó: {message}',
     en: 'Plugin "{pluginId}" hook threw: {message}',
   },
+  [ErrorCode.OPERATION_CANCELLED_BY_HOOK]: {
+    gl: 'Operación "{operation}" cancelada por hook de plugin',
+    es: 'Operación "{operation}" cancelada por hook de plugin',
+    en: 'Operation "{operation}" cancelled by plugin hook',
+  },
 }
 // ── FIN: error messages localizadas ──

@@ -21,6 +21,7 @@ import type {
   Cost,
   EventMap,
   EventName,
+  HookContext,
   Loadout,
   LockResult,
   NodeInstance,
@@ -798,7 +799,11 @@ export class TreeEngine {
       }
     }
 
-    return ok({ allowed: true })
+    // ── INICIO: 8.4.c — runComputeUnlockability ao return final ──
+    const defaultResult: UnlockCheck = { allowed: true }
+    const modified = this.hookRunner.runComputeUnlockability(nodeId, defaultResult)
+    return ok(modified)
+    // ── FIN: 8.4.c ──
   }
 
   // ── unlock: mutación async (T4) ──
@@ -937,6 +942,25 @@ export class TreeEngine {
     // Gardamos o budget anterior por recurso para emitir budgetChange
     const oldBudget = state.budget
 
+    // ── INICIO: 8.4.c — runBeforeUnlock ──
+    const ctx: HookContext = {
+      locale: this.locale,
+      timestamp: Date.now(),
+      metadata: {},
+    }
+    const proceed = await this.hookRunner.runBeforeUnlock(nodeId, ctx)
+    if (!proceed) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.OPERATION_CANCELLED_BY_HOOK,
+          getErrorMessage(ErrorCode.OPERATION_CANCELLED_BY_HOOK, this.locale, {
+            operation: 'unlock',
+          }),
+        ),
+      )
+    }
+    // ── FIN: 8.4.c ──
+
     // Mutación atómica vía StateStore.update (Immer)
     this.store.update((draft) => {
       const node = draft.nodes[nodeId]
@@ -1046,6 +1070,10 @@ export class TreeEngine {
       }
     }
     // ── FIN: 2.1.b ──
+
+    // ── INICIO: 8.4.c — runAfterUnlock ──
+    await this.hookRunner.runAfterUnlock(nodeId, ctx)
+    // ── FIN: 8.4.c ──
 
     return ok({ nodeId, newState: newNodeState, tier: targetTier, spent: costs })
   }
@@ -1184,6 +1212,25 @@ export class TreeEngine {
     const newBudget = this.resources.refund(costs, oldBudget)
     const now = Date.now()
 
+    // ── INICIO: 8.4.c — runBeforeLock ──
+    const ctx: HookContext = {
+      locale: this.locale,
+      timestamp: Date.now(),
+      metadata: {},
+    }
+    const proceed = await this.hookRunner.runBeforeLock(nodeId, ctx)
+    if (!proceed) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.OPERATION_CANCELLED_BY_HOOK,
+          getErrorMessage(ErrorCode.OPERATION_CANCELLED_BY_HOOK, this.locale, {
+            operation: 'lock',
+          }),
+        ),
+      )
+    }
+    // ── FIN: 8.4.c ──
+
     this.store.update((draft) => {
       const node = draft.nodes[nodeId]
       if (node !== undefined) {
@@ -1230,6 +1277,10 @@ export class TreeEngine {
     // O nodo deixou de contribuír; recalculamos na seguinte consulta.
     this.statComputer.invalidate()
     // ── FIN: 2.2.b ──
+
+    // ── INICIO: 8.4.c — runAfterLock ──
+    await this.hookRunner.runAfterLock(nodeId, ctx)
+    // ── FIN: 8.4.c ──
 
     return ok({ nodeId, newState: 'locked', refunded: costs })
   }
@@ -1342,6 +1393,25 @@ export class TreeEngine {
       return ok({ nodeIds: [], refunded: [] })
     }
 
+    // ── INICIO: 8.4.c — runBeforeRespec ──
+    const ctx: HookContext = {
+      locale: this.locale,
+      timestamp: Date.now(),
+      metadata: {},
+    }
+    const proceed = await this.hookRunner.runBeforeRespec(nodeIdsToLock, ctx)
+    if (!proceed) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.OPERATION_CANCELLED_BY_HOOK,
+          getErrorMessage(ErrorCode.OPERATION_CANCELLED_BY_HOOK, this.locale, {
+            operation: 'respec',
+          }),
+        ),
+      )
+    }
+    // ── FIN: 8.4.c ──
+
     // Calcular refund acumulado con costPercent factor (cero cambio se
     // costPercent === 0; preserva referencias exactas):
     const factor = 1 - costPercent / 100
@@ -1425,6 +1495,10 @@ export class TreeEngine {
     // da agregación. Recalculamos na seguinte consulta.
     this.statComputer.invalidate()
     // ── FIN: 2.2.b ──
+
+    // ── INICIO: 8.4.c — runAfterRespec ──
+    await this.hookRunner.runAfterRespec(nodeIdsToLock, ctx)
+    // ── FIN: 8.4.c ──
 
     return ok({ nodeIds: nodeIdsToLock, refunded: allCosts })
   }

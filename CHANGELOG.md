@@ -7,6 +7,24 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **TreeEngine.unlock**: hooks `runBeforeUnlock` (cancela con PL007)
+  + `runAfterUnlock` (tras éxito).
+- **TreeEngine.lock**: hooks `runBeforeLock` + `runAfterLock`.
+- **TreeEngine.respec**: hooks `runBeforeRespec` + `runAfterRespec`.
+  Cero hooks se nodeIdsToLock.length === 0.
+- **TreeEngine.canUnlock**: `runComputeUnlockability` só ao return
+  final. Early returns inchanged.
+- `OPERATION_CANCELLED_BY_HOOK` (`YGG_PL007`) con mensaxe gl/es/en.
+
+### Note
+- Sub-fase 8.4.c ÚLTIMA das 3 de 8.4. Plugins funcionais end-to-end.
+- Garantía dura backward-compat: 1655 tests previos intactos (303
+  dependentes de unlock/lock/respec/canUnlock OK).
+- computeCost DIFERIDO. actor no HookContext DIFERIDO.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/core`: **`PluginAPI` class interna** (6 métodos:
   registerHook → HookRunner, emit → EventEmitter, log → console,
   registerCondition/Layout/StorageAdapter → PL003 NOT_IMPLEMENTED).
