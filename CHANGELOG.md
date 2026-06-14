@@ -7,6 +7,32 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: **`PluginAPI` class interna** (6 métodos:
+  registerHook → HookRunner, emit → EventEmitter, log → console,
+  registerCondition/Layout/StorageAdapter → PL003 NOT_IMPLEMENTED).
+- `PluginEngineHandle`: **tipo real** en types/plugin.ts (10 getters
+  readonly; antes era `unknown`).
+- `@yggdrasil-forge/common`: **3 ErrorCodes novos** YGG_PL003/PL005/PL006
+  (reúsase PLUGIN_INSTALL_FAILED P001 existente).
+
+### Changed
+- `PluginManager`: constructor `(engineHandle, hookRunner, events,
+  locale?)`; register chama install() con rollback; unregister chama
+  uninstall() best-effort + cleanup hooks.
+- `TreeEngine`: constructor crea HookRunner (onError → pluginError)
+  + engineHandle (10 getters) + pasa a PluginManager.
+- `PluginManager.test.ts`: helper makePluginManager + test #8
+  modificado (excepción documentada: interno en construción).
+
+### Note
+- Sub-fase 8.4.b.ii: plugins son agora funcionais (install chamado
+  con engineHandle + PluginAPI). Hooks NON chamados aínda (8.4.c).
+- Conflicto PLUGIN_INSTALL_FAILED (P001 existente vs PL004 prescrito)
+  resolto reusando P001.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/core`: **`HookRunner` class interna standalone**
   en `packages/core/src/plugins/HookRunner.ts`. Xestiona rexistro
   + execución dos 8 hooks tipados en `Hooks` interface.

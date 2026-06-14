@@ -366,5 +366,20 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Plugin no encontrado: "{id}"',
     en: 'Plugin not found: "{id}"',
   },
+  [ErrorCode.PLUGIN_API_NOT_IMPLEMENTED]: {
+    gl: 'Método PluginAPI non implementado: "{method}"',
+    es: 'Método PluginAPI no implementado: "{method}"',
+    en: 'PluginAPI method not implemented: "{method}"',
+  },
+  [ErrorCode.PLUGIN_UNINSTALL_FAILED]: {
+    gl: 'Fallou a desinstalación do plugin "{id}": {error}',
+    es: 'Falló la desinstalación del plugin "{id}": {error}',
+    en: 'Plugin uninstall failed for "{id}": {error}',
+  },
+  [ErrorCode.PLUGIN_HOOK_THREW]: {
+    gl: 'Hook do plugin "{pluginId}" lanzou: {message}',
+    es: 'Hook del plugin "{pluginId}" lanzó: {message}',
+    en: 'Plugin "{pluginId}" hook threw: {message}',
+  },
 }
 // ── FIN: error messages localizadas ──

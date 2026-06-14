@@ -1,10 +1,13 @@
 // ── INICIO: Plugin types ──
 // Sistema de plugins: interfaces, hooks, permissions.
 
+import type { Locale } from '@yggdrasil-forge/common'
+import type { Result } from '@yggdrasil-forge/common'
 import type { EdgeType } from './edge.js'
 import type { EventMap } from './events.js'
-import type { NodeState } from './node.js'
-import type { Cost } from './resources.js'
+import type { NodeInstance, NodeState } from './node.js'
+import type { Budget, Cost } from './resources.js'
+import type { TreeDef } from './tree.js'
 import type { UnlockCheck } from './unlock.js'
 
 /**
@@ -188,7 +191,25 @@ export interface Plugin {
  *
  * Por agora é un placeholder para tipar a sinatura de `install`.
  */
-export type PluginEngineHandle = unknown
+/**
+ * Subset readonly de TreeEngine exposto aos plugins durante
+ * `Plugin.install()`. Cero mutations, cero acceso a snapshots,
+ * audit, subscribe, subtrees ou outros internals sensibles.
+ *
+ * **Sub-fase 8.4.b.ii**: 10 getters readonly.
+ */
+export interface PluginEngineHandle {
+  readonly getNodeState: (nodeId: string) => NodeInstance | null
+  readonly getAllNodeStates: () => ReadonlyMap<string, NodeInstance>
+  readonly getBudget: () => Readonly<Budget>
+  readonly getProgress: (nodeId: string) => number
+  readonly getTreeDef: () => Readonly<TreeDef>
+  readonly getLocale: () => Locale
+  readonly getStat: (statId: string) => number
+  readonly getAllStats: () => Readonly<Record<string, number>>
+  readonly isReadOnly: () => boolean
+  readonly canUnlock: (nodeId: string) => Result<UnlockCheck>
+}
 
 /**
  * Resultado dunha tentativa de registro de plugin.

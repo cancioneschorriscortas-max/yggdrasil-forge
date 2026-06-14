@@ -7,6 +7,7 @@ import { type Draft, castDraft } from 'immer'
 import { LoadoutManager } from '../builds/LoadoutManager.js'
 import { SnapshotManager } from '../builds/SnapshotManager.js'
 import { decodeFromUrl, encodeForUrl } from '../builds/UrlSerializer.js'
+import { HookRunner } from '../plugins/HookRunner.js'
 import { PluginManager } from '../plugins/PluginManager.js'
 import type {
   ApplyChangesResult,
@@ -25,6 +26,7 @@ import type {
   NodeInstance,
   NodeState,
   Plugin,
+  PluginEngineHandle,
   RespecOptions,
   RespecResult,
   Result,
@@ -125,6 +127,9 @@ export class TreeEngine {
   // ── INICIO: 8.4.a — manager de plugins ──
   private readonly pluginManager: PluginManager
   // ── FIN: 8.4.a ──
+  // ── INICIO: 8.4.b.ii — hookRunner ──
+  private readonly hookRunner: HookRunner
+  // ── FIN: 8.4.b.ii ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -162,9 +167,38 @@ export class TreeEngine {
     this.snapshotManager = new SnapshotManager(options?.storage)
     this.loadoutManager = new LoadoutManager(options?.storage)
     // ── FIN: 8.2 ──
-    // ── INICIO: 8.4.a ──
-    this.pluginManager = new PluginManager(this.locale)
-    // ── FIN: 8.4.a ──
+    // ── INICIO: 8.4.b.ii — hookRunner + engineHandle ──
+    this.hookRunner = new HookRunner({
+      onError: (pluginId, error) => {
+        const yggError =
+          error instanceof YggdrasilError
+            ? error
+            : new YggdrasilError(
+                ErrorCode.PLUGIN_HOOK_THREW,
+                getErrorMessage(ErrorCode.PLUGIN_HOOK_THREW, this.locale, {
+                  pluginId,
+                  message: error instanceof Error ? error.message : String(error),
+                }),
+              )
+        this.events.emit('pluginError', pluginId, yggError)
+      },
+    })
+
+    const engineHandle: PluginEngineHandle = {
+      getNodeState: (id) => this.getNodeState(id),
+      getAllNodeStates: () => this.getAllNodeStates(),
+      getBudget: () => this.getBudget(),
+      getProgress: (id) => this.getProgress(id),
+      getTreeDef: () => this.getTreeDef(),
+      getLocale: () => this.getLocale(),
+      getStat: (id) => this.getStat(id),
+      getAllStats: () => this.getAllStats(),
+      isReadOnly: () => this.isReadOnly(),
+      canUnlock: (id) => this.canUnlock(id),
+    }
+
+    this.pluginManager = new PluginManager(engineHandle, this.hookRunner, this.events, this.locale)
+    // ── FIN: 8.4.b.ii ──
     // ── INICIO: 2.1.b — instanciación do EffectsRunner ──
     this.effectsRunner = new EffectsRunner({
       engine: this,

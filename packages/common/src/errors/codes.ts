@@ -115,5 +115,8 @@ export enum ErrorCode {
   // Plugins (sub-fase 8.4.a)
   PLUGIN_ALREADY_REGISTERED = 'YGG_PL001',
   PLUGIN_NOT_FOUND = 'YGG_PL002',
+  PLUGIN_API_NOT_IMPLEMENTED = 'YGG_PL003',
+  PLUGIN_UNINSTALL_FAILED = 'YGG_PL005',
+  PLUGIN_HOOK_THREW = 'YGG_PL006',
 }
 // ── FIN: error codes ──
