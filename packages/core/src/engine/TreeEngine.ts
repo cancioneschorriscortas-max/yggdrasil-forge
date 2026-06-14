@@ -1292,7 +1292,7 @@ export class TreeEngine {
   // Sen primeiro arg: respec total (todos unlocked/maxed → locked).
   // opts.costPercent ∈ [0, 100]: penalty model. Default 0 = full refund.
   //   Fórmula: refunded = floor(original * (1 - costPercent / 100)).
-  // Hooks beforeRespec/afterRespec DIFERIDOS a 8.4 (PluginManager + HookRunner).
+  // Hooks beforeRespec/afterRespec integrados en 8.4.c (via HookRunner).
   // Atómico: unha soa StateStore.update para todo.
   async respec(
     nodeIdOrIds?: string | readonly string[],

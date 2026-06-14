@@ -7,6 +7,20 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **`@yggdrasil-forge/plugins`** paquete novo + scaffold completo.
+  DT-14 fix aplicado proactivamente en tsup.config.ts.
+- **`HistoryPlugin`** primeiro plugin oficial: tracking de unlock/
+  lock/respec via after* hooks, FIFO con maxSize default 100, API
+  pública (getHistory, clearHistory, size, getMaxSize), uninstall
+  cleanup.
+
+### Changed
+- `TreeEngine.ts` línea 1295: comentario actualizado ("integrados
+  en 8.4.c" en lugar de "DIFERIDOS a 8.4"). Cero impacto funcional.
+
+## [Unreleased]
+
+### Added
 - **TreeEngine.unlock**: hooks `runBeforeUnlock` (cancela con PL007)
   + `runAfterUnlock` (tras éxito).
 - **TreeEngine.lock**: hooks `runBeforeLock` + `runAfterLock`.
