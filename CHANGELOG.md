@@ -6,6 +6,74 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- `@yggdrasil-forge/core`: **módulo novo `builds/`** con
+  serialización JSON e share links URL-safe:
+  - **`BuildSerializer`** (público): `serialize(build): string`
+    + `deserialize(str): Result<Build>`. Cero compresión (JSON
+    puro); validación de shape mínima en deserialize.
+  - **`UrlSerializer`** (público): `encodeForUrl(build): string`
+    + `decodeFromUrl(code): Result<Build>`. Base64url para
+    URL-safety (cero `+`, `/`, `=`).
+  - **`base64url`** helpers (internos): implementación con
+    TextEncoder/TextDecoder + btoa/atob (cero deps; Node 16+
+    e browsers modernos).
+- `TreeEngine`: 2 APIs públicas novas:
+  - **`shareBuild(opts?: { baseUrl?: string }): BuildShareLink`**
+    — constrúe un BuildShareLink co estado actual codificado a
+    base64url. Se se pasa `baseUrl`, constrúe a `url` completa
+    como `baseUrl + shortCode`.
+  - **`loadFromShareLink(code: string): Result<Build>`** —
+    decodifica un shortCode a Build. **NON aplica o estado ao
+    engine** (require coordinación con 8.2 Snapshots para
+    aplicar; documentado na JSDoc).
+- `@yggdrasil-forge/common`: **3 ErrorCodes novos** baixo prefixo
+  novo **`YGG_B*` (Builds)**:
+  - `BUILD_DESERIALIZE_FAILED` (`YGG_B001`): JSON parse falla.
+  - `BUILD_INVALID_SHAPE` (`YGG_B002`): shape do JSON non coincide
+    con Build.
+  - `SHARE_LINK_DECODE_FAILED` (`YGG_B003`): base64url decode
+    falla.
+  - Mensaxes localizadas gl/es/en para cada un.
+
+### Note
+- Sub-fase 8.1 PRIMEIRA da Fase 8 (8 sub-fases prescritas: 8.1
+  BuildSerializer + UrlSerializer, 8.2 Loadouts + Snapshots, 8.3
+  RespecManager, 8.4 PluginManager + HookRunner, 8.5 Plugins
+  oficiais, 8.6 SearchPlugin + @search, 8.7 ValidatorEngine, 8.8
+  Read-only mode).
+- **Cero compresión** (Opción A do director): JSON puro + base64url.
+  Builds pequenas caben cómodamente en URLs. **Compresión via `pako`
+  ou similar DIFERIDA** a sub-fase futura se require (e.g., builds
+  > 10 KB).
+- **`loadFromShareLink` NON aplica o estado** ao engine: limítase a
+  decodificar + validar shape. O consumidor é responsable de:
+  1. Verificar que `build.treeId` e `build.treeVersion` son
+     compatibles co engine actual.
+  2. Aplicar `build.state` mediante mecanismo apropiado (e.g.,
+     crear novo TreeEngine con ese estado, ou aplicar via
+     mecanismo de futura sub-fase 8.2 Snapshots).
+- **`qrCode` e `embedUrl` do BuildShareLink seguen `undefined`**
+  (DIFERIDOS; sub-fase futura específica fora da Fase 8).
+- **APLICACIÓN OPCIÓN A** (conflito serialize/deserialize con
+  JsonSerializer): exports en core/index.ts renomeados a
+  `serializeBuild` / `deserializeBuild`. Funcións internas en
+  BuildSerializer.ts mantéñense con nomes orixinais. Lección 8.1 L1.
+- **DIFERIDOS**: 8.2-8.8.
+- **Cero deps de npm engadidas**.
+- **Cero modificación de packages/storage/, packages/react/** ou
+  outros 14 paquetes scaffold. **Cero modificación de
+  packages/search/ ou packages/validators/** (diferidos a 8.6/8.7).
+- **Cero modificación de calquera test existente** (1523 core +
+  60 common + 193 storage + 116 react = 1892 tests intactos).
+- **Cero modificación de pezas existentes en packages/core/src/**
+  salvo TreeEngine.ts (+imports +2 métodos) e index.ts (+exports).
+- **Novo prefixo de ErrorCodes `YGG_B*` (Builds)** introducido
+  segundo convención de prefixos por categoría establecida en
+  fases anteriores.
+
+## [Unreleased]
+
 ### Documentation
 - 🎉 FASE 7 PECHADA OFICIALMENTE no MASTER: Anexo A (13 entradas),
   cadea pechada (36 sub-fases sen rollback), métricas finais, A.6

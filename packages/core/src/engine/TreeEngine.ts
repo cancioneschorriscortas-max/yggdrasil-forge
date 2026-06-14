@@ -4,12 +4,15 @@
 
 import { ErrorCode, type Locale, YggdrasilError, getErrorMessage } from '@yggdrasil-forge/common'
 import { type Draft, castDraft } from 'immer'
+import { decodeFromUrl, encodeForUrl } from '../builds/UrlSerializer.js'
 import type {
   ApplyChangesResult,
   AuditAction,
   AuditEntry,
   AuditFilter,
   Budget,
+  Build,
+  BuildShareLink,
   Cost,
   EventMap,
   EventName,
@@ -2080,5 +2083,67 @@ export class TreeEngine {
   }
 
   // ── FIN: serialización JSON (sub-fase 1.17) ──
+
+  // ── Builds: share / load ──
+
+  /**
+   * Crea un BuildShareLink para a build actual.
+   *
+   * Constrúe un snapshot do estado actual + metadata e codifícao a
+   * base64url para uso en URLs.
+   *
+   * @param opts.baseUrl - URL base opcional para construír a `url`
+   *   final. Se non se pasa, `url` é string vacío e o consumidor
+   *   constrúe a URL completa con `link.shortCode`.
+   *
+   * @example
+   * const link = engine.shareBuild({ baseUrl: 'https://app.com/share/' })
+   * // link.shortCode: 'eyJpZCI6...'
+   * // link.url: 'https://app.com/share/eyJpZCI6...'
+   * // link.qrCode: undefined (sub-fase futura)
+   * // link.embedUrl: undefined (sub-fase futura)
+   */
+  shareBuild(opts?: { readonly baseUrl?: string }): BuildShareLink {
+    const def = this.store.getTreeDef()
+    const build: Build = {
+      id: `build-${Date.now()}`,
+      treeId: def.id,
+      treeVersion: def.version,
+      schemaVersion: def.schemaVersion,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      state: this.getSnapshot(),
+    }
+    const shortCode = encodeForUrl(build)
+    const baseUrl = opts?.baseUrl ?? ''
+    return {
+      url: baseUrl + shortCode,
+      shortCode,
+    }
+  }
+
+  /**
+   * Carga unha Build a partir dun shortCode (base64url).
+   *
+   * **NOTA**: este método **deserializa e valida** o shape do Build,
+   * pero **NON aplica o estado ao engine actual**. O consumidor é
+   * responsable de:
+   *   1. Verificar que `build.treeId` e `build.treeVersion` son
+   *      compatibles co engine actual.
+   *   2. Aplicar `build.state` mediante mecanismo apropiado (e.g.,
+   *      crear novo TreeEngine con ese estado, ou aplicar via
+   *      mecanismo de futura sub-fase 8.2 Snapshots).
+   *
+   * @example
+   * const result = engine.loadFromShareLink(shortCode)
+   * if (result.ok) {
+   *   console.log('Build cargada:', result.value)
+   * }
+   */
+  loadFromShareLink(code: string): Result<Build> {
+    return decodeFromUrl(code)
+  }
+
+  // ── FIN: builds share / load ──
 }
 // ── FIN: TreeEngine ──

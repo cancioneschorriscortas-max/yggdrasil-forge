@@ -102,5 +102,10 @@ export enum ErrorCode {
   // Layout errors
   LAYOUT_TYPE_UNKNOWN = 'YGG_L001',
   LAYOUT_COMPUTE_FAILED = 'YGG_L002',
+
+  // Builds
+  BUILD_DESERIALIZE_FAILED = 'YGG_B001',
+  BUILD_INVALID_SHAPE = 'YGG_B002',
+  SHARE_LINK_DECODE_FAILED = 'YGG_B003',
 }
 // ── FIN: error codes ──

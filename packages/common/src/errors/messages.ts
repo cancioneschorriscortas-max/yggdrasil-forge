@@ -321,5 +321,20 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Error al calcular layout {type}: {reason}',
     en: 'Layout computation failed ({type}): {reason}',
   },
+  [ErrorCode.BUILD_DESERIALIZE_FAILED]: {
+    gl: 'Erro ao deserializar Build: JSON inválido',
+    es: 'Error al deserializar Build: JSON inválido',
+    en: 'Failed to deserialize Build: invalid JSON',
+  },
+  [ErrorCode.BUILD_INVALID_SHAPE]: {
+    gl: 'Build con shape inválido: campos requiridos ausentes ou con tipo incorrecto',
+    es: 'Build con shape inválido: campos requeridos ausentes o con tipo incorrecto',
+    en: 'Invalid Build shape: required fields missing or with wrong type',
+  },
+  [ErrorCode.SHARE_LINK_DECODE_FAILED]: {
+    gl: 'Erro ao decodificar share link: código base64url inválido',
+    es: 'Error al decodificar share link: código base64url inválido',
+    en: 'Failed to decode share link: invalid base64url code',
+  },
 }
 // ── FIN: error messages localizadas ──
