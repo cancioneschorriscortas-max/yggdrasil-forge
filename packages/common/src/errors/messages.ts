@@ -336,5 +336,20 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Error al decodificar share link: código base64url inválido',
     en: 'Failed to decode share link: invalid base64url code',
   },
+  [ErrorCode.SNAPSHOT_NOT_FOUND]: {
+    gl: 'Snapshot non atopado: {id}',
+    es: 'Snapshot no encontrado: {id}',
+    en: 'Snapshot not found: {id}',
+  },
+  [ErrorCode.LOADOUT_NOT_FOUND]: {
+    gl: 'Loadout non atopado: {name}',
+    es: 'Loadout no encontrado: {name}',
+    en: 'Loadout not found: {name}',
+  },
+  [ErrorCode.LOADOUT_NAME_INVALID]: {
+    gl: 'Nome de loadout inválido (cero vacío nin só espazos): "{name}"',
+    es: 'Nombre de loadout inválido (no puede ser vacío ni solo espacios): "{name}"',
+    en: 'Invalid loadout name (cannot be empty or whitespace-only): "{name}"',
+  },
 }
 // ── FIN: error messages localizadas ──

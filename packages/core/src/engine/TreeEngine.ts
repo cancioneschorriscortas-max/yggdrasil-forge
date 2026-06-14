@@ -4,6 +4,8 @@
 
 import { ErrorCode, type Locale, YggdrasilError, getErrorMessage } from '@yggdrasil-forge/common'
 import { type Draft, castDraft } from 'immer'
+import { LoadoutManager } from '../builds/LoadoutManager.js'
+import { SnapshotManager } from '../builds/SnapshotManager.js'
 import { decodeFromUrl, encodeForUrl } from '../builds/UrlSerializer.js'
 import type {
   ApplyChangesResult,
@@ -13,9 +15,11 @@ import type {
   Budget,
   Build,
   BuildShareLink,
+  BuildSnapshot,
   Cost,
   EventMap,
   EventName,
+  Loadout,
   LockResult,
   NodeInstance,
   NodeState,
@@ -39,7 +43,7 @@ import { deserialize, serialize } from './JsonSerializer.js'
 import { ProgressManager, type ProgressUpdateResult } from './ProgressManager.js'
 import { ResourceManager } from './ResourceManager.js'
 import { StatComputer } from './StatComputer.js'
-import { StateStore } from './StateStore.js'
+import { ALL_CACHE_TYPES, StateStore } from './StateStore.js'
 import { SubtreeManager } from './SubtreeManager.js'
 import { TimeManager } from './TimeManager.js'
 import { UnlockResolver, type UnlockResolverContext } from './UnlockResolver.js'
@@ -111,6 +115,10 @@ export class TreeEngine {
   private readonly activeSubtreeIds: ReadonlySet<string>
   private subtreeManager: SubtreeManager | null = null
   // ── FIN: 5.2 ──
+  // ── INICIO: 8.2 — managers de snapshots e loadouts ──
+  private readonly snapshotManager: SnapshotManager
+  private readonly loadoutManager: LoadoutManager
+  // ── FIN: 8.2 ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -144,6 +152,10 @@ export class TreeEngine {
       locale: this.locale,
     })
     // ── FIN: 2.4.b ──
+    // ── INICIO: 8.2 — inicialización de managers ──
+    this.snapshotManager = new SnapshotManager(options?.storage)
+    this.loadoutManager = new LoadoutManager(options?.storage)
+    // ── FIN: 8.2 ──
     // ── INICIO: 2.1.b — instanciación do EffectsRunner ──
     this.effectsRunner = new EffectsRunner({
       engine: this,
@@ -2145,5 +2157,113 @@ export class TreeEngine {
   }
 
   // ── FIN: builds share / load ──
+
+  // ── Snapshots (8.2) ──
+
+  /**
+   * Crea un snapshot do estado actual do engine.
+   *
+   * @param label Label opcional descritivo (ex. "Antes do respec").
+   * @returns BuildSnapshot creado con id auto-xerado.
+   *
+   * @example
+   * const snap = await engine.snapshot('Antes do experimento')
+   * // ... cambios no engine ...
+   * await engine.restoreSnapshot(snap.id)
+   */
+  async snapshot(label?: string): Promise<BuildSnapshot> {
+    const state = this.store.getState()
+    const buildId = `build-${Date.now()}`
+    const snap = await this.snapshotManager.create(state, buildId, label)
+    this.events.emit('snapshotCreated', snap)
+    return snap
+  }
+
+  /**
+   * Restaura o estado do engine desde un snapshot.
+   *
+   * Aplica `snap.state` ao engine via `replaceTreeState` +
+   * `invalidate(ALL_CACHE_TYPES)`. Emite `snapshotRestored` event.
+   *
+   * **Cero validación de versión**: aplica state independentemente
+   * de treeId/treeVersion (sub-fase futura con migración).
+   */
+  async restoreSnapshot(id: string): Promise<Result<void>> {
+    const result = await this.snapshotManager.restore(id)
+    if (!result.ok) return result
+    const snap = result.value
+    this.store.replaceTreeState(snap.state)
+    this.store.invalidate(ALL_CACHE_TYPES)
+    this.events.emit('snapshotRestored', snap)
+    return ok(undefined)
+  }
+
+  /** Lista todos os snapshots creados. */
+  async listSnapshots(): Promise<readonly BuildSnapshot[]> {
+    return this.snapshotManager.list()
+  }
+
+  /** Borra un snapshot por id. */
+  async deleteSnapshot(id: string): Promise<Result<void>> {
+    return this.snapshotManager.delete(id)
+  }
+
+  // ── Loadouts (8.2) ──
+
+  /**
+   * Garda o estado actual como loadout named.
+   *
+   * Sobreescribe se `name` xa existe (refrescando updatedAt).
+   *
+   * @example
+   * await engine.saveLoadout('Glass cannon')
+   * await engine.saveLoadout('Tank')
+   * await engine.loadLoadout('Tank')
+   */
+  async saveLoadout(name: string): Promise<Result<Loadout>> {
+    const state = this.store.getState()
+    const treeDef = this.store.getTreeDef()
+    const build: Build = {
+      id: `build-${Date.now()}`,
+      treeId: treeDef.id,
+      treeVersion: treeDef.version,
+      schemaVersion: treeDef.schemaVersion,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      state,
+    }
+    const result = await this.loadoutManager.save(name, build)
+    if (!result.ok) return result
+    this.events.emit('loadoutSaved', result.value)
+    return result
+  }
+
+  /**
+   * Carga un loadout polo nome e aplícao ao engine.
+   *
+   * Aplica `loadout.build.state` ao engine via `replaceTreeState`
+   * + `invalidate(ALL_CACHE_TYPES)`. Emite `loadoutLoaded` event.
+   */
+  async loadLoadout(name: string): Promise<Result<Loadout>> {
+    const result = await this.loadoutManager.load(name)
+    if (!result.ok) return result
+    const loadout = result.value
+    this.store.replaceTreeState(loadout.build.state)
+    this.store.invalidate(ALL_CACHE_TYPES)
+    this.events.emit('loadoutLoaded', loadout)
+    return ok(loadout)
+  }
+
+  /** Lista todos os loadouts gardados. */
+  async listLoadouts(): Promise<readonly Loadout[]> {
+    return this.loadoutManager.list()
+  }
+
+  /** Borra un loadout polo nome. */
+  async deleteLoadout(name: string): Promise<Result<void>> {
+    return this.loadoutManager.delete(name)
+  }
+
+  // ── FIN: snapshots + loadouts (8.2) ──
 }
 // ── FIN: TreeEngine ──

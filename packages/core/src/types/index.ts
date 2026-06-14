@@ -105,7 +105,7 @@ export type {
 } from './progress.js'
 
 // Build (1.4)
-export type { Build, BuildShareLink, BuildSnapshot } from './build.js'
+export type { Build, BuildShareLink, BuildSnapshot, Loadout } from './build.js'
 
 // Audit (1.4)
 export type { AuditEntry, AuditAction, AuditFilter } from './audit.js'

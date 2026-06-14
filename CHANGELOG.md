@@ -7,6 +7,53 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: **SnapshotManager + LoadoutManager**
+  (internos) con 8 APIs públicas novas en TreeEngine:
+  - **Snapshots**: `snapshot(label?)`, `restoreSnapshot(id)`,
+    `listSnapshots()`, `deleteSnapshot(id)`.
+  - **Loadouts**: `saveLoadout(name)`, `loadLoadout(name)`,
+    `listLoadouts()`, `deleteLoadout(name)`.
+- **Opción C+ implementada**: in-memory `Map<>` por defecto +
+  opt-in persistencia via `TreeEngineOptions.storage?`
+  (`StorageAdapter`). Write-through cache; lazy init na primeira
+  chamada CRUD.
+- **Tipo `Loadout` novo** en `types/build.ts`: `{ name, build,
+  updatedAt }`. Re-exportado vía `types/index.ts`.
+- **`TreeEngineOptions.storage?`** novo: `StorageAdapter` opcional
+  para persistencia de loadouts e snapshots. Prefixos
+  `snapshots:` e `loadouts:`.
+- **4 eventos novos en EventMap**: `snapshotCreated`,
+  `snapshotRestored`, `loadoutSaved`, `loadoutLoaded`.
+- `@yggdrasil-forge/common`: **3 ErrorCodes novos** baixo prefixo
+  existente `YGG_B*`:
+  - `SNAPSHOT_NOT_FOUND` (`YGG_B004`).
+  - `LOADOUT_NOT_FOUND` (`YGG_B005`).
+  - `LOADOUT_NAME_INVALID` (`YGG_B006`).
+  - Mensaxes localizadas gl/es/en para cada un.
+
+### Note
+- Sub-fase 8.2 SEGUNDA da Fase 8.
+- **Restore semantics**: `restoreSnapshot` e `loadLoadout` APLICAN
+  state ao engine via `replaceTreeState` +
+  `invalidate(ALL_CACHE_TYPES)` + emit event (vs
+  `loadFromShareLink` de 8.1 que NON aplica).
+- **Cero validación de versión** en restore (Opción A; DIFERIDO a
+  sub-fase futura con migración coordinada con MigrationRunner).
+- **Lazy init confirmado** (Opción A): cero auto-load no
+  constructor. Primeira chamada CRUD carga desde storage.
+- **Save replaces**: `saveLoadout('Tank')` sobreescribe se xa
+  existe (refrescando updatedAt). Cero erro.
+- **Loadout name validation**: rejecta empty e whitespace-only
+  (`LOADOUT_NAME_INVALID`). Case-sensitive lookup.
+- **DIFERIDOS**: 8.3-8.8; version check en restore; migración de
+  state; límite máximo de snapshots/loadouts; auto-cleanup.
+- **Cero deps de npm engadidas**.
+- **Cero modificación de pezas existentes** salvo TreeEngine.ts
+  (+imports +2 membros +8 APIs) e 4 ficheiros de tipos.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/core`: **módulo novo `builds/`** con
   serialización JSON e share links URL-safe:
   - **`BuildSerializer`** (público): `serialize(build): string`

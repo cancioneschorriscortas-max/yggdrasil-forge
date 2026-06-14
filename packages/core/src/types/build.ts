@@ -41,4 +41,21 @@ export interface BuildSnapshot {
   readonly createdAt: number
   readonly state: TreeState
 }
+
+/**
+ * Loadout: build cun nome obrigatorio para identificación por nome
+ * (en contraste con Build que se identifica por id auto-xerado).
+ *
+ * Usado en `engine.saveLoadout(name)` / `engine.loadLoadout(name)`.
+ * Os loadouts son named profiles para alternar entre configuracións
+ * (ex. "Glass cannon" vs "Tank").
+ */
+export interface Loadout {
+  /** Nome único do loadout (case-sensitive). Cero string vacío nin whitespace-only. */
+  readonly name: string
+  /** Build asociada ao loadout. */
+  readonly build: Build
+  /** Marca temporal UTC ms da última actualización. */
+  readonly updatedAt: number
+}
 // ── FIN: Build types ──

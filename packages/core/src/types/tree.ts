@@ -3,6 +3,7 @@
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { Locale } from '@yggdrasil-forge/common'
+import type { StorageAdapter } from '@yggdrasil-forge/storage'
 import type { EdgeDef } from './edge.js'
 import type { I18nConfig } from './i18n.js'
 import type { NodeDef, NodeInstance, Position } from './node.js'
@@ -181,5 +182,18 @@ export interface TreeEngineOptions {
    * dentro de 'B' alguén intenta enterSubtree('A'), detéctase ciclo.
    */
   readonly activeSubtreeIds?: ReadonlySet<string>
+  /**
+   * Adapter de storage para persistencia de loadouts e snapshots
+   * (sub-fase 8.2). Se non se pasa, loadouts e snapshots viven só
+   * en memoria do engine (pérdense ao recargar).
+   *
+   * Patrón: write-through cache. Save escribe a memoria + storage;
+   * load le primeiro de memoria, fallback a storage (lazy init na
+   * primeira chamada).
+   *
+   * Storage keys usan prefixos `snapshots:` e `loadouts:` para
+   * evitar colisións.
+   */
+  readonly storage?: StorageAdapter
 }
 // ── FIN: Tree types ──

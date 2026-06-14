@@ -3,7 +3,7 @@
 
 import type { YggdrasilError } from '@yggdrasil-forge/common'
 import type { AuditEntry } from './audit.js'
-import type { Build } from './build.js'
+import type { Build, BuildSnapshot, Loadout } from './build.js'
 import type { TreeChange } from './changes.js'
 import type { NodeInstance, StateChange } from './node.js'
 
@@ -52,6 +52,18 @@ export interface EventMap {
 
   /** Cargouse unha build completa (importBuild, loadFromShareLink). */
   readonly buildLoaded: (build: Build) => void
+
+  /** Un snapshot foi creado (engine.snapshot()). */
+  readonly snapshotCreated: (snapshot: BuildSnapshot) => void
+
+  /** Un snapshot foi restaurado (engine.restoreSnapshot()). */
+  readonly snapshotRestored: (snapshot: BuildSnapshot) => void
+
+  /** Un loadout foi gardado (engine.saveLoadout()). */
+  readonly loadoutSaved: (loadout: Loadout) => void
+
+  /** Un loadout foi cargado (engine.loadLoadout()). */
+  readonly loadoutLoaded: (loadout: Loadout) => void
 
   /** O usuario entrou nunha sub-árbore. */
   readonly subtreeEntered: (subtreeId: string) => void
