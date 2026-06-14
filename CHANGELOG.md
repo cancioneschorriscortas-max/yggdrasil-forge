@@ -7,6 +7,22 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: **`HookRunner` class interna standalone**
+  en `packages/core/src/plugins/HookRunner.ts`. Xestiona rexistro
+  + execución dos 8 hooks tipados en `Hooks` interface.
+  - `register(name, pluginId, handler)` + `unregisterAllForPlugin`.
+  - 3 `runBefore*` async (cero short-circuit), 3 `runAfter*` async,
+    2 `runCompute*` sync (chain pattern).
+  - Captura de erros via `onError` callback opcional.
+
+### Note
+- Sub-fase 8.4.b.i: HookRunner standalone. Cero modificación de
+  PluginManager (8.4.b.ii), TreeEngine (8.4.c), types, nin tests.
+- Cero ErrorCodes novos. Cero PluginAPI. Cero deps.
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/core`: **`PluginManager` class interna** en
   `packages/core/src/plugins/` (in-memory `Map<id, Plugin>` con 4
   métodos: `register` async, `unregister` async, `get` sync,
