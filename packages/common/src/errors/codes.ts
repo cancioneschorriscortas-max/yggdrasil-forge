@@ -111,5 +111,9 @@ export enum ErrorCode {
   LOADOUT_NOT_FOUND = 'YGG_B005',
   LOADOUT_NAME_INVALID = 'YGG_B006',
   RESPEC_INVALID_COST_PERCENT = 'YGG_B007',
+
+  // Plugins (sub-fase 8.4.a)
+  PLUGIN_ALREADY_REGISTERED = 'YGG_PL001',
+  PLUGIN_NOT_FOUND = 'YGG_PL002',
 }
 // ── FIN: error codes ──

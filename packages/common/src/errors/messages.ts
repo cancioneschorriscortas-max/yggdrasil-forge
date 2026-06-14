@@ -356,5 +356,15 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'costPercent inválido: debe estar en [0, 100]; recibido {value}',
     en: 'Invalid costPercent: must be in [0, 100]; received {value}',
   },
+  [ErrorCode.PLUGIN_ALREADY_REGISTERED]: {
+    gl: 'Plugin xa rexistrado: "{id}"',
+    es: 'Plugin ya registrado: "{id}"',
+    en: 'Plugin already registered: "{id}"',
+  },
+  [ErrorCode.PLUGIN_NOT_FOUND]: {
+    gl: 'Plugin non atopado: "{id}"',
+    es: 'Plugin no encontrado: "{id}"',
+    en: 'Plugin not found: "{id}"',
+  },
 }
 // ── FIN: error messages localizadas ──

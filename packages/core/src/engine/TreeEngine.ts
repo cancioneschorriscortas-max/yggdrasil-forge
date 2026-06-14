@@ -7,6 +7,7 @@ import { type Draft, castDraft } from 'immer'
 import { LoadoutManager } from '../builds/LoadoutManager.js'
 import { SnapshotManager } from '../builds/SnapshotManager.js'
 import { decodeFromUrl, encodeForUrl } from '../builds/UrlSerializer.js'
+import { PluginManager } from '../plugins/PluginManager.js'
 import type {
   ApplyChangesResult,
   AuditAction,
@@ -23,6 +24,7 @@ import type {
   LockResult,
   NodeInstance,
   NodeState,
+  Plugin,
   RespecOptions,
   RespecResult,
   Result,
@@ -120,6 +122,9 @@ export class TreeEngine {
   private readonly snapshotManager: SnapshotManager
   private readonly loadoutManager: LoadoutManager
   // ── FIN: 8.2 ──
+  // ── INICIO: 8.4.a — manager de plugins ──
+  private readonly pluginManager: PluginManager
+  // ── FIN: 8.4.a ──
 
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
@@ -157,6 +162,9 @@ export class TreeEngine {
     this.snapshotManager = new SnapshotManager(options?.storage)
     this.loadoutManager = new LoadoutManager(options?.storage)
     // ── FIN: 8.2 ──
+    // ── INICIO: 8.4.a ──
+    this.pluginManager = new PluginManager(this.locale)
+    // ── FIN: 8.4.a ──
     // ── INICIO: 2.1.b — instanciación do EffectsRunner ──
     this.effectsRunner = new EffectsRunner({
       engine: this,
@@ -2298,5 +2306,52 @@ export class TreeEngine {
   }
 
   // ── FIN: snapshots + loadouts (8.2) ──
+
+  // ── Plugins (8.4.a) ──
+
+  /**
+   * Rexistra un plugin no engine.
+   *
+   * **Sub-fase 8.4.a**: só almacena o plugin. **Cero chamada a
+   * `plugin.install()`** ata 8.4.b implemente PluginAPI. **Cero
+   * hooks chamados** ata 8.4.c.
+   *
+   * Errores posibles:
+   * - `PLUGIN_ALREADY_REGISTERED` (`YGG_PL001`): se o id xa existe.
+   *
+   * @example
+   * const result = await engine.registerPlugin({
+   *   id: 'my-plugin',
+   *   name: 'My Plugin',
+   *   version: '1.0.0',
+   *   apiVersion: '1.0.0',
+   *   install: () => {},
+   * })
+   */
+  async registerPlugin(plugin: Plugin): Promise<Result<void>> {
+    return this.pluginManager.register(plugin)
+  }
+
+  /**
+   * Desrexistra un plugin polo id.
+   *
+   * **Sub-fase 8.4.a**: só borra do Map. **Cero chamada a
+   * `plugin.uninstall()`** ata 8.4.b.
+   */
+  async unregisterPlugin(id: string): Promise<Result<void>> {
+    return this.pluginManager.unregister(id)
+  }
+
+  /** Devolve o plugin polo id ou null se non existe. */
+  getPlugin(id: string): Plugin | null {
+    return this.pluginManager.get(id)
+  }
+
+  /** Lista todos os plugins rexistrados (orde de inserción). */
+  listPlugins(): readonly Plugin[] {
+    return this.pluginManager.list()
+  }
+
+  // ── FIN: plugins (8.4.a) ──
 }
 // ── FIN: TreeEngine ──

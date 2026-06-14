@@ -7,6 +7,35 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `@yggdrasil-forge/core`: **`PluginManager` class interna** en
+  `packages/core/src/plugins/` (in-memory `Map<id, Plugin>` con 4
+  métodos: `register` async, `unregister` async, `get` sync,
+  `list` sync). Cero export público (interno).
+- `TreeEngine`: **4 APIs públicas novas**:
+  - `registerPlugin(plugin)` async — rexistra un plugin (8.4.a só
+    almacena; install() en 8.4.b).
+  - `unregisterPlugin(id)` async.
+  - `getPlugin(id)` sync.
+  - `listPlugins()` sync.
+- `@yggdrasil-forge/common`: **2 ErrorCodes novos** baixo prefixo
+  novo **`YGG_PL*` (Plugins)**:
+  - `PLUGIN_ALREADY_REGISTERED` (`YGG_PL001`).
+  - `PLUGIN_NOT_FOUND` (`YGG_PL002`).
+  - Mensaxes localizadas gl/es/en.
+
+### Note
+- Sub-fase 8.4.a PRIMEIRA das 3 sub-sub-fases de 8.4.
+- Cero chamada a `plugin.install()` en 8.4.a. Plugins rexistrados
+  son datos inactivos ata 8.4.b implemente PluginAPI.
+- Cero HookRunner, cero PluginAPI implementación (DIFERIDOS a 8.4.b).
+- Cero modificación de unlock/lock/respec (DIFERIDO a 8.4.c).
+- Lección 8.3 L1 aplicada: T0.2 confirmou ausencia das 4 APIs.
+- Cero deps de npm engadidas.
+- Cero modificación de tests existentes (1969 intactos).
+
+## [Unreleased]
+
+### Added
 - `TreeEngine.respec()`: **extended signature** (backward-compatible):
   - `respec(nodeIdOrIds?: string | readonly string[], opts?: RespecOptions)`.
   - **Backward-compatible**: `respec()` e `respec('a')` manteñen
