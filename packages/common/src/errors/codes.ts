@@ -110,5 +110,6 @@ export enum ErrorCode {
   SNAPSHOT_NOT_FOUND = 'YGG_B004',
   LOADOUT_NOT_FOUND = 'YGG_B005',
   LOADOUT_NAME_INVALID = 'YGG_B006',
+  RESPEC_INVALID_COST_PERCENT = 'YGG_B007',
 }
 // ── FIN: error codes ──

@@ -351,5 +351,10 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Nombre de loadout inválido (no puede ser vacío ni solo espacios): "{name}"',
     en: 'Invalid loadout name (cannot be empty or whitespace-only): "{name}"',
   },
+  [ErrorCode.RESPEC_INVALID_COST_PERCENT]: {
+    gl: 'costPercent inválido: debe estar en [0, 100]; recibido {value}',
+    es: 'costPercent inválido: debe estar en [0, 100]; recibido {value}',
+    en: 'Invalid costPercent: must be in [0, 100]; received {value}',
+  },
 }
 // ── FIN: error messages localizadas ──

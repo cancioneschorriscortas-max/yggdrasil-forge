@@ -23,6 +23,7 @@ import type {
   LockResult,
   NodeInstance,
   NodeState,
+  RespecOptions,
   RespecResult,
   Result,
   Selector,
@@ -1191,16 +1192,37 @@ export class TreeEngine {
     return ok({ nodeId, newState: 'locked', refunded: costs })
   }
 
-  // ── respec: mutación async (T5) ──
-  // Con nodeId: lock dese nodo + cascada de dependentes con prerequisites incumpridos.
-  // Sen nodeId: respec total (todos os nodos unlocked/maxed volven a locked).
+  // ── respec: mutación async (T5, extendido en 8.3) ──
+  // Con string: lock dese nodo + cascada de dependentes.
+  // Con array: lock dos nodos especificados (filter non-unlocked) +
+  //   cascada.
+  // Sen primeiro arg: respec total (todos unlocked/maxed → locked).
+  // opts.costPercent ∈ [0, 100]: penalty model. Default 0 = full refund.
+  //   Fórmula: refunded = floor(original * (1 - costPercent / 100)).
+  // Hooks beforeRespec/afterRespec DIFERIDOS a 8.4 (PluginManager + HookRunner).
   // Atómico: unha soa StateStore.update para todo.
-  async respec(nodeId?: string): Promise<Result<RespecResult>> {
+  async respec(
+    nodeIdOrIds?: string | readonly string[],
+    opts?: RespecOptions,
+  ): Promise<Result<RespecResult>> {
     if (this.readOnly) {
       return err(
         new YggdrasilError(
           ErrorCode.READ_ONLY_VIOLATION,
           getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+
+    // Validación de costPercent (sub-fase 8.3):
+    const costPercent = opts?.costPercent ?? 0
+    if (costPercent < 0 || costPercent > 100 || !Number.isFinite(costPercent)) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.RESPEC_INVALID_COST_PERCENT,
+          getErrorMessage(ErrorCode.RESPEC_INVALID_COST_PERCENT, this.locale, {
+            value: String(costPercent),
+          }),
         ),
       )
     }
@@ -1212,26 +1234,31 @@ export class TreeEngine {
     // Determinar que nodos se van lockear
     let nodeIdsToLock: string[]
 
-    if (nodeId === undefined) {
+    if (nodeIdOrIds === undefined) {
       // Respec total: todos os nodos en unlocked ou maxed
       nodeIdsToLock = Object.values(state.nodes)
         .filter((n) => n.state === 'unlocked' || n.state === 'maxed')
         .map((n) => n.id)
     } else {
-      // Respec parcial: o nodo indicado + dependentes que quedan con prerequisites incumpridos
-      const targetInst = state.nodes[nodeId]
-      if (
-        targetInst === undefined ||
-        (targetInst.state !== 'unlocked' && targetInst.state !== 'maxed')
-      ) {
-        // Se o nodo non está desbloqueado, non hai nada que facer; devolve ok baleiro
+      // Respec parcial (string ou array): normalizar a array.
+      const inputIds = typeof nodeIdOrIds === 'string' ? [nodeIdOrIds] : [...nodeIdOrIds]
+
+      // Filtrar a só os que están unlocked/maxed (silenciosamente ignora
+      // os non-unlocked, equivalente ao comportamento antigo de single id
+      // que devolvía ok baleiro se non estaba unlocked).
+      nodeIdsToLock = inputIds.filter((id) => {
+        const inst = state.nodes[id]
+        return inst !== undefined && (inst.state === 'unlocked' || inst.state === 'maxed')
+      })
+
+      if (nodeIdsToLock.length === 0) {
+        // Se nada está unlocked/maxed, devolve ok baleiro (equivalente ao
+        // comportamento antigo para single id non-unlocked).
         return ok({ nodeIds: [], refunded: [] })
       }
 
-      nodeIdsToLock = [nodeId]
-
-      // Detectar dependentes: nodos unlocked/maxed que teñen prerequisites que usan nodeId
-      // Iteramos ata punto fixo para coller cascadas encadeadas
+      // Cascade lock fixpoint (lóxica IDÉNTICA á do método existente; só
+      // muda que pode iniciar desde array en lugar de single id):
       let changed = true
       while (changed) {
         changed = false
@@ -1253,11 +1280,6 @@ export class TreeEngine {
             ),
           }
           // ── INICIO: 2.4.d — pasar progressManager (igual ca en canUnlock) ──
-          // Nota: o `progressManager` lee sempre o state do store
-          // real, non este `simulatedState`. Para nodos `computed`
-          // cuxos deps muten no mesmo cascade, isto pode crear unha
-          // inconsistencia (ver reporte de 2.4.d, sección "achadego");
-          // a 2.4.e estuda esa interacción.
           const ctx: UnlockResolverContext = {
             treeDef,
             state: simulatedState,
@@ -1278,7 +1300,9 @@ export class TreeEngine {
       return ok({ nodeIds: [], refunded: [] })
     }
 
-    // Calcular refund acumulado de todos os nodos a lockear
+    // Calcular refund acumulado con costPercent factor (cero cambio se
+    // costPercent === 0; preserva referencias exactas):
+    const factor = 1 - costPercent / 100
     let accumulatedBudget = state.budget
     const allCosts: Array<{ resourceId: string; amount: number }> = []
 
@@ -1288,8 +1312,17 @@ export class TreeEngine {
       const def = treeDef.nodes.find((n) => n.id === id)
       if (def === undefined) continue
       const tierCosts = this.resources.getTotalCost(def, 0, inst.currentTier)
-      accumulatedBudget = this.resources.refund(tierCosts, accumulatedBudget)
-      for (const c of tierCosts) {
+      // Aplicar costPercent factor só se costPercent > 0 (preserva
+      // referencia tierCosts orixinal para backward-compatibility):
+      const adjustedCosts =
+        costPercent === 0
+          ? tierCosts
+          : tierCosts.map((c) => ({
+              resourceId: c.resourceId,
+              amount: Math.floor(c.amount * factor),
+            }))
+      accumulatedBudget = this.resources.refund(adjustedCosts, accumulatedBudget)
+      for (const c of adjustedCosts) {
         allCosts.push(c)
       }
     }

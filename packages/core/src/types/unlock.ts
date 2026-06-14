@@ -129,4 +129,25 @@ export interface RespecResult {
   readonly nodeIds: readonly string[]
   readonly refunded: readonly Cost[]
 }
+
+/**
+ * Opcións para `engine.respec()`.
+ *
+ * Sub-fase 8.3.
+ */
+export interface RespecOptions {
+  /**
+   * Porcentaxe do cost ORIXINAL que se mantén polo motor (penalty).
+   *
+   * Range: [0, 100]. Default 0 (full refund; cero penalty).
+   *
+   * Fórmula: `refunded = floor(original * (1 - costPercent / 100))`.
+   *
+   * @example
+   * { costPercent: 0 }   // full refund (igual que cero opts)
+   * { costPercent: 10 }  // devolve 90%; motor mantén 10%
+   * { costPercent: 100 } // cero refund (penalty total)
+   */
+  readonly costPercent?: number
+}
 // ── FIN: Unlock conditions and rules ──

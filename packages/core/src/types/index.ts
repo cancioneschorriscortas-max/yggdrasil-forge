@@ -64,6 +64,7 @@ export type {
   UnlockConditionEvaluation,
   UnlockResult,
   LockResult,
+  RespecOptions,
   RespecResult,
 } from './unlock.js'
 

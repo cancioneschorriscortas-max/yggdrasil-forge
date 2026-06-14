@@ -7,6 +7,41 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- `TreeEngine.respec()`: **extended signature** (backward-compatible):
+  - `respec(nodeIdOrIds?: string | readonly string[], opts?: RespecOptions)`.
+  - **Backward-compatible**: `respec()` e `respec('a')` manteñen
+    comportamento idéntico ao previo (cero impacto en 19 tests
+    existentes).
+  - **Novo**: array `string[]` como primeiro arg → respec selectivo
+    múltiple + cascade conxunta.
+  - **Novo**: `opts.costPercent` ∈ [0, 100] (penalty model; default
+    0 = full refund). Fórmula:
+    `refunded = floor(original_total_cost * (1 - costPercent / 100))`.
+- `@yggdrasil-forge/core`: `RespecOptions` interface novo en
+  `types/unlock.ts`. Re-exportado desde `types/index.ts`.
+- `@yggdrasil-forge/common`: **1 ErrorCode novo** baixo prefixo
+  existente `YGG_B*`:
+  - `RESPEC_INVALID_COST_PERCENT` (`YGG_B007`): validación tras
+    read-only check.
+  - Mensaxes localizadas gl/es/en.
+
+### Note
+- Sub-fase 8.3 REVISED: rediseño completo tras escalación do
+  Executor que detectou método `respec` existente (~150 liñas + 19
+  tests dependentes). Briefing orixinal 8.3 era roto por erro do
+  Director. Cero rollback de main: cadea 39 sub-fases intacta.
+- Modificación cirúrxica backward-compatible do método existente
+  en lugar de crear un novo ou reemplazar.
+- Cero `RespecManager.ts` standalone (overengineering rejeitado).
+- Lección 8.3 L1 capturada para A.6 do MASTER post-Fase 8.
+- Hooks beforeRespec/afterRespec DIFERIDOS a 8.4.
+- Cero reset progress (MASTER 2.4.b §5.8 preservado).
+- Cero deps de npm engadidas.
+- Cero modificación de tests existentes (1957 intactos).
+
+## [Unreleased]
+
+### Added
 - `@yggdrasil-forge/core`: **SnapshotManager + LoadoutManager**
   (internos) con 8 APIs públicas novas en TreeEngine:
   - **Snapshots**: `snapshot(label?)`, `restoreSnapshot(id)`,
