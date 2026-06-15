@@ -2451,7 +2451,43 @@ PluginManager + HookRunner.**
 | **7.12 jest-axe a11y + SSR no-dom-imports** | Feito | `f94f225` | 111 react |
 | docs: hygiene post-Phase 7 (code) | Feito | `79b6ad2` | 116 react |
 
-**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. Fase 6 PECHADA. 🎉 FASE 7 PECHADA OFICIALMENTE (12/12 sub-fases + 1 hixiene de código; cadea 3.0 → hixiene = 36 sub-fases consecutivas con cero rollbacks).**
+**Tag `phase-1-closed`** en `1290378`. **Fase 2 PECHADA. Fase 3 PECHADA. Fase 4 PECHADA. Fase 5 PECHADA. Fase 6 PECHADA. Fase 7 PECHADA (12/12 sub-fases + 1 hixiene de código). 🎉 FASE 8 PECHADA OFICIALMENTE (13/13 sub-fases; cadea 3.0 → 8.8 = 51 sub-fases consecutivas con cero rollbacks — RÉCORD HISTÓRICO).**
+
+**Métricas Fase 8 finais (8.1–8.8):**
+- **13 sub-fases pechadas**: 8.1, 8.2, 8.3 (REVISED tras escalación), 8.4.a, 8.4.b.i, 8.4.b.ii, 8.4.c, 8.5.a, 8.5.b, 8.6.a, 8.6.b, 8.7.a, 8.7.b, 8.8.
+- **Rollbacks**: 0.
+- **Escalacións resoltas sen rollback**: 1 (8.3 ORIXINAL → 8.3 REVISED).
+- **Cadea consecutiva desde 3.0**: **51 sub-fases sen rollback**.
+- **ErrorCodes engadidos**: +15 (familia YGG_PL: PL001-PL007; familia YGG_B: B001-B007; familia YGG_RO: RO001). Total: 57 → 76.
+- **Paquetes activos engadidos**: +3 (@yggdrasil-forge/plugins, @yggdrasil-forge/search, @yggdrasil-forge/validators). Total: 4 → 7.
+- **Tests engadidos**: ~+700 totais. Total monorepo: 2195.
+  - core: 1691 (+18 en 8.8 + integration en 8.4.c).
+  - validators: 68 (NOVO en 8.7.a + 8.7.b).
+  - search: 32 (NOVO en 8.6.a + 8.6.b).
+  - plugins: 35 (NOVO en 8.5.a + 8.5.b).
+- **Funcionalidades clave entregadas**:
+  - Plugin system completo end-to-end (PluginManager + HookRunner + PluginAPI + 8 hooks integration en TreeEngine).
+  - 2 plugins oficiais (HistoryPlugin + DebugPlugin).
+  - SearchEngine + SearchPlugin con algoritmo custom (cero deps externas).
+  - ValidatorEngine + 9 built-in rules (6 estruturais + 3 pedagóxicas).
+  - **Inversion of Control pattern** establecido (TreeEngine.validatePedagogically).
+  - Read-only mode completo (8 métodos bloqueados).
+  - Snapshots + Loadouts + Builds share links.
+  - Respec extension (costPercent + nodeIdOrIds backward-compat).
+- **5 leccións estruturais capturadas** (ver A.6.8): 8.1 L1/L2/L3 + 8.3 L1 + 8.6.a L1.
+- **DT-14 fix aplicado en 3 paquetes** (proactivo); 12 scaffold pendentes.
+- **🎉 ZERO ROLLBACKS** en toda a Fase 8.
+
+**Paquetes activos tras Fase 8**: 7 (de 15 totais):
+- common (codificado completo).
+- core (~2700+ liñas, 1691 tests).
+- storage (193 tests).
+- react (116 tests).
+- plugins (NOVO en 8.5; 35 tests; HistoryPlugin + DebugPlugin).
+- search (NOVO en 8.6; 32 tests; SearchEngine + SearchPlugin).
+- validators (NOVO en 8.7; 68 tests; ValidatorEngine + 9 regras).
+
+**Paquetes scaffold pendentes**: 12 (analytics, cli, devtools, diff, exporters, heatmap, i18n, importers, multitenancy, neo4j, stats, themes, webhooks). Todos teñen smoke.test.ts + placeholder VERSION. DT-14 fix require aplicarse a cada un cando se active.
 
 **Métricas Fase 3 finais (3.0–3.6.b):**
 - 0 escalados funcionais (cero asimetrías abertas).
@@ -2507,7 +2543,7 @@ PluginManager + HookRunner.**
 | DT-11 | Detección de ciclos `unlock_node` recursivos non se activa cando pasan polo `TreeEngine.unlock`. Estado coherente polo camiño colateral `NODE_ALREADY_UNLOCKED`. Non bloqueante | Aberta, sub-fase futura |
 | DT-12 (cosmética) | CHANGELOG.md ten múltiples cabeceiras `## [Unreleased]` aboliñadas (unha por sub-fase). Decisión: deixar como está, consolidar nunha futura sub-fase ou no release `0.1.0-alpha` | Aberta cosmética, consolidación futura |
 | DT-13 | `EffectsRunner.applyModifyResource` non emitía `budgetChange` desde effects | **PECHADA en 2.6.fix2 (3f42e79)** |
-| DT-14 | tsup `dts: {composite: false, incremental: false}` necesario en paquetes que dependen de common (composite=true). Cazado en 3.4 para storage. Outros 17 paquetes scaffold terán o mesmo problema cando se lles engada código real. **Plan**: propagar fix nun ciclo de hardening futuro ou paquete por paquete cando active cada un. | Aberta non bloqueante |
+| DT-14 | tsup `dts: {composite: false, incremental: false}` necesario en paquetes que dependen de common (composite=true). Cazado en 3.4 para storage. **Aplicado proactivamente en 3 paquetes durante Fase 8**: @plugins (8.5.a), @search (8.6.a), @validators (8.7.a). **12 paquetes scaffold pendentes** (analytics, cli, devtools, diff, exporters, heatmap, i18n, importers, multitenancy, neo4j, stats, themes, webhooks); fix aplicará cando se active cada un (patrón establecido). | Aberta non bloqueante; parcialmente resolta en Fase 8 |
 | DT-15 | `Migration.type-test.ts` (3.5) e `treeDefSchema.type-test.ts` non son executados por Vitest (config root inclúe só `*.{test,spec}.ts`; o sufixo `.type-test.ts` non casa). Cazado en 4.1 cando renomearon a `.type.test.ts` para activalo. **Plan**: renomear os dous existentes nun ciclo de hardening futuro, ou cambiar o include do vitest.config para casar tamén `*.type-test.ts`. Cero impacto funcional. | Aberta non bloqueante |
 | DT-16 | RadialLayout (4.2) usa sectores angulares iguais por nodo, cero proporcional a número de descendentes. Para árbores moi desbalanceadas pode producir sobreposición visual. **Plan**: sub-fase futura específica implementará o algoritmo proporcional (require dous BFS + cálculo de tamaño do sector proporcional). | Aberta non bloqueante |
 | DT-17 | TreeLayout.ts (Buchheim 2002, 4.3) entregou con cobertura Stmts 89.6% / Branch 70.12% (560 liñas, +87% sobre estimación). Ramas non cubertas son ramas internas do algoritmo (apportion thread setting + ancestor default + computeBounds redundancia). **Cero impacto funcional**: 1134 tests pasan, todos os casos comúns producen LayoutResults correctos. **Plan**: hardening específico nun ciclo futuro engadirá ~10-15 tests con árbores en formas particulares (asimétricas profundas, multi-roots desbalanceados) para activar ramas internas. | Aberta non bloqueante |
@@ -2582,7 +2618,7 @@ PluginManager + HookRunner.**
 | `QUOTA_STORAGE_EXCEEDED` | `YGG_E035` | TreeRegistry quotas (lóxico; distinto de YGG_S003 STORAGE_QUOTA_EXCEEDED que é físico) | 6.4 |
 | `PERMISSION_DENIED` | `YGG_E036` | TreeRegistry permissions (cero conflito con `PLUGIN_PERMISSION_DENIED` YGG_P003 que é específico de plugins) | 6.5 |
 
-**Total: 57 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA). +4 entradas en YGG_E durante Fase 6.1 (TREE_REGISTRY_USER_NOT_FOUND, TREE_REGISTRY_USER_EXISTS, TREE_REGISTRY_BUILD_NOT_FOUND, APPLY_CHANGES_FAILED). +4 entradas en YGG_E durante Fase 6.4-6.5 (QUOTA_USERS_EXCEEDED, QUOTA_BUILDS_EXCEEDED, QUOTA_STORAGE_EXCEEDED, PERMISSION_DENIED).**
+**Total: 76 ErrorCodes. Familia YGG_R nova en 3.6.a, familia YGG_L nova en 4.1, +6 entradas en YGG_E durante Fase 5 (SUBTREE_DEPTH_EXCEEDED, SUBTREE_CYCLE_DETECTED, SUBTREE_NOT_UNLOCKED, MERGE_INVALID_INPUT, MERGE_CONFLICTS_DETECTED, MERGE_INCOMPATIBLE_SCHEMA). +4 entradas en YGG_E durante Fase 6.1 (TREE_REGISTRY_USER_NOT_FOUND, TREE_REGISTRY_USER_EXISTS, TREE_REGISTRY_BUILD_NOT_FOUND, APPLY_CHANGES_FAILED). +4 entradas en YGG_E durante Fase 6.4-6.5 (QUOTA_USERS_EXCEEDED, QUOTA_BUILDS_EXCEEDED, QUOTA_STORAGE_EXCEEDED, PERMISSION_DENIED). +15 entradas en Fase 8: familia YGG_PL nova con 7 codes (PL001-PL007 para Plugins), familia YGG_B nova con 7 codes (B001-B007 para Builds), familia YGG_RO nova con 1 code (RO001 READ_ONLY_VIOLATION).**
 
 ## A.3.2 — Cadea de escalado 1.17 (6 capas)
 
@@ -3011,6 +3047,98 @@ Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
   status, `<main>` para main, `<nav>` para nav, `<aside>` para
   complementary, etc. Aplicado en SkillTreeAnnouncer (7.7) e
   documentado para futuras pezas con role ARIA.
+
+### A.6.8 — Leccións estruturais da Fase 8 — verificación empírica
+
+Durante a Fase 8 (8.1 → 8.8, 13 sub-fases) capturáronse **5
+leccións estruturais** sobre verificación empírica antes de
+prescribir cambios. Tódalas foron incorporadas como mandato firme
+nos briefings posteriores e aplicadas con éxito (cero rollbacks
+en Fase 8).
+
+#### 8.1 L1 — Conflitos de nomes en re-exports root barrel
+
+**Contexto**: Durante 8.1 (BuildSerializer + UrlSerializer),
+prescribiu un nome xenérico que colidía con exports previos no
+barrel root.
+
+**Aprendizaxe**: Verificar collisions antes de prescribir exports
+en root barrels.
+
+**Mitigación**: En briefings posteriores, T0.2 verifica os exports
+root previos con `grep "^export" packages/.../src/index.ts`. Usar
+nomes específicos (e.g., `BuildSerializer` cero `Serializer`).
+
+#### 8.1 L2 — Acceso a internals do TreeEngine
+
+**Contexto**: TreeEngine ten ~2270 liñas + ~35+ métodos. Acceso
+a internals require verificación empírica do patrón establecido
+(`this.store.getTreeDef()` vs `this.treeDef` directo).
+
+**Aprendizaxe**: cero asumir patróns de acceso a internals sen
+grep prévio.
+
+**Mitigación**: T0.2 inclúe verificación do patrón actual antes
+de prescribir.
+
+#### 8.1 L3 — Código prescrito é fonte de verdade
+
+**Contexto**: Cando briefings teñen prosa descriptiva + código
+prescrito, ambos poden estar dessincronizados. Executor de 8.1
+seguiu correctamente o código.
+
+**Aprendizaxe**: o **código prescrito é fonte de verdade**; a
+prosa é descritiva.
+
+**Mitigación**: documentado explícitamente no setup dos briefings
+posteriores.
+
+#### 8.3 L1 — Grep específico de método vs xenérico
+
+**Contexto**: Durante 8.3, prescribiu `engine.respec(nodeId)` como
+API nova baseado en grep xenérico (cero matches). Realidade: o
+método xa existía con ~150 liñas + 19 tests dependentes. Executor
+parou e escalou.
+
+**Aprendizaxe**: cando verificar que un método **non existe** nunha
+clase grande, usar grep específico da definición:
+`^  async <methodName>\(`. Cero confiar en grep xenérico que pode
+coincidir con referencias en comentarios, imports, tipos, etc.
+
+**Mitigación**: rediseño cirúrxico backward-compat con
+`respec(nodeIdOrIds?, opts?)` (8.3 REVISED). Cero rollback
+(capturado antes do commit). **Esta lección levou ao patrón actual
+de T0.2 con verificacións empíricas explícitas**.
+
+#### 8.6.a L1 — Verificar campos exactos de tipos (corolario de 8.3 L1)
+
+**Contexto**: Durante 8.6.a (SearchEngine), prescribiu `node.name`
+para indexación. Realidade: `NodeDef.label` é `LocalizedString`
+(cero `name`). Executor detectou + adaptou con `flattenLocalized()`
++ engadiu test específico para LocalizedString Record.
+
+**Aprendizaxe**: cando prescribir APIs ou campos de tipos
+existentes (NodeDef, EdgeDef, Cost, etc.), **verificar empíricamente
+os nomes exactos** dos campos via grep do tipo. Cero asumir nomes
+comúns como `name` que poden ser `label`, `title`, etc.
+
+**Mitigación**: T0.2 inclúe verificación empírica dos tipos
+ANTES de codificar. Aplicado con éxito en 8.7.a (NodeDef.label,
+EdgeDef.source/target) e 8.7.b (Cost.amount).
+
+**Esta é a lección máis valiosa da Fase 8**: é un corolario de
+8.3 L1 aplicado a tipos en lugar de métodos, e marca o patrón de
+**verificación empírica como primeira tarefa de calquera sub-fase**.
+
+#### Patrón global emerxente
+
+As 5 leccións converxen nun **patrón único**:
+> Cero prescribir cambios sobre código existente sen primeiro
+> verificar empíricamente o estado actual (campos, métodos,
+> exports, patróns de acceso). T0.2 é a fase de verificación
+> empírica obrigatoria en cada sub-fase.
+
+Este patrón será o **estándar para a Fase 9** e seguintes.
 
 ## A.7 — Protocolo consolidado
 
@@ -3552,6 +3680,8 @@ T0.4 / 3.4 L1). **Fase 5 modélica**.
 
 Cadea 3.0 → 5.3: 18 sub-fases consecutivas pechadas con cero
 rollbacks (incluíndo 2 hixienes intermedias MASTER).
+**Cadea 3.0 → 8.8: 51 sub-fases consecutivas pechadas con cero
+rollbacks (récord histórico tras Fase 8).**
 ```
 
 **Fase 5 modélica.** 160 tests engadidos, cero escalados, cero

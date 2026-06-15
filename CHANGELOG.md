@@ -6,6 +6,16 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Documentation
+- 🎉 **FASE 8 PECHADA OFICIALMENTE** no MASTER: 13 sub-fases,
+  51 sub-fases consecutivas sen rollback, +15 ErrorCodes, +3
+  paquetes activos, +~700 tests, 5 leccións estruturais.
+- Nova sección A.6.8 "Leccións estruturais da Fase 8".
+- Contadores globais actualizados (76 ErrorCodes, 7 paquetes).
+- DT-14 status: aplicado en 3 paquetes.
+
+## [Unreleased]
+
 ### Added
 - **Read-only mode completion**: TreeEngine bloquea 8 métodos
   mutantes en readOnly. 3 novos en 8.8: setProgress, restoreSnapshot,
