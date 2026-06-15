@@ -7,6 +7,18 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **`DebugPlugin`** segundo plugin oficial en @yggdrasil-forge/plugins.
+  Loga operacións do TreeEngine via 8 hooks (incluído computeCost
+  preparación). DebugOptions: enabled (default true), logLevel
+  (default debug). before* devolven true, compute* devolven
+  defaultResult inchanged.
+
+### Note
+- 🎯 FASE 8.5 PECHADA: HistoryPlugin + DebugPlugin completados.
+
+## [Unreleased]
+
+### Added
 - **`@yggdrasil-forge/plugins`** paquete novo + scaffold completo.
   DT-14 fix aplicado proactivamente en tsup.config.ts.
 - **`HistoryPlugin`** primeiro plugin oficial: tracking de unlock/

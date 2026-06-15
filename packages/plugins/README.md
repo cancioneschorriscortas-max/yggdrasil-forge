@@ -34,6 +34,39 @@ const history = historyPlugin.getHistory()
 - `size(): number` — current number of entries.
 - `getMaxSize(): number` — configured maxSize.
 
+### DebugPlugin
+
+Logs all TreeEngine operations via hooks (useful for debugging).
+
+```typescript
+import { DebugPlugin } from '@yggdrasil-forge/plugins'
+
+const debugPlugin = new DebugPlugin({ logLevel: 'info' })
+await engine.registerPlugin(debugPlugin)
+
+await engine.unlock('nodeA')
+// Logs:
+//   [plugin:yggdrasil-debug] beforeUnlock: nodeA (locale=gl)
+//   [plugin:yggdrasil-debug] afterUnlock: nodeA (locale=gl)
+```
+
+**Options:**
+- `enabled?: boolean` (default: `true`) — if `false`, no hooks are registered.
+- `logLevel?: 'debug' | 'info' | 'warn' | 'error'` (default: `'debug'`).
+
+**Hooks registered (when enabled):**
+- `beforeUnlock`, `afterUnlock`
+- `beforeLock`, `afterLock`
+- `beforeRespec`, `afterRespec`
+- `computeUnlockability`
+- `computeCost` (registered for future use; not currently invoked)
+
+**API:**
+- `isEnabled(): boolean` — returns whether the plugin is active.
+- `getLogLevel(): PluginLogLevel` — returns the configured log level.
+
+**Note**: `before*` hooks always return `true` (DebugPlugin never cancels operations). `compute*` hooks return the default result unchanged (DebugPlugin never modifies results).
+
 ## License
 
 MIT

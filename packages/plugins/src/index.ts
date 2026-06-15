@@ -5,4 +5,7 @@ export type {
   HistoryOptions,
   HistoryOperation,
 } from './history/index.js'
+
+export { DebugPlugin } from './debug/index.js'
+export type { DebugOptions } from './debug/index.js'
 // ── FIN: @yggdrasil-forge/plugins barrel ──
