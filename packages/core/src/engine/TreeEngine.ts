@@ -433,6 +433,16 @@ export class TreeEngine {
    * `respec`.
    */
   setProgress(nodeId: string, percent: number): Result<ProgressUpdateResult> {
+    // ── INICIO: 8.8 — readOnly check ──
+    if (this.readOnly) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.READ_ONLY_VIOLATION,
+          getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+    // ── FIN: 8.8 ──
     // ── INICIO: 2.4.e bug-fix — invalidar cache de stats tras setProgress exitoso ──
     // Bug latente desde 2.4.b: setProgress mutaba progress pero non
     // invalidaba a cache de StatComputer. Era invisible ata 2.4.e porque
@@ -2338,6 +2348,16 @@ export class TreeEngine {
    * de treeId/treeVersion (sub-fase futura con migración).
    */
   async restoreSnapshot(id: string): Promise<Result<void>> {
+    // ── INICIO: 8.8 — readOnly check ──
+    if (this.readOnly) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.READ_ONLY_VIOLATION,
+          getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+    // ── FIN: 8.8 ──
     const result = await this.snapshotManager.restore(id)
     if (!result.ok) return result
     const snap = result.value
@@ -2394,6 +2414,16 @@ export class TreeEngine {
    * + `invalidate(ALL_CACHE_TYPES)`. Emite `loadoutLoaded` event.
    */
   async loadLoadout(name: string): Promise<Result<Loadout>> {
+    // ── INICIO: 8.8 — readOnly check ──
+    if (this.readOnly) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.READ_ONLY_VIOLATION,
+          getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+    // ── FIN: 8.8 ──
     const result = await this.loadoutManager.load(name)
     if (!result.ok) return result
     const loadout = result.value

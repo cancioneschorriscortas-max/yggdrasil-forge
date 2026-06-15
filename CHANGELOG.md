@@ -7,6 +7,17 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **Read-only mode completion**: TreeEngine bloquea 8 métodos
+  mutantes en readOnly. 3 novos en 8.8: setProgress, restoreSnapshot,
+  loadLoadout. Test suite centralizada (~18 tests).
+
+### Note
+- 🎉 **FASE 8 PECHADA OFICIALMENTE** (8.1 → 8.8).
+- 51 sub-fases consecutivas sen rollback.
+
+## [Unreleased]
+
+### Added
 - **3 regras pedagóxicas complexas** en @validators:
   noRedundantPrerequisitesRule (warning), progressiveDifficultyRule
   (info), balancedBranchesRule(maxDepthVariance) (factory, info).
