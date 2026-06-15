@@ -1,9 +1,9 @@
-// ── INICIO: @yggdrasil-forge/search ──
-// Search engine for Yggdrasil Forge skill trees
-// O contido real engadirase en sub-fases posteriores.
-
-/**
- * Versión actual do paquete.
- */
-export const VERSION = '0.0.0'
-// ── FIN: @yggdrasil-forge/search ──
+// ── INICIO: @yggdrasil-forge/search barrel ──
+export { SearchEngine } from './SearchEngine.js'
+export type {
+  SearchField,
+  SearchMatch,
+  SearchOptions,
+  SearchResult,
+} from './types.js'
+// ── FIN: @yggdrasil-forge/search barrel ──

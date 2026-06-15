@@ -7,6 +7,19 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **`@yggdrasil-forge/search`** paquete activado. SearchEngine
+  standalone: substring case-insensitive, scoring por campo
+  (name=10, searchKeywords=7, description=5, tags=3), sort
+  descendente, limit configurable. DT-14 fix aplicado.
+- Adaptación: `NodeDef.label` (non `name`) + `LocalizedString`
+  flatten para tódalas variantes i18n indexadas.
+
+### Changed
+- smoke.test.ts → SearchEngine.test.ts (git mv; 21 tests reais).
+
+## [Unreleased]
+
+### Added
 - **`DebugPlugin`** segundo plugin oficial en @yggdrasil-forge/plugins.
   Loga operacións do TreeEngine via 8 hooks (incluído computeCost
   preparación). DebugOptions: enabled (default true), logLevel
