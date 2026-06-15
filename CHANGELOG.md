@@ -7,6 +7,19 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **3 regras pedagóxicas complexas** en @validators:
+  noRedundantPrerequisitesRule (warning), progressiveDifficultyRule
+  (info), balancedBranchesRule(maxDepthVariance) (factory, info).
+- **TreeEngine.validatePedagogically<R>(validator)**: IoC con generic;
+  cero dep circular @core↔@validators.
+- README.md validators substituído con sección completa (9 regras).
+
+### Note
+- 🎯 FASE 8.7 PECHADA: 9 das 10 regras built-in implementadas.
+
+## [Unreleased]
+
+### Added
 - **`@yggdrasil-forge/validators`** paquete activado. ValidatorEngine
   standalone + 6 regras built-in: noCyclesRule (DFS), allReachableFromRootRule
   (BFS), noOrphanNodesRule, noDeadEndsRule, maxBranchingFactorRule(limit),

@@ -2461,5 +2461,28 @@ export class TreeEngine {
   }
 
   // ── FIN: plugins (8.4.a) ──
+
+  // ── INICIO: 8.7.b — validatePedagogically ──
+  /**
+   * Executa validación pedagóxica delegada a un ValidatorEngine
+   * externo. Usa **Inversion of Control con generic** para evitar
+   * dependencia circular entre @core e @validators.
+   *
+   * @example
+   * import { ValidatorEngine, noCyclesRule } from '@yggdrasil-forge/validators'
+   * const validator = new ValidatorEngine()
+   * validator.registerRule(noCyclesRule)
+   * const report = await engine.validatePedagogically(validator)
+   *
+   * @param validator Calquera obxecto cun método
+   *                  `validate(treeDef): Promise<R>`.
+   * @returns Resultado da validación tipo R.
+   */
+  async validatePedagogically<R>(validator: {
+    validate(treeDef: TreeDef): Promise<R>
+  }): Promise<R> {
+    return validator.validate(this.store.getTreeDef())
+  }
+  // ── FIN: 8.7.b ──
 }
 // ── FIN: TreeEngine ──

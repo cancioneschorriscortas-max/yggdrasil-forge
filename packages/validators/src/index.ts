@@ -7,6 +7,10 @@ export {
   noDeadEndsRule,
   maxBranchingFactorRule,
   minBranchingFactorRule,
+  // 8.7.b additions:
+  noRedundantPrerequisitesRule,
+  progressiveDifficultyRule,
+  balancedBranchesRule,
 } from './rules.js'
 export type {
   ValidationIssue,
