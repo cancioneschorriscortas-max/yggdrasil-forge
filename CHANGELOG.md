@@ -7,6 +7,17 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **`SearchPlugin`** en @yggdrasil-forge/search: wrapper Plugin sobre
+  SearchEngine. permissions ['read_state'], install auto-indexa,
+  API: search/reindex/getEngine.
+- README.md substituído con sección Search completa.
+
+### Note
+- 🎯 FASE 8.6 PECHADA: SearchEngine + SearchPlugin completos.
+
+## [Unreleased]
+
+### Added
 - **`@yggdrasil-forge/search`** paquete activado. SearchEngine
   standalone: substring case-insensitive, scoring por campo
   (name=10, searchKeywords=7, description=5, tags=3), sort
