@@ -1,9 +1,17 @@
-// ── INICIO: @yggdrasil-forge/validators ──
-// Pedagogical validators for Yggdrasil Forge
-// O contido real engadirase en sub-fases posteriores.
-
-/**
- * Versión actual do paquete.
- */
-export const VERSION = '0.0.0'
-// ── FIN: @yggdrasil-forge/validators ──
+// ── INICIO: @yggdrasil-forge/validators barrel ──
+export { ValidatorEngine } from './ValidatorEngine.js'
+export {
+  noCyclesRule,
+  allReachableFromRootRule,
+  noOrphanNodesRule,
+  noDeadEndsRule,
+  maxBranchingFactorRule,
+  minBranchingFactorRule,
+} from './rules.js'
+export type {
+  ValidationIssue,
+  ValidationReport,
+  ValidationRule,
+  ValidationSeverity,
+} from './types.js'
+// ── FIN: @yggdrasil-forge/validators barrel ──

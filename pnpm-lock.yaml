@@ -420,6 +420,13 @@ importers:
         version: 4.1.5(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(jsdom@25.0.1)(vite@8.0.11(esbuild@0.27.7)(yaml@2.8.4))
 
   packages/validators:
+    dependencies:
+      '@yggdrasil-forge/common':
+        specifier: workspace:*
+        version: link:../common
+      '@yggdrasil-forge/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@vitest/coverage-v8':
         specifier: 'catalog:'

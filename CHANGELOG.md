@@ -7,6 +7,17 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Added
+- **`@yggdrasil-forge/validators`** paquete activado. ValidatorEngine
+  standalone + 6 regras built-in: noCyclesRule (DFS), allReachableFromRootRule
+  (BFS), noOrphanNodesRule, noDeadEndsRule, maxBranchingFactorRule(limit),
+  minBranchingFactorRule(limit). DT-14 fix aplicado.
+
+### Changed
+- smoke.test.ts → ValidatorEngine.test.ts (git mv; 45 tests reais).
+
+## [Unreleased]
+
+### Added
 - **`SearchPlugin`** en @yggdrasil-forge/search: wrapper Plugin sobre
   SearchEngine. permissions ['read_state'], install auto-indexa,
   API: search/reindex/getEngine.
