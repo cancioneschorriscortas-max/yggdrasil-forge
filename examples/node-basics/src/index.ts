@@ -93,10 +93,7 @@ if (unlockA.ok) {
 
 const unlockCFail = await engine.unlock('skill-c')
 if (!unlockCFail.ok) {
-  console.log(
-    '▶ unlock(skill-c) bloqueado correctamente:',
-    unlockCFail.error.message,
-  )
+  console.log('▶ unlock(skill-c) bloqueado correctamente:', unlockCFail.error.message)
 }
 
 // ── 6. unlock secuencial b, c ──────────────────────────────────
