@@ -1,20 +1,29 @@
 # @yggdrasil-forge/neo4j
 
-Neo4j adapter for Yggdrasil Forge
+Neo4j graph database adapter for Yggdrasil Forge skill trees.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/neo4j
-```
+## Purpose
 
-## Documentation
+Synchronize Yggdrasil Forge tree definitions with Neo4j graph
+databases, enabling Cypher-based queries, advanced graph analytics,
+and bidirectional sync between application-level trees and the
+graph store.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/core](../core): TreeEngine and core APIs.
+- [@yggdrasil-forge/storage](../storage): Local storage adapters
+  (Neo4j is a separate concern).
 
 ## License
 

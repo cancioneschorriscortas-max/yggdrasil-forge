@@ -1,20 +1,28 @@
 # @yggdrasil-forge/webhooks
 
-Server-side webhook plugin for Yggdrasil Forge
+Webhook integration for skill tree events.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/webhooks
-```
+## Purpose
 
-## Documentation
+Emit HTTP webhooks when significant TreeEngine events occur
+(unlocks, completions, milestones), with retry policies, signature
+verification, and event filtering for external service integration.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/core](../core): TreeEngine event system.
+- [@yggdrasil-forge/plugins](../plugins): Webhook emitter
+  implementable as plugin.
 
 ## License
 

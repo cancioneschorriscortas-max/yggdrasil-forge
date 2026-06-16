@@ -7,6 +7,48 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 ## [Unreleased]
 
 ### Documentation
+- **15 READMEs substituídos** con contido informativo:
+  - **13 paquetes scaffold** (analytics, cli, devtools, diff,
+    exporters, heatmap, i18n, importers, multitenancy, neo4j,
+    stats, themes, webhooks): formato compacto (~30-40 liñas)
+    con tagline, status, purpose, related packages.
+  - **2 paquetes activos** (storage + react): formato completo
+    con installation, quick start, exemplos por API, components,
+    hooks, themes, notes.
+- **`docs/briefings/briefings.zip` borrado** (cosmético; herdado
+  de hardening-2; cero relevante en repo).
+- **Auto-tracking**: este propio briefing trackeado en
+  `docs/briefings/BRIEFING-hardening-3.md` segundo convención
+  A.5.2 establecida en hardening-2.
+
+### Note
+- Sub-fase **hardening-3**. TERCEIRA do ciclo de hardening
+  pre-release 0.1.0-alpha.
+- **Pure documentación**: cero código modificado, cero tests
+  modificados, cero impacto en typecheck/build/cobertura.
+- **2195 tests pasan inchanged**.
+- **Cero comprometer Fase concreta** nos READMEs scaffold (MASTER
+  cero detalla Fases 10-19 individuais; usar "future phase" en
+  xeral).
+- **READMEs xa informativos preservados** (common, core, plugins,
+  search, validators): cero modificación.
+- **APIs públicas verificadas empíricamente** para storage + react
+  antes de redactar exemplos.
+- **Aliñado con MASTER A.4.3** (decisión pre-release: *"Engadir
+  README placeholder real a cada baleiro antes do primeiro
+  publish"*).
+- 55 sub-fases consecutivas sen rollback tras hardening-3.
+- **DTs abertas restantes**: 13 (mesmas que tras hardening-2;
+  hardening-3 cero estaba ligado a DT específica).
+- **Próximas sub-fases pre-release**:
+  - hardening-4 (opcional; DT-15 + DT-24 cosmética).
+  - examples-1 a N (validación API con casos prácticos).
+  - release-prep + 0.1.0-alpha (bump versions + DT-12 CHANGELOG
+    Keep-a-Changelog + npm publish).
+
+## [Unreleased]
+
+### Documentation
 - **DT-25 RESOLTA**: 44 briefings históricos engadidos a
   `docs/briefings/`:
   - **38 briefings das Fases 4-8** (recuperados polo autor en

@@ -1,20 +1,31 @@
 # @yggdrasil-forge/i18n
 
-Internationalization helpers for Yggdrasil Forge
+Internationalization utilities for Yggdrasil Forge.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/i18n
-```
+## Purpose
 
-## Documentation
+Provide tooling to manage and resolve `LocalizedString` values
+across multiple locales, integrate with i18n frameworks (i18next,
+FormatJS, Lingui), and offer extraction helpers for translation
+workflows.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+The `LocalizedString` type itself already lives in
+[@yggdrasil-forge/common](../common); this package will provide
+higher-level utilities.
+
+## Related packages
+
+- [@yggdrasil-forge/common](../common): `LocalizedString` type.
+- [@yggdrasil-forge/core](../core): TreeEngine and core APIs.
 
 ## License
 

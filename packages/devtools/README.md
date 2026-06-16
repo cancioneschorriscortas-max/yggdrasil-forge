@@ -1,20 +1,28 @@
 # @yggdrasil-forge/devtools
 
-Browser devtools extension support for Yggdrasil Forge
+Browser DevTools extension for inspecting skill trees.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/devtools
-```
+## Purpose
 
-## Documentation
+Chrome / Firefox DevTools extension for live inspection of
+TreeEngine state, plugin hooks firing, validator reports, and
+event history during development.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/core](../core): TreeEngine and core APIs.
+- [@yggdrasil-forge/plugins](../plugins): Plugin system inspectable
+  via DevTools.
 
 ## License
 

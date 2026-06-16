@@ -1,20 +1,30 @@
 # @yggdrasil-forge/heatmap
 
-Visual analytics overlays for Yggdrasil Forge
+Visual analytics overlay showing user progression density on skill
+trees.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/heatmap
-```
+## Purpose
 
-## Documentation
+Render heatmap overlays on skill trees showing how often each
+node is unlocked, which paths users prefer, and where progression
+stalls. Useful for UX research and curriculum design.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/core](../core): TreeEngine and core APIs.
+- [@yggdrasil-forge/analytics](../analytics): Data source for
+  heatmap rendering.
+- [@yggdrasil-forge/react](../react): React rendering integration.
 
 ## License
 

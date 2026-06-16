@@ -1,20 +1,32 @@
 # @yggdrasil-forge/themes
 
-Theme presets for Yggdrasil Forge
+Pre-built themes for the React skill tree renderer.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/themes
-```
+## Purpose
 
-## Documentation
+Curated collection of themes for the
+[@yggdrasil-forge/react](../react) renderer: dark/light variants,
+genre presets (RPG, sci-fi, fantasy, minimalist), accessibility-first
+themes (high contrast, dyslexia-friendly), and customization
+primitives.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+The `minimal` theme currently ships from `@yggdrasil-forge/react`
+itself; this package will host the expanded collection.
+
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/react](../react): React renderer (theme
+  consumer).
 
 ## License
 

@@ -1,20 +1,31 @@
 # @yggdrasil-forge/importers
 
-Format importers (Mermaid, Cytoscape, GraphML, CSV) for Yggdrasil Forge
+Import skill tree definitions from external formats.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/importers
-```
+## Purpose
 
-## Documentation
+Convert external skill tree formats (game engine exports, LMS
+data, Graphviz/Mermaid sources, JSON-LD) into Yggdrasil Forge
+`TreeDef` instances, with validation and migration helpers.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/core](../core): TreeEngine and core APIs.
+- [@yggdrasil-forge/exporters](../exporters): Inverse direction
+  (export to external formats).
+- [@yggdrasil-forge/validators](../validators): Validate imported
+  trees.
+- [@yggdrasil-forge/cli](../cli): CLI exposes importers.
 
 ## License
 

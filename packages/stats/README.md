@@ -1,20 +1,29 @@
 # @yggdrasil-forge/stats
 
-StatComputer extensions for Yggdrasil Forge
+Aggregated statistics and metrics over skill trees.
 
 ## Status
 
-🚧 **Early development.** Public API not yet stable.
+🚧 **Scaffold package** — planned for a future phase of the
+Yggdrasil Forge roadmap.
 
-## Installation
+This package currently contains only a placeholder. Active
+implementation will be tracked in the
+[architecture document](../../docs/architecture/MASTER.md).
 
-```bash
-pnpm add @yggdrasil-forge/stats
-```
+## Purpose
 
-## Documentation
+Compute aggregated statistics over `TreeDef` and `TreeState`:
+unlock counts, depth distributions, prerequisite chain analytics,
+critical paths, completion rates, and other derived metrics. The
+core `StatComputer` already provides per-node stats; this package
+focuses on aggregations and reporting.
 
-See the [master architecture document](../../docs/architecture/MASTER.md).
+## Related packages
+
+- [@yggdrasil-forge/common](../common): Shared types and utilities.
+- [@yggdrasil-forge/core](../core): `StatComputer` and stats
+  primitives.
 
 ## License
 
