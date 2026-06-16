@@ -2554,7 +2554,7 @@ PluginManager + HookRunner.**
 | DT-22 | `TreeRegistry.ts` (sub-fase 6.1) entregou con cobertura Branch 85.1% (dúas ramas defensivas: `all-in-memory` cache miss fallback + `evictLRU else break`; ambas inalcanzables por API pública). **PECHADA en 6.2**: o executor engadiu `/* v8 ignore next */ + xustificación inline` ás ramas defensivas (incluíndo outras catro en `load()`/`loadEngineFromStorage`/`clear()` para adapters con I/O), levando a cobertura global core de 97.26% a 97.49% (+0.23pp). Acción aliñada coa lección 6.1 L1 (c8 ignore preferible a baixadas globais). | **PECHADA en 6.2 (8de28f6)** |
 | DT-23 | `BULK_OPERATION_FAILED` (YGG_E010) está declarado en `packages/common/src/errors/codes.ts` con mensaxe localizada (`{nodeId}/{reason}`) deseñada para "fallou en nodo X durante operación bulk", **pero nunca cableado** en ningún callsite do proxecto. Foi unha reserva semántica do brifing temprano (probablemente 1.x) que ningunha sub-fase emitiu. En 6.1 estivo a piques de reutilizarse para `applyChangesToAll`, pero os placeholders eran incompatibles co payload (`{count}`); resolveuse creando YGG_E032 (`APPLY_CHANGES_FAILED`) en lugar. **Plan**: ou ben cablear `BULK_OPERATION_FAILED` cando proceda (ex: TreeEngine.applyChanges fallo por-nodo), ou eliminar nun ciclo de hixiene se non hai caso de uso planificado tras Fase 8. Cero impacto funcional. | Aberta non bloqueante |
 | DT-24 | `TreeEngine.setProgress(nodeId, percent)` require que o NodeDef ten `progressSource: { type: 'manual' }` (ou compatible) configurado. Esta precondición **non está documentada explícitamente no JSDoc de `setProgress`** nin no MASTER §7.7 (ProgressSourceConfig). Cazada empíricamente polo executor en 6.2 cando construíu tests con NodeDefs por defecto. **Plan**: engadir nota explicativa ao JSDoc de `setProgress` e/ou a `§7.7` do MASTER, e/ou un erro máis informativo cando se chama setProgress sobre un nodo sen progressSource manual. Cero impacto funcional (o erro actual emite código existente, simplemente é menos pedagóxico que podería). | Aberta non bloqueante, cosmética |
-| DT-25 | Briefings de Fases 4, 5 e 6 (ata 6.3) non están trackeados nun commit `docs:` consolidado (paralelo a `1fe9374` que rexistrou os de Fase 3). Anotado como pendente nos peches A.9.c e A.9.d. **Plan**: commit único `docs: briefings phases 4+5+6` ao peche definitivo de Fase 6 (tras 6.5). Cero impacto funcional, só housekeeping. | Aberta non bloqueante, cosmética |
+| DT-25 | Briefings de Fases 4, 5 e 6 (ata 6.3) non están trackeados nun commit `docs:` consolidado. **PECHADA en hardening-2 (7e408d8)**: o autor recuperou os 38 briefings de Fases 4-8 en local + Director aportou 5 desta sesión + este propio briefing hardening-2. 84 briefings totais trackeados en `docs/briefings/`. **Convención nova establecida** en §A.5.2 para evitar reaparecer: todo briefing futuro tráckase na súa propia sub-fase. | **PECHADA en hardening-2** |
 | DT-26 | `TreeRegistry.save()` ten patrón fire-and-forget preexistente desde sub-fase 6.1: as 4 chamadas internas a `storage.set` (despois `quotaCheckedSet` en 6.4) estaban `await`-ed pero non capturaban resultado, polo que save() devolvía `ok(undefined)` aínda que algunha escritura interna fallase. **Identificada post-6.4** durante a auditoría do director (e52fc33). **Crítico para 6.4 porque silenciaba `QUOTA_STORAGE_EXCEEDED`** durante save. **PECHADA en 6.5 (ecb08e9)**: refactor de save() para capturar resultado de cada chamada (`quotaCheckedSet` x3 + `persistEngine` x N) e devolver early en erro. Garantía actual: "first error wins" — se a primeira escritura falla, as posteriores non se executan (cero estado intermedio adicional). Cero modificación de `persistEngine` ou `load()` (ambos xa propagaban correctamente). | **PECHADA en 6.5 (ecb08e9)** |
 
 **0 débeda funcional crítica. 0 asimetrías coñecidas.**
@@ -2760,6 +2760,25 @@ A.7 X.
 ## A.5.1 — Modelo executor
 
 Opus 4.7 desde ~1.14. Sección 0 e escalado INTACTOS.
+
+### A.5.2 — Convención de tracking de briefings (desde hardening-2)
+
+Tras hardening-2 (DT-25 PECHADA), establécese a seguinte convención
+permanente:
+
+**Todo briefing producido polo Director debe copiarse a
+`docs/briefings/` como parte da súa propia sub-fase**, antes do
+commit. Naming permitido:
+- **Dot** (`BRIEFING-X.Y.md`): pre-6_2 (histórico).
+- **Underscore** (`BRIEFING-X_Y.md`): desde 6_2 en adiante
+  (convención actual).
+
+Cero renomeo retrocompatible (preserva git history e refrexa
+evolución do proxecto).
+
+Esta convención evita que DT-25 reaparezca en sub-fases futuras.
+Briefings producidos pero non trackeados desde hardening-2 en
+adiante considéranse erro de proceso.
 
 ## A.6 — Leccións do director
 

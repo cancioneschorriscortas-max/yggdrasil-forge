@@ -6,6 +6,48 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Documentation
+- **DT-25 RESOLTA**: 44 briefings históricos engadidos a
+  `docs/briefings/`:
+  - **38 briefings das Fases 4-8** (recuperados polo autor en
+    local): BRIEFING-4.1 a 4.6, BRIEFING-5.1 a 5.3, BRIEFING-6.1
+    + 6_2 a 6_5, BRIEFING-7_1 a 7_11, BRIEFING-HIGIENE-7,
+    BRIEFING-8_1, 8_2, 8_3, 8_3_REVISED, 8_4_a, 8_4_b_i,
+    8_4_b_ii, 8_4_c, 8_5_a, 8_6_a, 8_6_b, 8_8.
+  - **5 briefings desta sesión** (8.4.c → hardening-1):
+    BRIEFING-8_5_b, BRIEFING-8_7_a, BRIEFING-8_7_b,
+    BRIEFING-doc-8, BRIEFING-hardening-1.
+  - **1 este propio briefing**: BRIEFING-hardening-2.
+- **84 briefings totais trackeados** en `docs/briefings/` (de ~84
+  producidos historicamente; cero perdidos).
+- **Convención nova** establecida en MASTER §A.5.2: tódolos
+  briefings futuros trackearánse automaticamente en
+  `docs/briefings/` como parte da súa propia sub-fase. Evita
+  reaparecer DT-25.
+- DT-25 status actualizado a **PECHADA** no MASTER.
+
+### Note
+- Sub-fase **hardening-2**. SEGUNDA do ciclo de hardening pre-release
+  0.1.0-alpha.
+- **Pure documentación**: cero código modificado, cero tests
+  modificados, cero impacto en typecheck/build/cobertura.
+- **2195 tests pasan inchanged**.
+- **Naming mixto preservado**: pre-6_2 dot (`BRIEFING-X.Y.md`),
+  desde 6_2 underscore (`BRIEFING-X_Y.md`). Cero renomeo
+  retrocompatible (preserva git history).
+- **Cero solapamento** con os 40 briefings existentes (Fases 0-3):
+  verificado empíricamente polo director con `diff`.
+- **Recuperación histórica**: tódolos briefings producidos polo
+  proxecto (de 0.2 ata hardening-2) están agora trackeados.
+- 54 sub-fases consecutivas sen rollback tras hardening-2.
+- **Próximas sub-fases hardening pre-release**:
+  - hardening-3 (READMEs paquetes scaffold).
+  - hardening-4 (opcional; DT-15, DT-24 cosmética).
+- **DT abertas restantes tras hardening-2**: 13 (de 14; DT-25
+  RESOLTA).
+
+## [Unreleased]
+
 ### Changed
 - **BREAKING (DT-21)**: `StorageAdapter` interface movida de
   `@yggdrasil-forge/storage` a `@yggdrasil-forge/common`. Patrón
