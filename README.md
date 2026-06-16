@@ -41,6 +41,64 @@ and competency frameworks.
   (cycles, reachability, branching balance, etc.).
 - 🌐 **i18n-first**: every error message localized in gl / es / en.
 
+## Why Yggdrasil Forge?
+
+If you're building a skill tree, progression system, or branching
+curriculum, you have two options:
+
+1. **Roll your own**: implement nodes, edges, prerequisites, state
+   management, persistence, validation... and discover edge cases
+   you didn't anticipate.
+2. **Use Yggdrasil Forge**: a tested, modular engine that has
+   already solved the hard problems.
+
+### What you'd build anyway
+
+If your project needs more than a few static nodes, you'll
+eventually need:
+
+- **Prerequisite logic**: not just `A → B`, but `(A AND B) OR C`,
+  resource-gated unlocks, mutual exclusions. Yggdrasil Forge ships
+  `UnlockRule` — a discriminated union for composable rules.
+- **State management**: efficient diffing so React only re-renders
+  what changed. We use `StateStore` + `ChangeTracker` (2195 tests
+  worth of edge cases handled).
+- **Persistence + migrations**: 6 storage backends, snapshot
+  system, share-via-URL — plus a migration framework so stored
+  data survives schema changes.
+- **Validators**: detect cycles, unreachable nodes, redundant
+  prerequisites *before* shipping to users. 9 built-in rules cover
+  structural and pedagogical concerns.
+- **i18n**: every error message is localized (gl/es/en); every
+  user-facing label is a `LocalizedString`.
+
+### What you probably *wouldn't* build
+
+These come "free" with Yggdrasil Forge:
+
+- **Plugin system** with 8 lifecycle hooks for cross-cutting
+  concerns (analytics, debugging, history tracking, custom
+  validators).
+- **Custom search** with field-weighted scoring (label > keywords >
+  description > tags).
+- **React renderer** with built-in SVG components, reactive hooks,
+  and a default theme.
+- **Read-only mode** for shareable preview links.
+- **Headless mode** if you want full control over styling.
+
+### When *not* to use Yggdrasil Forge
+
+Be honest: if you need **≤5 nodes** and **no state persistence**,
+just use a handful of hard-coded `if` statements. Yggdrasil Forge
+earns its dependency footprint when:
+
+- You have **10+ nodes** with branching prerequisites.
+- State persistence matters (browser refresh, multi-device sync,
+  shareable builds).
+- Multiple developers will work on the system over time.
+- You want to evolve the tree without rewrites (migrations + schema
+  versioning).
+
 ## Quick start
 
 ### Installation

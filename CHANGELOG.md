@@ -12,6 +12,21 @@ on publish.
 
 ## [Unreleased]
 
+### Documentation
+- **README global**: nova sección "Why Yggdrasil Forge?" antes de
+  "Quick start" — diferenciación explícita vs solucións ad-hoc.
+  4 sub-seccións: párrafo intro + "What you'd build anyway" +
+  "What you probably wouldn't build" + "When *not* to use".
+- Auto-tracked: BRIEFING-readme-why.md en docs/briefings/.
+
+### Note
+- Sub-fase **readme-why** post-release.
+- **Pure editorial**: cero código, cero tests, cero impacto.
+- 60 sub-fases consecutivas sen rollback.
+- Recomendación implementada do Executor: diferenciación explícita
+  é o segundo paso de máis impacto post-release (despois de
+  examples-2 React demo).
+
 ## [0.1.0] - 2026-06-16
 
 First public release of Yggdrasil Forge — an open-source TypeScript
