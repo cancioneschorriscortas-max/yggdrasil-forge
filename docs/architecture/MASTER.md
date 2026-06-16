@@ -3159,6 +3159,58 @@ As 5 leccións converxen nun **patrón único**:
 
 Este patrón será o **estándar para a Fase 9** e seguintes.
 
+### A.6.9 — Leccións estruturais dos exemplos prácticos
+
+A partires da serie de exemplos prácticos post-Fase 8 (examples-1
+en adiante), captúrase aquí as leccións estruturais sobre **a
+propia API do sistema** que so se detectaron por validación
+empírica nun contexto real (fora dos tests unitarios).
+
+#### examples-1 L1 — Dependency edges vs Prerequisites (semántica)
+
+**Contexto**: Durante examples-1, o briefing do Director prescribiu
+un exemplo onde `unlock(skill-c)` sen unlock previo de skill-b
+debería fallar (paso 5 demostrativo de Result.err pattern). O
+Executor verificou empíricamente: **paso 5 cero produciu output
+de erro**. `unlock(skill-c)` tivo éxito aínda con skill-b locked,
+porque os `'dependency'` edges entre skill-b e skill-c son
+**meramente visuais + navegacionais**.
+
+**Descubrimento empírico**:
+- **`EdgeDef` con `type: 'dependency'`**: visualización (renderizar
+  arrows) + navegación (BFS/DFS para layouts, search, validators).
+  **NON enforce de prereqs en runtime**.
+- **`NodeDef.prerequisites: UnlockRule`**: mecanismo real de
+  enforcement runtime. Consultado por `UnlockResolver`.
+- **`UnlockRule`** é discriminated union: `'all' | 'any' | 'none'`
+  + array de `UnlockCondition`, ou `UnlockCondition` directa
+  (e.g., `{type:'node_unlocked', nodeId:'X'}`).
+- **`PREREQUISITES_NOT_MET = 'YGG_E003'`** é o ErrorCode emitido
+  cando unha condition non se cumpre.
+
+**Aprendizaxe**: a lección 8.6.a L1 (verificar empíricamente APIs
+antes de prescribir) **debe aplicarse tamén á SEMÁNTICA** dos
+mecanismos, non só aos nomes de campos. Director asumiu que
+`'dependency'` edges enforce prereqs **baseándose no nome**; iso
+foi un erro. **Briefings didácticos requiren empíricamente probar
+a semántica antes de prescribir exemplos**.
+
+**Mitigación**: examples-1-fix engade `prerequisites` aos NodeDefs
+do exemplo + sección README explicando a distinción. Lección
+capturada aquí para evitar repetir o erro en exemplos futuros
+(examples-2 React, examples-3 plugins, etc.) e en Fase 9 (Visual
+Editor) onde a distinción será crítica para o UX.
+
+**Patrón emerxente** (corolario de 8.6.a L1):
+> Cero asumir semántica de mecanismos baseándose en nomes de tipos
+> ou campos. Para briefings que prescriben código demostrativo,
+> **executar mentalmente** ou (mellor) **probar empíricamente** o
+> comportamento esperado contra o código real antes de prescribir.
+
+Esta lección extende o patrón "verificación empírica T0.2" a
+**verificación empírica de semántica** (cero só de estructura de
+tipos).
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

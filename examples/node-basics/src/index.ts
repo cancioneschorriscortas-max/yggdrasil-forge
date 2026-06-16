@@ -38,11 +38,13 @@ const treeDef: TreeDef = {
       id: 'skill-b',
       type: 'small',
       label: { gl: 'Habilidade B', es: 'Habilidad B', en: 'Skill B' },
+      prerequisites: { type: 'node_unlocked', nodeId: 'skill-a' },
     },
     {
       id: 'skill-c',
       type: 'small',
       label: { gl: 'Habilidade C', es: 'Habilidad C', en: 'Skill C' },
+      prerequisites: { type: 'node_unlocked', nodeId: 'skill-b' },
     },
   ],
   edges: [

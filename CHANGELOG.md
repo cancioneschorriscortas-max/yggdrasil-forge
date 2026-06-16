@@ -6,6 +6,43 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Fixed
+- **examples/node-basics**: paso 5 do exemplo agora demostra
+  correctamente Result.err pattern. Engadidos `prerequisites: {
+  type: 'node_unlocked', nodeId: '<prev>' }` aos NodeDefs de
+  skill-b e skill-c. Anteriormente, `'dependency'` edges supoñían
+  enforce de prereqs (incorrecto; son meramente visuais +
+  navegacionais).
+- **examples/node-basics/README.md**: nova sección "Prerequisites
+  vs dependency edges" explicando a distinción semántica.
+
+### Added
+- **MASTER §A.6.9**: nova subsección "Leccións estruturais dos
+  exemplos prácticos" co primeiro L1 capturado:
+  - **examples-1 L1 — Dependency edges vs Prerequisites**:
+    captura o achado de que dependency edges en EdgeDef son
+    visualización + navegación (cero runtime enforcement);
+    `NodeDef.prerequisites: UnlockRule` é o mecanismo real de
+    enforcement via UnlockResolver.
+  - **Patrón emerxente** documentado: "verificación empírica de
+    semántica" (corolario de 8.6.a L1 que extende a verificación
+    estrutural á semántica funcional).
+
+### Note
+- Sub-fase **examples-1-fix**. CORRECCIÓN cirúrxica de examples-1
+  (commit a9c9909).
+- **Pure correction**: cero modificación de ficheiros .ts en
+  /packages/. Cambio cirúrxico ao exemplo (2 nodos do treeDef
+  ganhan prerequisites).
+- **2195 tests pasan inchanged**. Typecheck 24/24.
+- **Verificación crítica T5**: executou exemplo + confirmou que
+  paso 5 agora falla con PREREQUISITES_NOT_MET como pedagóxicamente
+  prescrito.
+- 58 sub-fases consecutivas sen rollback tras examples-1-fix.
+- **Próximas sub-fases**: examples-2 (React) ou release-prep.
+
+## [Unreleased]
+
 ### Added
 - **First practical example**: `examples/node-basics/` —
   end-to-end Node.js demonstration of core APIs (TreeEngine,
