@@ -30,6 +30,29 @@ on publish.
     `workspace:*` for external sandbox compatibility.
 - Auto-tracked: BRIEFING-examples-2.md in docs/briefings/.
 
+### Fixed
+- **examples/react-demo**: total visual redesign para que sirva
+  como conversion driver real post-release. A versión anterior
+  (commit 410dcb6) tiña labels solapados + estética minimal
+  default cero atrae.
+  - **NOVO** tema custom `dragonborn` (dark fantasy palette: gold
+    + cobalt + emerald + crimson cardinal accents).
+  - **Labels acurtados** con emoji prefix (⚔ 🗡 🏹 🛡 💥 🌪 ⚜)
+    para resolver overlap.
+  - **App.tsx** envolvido en `<ThemeProvider theme={dragonborn}>`.
+  - **styles.css** total redesign:
+    - Google Fonts (Cinzel display + Inter UI; vía CDN).
+    - Cosmic background con 4 radial gradients sutís.
+    - Glow effects via `filter: drop-shadow()` apuntados a
+      `.yf-skill-node[data-state="unlocked"]`.
+    - Pulse animation para `[data-state="unlockable"]`.
+    - Special treatment para `[data-tier="keystone"]`.
+    - Tree frame con ornate borders.
+    - Sidebar con panel-style medieval.
+    - Rune buttons.
+- **Cero modificación** de @yggdrasil-forge/react (só uso da API
+  pública via ThemeProvider + CSS overrides via data-* selectors).
+
 ### Note
 - Sub-fase **readme-why** post-release.
 - **Pure editorial**: cero código, cero tests, cero impacto.
@@ -43,6 +66,11 @@ on publish.
 - Recomendación implementada do Executor: diferenciación explícita
   é o segundo paso de máis impacto post-release (despois de
   examples-2 React demo).
+- Sub-fase **examples-2-fix-visual**. Redesign visual post-release
+  recomendado polo Agarfal tras feedback honesto sobre estética.
+- 62 sub-fases consecutivas sen rollback.
+- **APIs públicas usadas**: ThemeProvider, Theme type, CSS classes
+  `.yf-skill-node` + `[data-state]` + `[data-tier]`.
 
 ## [0.1.0] - 2026-06-16
 

@@ -13,54 +13,54 @@ export const rpgTreeDef: TreeDef = {
   description: {
     en: 'A sample skill tree for an RPG character with melee and ranged branches.',
   },
-  layout: { type: 'tree' },
   rootNodeId: 'combat',
+  layout: { type: 'tree' },
   nodes: [
     {
       id: 'combat',
       type: 'root',
-      label: { en: 'Combat', es: 'Combate', gl: 'Combate' },
+      label: { en: '⚔ Combat', es: '⚔ Combate', gl: '⚔ Combate' },
     },
     {
       id: 'melee',
       type: 'notable',
-      label: { en: 'Melee Combat', es: 'Combate cuerpo a cuerpo', gl: 'Combate corpo a corpo' },
+      label: { en: '🗡 Melee', es: '🗡 Cuerpo', gl: '🗡 Corpo' },
       prerequisites: { type: 'node_unlocked', nodeId: 'combat' },
     },
     {
       id: 'ranged',
       type: 'notable',
-      label: { en: 'Ranged Combat', es: 'Combate a distancia', gl: 'Combate á distancia' },
+      label: { en: '🏹 Ranged', es: '🏹 Distancia', gl: '🏹 Distancia' },
       prerequisites: { type: 'node_unlocked', nodeId: 'combat' },
     },
     {
       id: 'sword-mastery',
       type: 'small',
-      label: { en: 'Sword Mastery', es: 'Maestría con espada', gl: 'Mestría con espada' },
+      label: { en: '⚔ Sword', es: '⚔ Espada', gl: '⚔ Espada' },
       prerequisites: { type: 'node_unlocked', nodeId: 'melee' },
     },
     {
       id: 'shield-bash',
       type: 'small',
-      label: { en: 'Shield Bash', es: 'Golpe con escudo', gl: 'Golpe con escudo' },
+      label: { en: '🛡 Shield', es: '🛡 Escudo', gl: '🛡 Escudo' },
       prerequisites: { type: 'node_unlocked', nodeId: 'melee' },
     },
     {
       id: 'bow-mastery',
       type: 'small',
-      label: { en: 'Bow Mastery', es: 'Maestría con arco', gl: 'Mestría con arco' },
+      label: { en: '🏹 Bow', es: '🏹 Arco', gl: '🏹 Arco' },
       prerequisites: { type: 'node_unlocked', nodeId: 'ranged' },
     },
     {
       id: 'critical-shot',
       type: 'keystone',
-      label: { en: 'Critical Shot', es: 'Disparo crítico', gl: 'Disparo crítico' },
+      label: { en: '💥 Crit', es: '💥 Crítico', gl: '💥 Crítico' },
       prerequisites: { type: 'node_unlocked', nodeId: 'bow-mastery' },
     },
     {
       id: 'whirlwind',
       type: 'keystone',
-      label: { en: 'Whirlwind', es: 'Torbellino', gl: 'Remuíño' },
+      label: { en: '🌪 Whirl', es: '🌪 Torbellino', gl: '🌪 Remuíño' },
       prerequisites: { type: 'node_unlocked', nodeId: 'sword-mastery' },
     },
   ],
@@ -73,4 +73,19 @@ export const rpgTreeDef: TreeDef = {
     { id: 'e-bow-crit', source: 'bow-mastery', target: 'critical-shot', type: 'dependency' },
     { id: 'e-sword-whirl', source: 'sword-mastery', target: 'whirlwind', type: 'dependency' },
   ],
+}
+
+/**
+ * Long label lookup for the side panel. Used when showing details
+ * of the currently selected node.
+ */
+export const longLabels: Record<string, string> = {
+  combat: 'Combat',
+  melee: 'Melee Combat',
+  ranged: 'Ranged Combat',
+  'sword-mastery': 'Sword Mastery',
+  'shield-bash': 'Shield Bash',
+  'bow-mastery': 'Bow Mastery',
+  'critical-shot': 'Critical Shot',
+  whirlwind: 'Whirlwind',
 }
