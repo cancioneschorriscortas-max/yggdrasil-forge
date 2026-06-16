@@ -6,6 +6,42 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- **First practical example**: `examples/node-basics/` —
+  end-to-end Node.js demonstration of core APIs (TreeEngine,
+  unlock/lock/canUnlock, snapshot/restoreSnapshot, MemoryStorage,
+  Result pattern). Aligned with MASTER A.4.2 (*"casos prácticos
+  diferidos antes do editor"*).
+  - 4 files: package.json (private: true), tsconfig.json,
+    README.md (80 lines), src/index.ts (140 lines; 8 demonstration
+    steps).
+  - Executable via `pnpm --filter @yggdrasil-forge-examples/node-basics
+    start` (uses tsx for direct TypeScript execution).
+  - Cero build step required.
+
+### Note
+- Sub-fase **examples-1**. FIRST sub-phase of the practical
+  examples series.
+- **hardening-4 skipped** (DT-15 + DT-24 cosmetic; non-blocking;
+  deferred to release-prep).
+- **0 modifications** to existing packages, tests, configs, or
+  README files.
+- 2195 tests pass unchanged. Typecheck 24/24.
+- 57 consecutive sub-phases without rollback after examples-1.
+- **APIs verified empirically** before drafting (NodeType values,
+  EdgeType, SCHEMA_VERSION, async signatures of
+  unlock/lock/snapshot/restoreSnapshot).
+- **Auto-tracked**: BRIEFING-examples-1.md added to docs/briefings/
+  per A.5.2 convention.
+- **Next sub-phases**:
+  - examples-2 (React app demonstrating @react components +
+    hooks).
+  - examples-3 (plugins demonstration).
+  - examples-4+ (search, validators).
+  - release-prep + 0.1.0-alpha.
+
+## [Unreleased]
+
 ### Documentation
 - **15 READMEs substituídos** con contido informativo:
   - **13 paquetes scaffold** (analytics, cli, devtools, diff,

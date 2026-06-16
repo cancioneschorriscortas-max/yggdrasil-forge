@@ -1,0 +1,24 @@
+{
+  "name": "@yggdrasil-forge-examples/node-basics",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Basic Node.js example demonstrating Yggdrasil Forge core APIs",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yggdrasil-forge/common": "workspace:*",
+    "@yggdrasil-forge/core": "workspace:*",
+    "@yggdrasil-forge/storage": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
