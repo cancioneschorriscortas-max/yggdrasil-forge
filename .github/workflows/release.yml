@@ -1,14 +1,16 @@
 # Workflow de release.
 #
-# Estado actual: SÓ XERA PRs DE VERSION (non publica en npm).
+# Estado actual: XERA PRs DE VERSION + PUBLICA en npm cando o PR
+# se mergea (activado en sub-fase release-prep).
 #
-# Para activar publicación:
-# 1. Reservar @yggdrasil-forge en npmjs.com
-# 2. Crear NPM_TOKEN (tipo "Automation") en npmjs.com
+# Setup require (acción humana en npmjs.com + GitHub UI):
+# 1. Reservar @yggdrasil-forge en npmjs.com (se non está xa).
+# 2. Crear NPM_TOKEN (tipo "Automation") en npmjs.com.
 # 3. Engadir como secret NPM_TOKEN no repo de GitHub
-# 4. No step "Create Release PR" engadir:
-#      publish: pnpm changeset:publish
-#    e na sección env: NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+#    (Settings → Secrets and variables → Actions → New secret).
+#
+# Sen NPM_TOKEN configurado, o publish step fallará silenciosamente
+# pero o version PR seguirá xerándose correctamente.
 
 name: Release
 
@@ -57,11 +59,13 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Create Release PR
+      - name: Create Release PR or Publish
         uses: changesets/action@v1
         with:
           version: pnpm changeset:version
+          publish: pnpm changeset:publish
           commit: 'chore: version packages'
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
