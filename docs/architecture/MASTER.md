@@ -2132,6 +2132,13 @@ Posible v2: yggdrasil-hub.dev.
 
 ## 67. ROADMAP POR FASES (EXECUTABLE)
 
+> ⚠️ **SUPERSEDED (4º Arquitecto, etapa Renderer→Studio).** As Fases 9+
+> deste roadmap orixinal quedan substituídas por
+> `docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md` (folla de ruta a
+> 1.0). As Fases 0–8 abaixo mantéñense como **rexistro histórico**
+> (pechadas). Para o traballo activo, ler o roadmap novo.
+
+
 Cada fase divídese en sub-fases. Cada sub-fase é un chat executor.
 
 ### Fase 0 — Setup do monorepo
@@ -3210,6 +3217,33 @@ Editor) onde a distinción será crítica para o UX.
 Esta lección extende o patrón "verificación empírica T0.2" a
 **verificación empírica de semántica** (cero só de estructura de
 tipos).
+
+### A.6.10 — Renderer arquitectónicamente insuficiente sen North Star (examples-2 L1)
+
+A Fase 7 implementou o renderer `@react` **sen mockup de referencia**:
+construíuse para pasar tests, non para vender. Tras 0.1.0, o feedback
+empírico revelou ~18 gaps arquitectónicos. **Aprendizaxe:** orde estricta
+**mockup → arquitectura → código**; cero código de UI antes de North Star
++ análise. **Customer Zero:** cando un OSS nace dunha necesidade interna
+(Oberón), ese cliente é o North Star autoritativo; cada decisión pasa
+«¿isto serve a Oberón?».
+
+### A.6.11 — «Same Data. Different Themes.»
+
+Separación radical entre **lóxica** (estrutura do grafo) e **presentación**
+(tema). **Nunca acoplar unha decisión de tema á estrutura de datos.** A
+comparación visual de temas sobre os mesmos datos é a validación explícita
+desta promesa.
+
+### A.6.12 — Build narrow, design wide (reconciliación de alcance)
+
+Un roadmap que mestura tres proxectos (produto / librería / plataforma)
+sen fronteira ten **alcance infinito**. Doutrina: **entrégase o estreito**
+(cliente cero, Oberón) e **deséñase o ancho** (sen pechar xogos nin
+Duolingo). Test por decisión: «¿isto pecharíalle a porta a un dev de
+xogos ou de Duolingo?». E: **verificar empíricamente que os datos do
+cliente caben no motor ANTES de planificar a capa visual**. Detalle en
+`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`.
 
 ## A.7 — Protocolo consolidado
 

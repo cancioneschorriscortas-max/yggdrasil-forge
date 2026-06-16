@@ -14,6 +14,10 @@ This is an **alpha release**. Public APIs may change before 1.0.0.
 Use for evaluation, prototyping, and feedback. **Pin exact versions
 in production environments.**
 
+> 🗺️ **Roadmap a 1.0:** ver
+> [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md).
+
+
 ## What is Yggdrasil Forge?
 
 A modular TypeScript engine for designing, rendering, and
