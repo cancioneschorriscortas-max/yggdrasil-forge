@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/plugins",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Official plugins for Yggdrasil Forge",
   "license": "MIT",
   "author": "Agarfal",
@@ -22,7 +22,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
