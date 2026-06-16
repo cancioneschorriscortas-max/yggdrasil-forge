@@ -620,6 +620,48 @@ describe('TreeDefValidator.validateTreeDef', () => {
       }
     })
   })
+
+  // ── INICIO: F9.1 — tests de tiers ──
+  describe('NodeDef.tiers (F9.1)', () => {
+    it('nodo con tiers válidos → ok', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [
+          {
+            id: 'ms1',
+            type: 'small',
+            label: 'Micro',
+            tiers: [
+              { label: { gl: 'Aprendiz', es: 'Aprendiz' }, description: { gl: 'Nivel 1' } },
+              { description: { gl: 'Nivel 2' } },
+              {},
+            ],
+          },
+        ],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(true)
+    })
+
+    it('nodo con tiers.label non-string-nin-record → erro de validación', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [
+          {
+            id: 'ms1',
+            type: 'small',
+            label: 'Micro',
+            tiers: [{ label: 5 as unknown as string }],
+          },
+        ],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+      }
+    })
+  })
+  // ── FIN: F9.1 ──
+
   // ── FIN: tests da sub-fase 2.5 ──
 })
 // ── FIN: tests de TreeDefValidator (1.17) ──

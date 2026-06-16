@@ -78,6 +78,28 @@ export interface Position {
  * ProgressSourceConfig) defínense en módulos posteriores (1.3, 1.4) e referéncianse
  * como `unknown` por agora ata que estean dispoñibles.
  */
+// ── INICIO: F9.1 — info por rango (tier) ──
+/**
+ * Información de presentación POR RANGO (tier) dun nodo multi-rango.
+ *
+ * Índice no array `NodeDef.tiers` = `tier - 1` (tier 1 → índice 0).
+ * Complementa `costPerTier`/`effects` (custo/efectos por rango); aquí só
+ * vai texto: etiqueta e descrición localizadas. Ambos campos opcionais.
+ *
+ * Caso GAIA: os 3 niveis dunha microskill ("Aprendiz/Oficial/Mestre" +
+ * descrición de cada un). Caso xogo: "Rango 1: Iniciado".
+ *
+ * Deséñase extensible: campos futuros por rango (ex. criterio de acceso)
+ * engádense como opcionais sen romper.
+ */
+export interface NodeTierInfo {
+  /** Etiqueta do rango (ex. "Aprendiz"). Localizable. */
+  readonly label?: LocalizedString
+  /** Descrición do rango. Localizable. */
+  readonly description?: LocalizedString
+}
+// ── FIN: F9.1 ──
+
 export interface NodeDef {
   /** Identificador único do nodo dentro da súa árbore. */
   readonly id: string
@@ -117,6 +139,13 @@ export interface NodeDef {
    * Tipo concreto en 1.3.
    */
   readonly costPerTier?: readonly (readonly Cost[])[]
+  // ── INICIO: F9.1 — info de presentación por rango ──
+  /**
+   * Info de presentación por rango (etiqueta/descrición localizadas).
+   * Índice = tier - 1. Complementa costPerTier/effects (non os duplica).
+   */
+  readonly tiers?: readonly NodeTierInfo[]
+  // ── FIN: F9.1 ──
 
   /**
    * Efectos ao desbloquear (Effects DSL).

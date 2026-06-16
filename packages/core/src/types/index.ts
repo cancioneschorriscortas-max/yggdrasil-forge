@@ -26,6 +26,7 @@ export type {
   NodeType,
   NodeState,
   NodeDef,
+  NodeTierInfo,
   NodeInstance,
   StateChange,
   Position,

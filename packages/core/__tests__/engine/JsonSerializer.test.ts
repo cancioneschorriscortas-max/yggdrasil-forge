@@ -273,4 +273,34 @@ describe('deserializeAsync', () => {
     }
   })
 })
+
+// ── INICIO: F9.1 — round-trip de tiers ──
+it('round-trip preserva NodeDef.tiers sen perda', () => {
+  const original = makeValidTreeDef({
+    nodes: [
+      {
+        id: 'ms1',
+        type: 'small',
+        label: 'Micro',
+        tiers: [
+          { label: { gl: 'Aprendiz', es: 'Aprendiz' }, description: { gl: 'Nivel 1' } },
+          { description: { gl: 'Nivel 2' } },
+          {},
+        ],
+      },
+    ],
+  })
+  const json = serialize(original)
+  const result = deserialize(json)
+  expect(result.ok).toBe(true)
+  if (result.ok) {
+    const node = result.value.nodes[0]
+    expect(node.tiers).toEqual([
+      { label: { gl: 'Aprendiz', es: 'Aprendiz' }, description: { gl: 'Nivel 1' } },
+      { description: { gl: 'Nivel 2' } },
+      {},
+    ])
+  }
+})
+// ── FIN: F9.1 ──
 // ── FIN: tests de JsonSerializer (1.17) ──

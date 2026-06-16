@@ -79,4 +79,26 @@ describe('freezeNodeDef', () => {
     expect(frozen.maxTier).toBe(5)
   })
 })
+
+// ── INICIO: F9.1 — freeze test para tiers ──
+it('freezes tiers array and each NodeTierInfo', () => {
+  const node: NodeDef = {
+    id: 'ms1',
+    type: 'small',
+    label: 'Micro',
+    tiers: [
+      { label: { gl: 'Aprendiz', es: 'Aprendiz' }, description: { gl: 'Nivel 1' } },
+      { description: { gl: 'Nivel 2' } },
+      {},
+    ],
+  }
+  const frozen = freezeNodeDef(node)
+  expect(Object.isFrozen(frozen.tiers)).toBe(true)
+  expect(Object.isFrozen(frozen.tiers?.[0])).toBe(true)
+  expect(Object.isFrozen(frozen.tiers?.[0].label)).toBe(true)
+  expect(Object.isFrozen(frozen.tiers?.[0].description)).toBe(true)
+  expect(Object.isFrozen(frozen.tiers?.[1])).toBe(true)
+  expect(Object.isFrozen(frozen.tiers?.[2])).toBe(true)
+})
+// ── FIN: F9.1 ──
 // ── FIN: tests de Node ──

@@ -319,6 +319,13 @@ const edgeDefSchema = z.object({
 // - #4 progressMilestones estrictamente ordenado ascendentemente
 // - #6 cross-field: progressSource require supportsProgress === true
 //   (.refine despois do z.object — máis abaixo)
+// ── INICIO: F9.1 — schema de info por rango ──
+const nodeTierInfoSchema = z.object({
+  label: localizedStringSchema.optional(),
+  description: localizedStringSchema.optional(),
+})
+// ── FIN: F9.1 ──
+
 const nodeDefSchema = z
   .object({
     id: z.string(),
@@ -336,6 +343,9 @@ const nodeDefSchema = z
     // ── FIN: validación 2.5 #1 ──
     cost: z.array(costSchema).optional(),
     costPerTier: z.array(z.array(costSchema)).optional(),
+    // ── INICIO: F9.1 — tiers ──
+    tiers: z.array(nodeTierInfoSchema).optional(),
+    // ── FIN: F9.1 ──
     effects: z.array(effectSchema).optional(),
     prerequisites: unlockRuleSchema.optional(),
     exclusions: z.array(z.string()).optional(),
