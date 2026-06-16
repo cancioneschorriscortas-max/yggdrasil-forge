@@ -13,7 +13,7 @@ import {
   getErrorMessage,
   ok,
 } from '@yggdrasil-forge/common'
-import type { StorageAdapter } from '@yggdrasil-forge/storage'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 import type { Build, NodeInstance, TreeChange, TreeDef, TreeState } from '../types/index.js'
 import { TreeEngine } from './TreeEngine.js'
 

@@ -3,7 +3,7 @@
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { Locale } from '@yggdrasil-forge/common'
-import type { StorageAdapter } from '@yggdrasil-forge/storage'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 import type { EdgeDef } from './edge.js'
 import type { I18nConfig } from './i18n.js'
 import type { NodeDef, NodeInstance, Position } from './node.js'

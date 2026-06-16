@@ -6,7 +6,7 @@
 // Sub-fase 3.2.a
 
 import { type Result, ok } from '@yggdrasil-forge/common'
-import type { StorageAdapter } from './StorageAdapter.js'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 
 /**
  * Implementación de `StorageAdapter` en memoria sobre `Map<string, unknown>`.

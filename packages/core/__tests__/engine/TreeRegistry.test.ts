@@ -1731,7 +1731,7 @@ describe('TreeRegistry — quotas — cross-quota + localización', () => {
 
 // ── Permissions + DT-26 fix ──
 
-import type { StorageAdapter } from '@yggdrasil-forge/storage'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 import type { PermissionAction, PermissionChecker } from '../../src/engine/TreeRegistry.js'
 
 function makePermissionChecker(

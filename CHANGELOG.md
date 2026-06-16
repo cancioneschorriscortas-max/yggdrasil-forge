@@ -6,6 +6,44 @@ This project follows [Semantic Versioning](https://semver.org/) and [Keep a Chan
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING (DT-21)**: `StorageAdapter` interface movida de
+  `@yggdrasil-forge/storage` a `@yggdrasil-forge/common`. Patrón
+  idéntico ao movemento de `Result` en sub-fase 3.0.
+  - **Antes**: `import type { StorageAdapter } from '@yggdrasil-forge/storage'`.
+  - **Despois**: `import type { StorageAdapter } from '@yggdrasil-forge/common'`.
+- Implementacións concretas (`MemoryStorage`, `LocalStorageAdapter`,
+  `IndexedDBAdapter`, `FileSystemAdapter`) **permanecen en
+  `@yggdrasil-forge/storage`** (cero cambio para usuarios destas).
+- `@yggdrasil-forge/core/package.json`: `@yggdrasil-forge/storage`
+  movido de `dependencies` a `devDependencies` (tras o move, @core
+  src cero require @storage runtime; só tests usan implementacións).
+
+### Note
+- Sub-fase **hardening-1**. PRIMEIRA do ciclo de hardening pre-release
+  0.1.0-alpha.
+- Resolve **DT-21**: aliñado con decisión documentada en MASTER
+  A.4.3 (*"breaking change menor que se acometerá nun ciclo de
+  hardening anterior á 0.1.0-alpha"*).
+- **Pure refactor**: cero lóxica nova, cero tests novos, cero
+  ErrorCodes, cero cambio de comportamento.
+- **2195 tests pasan inchanged**. Cobertura inchanged. Typecheck
+  23/23.
+- **Breaking change limpo**: cero re-export en @storage (usuarios
+  importan directamente de @common). Aceptable porque cero release
+  feito aínda (0.0.0).
+- **Patrón Result en 3.0 replicado** literal con comentario
+  explicativo do move.
+- **Lección 8.6.a L1 aplicada**: T0.2 verifica empíricamente os 5
+  imports actuais + lista de implementacións en @storage antes de
+  modificar.
+- 53 sub-fases consecutivas sen rollback tras hardening-1.
+- **Próximas sub-fases hardening pre-release** (DIFERIDAS):
+  hardening-2 (DT-25 briefings), hardening-3 (READMEs scaffold),
+  hardening-4 (DT-12 CHANGELOG Keep-a-Changelog).
+
+## [Unreleased]
+
 ### Documentation
 - 🎉 **FASE 8 PECHADA OFICIALMENTE** no MASTER: 13 sub-fases,
   51 sub-fases consecutivas sen rollback, +15 ErrorCodes, +3

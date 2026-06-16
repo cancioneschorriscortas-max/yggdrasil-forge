@@ -1,8 +1,8 @@
 // ── INICIO: @yggdrasil-forge/storage ──
 // Storage backends for Yggdrasil Forge.
-// 3.1 — interface StorageAdapter. Implementacións concretas en 3.2-3.4.
+// 3.1 — interface StorageAdapter movida a @common en hardening-1 (DT-21).
+// Implementacións concretas permanecen aquí.
 
-export type { StorageAdapter } from './StorageAdapter.js'
 export { MemoryStorage } from './MemoryStorage.js'
 export { LocalStorageAdapter } from './LocalStorageAdapter.js'
 export type { LocalStorageAdapterOptions } from './LocalStorageAdapter.js'

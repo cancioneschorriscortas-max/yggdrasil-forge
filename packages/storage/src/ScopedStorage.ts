@@ -6,7 +6,7 @@
 // Sub-fase 6.3
 
 import { type Result, ok } from '@yggdrasil-forge/common'
-import type { StorageAdapter } from './StorageAdapter.js'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 
 const SEPARATOR = ':'
 

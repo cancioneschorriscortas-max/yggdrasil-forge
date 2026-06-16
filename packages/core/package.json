@@ -36,11 +36,11 @@
   "dependencies": {
     "@yggdrasil-forge/common": "workspace:*",
     "immer": "^10.1.1",
-    "zod": "^3.25.76",
-    "@yggdrasil-forge/storage": "workspace:*"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",
+    "@yggdrasil-forge/storage": "workspace:*",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

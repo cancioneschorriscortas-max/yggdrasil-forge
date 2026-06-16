@@ -11,7 +11,7 @@
 // - Storage keys: `snapshots:${id}`.
 
 import { ErrorCode, YggdrasilError, getErrorMessage } from '@yggdrasil-forge/common'
-import type { StorageAdapter } from '@yggdrasil-forge/storage'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 import type { BuildSnapshot, Result, TreeState } from '../types/index.js'
 import { err, ok } from '../types/index.js'
 

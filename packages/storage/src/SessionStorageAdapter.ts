@@ -3,8 +3,8 @@
 // Sub-fase 3.4. Composición, NON herdanza (decisión 5.1).
 
 import type { Locale, Result } from '@yggdrasil-forge/common'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 import { LocalStorageAdapter } from './LocalStorageAdapter.js'
-import type { StorageAdapter } from './StorageAdapter.js'
 
 /**
  * Opcións do constructor de SessionStorageAdapter.

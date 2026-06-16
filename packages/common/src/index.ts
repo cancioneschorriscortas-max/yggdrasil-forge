@@ -37,4 +37,6 @@ export {
   unwrap,
   unwrapOr,
 } from './result.js'
+// hardening-1 (DT-21):
+export type { StorageAdapter } from './StorageAdapter.js'
 // ── FIN: @yggdrasil-forge/common public API ──

@@ -13,7 +13,7 @@ import {
   ok,
 } from '@yggdrasil-forge/common'
 import { ErrorCode as EC } from '@yggdrasil-forge/common'
-import type { StorageAdapter } from './StorageAdapter.js'
+import type { StorageAdapter } from '@yggdrasil-forge/common'
 
 /**
  * Opcións do constructor de LocalStorageAdapter.

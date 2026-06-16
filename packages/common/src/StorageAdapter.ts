@@ -1,8 +1,16 @@
 // ── INICIO: StorageAdapter interface ──
-// Contrato uniforme para backends de almacenamento de Yggdrasil Forge.
-// Sub-fase 3.1 — só define a interface. Implementacións en 3.2-3.4.
+// Interface para implementacións de almacenamento (in-memory,
+// localStorage, IndexedDB, filesystem).
+//
+// Movido de @yggdrasil-forge/storage/src/StorageAdapter.ts a
+// common en sub-fase hardening-1 (DT-21) para que @core poda
+// importar StorageAdapter sen acoplarse a @storage (paralelo ao
+// movemento de Result en sub-fase 3.0).
+//
+// As implementacións concretas (MemoryStorage, LocalStorageAdapter,
+// IndexedDBAdapter, FileSystemAdapter) permanecen en @storage.
 
-import type { Result } from '@yggdrasil-forge/common'
+import type { Result } from './result.js'
 
 /**
  * Interface uniforme para backends de almacenamento de Yggdrasil Forge.
