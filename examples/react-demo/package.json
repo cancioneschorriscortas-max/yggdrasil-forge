@@ -1,0 +1,31 @@
+{
+  "name": "@yggdrasil-forge-examples/react-demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Interactive React skill tree demo for Yggdrasil Forge",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yggdrasil-forge/common": "^0.1.0",
+    "@yggdrasil-forge/core": "^0.1.0",
+    "@yggdrasil-forge/react": "^0.1.0",
+    "@yggdrasil-forge/storage": "^0.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "catalog:",
+    "vite": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

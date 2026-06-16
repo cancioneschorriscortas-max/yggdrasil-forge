@@ -18,11 +18,28 @@ on publish.
   4 sub-seccións: párrafo intro + "What you'd build anyway" +
   "What you probably wouldn't build" + "When *not* to use".
 - Auto-tracked: BRIEFING-readme-why.md en docs/briefings/.
+- **Second practical example**: `examples/react-demo/` —
+  interactive React skill tree demo built with Vite + React 18 +
+  TypeScript.
+  - 8-node RPG character tree with branching prerequisites.
+  - Click-to-unlock / click-to-lock interaction.
+  - Reactive stats panel + Snapshot/Restore buttons.
+  - **Stackblitz-deployable**: "Open in Stackblitz" badge in
+    README → instant browser-based exploration.
+  - Uses **published npm versions** (`^0.1.0`) instead of
+    `workspace:*` for external sandbox compatibility.
+- Auto-tracked: BRIEFING-examples-2.md in docs/briefings/.
 
 ### Note
 - Sub-fase **readme-why** post-release.
 - **Pure editorial**: cero código, cero tests, cero impacto.
 - 60 sub-fases consecutivas sen rollback.
+- Sub-fase **examples-2**. Second practical example post-release.
+- **0 modifications** to existing packages, tests, configs.
+- 2195 tests pass unchanged.
+- 61 consecutive sub-phases without rollback.
+- Implements Executor's top recommendation for adoption: visual
+  interactive demo is the #1 conversion driver.
 - Recomendación implementada do Executor: diferenciación explícita
   é o segundo paso de máis impacto post-release (despois de
   examples-2 React demo).
