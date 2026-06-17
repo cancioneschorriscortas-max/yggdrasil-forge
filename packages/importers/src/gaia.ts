@@ -1,7 +1,14 @@
 // ── INICIO: F9.3.a — importador GAIA (profesión + grupos) ──
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import { SCHEMA_VERSION } from '@yggdrasil-forge/common'
-import type { GroupDef, LayoutConfig, NodeDef, TreeDef } from '@yggdrasil-forge/core'
+import type {
+  EdgeDef,
+  GroupDef,
+  LayoutConfig,
+  NodeDef,
+  TreeDef,
+  UnlockRule,
+} from '@yggdrasil-forge/core'
 
 // ── Tipos de entrada GAIA (contrato pechado, §4.6) ──
 
@@ -74,6 +81,7 @@ export interface GaiaProfession {
 export interface GaiaImportOptions {
   version?: string
   layout?: LayoutConfig
+  microskillMaxTier?: number
 }
 
 // ── Helper i18n (§4.4) ──
@@ -166,6 +174,68 @@ function buildTreeMetadata(input: GaiaProfession): Record<string, unknown> {
   }
 }
 
+// ── INICIO: F9.3.b — microskills + edges ──
+
+function toPrerequisites(conectadas?: string[]): UnlockRule | undefined {
+  if (conectadas === undefined || conectadas.length === 0) return undefined
+  const conditions = conectadas.map((nodeId) => ({
+    type: 'node_unlocked' as const,
+    nodeId,
+  }))
+  const [first] = conditions
+  if (conditions.length === 1 && first !== undefined) return first
+  return { type: 'all', conditions }
+}
+
+function buildMicroskillNode(m: GaiaMicroskill, options?: GaiaImportOptions): NodeDef {
+  const description = toI18n(m.que_significa_gl, m.que_significa_es, m.que_significa_en)
+  const flavor = toI18n(m.accion_clave_gl, m.accion_clave_es, m.accion_clave_en)
+  const prerequisites = toPrerequisites(m.conectadas)
+
+  // metadata.gaia: canonicalSkillId + video (só se non baleiro)
+  const gaiaMeta: Record<string, unknown> = {}
+  if (m.skill_canonica_id !== undefined) gaiaMeta.canonicalSkillId = m.skill_canonica_id
+  if (m.video_url !== undefined && m.video_url !== '') {
+    gaiaMeta.video = {
+      url: m.video_url,
+      ...(m.video_proveedor !== undefined && m.video_proveedor !== ''
+        ? { provider: m.video_proveedor }
+        : {}),
+    }
+  }
+  const hasGaiaMeta = Object.keys(gaiaMeta).length > 0
+
+  return {
+    id: m.id,
+    type: 'small',
+    label: toI18n(m.label_gl, m.label_es, m.label_en) ?? m.label_gl,
+    ...(description !== undefined ? { description } : {}),
+    ...(flavor !== undefined ? { content: { flavor } } : {}),
+    ...(m.icono !== undefined ? { icon: m.icono } : {}),
+    group: m.grupo_id,
+    ...(m.posicion !== undefined ? { position: m.posicion } : {}),
+    maxTier: options?.microskillMaxTier ?? 3,
+    ...(prerequisites !== undefined ? { prerequisites } : {}),
+    ...(hasGaiaMeta ? { metadata: { gaia: gaiaMeta } } : {}),
+  }
+}
+
+function buildEdges(microskills: GaiaMicroskill[]): EdgeDef[] {
+  const edges: EdgeDef[] = []
+  for (const m of microskills) {
+    for (const prereqId of m.conectadas ?? []) {
+      edges.push({
+        id: `${prereqId}__${m.id}`,
+        source: prereqId,
+        target: m.id,
+        type: 'dependency',
+      })
+    }
+  }
+  return edges
+}
+// ── FIN: F9.3.b ──
+
 // ── API pública ──
 
 /**
@@ -188,8 +258,8 @@ export function importGaiaProfession(input: GaiaProfession, options?: GaiaImport
     label: input.label,
     ...(description !== undefined ? { description } : {}),
     rootNodeId: input.id,
-    nodes: [buildRootNode(input)],
-    edges: [],
+    nodes: [buildRootNode(input), ...input.microskills.map((m) => buildMicroskillNode(m, options))],
+    edges: buildEdges(input.microskills),
     groups: input.grupos.map(toGroupDef),
     layout,
     metadata: buildTreeMetadata(input),

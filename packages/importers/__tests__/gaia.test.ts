@@ -243,12 +243,12 @@ describe('importGaiaProfession', () => {
     })
   })
 
-  it('edges están baleiros nesta sub-fase', () => {
+  it('con 0 microskills, edges baleiros', () => {
     const result = importGaiaProfession(makeMinimalInput())
     expect(result.edges).toEqual([])
   })
 
-  it('nodes só contén o raíz nesta sub-fase', () => {
+  it('con 0 microskills, nodes = só raíz', () => {
     const result = importGaiaProfession(makeMinimalInput())
     expect(result.nodes).toHaveLength(1)
   })
@@ -273,4 +273,183 @@ describe('importGaiaProfession', () => {
     expect(validation.ok).toBe(true)
   })
 })
+
+// ── INICIO: F9.3.b — microskills + edges + fixture real ──
+import panadeiroFixture from './fixtures/panadeiro.fixture.json' with { type: 'json' }
+
+describe('microskills + conectadas', () => {
+  function makeInputWithMicroskill(): GaiaProfession {
+    return {
+      id: 'p1',
+      rol: 'r',
+      bloque: 'b',
+      label: 'P',
+      skills: [{ id: 's1', label: 'S', categoria: 'c', peso: 1 }],
+      grupos: [{ id: 'g1', label_gl: 'G' }],
+      microskills: [
+        {
+          id: 'ms1',
+          label_gl: 'Microskill 1',
+          que_significa_gl: 'Que significa 1',
+          accion_clave_gl: 'Acción clave 1',
+          grupo_id: 'g1',
+          skill_canonica_id: 's1',
+          icono: '🔧',
+          posicion: { x: 0.2, y: 0.3 },
+        },
+      ],
+    }
+  }
+
+  it('microskill mapea a NodeDef con type small + campos esperados', () => {
+    const result = importGaiaProfession(makeInputWithMicroskill())
+    const ms = result.nodes[1]
+    expect(ms).toBeDefined()
+    expect(ms?.id).toBe('ms1')
+    expect(ms?.type).toBe('small')
+    expect(ms?.group).toBe('g1')
+    expect(ms?.icon).toBe('🔧')
+    expect(ms?.position).toEqual({ x: 0.2, y: 0.3 })
+    expect(ms?.maxTier).toBe(3)
+    expect(ms?.label).toEqual({ gl: 'Microskill 1' })
+    expect(ms?.description).toEqual({ gl: 'Que significa 1' })
+    expect(ms?.content).toEqual({ flavor: { gl: 'Acción clave 1' } })
+    const meta = ms?.metadata as Record<string, Record<string, unknown>> | undefined
+    expect(meta?.gaia?.canonicalSkillId).toBe('s1')
+  })
+
+  it('omite content/metadata cando non hai accion_clave nin canonicalSkillId nin video', () => {
+    const input = makeInputWithMicroskill()
+    input.microskills = [{ id: 'ms1', label_gl: 'M', grupo_id: 'g1' }]
+    const result = importGaiaProfession(input)
+    const ms = result.nodes[1]
+    expect(ms).toBeDefined()
+    expect('content' in (ms ?? {})).toBe(false)
+    expect('metadata' in (ms ?? {})).toBe(false)
+  })
+
+  it('inclúe video en metadata.gaia cando video_url non baleiro', () => {
+    const input = makeInputWithMicroskill()
+    const m = input.microskills[0]
+    if (m !== undefined) {
+      m.video_url = 'https://youtu.be/abc'
+      m.video_proveedor = 'youtube'
+    }
+    const result = importGaiaProfession(input)
+    const meta = result.nodes[1]?.metadata as Record<string, Record<string, unknown>> | undefined
+    expect(meta?.gaia?.video).toEqual({ url: 'https://youtu.be/abc', provider: 'youtube' })
+  })
+
+  it('omite video cando video_url é string baleira', () => {
+    const input = makeInputWithMicroskill()
+    const m = input.microskills[0]
+    if (m !== undefined) {
+      m.video_url = ''
+      m.video_proveedor = ''
+    }
+    const result = importGaiaProfession(input)
+    const meta = result.nodes[1]?.metadata as Record<string, Record<string, unknown>> | undefined
+    expect(meta?.gaia ?? {}).not.toHaveProperty('video')
+  })
+
+  it('1 conectada → prerequisites node_unlocked + 1 edge dependency', () => {
+    const input: GaiaProfession = {
+      id: 'p1',
+      rol: 'r',
+      bloque: 'b',
+      label: 'P',
+      skills: [],
+      grupos: [{ id: 'g1', label_gl: 'G' }],
+      microskills: [
+        { id: 'ms1', label_gl: 'A', grupo_id: 'g1' },
+        { id: 'ms2', label_gl: 'B', grupo_id: 'g1', conectadas: ['ms1'] },
+      ],
+    }
+    const result = importGaiaProfession(input)
+    const ms2 = result.nodes[2]
+    expect(ms2?.prerequisites).toEqual({ type: 'node_unlocked', nodeId: 'ms1' })
+    expect(result.edges).toHaveLength(1)
+    expect(result.edges[0]).toEqual({
+      id: 'ms1__ms2',
+      source: 'ms1',
+      target: 'ms2',
+      type: 'dependency',
+    })
+  })
+
+  it('≥2 conectadas → prerequisites all + N edges', () => {
+    const input: GaiaProfession = {
+      id: 'p1',
+      rol: 'r',
+      bloque: 'b',
+      label: 'P',
+      skills: [],
+      grupos: [{ id: 'g1', label_gl: 'G' }],
+      microskills: [
+        { id: 'a', label_gl: 'A', grupo_id: 'g1' },
+        { id: 'b', label_gl: 'B', grupo_id: 'g1' },
+        { id: 'c', label_gl: 'C', grupo_id: 'g1', conectadas: ['a', 'b'] },
+      ],
+    }
+    const result = importGaiaProfession(input)
+    const c = result.nodes[3]
+    expect(c?.prerequisites).toEqual({
+      type: 'all',
+      conditions: [
+        { type: 'node_unlocked', nodeId: 'a' },
+        { type: 'node_unlocked', nodeId: 'b' },
+      ],
+    })
+    expect(result.edges).toHaveLength(2)
+  })
+
+  it('options.microskillMaxTier override por defecto', () => {
+    const result = importGaiaProfession(makeInputWithMicroskill(), { microskillMaxTier: 5 })
+    expect(result.nodes[1]?.maxTier).toBe(5)
+  })
+})
+
+describe('round-trip fixture real panadeiro', () => {
+  const fixture = panadeiroFixture as unknown as GaiaProfession
+  const result = importGaiaProfession(fixture)
+
+  it('produce un TreeDef válido', () => {
+    const validation = validateTreeDef(result)
+    expect(validation.ok).toBe(true)
+  })
+
+  it('20 nodos (1 raíz + 19 microskills)', () => {
+    expect(result.nodes).toHaveLength(20)
+  })
+
+  it('5 grupos', () => {
+    expect(result.groups).toHaveLength(5)
+  })
+
+  it('0 edges (conectadas baleiro en todas as microskills)', () => {
+    expect(result.edges).toEqual([])
+  })
+
+  it('canonicalWeights ten 10 entradas con resistencia_física = 3', () => {
+    const meta = result.metadata as Record<string, Record<string, unknown>>
+    const gaia = meta.gaia
+    expect(gaia).toBeDefined()
+    const weights = (gaia as Record<string, unknown>).canonicalWeights as Record<string, number>
+    expect(Object.keys(weights)).toHaveLength(10)
+    expect(weights.resistencia_física).toBe(3)
+  })
+
+  it('spot-check pan_amasado: group, canonicalSkillId, flavor, maxTier', () => {
+    const ms = result.nodes.find((n) => n.id === 'pan_amasado')
+    expect(ms).toBeDefined()
+    expect(ms?.group).toBe('panadeiro_forno_masas')
+    const meta = ms?.metadata as Record<string, Record<string, unknown>> | undefined
+    expect(meta?.gaia?.canonicalSkillId).toBe('coordinación')
+    const content = ms?.content as Record<string, Record<string, string>> | undefined
+    expect(content?.flavor?.gl).toContain('A masa fala')
+    expect(ms?.maxTier).toBe(3)
+  })
+})
+// ── FIN: F9.3.b ──
+
 // ── FIN: tests F9.3.a ──
