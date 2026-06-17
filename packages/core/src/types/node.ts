@@ -41,6 +41,12 @@ export type NodeType =
   | 'custom'
 
 /**
+ * Forma visual dun nodo. O renderer derívaa por `type` se o nodo non
+ * especifica `shape`. Aditiva: novos valores en sub-fases futuras.
+ */
+export type NodeShape = 'circle' | 'square' | 'diamond' | 'hexagon' | 'octagon'
+
+/**
  * Estado actual dun nodo na árbore.
  *
  * - `locked` — Non cumpre prerrequisitos
@@ -121,6 +127,12 @@ export interface NodeDef {
 
   /** Cor visual asociada ao nodo. */
   readonly color?: string
+
+  /** Forma visual do nodo. Se ausente, o renderer derívaa por `type`. */
+  readonly shape?: NodeShape
+
+  /** Tamaño base en unidades de layout (raio para `circle`). > 0. Se ausente, derívase por `type`. */
+  readonly size?: number
 
   /** Rango actual (para multi-tier nodes). */
   readonly tier?: number

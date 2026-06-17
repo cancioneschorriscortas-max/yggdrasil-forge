@@ -326,6 +326,8 @@ const nodeTierInfoSchema = z.object({
 })
 // ── FIN: F9.1 ──
 
+const nodeShapeSchema = z.enum(['circle', 'square', 'diamond', 'hexagon', 'octagon'])
+
 const nodeDefSchema = z
   .object({
     id: z.string(),
@@ -335,6 +337,8 @@ const nodeDefSchema = z
     content: nodeContentSchema.optional(),
     icon: z.string().optional(),
     color: z.string().optional(),
+    shape: nodeShapeSchema.optional(),
+    size: z.number().positive('size debe ser maior que 0').optional(),
     // ── INICIO: validación 2.5 #2 — tier > 0 ──
     tier: z.number().positive('tier debe ser maior que 0').optional(),
     // ── FIN: validación 2.5 #2 ──

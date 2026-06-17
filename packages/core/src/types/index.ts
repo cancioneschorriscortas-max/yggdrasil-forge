@@ -24,6 +24,7 @@ export type { RichContent, NodeContent } from './content.js'
 // Node
 export type {
   NodeType,
+  NodeShape,
   NodeState,
   NodeDef,
   NodeTierInfo,

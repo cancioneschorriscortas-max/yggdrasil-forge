@@ -662,6 +662,95 @@ describe('TreeDefValidator.validateTreeDef', () => {
   })
   // ── FIN: F9.1 ──
 
+  // ── INICIO: F10.2 — vocabulario visual de NODO (shape + size) ──
+  describe('NodeDef visual: shape + size (F10.2)', () => {
+    it('acepta nodo con shape=hexagon e size=30 → ok e preserva valores', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [
+          {
+            id: 'v1',
+            type: 'keystone',
+            label: 'Visual',
+            shape: 'hexagon',
+            size: 30,
+          },
+        ],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        const node = result.value.nodes[0]
+        expect(node?.shape).toBe('hexagon')
+        expect(node?.size).toBe(30)
+      }
+    })
+
+    it('acepta nodo sen shape nin size (ambos opcionais) → ok', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'v2', type: 'small', label: 'Sen visual' }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        const node = result.value.nodes[0]
+        expect(node?.shape).toBeUndefined()
+        expect(node?.size).toBeUndefined()
+      }
+    })
+
+    it.each(['circle', 'square', 'diamond', 'hexagon', 'octagon'] as const)(
+      'acepta cada valor válido de NodeShape: %s',
+      (shape) => {
+        const treeDef = makeValidTreeDef({
+          nodes: [{ id: 'v', type: 'small', label: 'V', shape }],
+        })
+        const result = validateTreeDef(treeDef)
+        expect(result.ok).toBe(true)
+      },
+    )
+
+    it('rexeita shape fóra do enum (triangle) → erro de validación', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [
+          {
+            id: 'v3',
+            type: 'small',
+            label: 'V',
+            shape: 'triangle' as unknown as 'circle',
+          },
+        ],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+      }
+    })
+
+    it('rexeita size = 0 (non positivo) → erro de validación', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'v4', type: 'small', label: 'V', size: 0 }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+      }
+    })
+
+    it('rexeita size = -5 (non positivo) → erro de validación', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'v5', type: 'small', label: 'V', size: -5 }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+      }
+    })
+  })
+  // ── FIN: F10.2 ──
+
   // ── FIN: tests da sub-fase 2.5 ──
 })
 // ── FIN: tests de TreeDefValidator (1.17) ──
