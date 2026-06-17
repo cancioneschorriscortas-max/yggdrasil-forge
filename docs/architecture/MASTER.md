@@ -3350,6 +3350,28 @@ formatea os manifests despois de versionar e antes de commitear; o PR de
 versión xa vai limpo, e o merge non rompe a CI. `pnpm format` só afecta
 JSON/TS (ignora ficheiros non soportados), é idempotente e seguro no bot.
 
+### A.6.17 — Tematización + multi-entry-point (Context singleton)
+
+Un paquete con varios entry points (`/index`, `/headless`) que comparten
+React Context **debe** garantir unha soa instancia de `createContext`
+(singleton vía `Symbol.for` en `globalThis`), ou cada bundle terá o seu
+Context e `useContext` devolverá o default. Síntoma: `useTheme()===null` en
+compoñentes dun entry distinto ao do `Provider`. Pode quedar **enmascarado**
+por tematización vía cascada DOM (CSS vars no SVG); aparece ao migrar a
+theming por Context (inline style desde `useTheme`).
+
+Detectado en F10.3.fix-2: o demo importaba `ThemeProvider` de
+`@yggdrasil-forge/react` (entry /index) e `SkillTree` de
+`@yggdrasil-forge/react/headless`, polo que cada bundle tiña o seu
+`ThemeContext` e `useTheme()` no `SkillNode` devolvía `null`. O modelo
+anterior (CSS vars no `<svg>` herdadas por cascada DOM) sobrevivía sen
+notar o bug; o salto a inline-theming destapouno.
+
+Regra: tematizar por inline style desde `useTheme()` **e** Context
+singleton cross-bundle (`Symbol.for(globalThis)`). Adicionalmente,
+`/headless` debe re-exportar `ThemeProvider`/`Theme` para que un
+consumidor en modo headless poida tematizar dun único bundle.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

@@ -33,10 +33,13 @@ describe('headless entry point', () => {
     expect(svg?.getAttribute('data-theme-id')).toBeNull()
   })
 
-  it('headless non exporta ThemeProvider, minimal nin Theme', async () => {
+  it('headless EXPORTA ThemeProvider e Theme (F10.3.fix-2), pero NON minimal', async () => {
     const headless = await import('../src/headless.js')
-    expect('ThemeProvider' in headless).toBe(false)
+    // F10.3.fix-2: re-exporta tematización para uso desde headless single-bundle.
+    expect('ThemeProvider' in headless).toBe(true)
+    // minimal segue autoload-only de /index (preserva o "cero estilos" headless).
     expect('minimal' in headless).toBe(false)
+    // Theme é un type-only export; en runtime non aparece como propiedade.
     expect('Theme' in headless).toBe(false)
   })
 

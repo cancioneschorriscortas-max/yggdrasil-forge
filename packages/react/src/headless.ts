@@ -6,9 +6,12 @@
 // Diferenza fronte ao root entry:
 // - `SkillTree`: exporta o core directamente (cero ThemeProvider
 //   wrapper, cero autoload de minimal).
-// - **NON** se re-exportan: `ThemeProvider`, `Theme`, `minimal`.
-//   O consumidor headless decide o tema explícitamente (importando
-//   desde root) ou non aplica ningún (modo verdadeiramente headless).
+// - **SI** se re-exportan `ThemeProvider`, `ThemeProviderProps` e o
+//   tipo `Theme` (DX: un consumidor headless pode tematizar sen
+//   importar de /index e sen colisión de bundles — ver
+//   F10.3.fix-2 cross-bundle singleton).
+// - **NON** se re-exporta `minimal` (segue sendo autoload-only de
+//   /index para preservar o "cero estilos" por defecto en headless).
 
 export { SkillTree } from './SkillTree.js'
 export type { SkillTreeProps } from './SkillTree.js'
@@ -24,6 +27,14 @@ export type { MeshOverlayProps } from './MeshOverlay.js'
 
 export { SVGRenderer } from './SVGRenderer.js'
 export type { SVGRendererProps } from './SVGRenderer.js'
+
+// Tematización: re-exportada en headless para DX (sub-fase
+// F10.3.fix-2). O singleton de `ThemeContext` (Symbol.for global)
+// garante que sexa este import ou o de /index, ambos comparten a
+// mesma instancia de Context.
+export { ThemeProvider } from './ThemeProvider.js'
+export type { ThemeProviderProps } from './ThemeProvider.js'
+export type { Theme, ThemeColors, ThemeSizes } from './theme-types.js'
 
 // Hooks customizados (mesmo set que root entry; independentes do tema).
 export {

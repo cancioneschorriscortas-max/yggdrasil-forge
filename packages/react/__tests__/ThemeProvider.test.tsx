@@ -101,4 +101,47 @@ describe('ThemeProvider', () => {
     expect(container.innerHTML).toBe('')
   })
 })
+
+// ── Bloque novo (F10.3.fix-2): singleton cross-bundle ──
+describe('ThemeContext — singleton cross-bundle (F10.3.fix-2)', () => {
+  it('Symbol.for resolve á mesma instancia entre dúas lecturas', () => {
+    const key = Symbol.for('@yggdrasil-forge/react#ThemeContext')
+    // Symbol.for é deterministic por descrición; ambas chamadas devolven o
+    // MESMO símbolo, polo que apuntan á MESMA propiedade en globalThis.
+    const key2 = Symbol.for('@yggdrasil-forge/react#ThemeContext')
+    expect(key).toBe(key2)
+  })
+
+  it('ThemeContext rexístrase en globalThis baixo o Symbol.for esperado', () => {
+    const key = Symbol.for('@yggdrasil-forge/react#ThemeContext')
+    // O propio import xa debería ter rexistrado o Context en globalThis.
+    // Por construción: cargar este módulo cre/recupera ThemeContext desde
+    // globalThis[key]. Verificamos que existe e é === ao export.
+    const stored = (globalThis as unknown as Record<symbol, unknown>)[key]
+    expect(stored).toBeDefined()
+    expect(stored).toBe(ThemeContext)
+  })
+
+  it('NOTA: este test só verifica estabilidade en mesmo grafo de módulos', () => {
+    // Vitest comparte o grafo de módulos entre tests, polo que NON pode
+    // reproducir o bug real de bundling (dous bundles separados con
+    // copias distintas de createContext). O test serve de documentación
+    // e regresión do mecanismo singleton; o bug orixinal só se reproduce
+    // en runtime con dous bundles distintos cargados pola mesma página.
+    expect(true).toBe(true)
+  })
+})
+
+// ── Bloque novo (F10.3.fix-2): /headless re-exports ──
+describe('headless — re-exports de tematización (F10.3.fix-2)', () => {
+  it('/headless re-exporta ThemeProvider', async () => {
+    const headless = await import('../src/headless.js')
+    expect(headless.ThemeProvider).toBe(ThemeProvider)
+  })
+
+  it('/headless NON re-exporta minimal (segue autoload-only de /index)', async () => {
+    const headless = (await import('../src/headless.js')) as Record<string, unknown>
+    expect('minimal' in headless).toBe(false)
+  })
+})
 // ── FIN: tests ThemeProvider ──
