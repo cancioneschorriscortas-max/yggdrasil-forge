@@ -3245,6 +3245,36 @@ xogos ou de Duolingo?». E: **verificar empíricamente que os datos do
 cliente caben no motor ANTES de planificar a capa visual**. Detalle en
 `docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`.
 
+### A.6.13 — Pechar o lazo da CI (non só o estado local)
+
+Síntoma: master-transition, F9.1 e F9.3.a quedaron VERMELLOS en CI aínda
+que o Executor reportou "todo verde" e o Director verificou o diff. Causa
+raíz: un erro de lint dunha liña en `examples/react-demo/src/App.tsx`
+(`organizeImports`) introducido en examples-2. `pnpm lint:fix` arránxao,
+pero o protocolo dicía "reverte cambios fóra de scope", así que o Executor
+revertía o arranxo en cada sub-fase → o erro persistía e a CI fallaba en
+`lint`. Ademais medíase `pnpm lint` ANTES de reverter → o "verde" estaba
+caduco.
+
+Correccións de protocolo (obrigatorias desde agora):
+1. **Gate final = secuencia completa de CI**, como ÚLTIMO paso antes do
+   patch, DESPOIS de todos os edits/reverts:
+   `pnpm lint && pnpm format:check && pnpm typecheck && pnpm test`. O
+   reporte DEBE incluír esa saída. Prohibido medir antes de reverter.
+2. **Nunca reverter arranxos lexítimos de lint/format.** Se `lint:fix` toca
+   ficheiros fóra de scope, é débeda preexistente: inclúese o arranxo (se é
+   trivial e CI-relevante) ou escálase — nunca se reverte. Reverter só vale
+   para churn de formato espurio.
+3. **Unha sub-fase NON está "feita" ata que a CI estea verde en
+   origin/main.** A verificación do Director inclúe confirmar o run de
+   Actions. (As "53 sub-fases sen rollback" medían verde LOCAL; as últimas
+   3 estaban vermellas en CI — o código sólido, a pipeline non.)
+
+Débeda non bloqueante coñecida: 3 warnings `suppressions/unused`
+(`noConsole`) en `packages/core/src/plugins/PluginAPI.ts` (info/warn/error);
+`pnpm lint` sae 0 con warnings, non bloquean. Límpanse nunha futura
+sub-fase que xa toque @core.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
