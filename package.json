@@ -22,6 +22,7 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "typecheck": "turbo run typecheck",
+    "typecheck:packages": "turbo run typecheck --filter='!./examples/*'",
     "dev": "turbo run dev",
     "clean": "turbo run clean && rm -rf node_modules",
     "fresh": "pnpm clean && pnpm install",

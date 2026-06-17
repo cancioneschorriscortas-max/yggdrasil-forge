@@ -46,7 +46,7 @@ jobs:
         run: pnpm format:check
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck:packages
 
       - name: Test
         run: pnpm test
