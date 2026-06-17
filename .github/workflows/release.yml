@@ -22,6 +22,9 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  HUSKY: '0'
+
 jobs:
   release:
     name: Release

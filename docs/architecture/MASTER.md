@@ -3275,6 +3275,32 @@ Débeda non bloqueante coñecida: 3 warnings `suppressions/unused`
 `pnpm lint` sae 0 con warnings, non bloquean. Límpanse nunha futura
 sub-fase que xa toque @core.
 
+### A.6.14 — Release: lockfile stale tras `changeset version` + hooks no bot
+
+Síntoma: o workflow Release quedou VERMELLO en todos os commits con
+changeset desde examples-2 (git exit 1 no step changesets/action). Causa
+raíz (verificada, NON a primeira hipótese):
+1. `changeset version` bumpa @core (e linked) e actualiza os rangos de
+   dependencia dos EXEMPLOS privados (react-demo, node-basics), que usan
+   semver publicado `^0.1.0`→`^0.2.0`. Como @core 0.2.0 non está publicado
+   e `link-workspace-packages` é false (default pnpm v11), pnpm vai ao
+   rexistro e o `pnpm-lock.yaml` queda stale → `ERR_PNPM_OUTDATED_LOCKFILE`.
+2. Os git hooks de Husky (pre-commit `lint-staged`, pre-push `typecheck`)
+   disparan dentro do bot de changesets/action ao facer commit/push.
+
+Hipótese errada inicial: "o pre-commit corre `pnpm install`". É falso —
+corre `lint-staged`. **Verifica sempre o hook real antes de diagnosticar.**
+
+Fix (verificado de punta a punta):
+- `changeset:version`: `changeset version && pnpm install --lockfile-only
+  --no-frozen-lockfile --config.link-workspace-packages=true` (o flag forza
+  linkar o @core local; o lockfile resultante pasa `--frozen-lockfile` sen
+  flag).
+- `HUSKY: '0'` no env dos workflows (hooks só para dev local, nunca bots).
+
+Os exemplos seguen en semver publicado a propósito (Stackblitz); non se
+pasan a `workspace:*` nin se toca `.npmrc`.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións
