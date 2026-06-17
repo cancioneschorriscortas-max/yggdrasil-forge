@@ -18,6 +18,7 @@ jobs:
     name: Validate (lint, format, typecheck, test)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    if: github.actor != 'github-actions[bot]'
 
     steps:
       - name: Checkout
