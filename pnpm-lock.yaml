@@ -107,16 +107,16 @@ importers:
     dependencies:
       '@yggdrasil-forge/common':
         specifier: ^0.1.0
-        version: 0.1.0
+        version: link:../../packages/common
       '@yggdrasil-forge/core':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: link:../../packages/core
       '@yggdrasil-forge/react':
-        specifier: ^0.1.0
-        version: 0.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.2.0
+        version: link:../../packages/react
       '@yggdrasil-forge/storage':
         specifier: ^0.1.0
-        version: 0.1.0
+        version: link:../../packages/storage
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -1765,25 +1765,6 @@ packages:
 
   '@vitest/utils@4.1.5':
     resolution: {integrity: sha512-76wdkrmfXfqGjueGgnb45ITPyUi1ycZ4IHgC2bhPDUfWHklY/q3MdLOAB+TF1e6xfl8NxNY0ZYaPCFNWSsw3Ug==}
-
-  '@yggdrasil-forge/common@0.1.0':
-    resolution: {integrity: sha512-SxqQHFJxH2GwTFcijA5SE+HFN70pZzxMN/u9o0s9FIFojJwbJm+gVe4eUAp6QtF7uQ1tPUkYj9RnD97oH/DNPg==}
-    engines: {node: '>=22'}
-
-  '@yggdrasil-forge/core@0.1.0':
-    resolution: {integrity: sha512-xkI++GMvMUY2Tu7lT0KLAdp7TZY5mU5FdPZdZ9SSn2G7JkvenuYl6hBIj9dqUpfqSYIPsApW4e6AVNTdhaeKaw==}
-    engines: {node: '>=22'}
-
-  '@yggdrasil-forge/react@0.1.0':
-    resolution: {integrity: sha512-hGOgouojLT/w56RzNj1u18jhFRdCmgyigGLqfTwqxAbv33T6HoRmWtgvDSR7Xu3cOsiWSHb6T5rcEprYlFX44w==}
-    engines: {node: '>=22'}
-    peerDependencies:
-      react: ^19.2.7
-      react-dom: ^19.2.7
-
-  '@yggdrasil-forge/storage@0.1.0':
-    resolution: {integrity: sha512-8SyGza24AFa0t/DzpY6sWUGSOj/30kfqIid7tawcGq4HIHrIIUlSvs49ZQNEvUyXwGpJjcOcm4gkqvvYg5+TtA==}
-    engines: {node: '>=22'}
 
   acorn@8.16.0:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
@@ -4238,24 +4219,6 @@ snapshots:
       '@vitest/pretty-format': 4.1.5
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
-
-  '@yggdrasil-forge/common@0.1.0': {}
-
-  '@yggdrasil-forge/core@0.1.0':
-    dependencies:
-      '@yggdrasil-forge/common': 0.1.0
-      immer: 10.2.0
-      zod: 3.25.76
-
-  '@yggdrasil-forge/react@0.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@yggdrasil-forge/core': 0.1.0
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-
-  '@yggdrasil-forge/storage@0.1.0':
-    dependencies:
-      '@yggdrasil-forge/common': 0.1.0
 
   acorn@8.16.0: {}
 

@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The core engine of Yggdrasil Forge — a comprehensive skill tree engine for the web",
   "license": "MIT",
   "author": "Agarfal",
@@ -22,7 +22,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",

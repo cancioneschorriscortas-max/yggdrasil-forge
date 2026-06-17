@@ -1,5 +1,19 @@
 # @yggdrasil-forge/core
 
+## 0.2.0
+
+### Minor Changes
+
+- [`1bb3902`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/1bb3902c0a295af91f74f0cb13ebb7c1854bb999) - feat(core): add optional `NodeDef.tiers` (per-rank label/description) with `NodeTierInfo` type and Zod validation (F9.1)
+
+### Patch Changes
+
+- [`155881b`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/155881b013f8672d114b73c622e31c712f048f63) - docs(examples): total visual redesign of React demo with dragonborn theme + Cinzel typography + glow effects (examples-2-fix-visual)
+
+- [`410dcb6`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/410dcb66208d14ef9024137e57bb3d4a4442295e) - docs(examples): add interactive React demo with Vite + Stackblitz support (examples-2)
+
+- [`36cd1f0`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/36cd1f0cf394877d4e5e60a637cefbb92c4215dd) - docs(readme): add "Why Yggdrasil Forge?" section to global README (readme-why)
+
 ## 0.1.0
 
 ### Minor Changes
@@ -135,7 +149,7 @@
   **Public behavior changes**:
 
   - `engine.getProgress(nodeId)` now returns the dynamically-computed value for nodes with `progressSource.type === 'computed'`. Always clamped to `[0, 100]`. The value is **not** persisted to `NodeInstance.progress`; it recomputes on each call.
-  - `engine.setProgress(nodeId, percent)` on a `computed` node now returns `err` with the new error code `INVALID_PROGRESS_OPERATION` (YGG_E022). Previously returned `PROGRESS_SOURCE_UNSUPPORTED` (YGG_E020) along with the other unsupported sources; now `computed` is distinguished because it is a node that _could_ have a progress value but it derives, not is set.
+  - `engine.setProgress(nodeId, percent)` on a `computed` node now returns `err` with the new error code `INVALID_PROGRESS_OPERATION` (YGG*E022). Previously returned `PROGRESS_SOURCE_UNSUPPORTED` (YGG_E020) along with the other unsupported sources; now `computed` is distinguished because it is a node that \_could* have a progress value but it derives, not is set.
   - `engine.getReachedMilestones(nodeId)` automatically works for computed nodes because it internally calls `getProgress`.
 
   **`@yggdrasil-forge/common`** ships one new error code with localized messages in gl/es/en:
