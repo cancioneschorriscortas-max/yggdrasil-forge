@@ -109,10 +109,10 @@ importers:
         specifier: ^0.1.0
         version: link:../../packages/common
       '@yggdrasil-forge/core':
-        specifier: ^0.2.0
+        specifier: ^0.3.0
         version: link:../../packages/core
       '@yggdrasil-forge/react':
-        specifier: ^0.2.0
+        specifier: ^0.3.0
         version: link:../../packages/react
       '@yggdrasil-forge/storage':
         specifier: ^0.1.0

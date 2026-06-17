@@ -1,5 +1,14 @@
 # @yggdrasil-forge/react
 
+## 0.3.0
+
+### Patch Changes
+
+- [`22e8297`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/22e8297d5663e36b59f5ed8f5aca4c66418954fd) - fix(react): SkillTreeWithDefaultTheme respects an ascendant ThemeProvider instead of always overriding with the minimal theme (F10.1)
+
+- Updated dependencies [[`4a85088`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/4a8508855c79001dfdd68ca767fe329aebe718aa)]:
+  - @yggdrasil-forge/core@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes
