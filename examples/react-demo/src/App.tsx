@@ -1,10 +1,12 @@
 import { TreeEngine } from '@yggdrasil-forge/core'
 import type { BuildSnapshot } from '@yggdrasil-forge/core'
 import { ThemeProvider } from '@yggdrasil-forge/react'
+import type { Theme } from '@yggdrasil-forge/react'
 import { SkillTree } from '@yggdrasil-forge/react/headless'
 import { MemoryStorage } from '@yggdrasil-forge/storage'
-import { useCallback, useEffect, useState } from 'react'
-import { dragonborn } from './theme.js'
+import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { longLabels, rpgTreeDef } from './tree-def.js'
 
 export function App(): JSX.Element {
@@ -17,6 +19,48 @@ export function App(): JSX.Element {
   const [lastAction, setLastAction] = useState<string>('')
   const [snapshotId, setSnapshotId] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
+
+  // Theme Lab — tema vivo controlado polo panel lateral.
+  const [themeVals, setThemeVals] = useState<ThemeLabValues>(presetDarkClean)
+
+  // Construímos o `Theme` real desde os mandos do lab. Mantemos `background`
+  // como 'transparent' porque o fondo do lenzo aplícase no wrapper externo.
+  const builtTheme: Theme = useMemo(
+    () => ({
+      colors: {
+        background: 'transparent',
+        text: themeVals.text,
+        nodeLocked: themeVals.nodeLocked,
+        nodeUnlockable: themeVals.nodeUnlockable,
+        nodeUnlocked: themeVals.nodeUnlocked,
+        nodeMaxed: themeVals.nodeMaxed,
+        nodeInProgress: themeVals.nodeInProgress,
+        nodeStroke: themeVals.nodeLocked,
+        edge: themeVals.edge,
+        mesh: 'rgba(148, 163, 184, 0.08)',
+      },
+      sizes: {
+        strokeWidth: 2.5,
+        fontSize: 14,
+        fontSizeSmall: 11,
+      },
+    }),
+    [themeVals],
+  )
+
+  // CSS vars que o demo inxecta sobre o wrapper (non parte de Theme):
+  // - `--yf-color-node-fill`: interior do orb (consumido polo CSS de F10.3).
+  // - `--yf-ring-width`: grosor do anel.
+  // - `background`: fondo do lenzo.
+  const wrapperStyle: CSSProperties = useMemo(
+    () =>
+      ({
+        background: themeVals.canvas,
+        '--yf-color-node-fill': themeVals.fill,
+        '--yf-ring-width': String(themeVals.ringWidth),
+      }) as CSSProperties,
+    [themeVals],
+  )
 
   // Subscribe to engine changes:
   useEffect(() => {
@@ -86,8 +130,8 @@ export function App(): JSX.Element {
 
       <div className="app-body">
         <div className="tree-frame">
-          <div className="tree-container">
-            <ThemeProvider theme={dragonborn}>
+          <div className="tree-container" style={wrapperStyle}>
+            <ThemeProvider theme={builtTheme}>
               <SkillTree engine={engine} onNodeClick={handleNodeClick} />
             </ThemeProvider>
           </div>
@@ -128,6 +172,8 @@ export function App(): JSX.Element {
               ↺ Restore
             </button>
           </section>
+
+          <ThemeLab value={themeVals} onChange={setThemeVals} />
 
           <section className="panel panel-info">
             <h2 className="panel-title">⚜ About</h2>

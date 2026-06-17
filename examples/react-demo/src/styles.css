@@ -106,9 +106,8 @@ body::before {
 }
 
 .tree-container {
-  /* F10.3 plano: canvas claro/neutro para que o modelo plano se le ben.
-     O fondo escuro do body queda como marco; o canvas é un "panel paper". */
-  background: linear-gradient(180deg, #f8f9fb 0%, #eef0f5 100%);
+  /* F10.3 + theme-lab: o background aplícase inline desde App.tsx (themeVals.canvas).
+     Aquí só estrutura. */
   border-radius: 10px;
   padding: 32px;
   min-height: 520px;
@@ -319,4 +318,95 @@ body::before {
 .rune-link:hover {
   color: #f4d878;
   text-shadow: 0 0 8px rgba(218, 165, 32, 0.5);
+}
+
+/* ── Theme Lab panel (F10.x theme-lab) ───────────────────────────── */
+
+.theme-lab .panel-title {
+  margin-bottom: 12px;
+}
+
+.theme-lab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.theme-lab-presets {
+  display: flex;
+  gap: 8px;
+}
+
+.rune-button-small {
+  flex: 1;
+  font-size: 0.85em;
+  padding: 6px 10px;
+}
+
+.theme-lab-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(218, 165, 32, 0.15);
+  padding-top: 10px;
+}
+
+.theme-lab-row {
+  display: grid;
+  grid-template-columns: 1fr 32px 72px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85em;
+}
+
+.theme-lab-label {
+  color: rgba(230, 213, 168, 0.85);
+}
+
+.theme-lab-color {
+  width: 32px;
+  height: 24px;
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  border-radius: 4px;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.theme-lab-range {
+  width: 100%;
+  accent-color: #daa520;
+}
+
+.theme-lab-hex {
+  font-size: 0.78em;
+  color: rgba(218, 165, 32, 0.75);
+  text-align: right;
+  font-family: "Courier New", monospace;
+}
+
+.theme-lab-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid rgba(218, 165, 32, 0.15);
+  padding-top: 10px;
+}
+
+.theme-lab-status {
+  font-size: 0.85em;
+  color: rgba(111, 207, 151, 0.95);
+}
+
+.theme-lab-note {
+  font-size: 0.78em;
+  color: rgba(230, 213, 168, 0.6);
+  line-height: 1.4;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(218, 165, 32, 0.15);
+}
+
+.theme-lab-note strong {
+  color: rgba(230, 213, 168, 0.9);
 }
