@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "build:packages": "turbo run build --filter='!./examples/*'",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:ui": "vitest --ui",
@@ -30,7 +31,7 @@
     "changeset": "changeset",
     "changeset:status": "changeset status",
     "changeset:version": "changeset version && pnpm install --lockfile-only --no-frozen-lockfile --config.link-workspace-packages=true",
-    "changeset:publish": "pnpm build && changeset publish"
+    "changeset:publish": "pnpm build:packages && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",

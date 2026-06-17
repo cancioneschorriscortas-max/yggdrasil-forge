@@ -3301,6 +3301,43 @@ Fix (verificado de punta a punta):
 Os exemplos seguen en semver publicado a propósito (Stackblitz); non se
 pasan a `workspace:*` nin se toca `.npmrc`.
 
+### A.6.15 — Bot PRs e publish: illamento dos exemplos + secondary invokers
+
+Tras o merge do PR de versión 0.2.0, o Release workflow fallaba por:
+1. `files: [...]` multiline en 6 `package.json` (Biome esixe oneline;
+   `pnpm lint:fix` arránxao; NON revertir estes cambios automáticos).
+2. 3 comentarios `biome-ignore noConsole` inútiles en PluginAPI.ts
+   (liñas 80, 84, 88; aplican a `console.info/warn/error` que Biome xa
+   acepta sen suppression). A liña 76 conservouse porque suprime
+   activamente `console.debug` (Biome SI considera violation).
+3. Os exemplos privados (`react-demo`, `node-basics`) usan deps por
+   semver publicado (`^0.2.0`) para compatibilidade con Stackblitz.
+   Ao publicar 0.2.0, esas versións non existen aínda no rexistro →
+   o build de Release falla con TS2307. Fix: `build:packages` exclúe
+   `./examples/*` do turbo build.
+
+**Lección secundaria — secondary invokers de `pnpm build`**.
+Excluír os exemplos no step Build do workflow non é suficiente se
+outros scripts invocan `pnpm build` por si mesmos. Concretamente,
+`changeset:publish = "pnpm build && changeset publish"` corre **despois**
+do step Build, dentro de `changesets/action`, e tamén falla. Tódolos
+invocadores indirectos de `pnpm build` no pipeline deben migrar a
+`build:packages` ou ser auditados.
+
+**Lección terciaria — verificación empírica vs prescrición teórica**.
+O briefing v1 prescribiu "borrar 4 suppressions" asumindo todas
+inútiles. A verificación empírica do Executor (`pnpm lint:fix` output)
+revelou que SO 3 son `Suppression has no effect`; a cuarta (console.debug)
+está activa. Borrar as 4 sen verificar produciría 1 erro lint novo.
+**Principio reforzado**: o output de tooling é tribunal final, por
+encima de asuncións do briefing.
+
+Patrón xeral: os exemplos son demostradores, non código publicable.
+O build de Release só debe compilar paquetes da librería, non exemplos.
+Cando se introduce un script de filtro como `build:packages`,
+**buscar todos os invokers de `build`** (`grep "pnpm build" package.json
+.github/`) antes de dar a tarefa por feita.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

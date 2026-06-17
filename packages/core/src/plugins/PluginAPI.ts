@@ -77,15 +77,12 @@ export class PluginAPI implements PluginAPIInterface {
         console.debug(prefixed)
         return
       case 'info':
-        // biome-ignore lint/suspicious/noConsole: plugin log API
         console.info(prefixed)
         return
       case 'warn':
-        // biome-ignore lint/suspicious/noConsole: plugin log API
         console.warn(prefixed)
         return
       case 'error':
-        // biome-ignore lint/suspicious/noConsole: plugin log API
         console.error(prefixed)
         return
     }
