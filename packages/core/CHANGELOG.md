@@ -1,5 +1,11 @@
 # @yggdrasil-forge/core
 
+## 0.3.0
+
+### Minor Changes
+
+- [`4a85088`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/4a8508855c79001dfdd68ca767fe329aebe718aa) - feat(core): NodeDef visual vocabulary — shape (NodeShape) and size for renderer 2.0 (F10.2)
+
 ## 0.2.0
 
 ### Minor Changes

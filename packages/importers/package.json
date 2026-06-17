@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/importers",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Format importers (Mermaid, Cytoscape, GraphML, CSV) for Yggdrasil Forge",
   "license": "MIT",
   "author": "Agarfal",
@@ -22,7 +22,11 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",

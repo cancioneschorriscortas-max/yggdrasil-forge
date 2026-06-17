@@ -1,5 +1,12 @@
 # @yggdrasil-forge/plugins
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`4a85088`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/commit/4a8508855c79001dfdd68ca767fe329aebe718aa)]:
+  - @yggdrasil-forge/core@0.3.0
+
 ## 0.1.1
 
 ### Patch Changes
