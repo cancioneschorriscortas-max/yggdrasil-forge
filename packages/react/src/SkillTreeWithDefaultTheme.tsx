@@ -3,7 +3,7 @@
 // ── INICIO: SkillTreeWithDefaultTheme ──
 import type { JSX } from 'react'
 import { SkillTree as SkillTreeCore, type SkillTreeProps } from './SkillTree.js'
-import { ThemeProvider } from './ThemeProvider.js'
+import { ThemeProvider, useTheme } from './ThemeProvider.js'
 import { minimal } from './themes/minimal.js'
 
 /**
@@ -16,12 +16,16 @@ import { minimal } from './themes/minimal.js'
  * `@yggdrasil-forge/react/headless`.
  *
  * Se o consumidor envolve `<ThemeProvider theme={X}><SkillTree .../>
- * </ThemeProvider>`, o tema X **non** se aplica porque o wrapper
- * interno envolve incondicionalmente en `<ThemeProvider theme={minimal}>`.
- * Para temas custom, importar `SkillTree` desde `/headless` e envolver
- * explicitamente con `<ThemeProvider theme={customTheme}>`.
+ * </ThemeProvider>`, o tema X **respéctase** (o wrapper detecta o tema
+ * ascendente vía `useTheme` e non aplica `minimal`). Sen ThemeProvider
+ * ascendente, aplícase `minimal` automaticamente.
  */
 export function SkillTreeWithDefaultTheme(props: SkillTreeProps): JSX.Element {
+  // Respecta un ThemeProvider ascendente; só aplica `minimal` se non o hai.
+  const ascendantTheme = useTheme()
+  if (ascendantTheme !== null) {
+    return <SkillTreeCore {...props} />
+  }
   return (
     <ThemeProvider theme={minimal}>
       <SkillTreeCore {...props} />
