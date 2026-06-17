@@ -106,7 +106,9 @@ body::before {
 }
 
 .tree-container {
-  background: radial-gradient(ellipse at center, rgba(20, 16, 30, 0.95) 0%, rgba(10, 8, 16, 1) 100%);
+  /* F10.3 plano: canvas claro/neutro para que o modelo plano se le ben.
+     O fondo escuro do body queda como marco; o canvas é un "panel paper". */
+  background: linear-gradient(180deg, #f8f9fb 0%, #eef0f5 100%);
   border-radius: 10px;
   padding: 32px;
   min-height: 520px;
@@ -148,9 +150,10 @@ body::before {
 }
 
 /* ── SkillTree CSS overrides via data-state selectors ───────────── */
+/* F10.3 plano: selectores agnósticos (__shape) + SEN filter/drop-shadow. */
 
-.yf-skill-node circle {
-  transition: filter 0.3s ease, fill 0.3s ease;
+.yf-skill-node__shape {
+  transition: stroke 0.3s ease;
 }
 
 .yf-skill-node text {
@@ -159,35 +162,8 @@ body::before {
   letter-spacing: 0.03em;
 }
 
-.yf-skill-node[data-state="unlocked"] circle {
-  filter: drop-shadow(0 0 12px rgba(218, 165, 32, 0.7));
-}
-
-.yf-skill-node[data-state="unlockable"] circle {
-  animation: pulse-glow 2.4s ease-in-out infinite;
-}
-
-.yf-skill-node[data-state="locked"] circle {
+.yf-skill-node[data-state="locked"] .yf-skill-node__shape {
   opacity: 0.85;
-}
-
-/* Special treatment for root + keystone tiers */
-.yf-skill-node[data-tier="root"] circle {
-  filter: drop-shadow(0 0 6px rgba(218, 165, 32, 0.4));
-}
-
-.yf-skill-node[data-tier="keystone"][data-state="unlocked"] circle {
-  filter: drop-shadow(0 0 16px rgba(231, 165, 35, 0.9));
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    filter: drop-shadow(0 0 4px rgba(218, 165, 32, 0.3));
-  }
-  50% {
-    filter: drop-shadow(0 0 14px rgba(218, 165, 32, 0.8));
-  }
 }
 
 .yf-skill-edge {

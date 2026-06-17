@@ -5,6 +5,7 @@
 
 import type { NodeDef, NodeInstance, NodeState, Position } from '@yggdrasil-forge/core'
 import { type JSX, type KeyboardEvent, type MouseEvent, type PointerEvent, useRef } from 'react'
+import { renderNodeShape, resolveRadius, resolveShape } from './nodeGeometry.js'
 
 export interface SkillNodeProps {
   /** Definición do nodo (do TreeDef). */
@@ -36,7 +37,6 @@ export interface SkillNodeProps {
   readonly longPressDuration?: number
 }
 
-const NODE_RADIUS = 24
 const DEFAULT_LONG_PRESS_MS = 700
 
 export function SkillNode({
@@ -50,6 +50,11 @@ export function SkillNode({
   const state = instance?.state ?? 'locked'
   const tier = instance?.currentTier ?? 0
   const progress = instance?.progress
+
+  const shape = resolveShape(node)
+  const radius = resolveRadius(node)
+  const icon = node.icon
+  const labelY = radius + 16
 
   const handleClick =
     onClick !== undefined ? (_e: MouseEvent<SVGGElement>) => onClick(node.id) : undefined
@@ -108,17 +113,17 @@ export function SkillNode({
         onPointerLeave: handlePointerEnd,
       })}
     >
-      <circle r={NODE_RADIUS} className="yf-skill-node__circle" />
-      <text className="yf-skill-node__label" textAnchor="middle" dominantBaseline="middle">
+      {renderNodeShape(shape, radius)}
+      {icon !== undefined && (
+        <text className="yf-skill-node__icon" textAnchor="middle" dominantBaseline="central">
+          {icon}
+        </text>
+      )}
+      <text className="yf-skill-node__label" textAnchor="middle" y={labelY}>
         {resolveLabel(node)}
       </text>
       {progress !== undefined && (
-        <text
-          className="yf-skill-node__progress"
-          textAnchor="middle"
-          dominantBaseline="middle"
-          y={NODE_RADIUS + 12}
-        >
+        <text className="yf-skill-node__progress" textAnchor="middle" y={labelY + 16}>
           {progress}%
         </text>
       )}

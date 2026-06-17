@@ -98,11 +98,12 @@ function buildThemeRules(theme: Theme, themeId: string): string {
       : ''
   return (
     `${bgRule}` +
-    `${sel} .yf-skill-node__circle { fill: var(--yf-color-node-locked); stroke: var(--yf-color-node-stroke); stroke-width: var(--yf-stroke-width); }\n` +
-    `${sel} .yf-skill-node[data-state="unlockable"] .yf-skill-node__circle { fill: var(--yf-color-node-unlockable); }\n` +
-    `${sel} .yf-skill-node[data-state="unlocked"] .yf-skill-node__circle { fill: var(--yf-color-node-unlocked); }\n` +
-    `${sel} .yf-skill-node[data-state="maxed"] .yf-skill-node__circle { fill: var(--yf-color-node-maxed); }\n` +
-    `${sel} .yf-skill-node[data-state="in_progress"] .yf-skill-node__circle { fill: var(--yf-color-node-in-progress); }\n` +
+    `${sel} .yf-skill-node__shape { fill: var(--yf-color-node-fill, #f4f4ef); stroke: var(--yf-color-node-locked); stroke-width: var(--yf-ring-width, 3); }\n` +
+    `${sel} .yf-skill-node[data-state="unlockable"] .yf-skill-node__shape { stroke: var(--yf-color-node-unlockable); }\n` +
+    `${sel} .yf-skill-node[data-state="unlocked"] .yf-skill-node__shape { stroke: var(--yf-color-node-unlocked); }\n` +
+    `${sel} .yf-skill-node[data-state="maxed"] .yf-skill-node__shape { stroke: var(--yf-color-node-maxed); }\n` +
+    `${sel} .yf-skill-node[data-state="in_progress"] .yf-skill-node__shape { stroke: var(--yf-color-node-in-progress); }\n` +
+    `${sel} .yf-skill-node__icon { font-size: var(--yf-font-size); }\n` +
     `${sel} .yf-skill-node__label { font-size: var(--yf-font-size); fill: var(--yf-color-text); }\n` +
     `${sel} .yf-skill-node__progress { font-size: var(--yf-font-size-small); fill: var(--yf-color-text); }\n` +
     `${sel} .yf-skill-edge { stroke: var(--yf-color-edge); stroke-width: var(--yf-stroke-width); }\n` +

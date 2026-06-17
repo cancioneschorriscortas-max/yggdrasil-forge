@@ -20,10 +20,12 @@ describe('buildAnimationsCSS', () => {
     expect(css).toContain('animation: yf-pulse')
   })
 
-  it('contén transition de fill no .yf-skill-node__circle', () => {
+  it('contén transition de stroke (anel) no .yf-skill-node__shape', () => {
     const css = buildAnimationsCSS('t')
-    expect(css).toContain('.yf-skill-node__circle')
-    expect(css).toContain('transition: fill')
+    expect(css).toContain('.yf-skill-node__shape')
+    expect(css).toContain('transition: stroke')
+    // F10.3 plano: cero filter/drop-shadow nos nodos.
+    expect(css).not.toContain('drop-shadow')
   })
 
   it('contén cursor: pointer no [role="button"]', () => {

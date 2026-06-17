@@ -12,6 +12,7 @@ import { SVGRenderer } from './SVGRenderer.js'
 import { SkillEdge } from './SkillEdge.js'
 import { SkillNode } from './SkillNode.js'
 import { createDefaultLayoutRegistry } from './createDefaultLayoutRegistry.js'
+import { resolveRadius } from './nodeGeometry.js'
 
 export interface SkillTreeProps {
   readonly engine: TreeEngine
@@ -56,6 +57,12 @@ export function SkillTree({
 
   const { nodes: nodePositions, edges: edgePaths, bounds, mesh } = layoutResult.value
 
+  // F10.3: padding efectivo conta o maior raio do nodo + espazo do label.
+  // Sen isto, nodos cerca dos bordes do layout (especialmente con raios
+  // grandes como root r=40 ou keystone r=34) clipan polo viewBox.
+  const maxRadius = treeDef.nodes.reduce((m, n) => Math.max(m, resolveRadius(n)), 0)
+  const effectivePadding = padding + maxRadius + 28
+
   const edgeMap = useMemo(() => {
     const m = new Map<string, (typeof treeDef.edges)[number]>()
     for (const e of treeDef.edges) m.set(e.id, e)
@@ -63,7 +70,11 @@ export function SkillTree({
   }, [treeDef])
 
   return (
-    <SVGRenderer bounds={bounds} padding={padding} layoutType={layoutResult.value.layoutType}>
+    <SVGRenderer
+      bounds={bounds}
+      padding={effectivePadding}
+      layoutType={layoutResult.value.layoutType}
+    >
       <MeshOverlay {...(mesh !== undefined && { mesh })} />
       <g className="yf-skill-edges">
         {[...edgePaths.entries()].map(([edgeId, path]) => {

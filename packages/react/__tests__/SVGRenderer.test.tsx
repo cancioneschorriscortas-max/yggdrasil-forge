@@ -88,7 +88,9 @@ describe('SVGRenderer — integración con tema', () => {
     expect(svg.getAttribute('style')).toContain('--yf-color-text')
     const styleEl = container.querySelector('style')
     expect(styleEl).not.toBeNull()
-    expect(styleEl?.textContent).toContain('.yf-skill-node__circle')
+    expect(styleEl?.textContent).toContain('.yf-skill-node__shape')
+    // F10.3 plano: o estilo nodal non leva filter/drop-shadow.
+    expect(styleEl?.textContent ?? '').not.toMatch(/\.yf-skill-node__shape[^}]*drop-shadow/)
   })
 
   it('modo error con Provider: cero CSS vars, cero <style>', () => {
