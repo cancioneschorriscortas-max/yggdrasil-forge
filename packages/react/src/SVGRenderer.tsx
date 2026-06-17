@@ -2,11 +2,10 @@
 
 import type { Bounds } from '@yggdrasil-forge/core'
 // ── INICIO: SVGRenderer ──
-import { type CSSProperties, type JSX, type ReactNode, useId } from 'react'
+import { type JSX, type ReactNode, useId } from 'react'
 import { useTheme } from './ThemeProvider.js'
 import { buildAnimationsCSS } from './animations.js'
 import { buildViewBox } from './svg-helpers.js'
-import type { Theme } from './theme-types.js'
 
 export interface SVGRendererProps {
   readonly bounds?: Bounds
@@ -17,6 +16,27 @@ export interface SVGRendererProps {
   readonly children?: ReactNode
 }
 
+/**
+ * F10.3.fix — tematización inline.
+ *
+ * `SVGRenderer` xa NON inxecta CSS variables nin emite regras de cor.
+ * As cores aplícanse como inline `style` polos consumidores
+ * (`SkillNode`, `SkillEdge`, `MeshOverlay`) calculando desde
+ * `useTheme()` no propio compoñente.
+ *
+ * Conservamos:
+ * - `data-theme-id={themeId}` (áncora estable para scope das animacións).
+ * - `<style>{buildAnimationsCSS(themeId)}</style>` (transicións,
+ *   keyframes, pulse, reduced-motion). Esas si funcionan e dan vida ao
+ *   cambio de cor.
+ *
+ * Por que o cambio: o modelo anterior (CSS vars + regras `var()` nun
+ * `<style>` interior scopeado por `data-theme-id`) só aplicaba en
+ * background no demo do navegador real (cascade/scope inestable). Vendo
+ * que o problema era estrutural, eliminamos a dependencia do `<style>`
+ * interior para cores e usamos inline-style coa propiedade CSS (non
+ * atributo SVG) para conservar transicións.
+ */
 export function SVGRenderer({
   bounds,
   padding = 16,
@@ -41,8 +61,7 @@ export function SVGRenderer({
     )
   }
 
-  const themeStyle = theme !== null ? buildThemeStyle(theme) : undefined
-  const themeRulesCSS = theme !== null ? buildThemeRules(theme, themeId) : null
+  const animationsCSS = theme !== null ? buildAnimationsCSS(themeId) : null
 
   return (
     <svg
@@ -52,65 +71,10 @@ export function SVGRenderer({
       viewBox={viewBox}
       role="img"
       aria-label={ariaLabel ?? 'Skill tree'}
-      {...(themeStyle !== undefined && { style: themeStyle })}
     >
-      {themeRulesCSS !== null && <style>{themeRulesCSS}</style>}
+      {animationsCSS !== null && <style>{animationsCSS}</style>}
       {children}
     </svg>
-  )
-}
-
-/**
- * Constrúe o objeto `style` con CSS variables a partir do tema.
- */
-function buildThemeStyle(theme: Theme): CSSProperties {
-  const style: Record<string, string | number> = {
-    '--yf-color-text': theme.colors.text,
-    '--yf-color-node-locked': theme.colors.nodeLocked,
-    '--yf-color-node-unlockable': theme.colors.nodeUnlockable,
-    '--yf-color-node-unlocked': theme.colors.nodeUnlocked,
-    '--yf-color-node-maxed': theme.colors.nodeMaxed,
-    '--yf-color-node-in-progress': theme.colors.nodeInProgress,
-    '--yf-color-node-stroke': theme.colors.nodeStroke,
-    '--yf-color-edge': theme.colors.edge,
-    '--yf-color-mesh': theme.colors.mesh,
-    '--yf-stroke-width': theme.sizes.strokeWidth,
-    '--yf-font-size': theme.sizes.fontSize,
-    '--yf-font-size-small': theme.sizes.fontSizeSmall,
-  }
-  /* v8 ignore next 3 -- rama background defensiva; cero tema actual define background pero o tipo opcional require o check */
-  if (theme.colors.background !== undefined) {
-    style['--yf-color-background'] = theme.colors.background
-  }
-  return style as CSSProperties
-}
-
-/**
- * Constrúe as regras CSS internas scopeadas via `[data-theme-id="..."]`
- * para evitar interferencia entre múltiples SkillTree na mesma páxina.
- */
-function buildThemeRules(theme: Theme, themeId: string): string {
-  const sel = `[data-theme-id="${themeId}"]`
-  /* v8 ignore next 3 -- rama background defensiva; cero tema actual define background */
-  const bgRule =
-    theme.colors.background !== undefined
-      ? `${sel} { background: var(--yf-color-background); }\n`
-      : ''
-  return (
-    `${bgRule}` +
-    `${sel} .yf-skill-node__shape { fill: var(--yf-color-node-fill, #f4f4ef); stroke: var(--yf-color-node-locked); stroke-width: var(--yf-ring-width, 3); }\n` +
-    `${sel} .yf-skill-node[data-state="unlockable"] .yf-skill-node__shape { stroke: var(--yf-color-node-unlockable); }\n` +
-    `${sel} .yf-skill-node[data-state="unlocked"] .yf-skill-node__shape { stroke: var(--yf-color-node-unlocked); }\n` +
-    `${sel} .yf-skill-node[data-state="maxed"] .yf-skill-node__shape { stroke: var(--yf-color-node-maxed); }\n` +
-    `${sel} .yf-skill-node[data-state="in_progress"] .yf-skill-node__shape { stroke: var(--yf-color-node-in-progress); }\n` +
-    `${sel} .yf-skill-node__icon { font-size: var(--yf-font-size); }\n` +
-    `${sel} .yf-skill-node__label { font-size: var(--yf-font-size); fill: var(--yf-color-text); }\n` +
-    `${sel} .yf-skill-node__progress { font-size: var(--yf-font-size-small); fill: var(--yf-color-text); }\n` +
-    `${sel} .yf-skill-edge { stroke: var(--yf-color-edge); stroke-width: var(--yf-stroke-width); }\n` +
-    `${sel} .yf-mesh-overlay__line { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }\n` +
-    `${sel} .yf-mesh-overlay__circle { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }\n` +
-    `${sel} .yf-mesh-overlay__polygon { stroke: var(--yf-color-mesh); stroke-width: var(--yf-stroke-width); }` +
-    `\n${buildAnimationsCSS(themeId)}`
   )
 }
 // ── FIN: SVGRenderer ──

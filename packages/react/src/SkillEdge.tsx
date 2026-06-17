@@ -1,9 +1,15 @@
 // ── INICIO: SkillEdge ──
 // Compoñente átomo de edge. Renderiza <path> SVG cun `d` derivado
-// de EdgePath.points + EdgePath.kind. Compoñente puro (sen hooks).
+// de EdgePath.points + EdgePath.kind.
+//
+// F10.3.fix: usa `useTheme()` para aplicar stroke/strokeWidth inline.
+// Antes era puro (cero hooks); agora ten un único hook, alleo a SSR.
+
+'use client'
 
 import type { EdgeDef, EdgePath } from '@yggdrasil-forge/core'
-import type { JSX, MouseEvent } from 'react'
+import type { CSSProperties, JSX, MouseEvent } from 'react'
+import { useTheme } from './ThemeProvider.js'
 import { buildPathD } from './svg-helpers.js'
 
 export interface SkillEdgeProps {
@@ -19,6 +25,14 @@ export function SkillEdge({ edgeId, edge, path, onClick }: SkillEdgeProps): JSX.
   const handleClick =
     onClick !== undefined ? (_e: MouseEvent<SVGPathElement>) => onClick(edgeId) : undefined
 
+  const theme = useTheme()
+  const stroke: string | undefined = theme?.colors.edge
+  const strokeWidth: number | undefined = theme?.sizes.strokeWidth
+  const style: CSSProperties = {
+    ...(stroke !== undefined && { stroke }),
+    ...(strokeWidth !== undefined && { strokeWidth }),
+  }
+
   return (
     <path
       className="yf-skill-edge"
@@ -28,6 +42,7 @@ export function SkillEdge({ edgeId, edge, path, onClick }: SkillEdgeProps): JSX.
       d={d}
       fill="none"
       stroke="currentColor"
+      style={style}
       {...(handleClick !== undefined && { onClick: handleClick })}
     />
   )

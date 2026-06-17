@@ -4,8 +4,17 @@
 // Compoñente átomo de nodo. Renderiza <g> con <circle> + <text>.
 
 import type { NodeDef, NodeInstance, NodeState, Position } from '@yggdrasil-forge/core'
-import { type JSX, type KeyboardEvent, type MouseEvent, type PointerEvent, useRef } from 'react'
+import {
+  type CSSProperties,
+  type JSX,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+  useRef,
+} from 'react'
+import { useTheme } from './ThemeProvider.js'
 import { renderNodeShape, resolveRadius, resolveShape } from './nodeGeometry.js'
+import type { Theme } from './theme-types.js'
 
 export interface SkillNodeProps {
   /** Definición do nodo (do TreeDef). */
@@ -55,6 +64,32 @@ export function SkillNode({
   const radius = resolveRadius(node)
   const icon = node.icon
   const labelY = radius + 16
+
+  // F10.3.fix: tematización inline (non via <style> scopeado). Cada cor
+  // calcúlase desde useTheme() e aplícase como inline CSS no elemento.
+  // exactOptionalPropertyTypes: spread condicional para non emitir
+  // `prop: undefined` (rompería con strict 'exactOptionalPropertyTypes').
+  const theme = useTheme()
+  const fill: string = theme?.colors.nodeFill ?? '#f4f4ef'
+  const ring: string | undefined = theme !== null ? ringColorForState(theme, state) : undefined
+  const ringWidth: number = theme?.sizes.ringWidth ?? 3
+  const textColor: string | undefined = theme?.colors.text
+  const fontSize: number | undefined = theme?.sizes.fontSize
+  const fontSizeSmall: number | undefined = theme?.sizes.fontSizeSmall
+
+  const shapeStyle: CSSProperties = {
+    fill,
+    strokeWidth: ringWidth,
+    ...(ring !== undefined && { stroke: ring }),
+  }
+  const labelStyle: CSSProperties = {
+    ...(textColor !== undefined && { fill: textColor }),
+    ...(fontSize !== undefined && { fontSize }),
+  }
+  const progressStyle: CSSProperties = {
+    ...(textColor !== undefined && { fill: textColor }),
+    ...(fontSizeSmall !== undefined && { fontSize: fontSizeSmall }),
+  }
 
   const handleClick =
     onClick !== undefined ? (_e: MouseEvent<SVGGElement>) => onClick(node.id) : undefined
@@ -113,17 +148,27 @@ export function SkillNode({
         onPointerLeave: handlePointerEnd,
       })}
     >
-      {renderNodeShape(shape, radius)}
+      {renderNodeShape(shape, radius, shapeStyle)}
       {icon !== undefined && (
-        <text className="yf-skill-node__icon" textAnchor="middle" dominantBaseline="central">
+        <text
+          className="yf-skill-node__icon"
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={labelStyle}
+        >
           {icon}
         </text>
       )}
-      <text className="yf-skill-node__label" textAnchor="middle" y={labelY}>
+      <text className="yf-skill-node__label" textAnchor="middle" y={labelY} style={labelStyle}>
         {resolveLabel(node)}
       </text>
       {progress !== undefined && (
-        <text className="yf-skill-node__progress" textAnchor="middle" y={labelY + 16}>
+        <text
+          className="yf-skill-node__progress"
+          textAnchor="middle"
+          y={labelY + 16}
+          style={progressStyle}
+        >
           {progress}%
         </text>
       )}
@@ -159,5 +204,34 @@ const ARIA_STATE_LABELS: Readonly<Record<NodeState, string>> = {
   maxed: 'maxed',
   disabled: 'disabled',
   expired: 'expired',
+}
+
+/**
+ * Devolve a cor de anel (stroke) para un `NodeState` dado o `Theme`.
+ *
+ * Mapa (F10.3.fix):
+ * - `locked`      → `nodeLocked`
+ * - `unlockable`  → `nodeUnlockable`
+ * - `unlocked`    → `nodeUnlocked`
+ * - `maxed`       → `nodeMaxed`
+ * - `in_progress` → `nodeInProgress`
+ * - `disabled`, `expired` → `nodeLocked` (convención do tema "minimal":
+ *   estes estados non teñen cor específica e caen no fallback locked).
+ *
+ * Helper puro; exportado para tests.
+ */
+export function ringColorForState(theme: Theme, state: NodeState): string {
+  switch (state) {
+    case 'unlockable':
+      return theme.colors.nodeUnlockable
+    case 'unlocked':
+      return theme.colors.nodeUnlocked
+    case 'maxed':
+      return theme.colors.nodeMaxed
+    case 'in_progress':
+      return theme.colors.nodeInProgress
+    default:
+      return theme.colors.nodeLocked
+  }
 }
 // ── FIN: SkillNode ──

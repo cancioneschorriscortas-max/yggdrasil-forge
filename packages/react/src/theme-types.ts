@@ -50,6 +50,14 @@ export interface ThemeColors {
 
   /** Cor dos elementos do mesh overlay (line, circle, polygon). */
   readonly mesh: string
+
+  /**
+   * Interior do orbe (fill do shape). Opcional; fallback `#f4f4ef`.
+   * Engadido en F10.3.fix (tematización inline). Coexiste co modelo
+   * plano-adaptativo: o fill é neutro/claro; o estado coloréase
+   * no anel (stroke).
+   */
+  readonly nodeFill?: string
 }
 
 export interface ThemeSizes {
@@ -61,5 +69,11 @@ export interface ThemeSizes {
 
   /** Font size para texto de progress (porcentaxe). */
   readonly fontSizeSmall: number
+
+  /**
+   * Grosor do anel (stroke-width) do shape do nodo. Opcional;
+   * fallback `3`. Engadido en F10.3.fix.
+   */
+  readonly ringWidth?: number
 }
 // ── FIN: Theme types ──

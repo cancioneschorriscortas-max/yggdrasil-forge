@@ -5,7 +5,7 @@
 // Sen hooks → sen `'use client'`. Devolve JSX → .tsx.
 
 import type { NodeDef, NodeShape, NodeType } from '@yggdrasil-forge/core'
-import type { JSX } from 'react'
+import type { CSSProperties, JSX } from 'react'
 
 export const FALLBACK_RADIUS = 24
 export const SHAPE_CLASS = 'yf-skill-node__shape'
@@ -56,19 +56,27 @@ function polygonPoints(sides: number, r: number, rotationDeg: number): string {
   return pts.join(' ')
 }
 
-/** Elemento SVG da forma do nodo (cor de estado vía CSS no SVGRenderer). */
-export function renderNodeShape(shape: NodeShape, r: number): JSX.Element {
+/**
+ * Elemento SVG da forma do nodo. O `style` opcional aplícase como
+ * inline CSS no elemento (F10.3.fix: tematización inline desde
+ * `useTheme()` no consumidor; `fill`/`stroke`/`strokeWidth` viaxan
+ * coma propiedades CSS — non atributos — para conservar transicións).
+ */
+export function renderNodeShape(shape: NodeShape, r: number, style?: CSSProperties): JSX.Element {
+  const styleProp = style !== undefined ? { style } : {}
   switch (shape) {
     case 'square':
-      return <rect x={-r} y={-r} width={r * 2} height={r * 2} className={SHAPE_CLASS} />
+      return (
+        <rect x={-r} y={-r} width={r * 2} height={r * 2} className={SHAPE_CLASS} {...styleProp} />
+      )
     case 'diamond':
-      return <polygon points={polygonPoints(4, r, -90)} className={SHAPE_CLASS} />
+      return <polygon points={polygonPoints(4, r, -90)} className={SHAPE_CLASS} {...styleProp} />
     case 'hexagon':
-      return <polygon points={polygonPoints(6, r, -90)} className={SHAPE_CLASS} />
+      return <polygon points={polygonPoints(6, r, -90)} className={SHAPE_CLASS} {...styleProp} />
     case 'octagon':
-      return <polygon points={polygonPoints(8, r, -67.5)} className={SHAPE_CLASS} />
+      return <polygon points={polygonPoints(8, r, -67.5)} className={SHAPE_CLASS} {...styleProp} />
     default:
-      return <circle r={r} className={SHAPE_CLASS} />
+      return <circle r={r} className={SHAPE_CLASS} {...styleProp} />
   }
 }
 // ── FIN: nodeGeometry ──

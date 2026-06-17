@@ -18,16 +18,17 @@ function makeEngine(): TreeEngine {
   return new TreeEngine(tree)
 }
 
-function svgStyle(container: HTMLElement): string {
-  const svg = container.querySelector('svg')
-  if (svg === null) throw new Error('Esperábase un <svg>')
-  return svg.getAttribute('style') ?? ''
+function findLabelStyle(container: HTMLElement): string {
+  const label = container.querySelector('.yf-skill-node__label')
+  if (label === null) throw new Error('Esperábase un .yf-skill-node__label')
+  return label.getAttribute('style') ?? ''
 }
 
 describe('SkillTreeWithDefaultTheme', () => {
   it('sen ThemeProvider ascendente: aplica o tema minimal', () => {
     const { container } = render(<SkillTreeWithDefaultTheme engine={makeEngine()} />)
-    expect(svgStyle(container)).toContain(minimal.colors.text)
+    // F10.3.fix: a cor de text do tema chega inline ao <text class="...__label">.
+    expect(findLabelStyle(container)).toContain(minimal.colors.text)
   })
 
   it('con ThemeProvider ascendente: respecta o tema do consumidor', () => {
@@ -42,6 +43,6 @@ describe('SkillTreeWithDefaultTheme', () => {
       </ThemeProvider>,
     )
     // O tema custom aplícase (proba de que NON o pisa minimal).
-    expect(svgStyle(container)).toContain('#123456')
+    expect(findLabelStyle(container)).toContain('#123456')
   })
 })

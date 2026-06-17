@@ -49,10 +49,13 @@ describe('headless entry point', () => {
     )
     const svg = container.querySelector('svg')
     expect(svg).not.toBeNull()
-    // Con ThemeProvider, debería ter <style> + data-theme-id
+    // F10.3.fix: con ThemeProvider, segue habendo <style> (animacións)
+    // + data-theme-id (áncora). O `style` do <svg> xa NON leva CSS vars.
     expect(container.querySelector('style')).not.toBeNull()
     expect(svg?.getAttribute('data-theme-id')).toBeTruthy()
-    expect(svg?.getAttribute('style')).toContain('--yf-color-text')
+    // F10.3.fix: a cor do tema chega inline a un <text class="...__label">.
+    const label = container.querySelector('.yf-skill-node__label')
+    expect(label?.getAttribute('style') ?? '').toContain(minimal.colors.text)
   })
 })
 // ── FIN: tests headless entry point ──

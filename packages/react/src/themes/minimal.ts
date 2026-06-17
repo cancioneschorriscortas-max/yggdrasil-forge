@@ -27,11 +27,13 @@ export const minimal: Theme = {
     nodeStroke: '#555555',
     edge: '#999999',
     mesh: '#dddddd',
+    nodeFill: '#f4f4ef',
   },
   sizes: {
     strokeWidth: 2,
     fontSize: 14,
     fontSizeSmall: 11,
+    ringWidth: 3,
   },
 }
 // ── FIN: minimal theme ──

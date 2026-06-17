@@ -77,20 +77,24 @@ describe('SVGRenderer — integración con tema', () => {
     expect(svg.getAttribute('style')).toBeNull()
   })
 
-  it('con Provider(minimal): inxecta CSS vars + <style> + data-theme-id', () => {
+  it('con Provider(minimal): <style> só con animacións + data-theme-id (sen vars de cor)', () => {
     const { container } = render(
       <ThemeProvider theme={minimal}>
         <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />
       </ThemeProvider>,
     )
     const svg = q(container, 'svg')
+    // F10.3.fix: data-theme-id consérvase (áncora das animacións).
     expect(svg.getAttribute('data-theme-id')).toBeTruthy()
-    expect(svg.getAttribute('style')).toContain('--yf-color-text')
+    // F10.3.fix: o <svg> NON leva CSS variables no style (eliminado).
+    expect(svg.getAttribute('style')).toBeNull()
     const styleEl = container.querySelector('style')
     expect(styleEl).not.toBeNull()
-    expect(styleEl?.textContent).toContain('.yf-skill-node__shape')
-    // F10.3 plano: o estilo nodal non leva filter/drop-shadow.
-    expect(styleEl?.textContent ?? '').not.toMatch(/\.yf-skill-node__shape[^}]*drop-shadow/)
+    // F10.3.fix: o <style> só ten animacións; cero regras de cor de nodo/edge/mesh.
+    expect(styleEl?.textContent).toContain('@keyframes yf-pulse')
+    expect(styleEl?.textContent ?? '').not.toMatch(/\.yf-skill-node__shape\s*\{[^}]*fill:/)
+    expect(styleEl?.textContent ?? '').not.toMatch(/\.yf-skill-edge\s*\{[^}]*stroke:/)
+    expect(styleEl?.textContent ?? '').not.toContain('--yf-color-node-locked')
   })
 
   it('modo error con Provider: cero CSS vars, cero <style>', () => {

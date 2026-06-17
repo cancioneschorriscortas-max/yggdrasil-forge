@@ -1,6 +1,9 @@
+'use client'
+
 import type { MeshElement } from '@yggdrasil-forge/core'
 // ── INICIO: MeshOverlay ──
-import type { JSX } from 'react'
+import type { CSSProperties, JSX } from 'react'
+import { useTheme } from './ThemeProvider.js'
 
 export interface MeshOverlayProps {
   /**
@@ -18,18 +21,28 @@ export interface MeshOverlayProps {
  * - `'circle'` → `<circle cx cy r>`
  * - `'polygon'` → `<polygon points="x1,y1 x2,y2 ...">`
  *
- * Compoñente puro (cero hooks). SSR-safe. Usable como child directo
- * de SVGRenderer ou de calquera `<svg>`.
+ * F10.3.fix: usa `useTheme()` para aplicar stroke/strokeWidth inline.
+ * Antes era puro (cero hooks); agora ten un único hook.
  */
 export function MeshOverlay({ mesh }: MeshOverlayProps): JSX.Element | null {
+  const theme = useTheme()
   if (mesh === undefined || mesh.length === 0) return null
 
+  const stroke: string | undefined = theme?.colors.mesh
+  const strokeWidth: number | undefined = theme?.sizes.strokeWidth
+  const style: CSSProperties = {
+    ...(stroke !== undefined && { stroke }),
+    ...(strokeWidth !== undefined && { strokeWidth }),
+  }
+
   return (
-    <g className="yf-mesh-overlay">{mesh.map((element, idx) => renderElement(element, idx))}</g>
+    <g className="yf-mesh-overlay">
+      {mesh.map((element, idx) => renderElement(element, idx, style))}
+    </g>
   )
 }
 
-function renderElement(element: MeshElement, idx: number): JSX.Element {
+function renderElement(element: MeshElement, idx: number, style: CSSProperties): JSX.Element {
   switch (element.type) {
     case 'line':
       return (
@@ -42,6 +55,7 @@ function renderElement(element: MeshElement, idx: number): JSX.Element {
           y2={element.to.y}
           fill="none"
           stroke="currentColor"
+          style={style}
         />
       )
     case 'circle':
@@ -54,6 +68,7 @@ function renderElement(element: MeshElement, idx: number): JSX.Element {
           r={element.radius}
           fill="none"
           stroke="currentColor"
+          style={style}
         />
       )
     case 'polygon':
@@ -64,6 +79,7 @@ function renderElement(element: MeshElement, idx: number): JSX.Element {
           points={element.points.map((p) => `${p.x},${p.y}`).join(' ')}
           fill="none"
           stroke="currentColor"
+          style={style}
         />
       )
   }

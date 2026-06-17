@@ -23,8 +23,9 @@ export function App(): JSX.Element {
   // Theme Lab — tema vivo controlado polo panel lateral.
   const [themeVals, setThemeVals] = useState<ThemeLabValues>(presetDarkClean)
 
-  // Construímos o `Theme` real desde os mandos do lab. Mantemos `background`
-  // como 'transparent' porque o fondo do lenzo aplícase no wrapper externo.
+  // Construímos o `Theme` real desde os mandos do lab. F10.3.fix: os
+  // valores `fill` e `ringWidth` viaxan agora dentro do propio Theme
+  // (campos opcionais novos), non como CSS vars no wrapper.
   const builtTheme: Theme = useMemo(
     () => ({
       colors: {
@@ -38,29 +39,21 @@ export function App(): JSX.Element {
         nodeStroke: themeVals.nodeLocked,
         edge: themeVals.edge,
         mesh: 'rgba(148, 163, 184, 0.08)',
+        nodeFill: themeVals.fill,
       },
       sizes: {
         strokeWidth: 2.5,
         fontSize: 14,
         fontSizeSmall: 11,
+        ringWidth: themeVals.ringWidth,
       },
     }),
     [themeVals],
   )
 
-  // CSS vars que o demo inxecta sobre o wrapper (non parte de Theme):
-  // - `--yf-color-node-fill`: interior do orb (consumido polo CSS de F10.3).
-  // - `--yf-ring-width`: grosor do anel.
-  // - `background`: fondo do lenzo.
-  const wrapperStyle: CSSProperties = useMemo(
-    () =>
-      ({
-        background: themeVals.canvas,
-        '--yf-color-node-fill': themeVals.fill,
-        '--yf-ring-width': String(themeVals.ringWidth),
-      }) as CSSProperties,
-    [themeVals],
-  )
+  // Wrapper só co fondo do lenzo (F10.3.fix: as vars CSS do nodo
+  // eliminadas; agora aplícanse inline desde Theme dentro dos compoñentes).
+  const wrapperStyle: CSSProperties = useMemo(() => ({ background: themeVals.canvas }), [themeVals])
 
   // Subscribe to engine changes:
   useEffect(() => {
