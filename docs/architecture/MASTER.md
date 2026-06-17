@@ -3338,6 +3338,18 @@ Cando se introduce un script de filtro como `build:packages`,
 **buscar todos os invokers de `build`** (`grep "pnpm build" package.json
 .github/`) antes de dar a tarefa por feita.
 
+### A.6.16 — Release: formato automático no paso de versión (fix permanente de A.6.15)
+
+A.6.15 documentou que `changeset version` re-expande os arrays `files` dos
+`package.json` e, como o bot corre con `HUSKY=0` (A.6.14), Biome non os
+recolle → `main` queda lint/format vermello tras cada merge de PR de
+versión. O parche dunha-vez (`pnpm format` manual) repetíase en cada release.
+
+Fix permanente: `changeset:version` remata con `&& pnpm format`. O bot
+formatea os manifests despois de versionar e antes de commitear; o PR de
+versión xa vai limpo, e o merge non rompe a CI. `pnpm format` só afecta
+JSON/TS (ignora ficheiros non soportados), é idempotente e seguro no bot.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

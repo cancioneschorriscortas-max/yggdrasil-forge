@@ -31,7 +31,7 @@
     "prepare": "husky",
     "changeset": "changeset",
     "changeset:status": "changeset status",
-    "changeset:version": "changeset version && pnpm install --lockfile-only --no-frozen-lockfile --config.link-workspace-packages=true",
+    "changeset:version": "changeset version && pnpm install --lockfile-only --no-frozen-lockfile --config.link-workspace-packages=true && pnpm format",
     "changeset:publish": "pnpm build:packages && changeset publish"
   },
   "devDependencies": {
