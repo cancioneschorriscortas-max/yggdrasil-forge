@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yggdrasil Forge — Previsualizador de iconos</title>
+  <style>
+    /* CSS vars fallback. O previsualizador foi creado orixinalmente
+       para un artifact de Claude.ai (que define estas variables).
+       Aquí proporcionámolas como fallbacks para que funcione standalone
+       aberto directamente nun navegador. */
+    :root {
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f5f4ef;
+      --color-background-info: #e8f0ff;
+      --color-text-primary: #1a1a1a;
+      --color-text-secondary: #555;
+      --color-text-tertiary: #888;
+      --color-text-info: #1f5fbf;
+      --color-text-danger: #c0392b;
+      --color-text-success: #2ea043;
+      --color-border-tertiary: #d0d0d0;
+      --color-border-secondary: #a0a0a0;
+      --color-border-info: #4a8fdb;
+      --border-radius-md: 6px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-background-primary: #1a1a1a;
+        --color-background-secondary: #252525;
+        --color-background-info: #1e2a3f;
+        --color-text-primary: #f0f0f0;
+        --color-text-secondary: #b0b0b0;
+        --color-text-tertiary: #808080;
+        --color-text-info: #6fa9e5;
+        --color-text-danger: #f87171;
+        --color-text-success: #5edc7c;
+        --color-border-tertiary: #3a3a3a;
+        --color-border-secondary: #555;
+        --color-border-info: #4a8fdb;
+      }
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: var(--font-sans);
+      background: var(--color-background-primary);
+      color: var(--color-text-primary);
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 4px;
+      font-weight: 600;
+    }
+    .iv-intro {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin: 0 0 20px;
+    }
+    .iv-intro code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 1px 5px;
+      background: var(--color-background-secondary);
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌳 Yggdrasil Forge — Previsualizador de iconos</h1>
+  <p class="iv-intro">
+    Ferramenta de desarrollo standalone para previsualizar e probar iconos SVG no formato
+    <code>IconDef</code> do paquete <code>@yggdrasil-forge/react</code> (F10.5).
+    Soporta múltiples conxuntos predefinidos (incluído un set de inspiración norse de ~28 iconos),
+    controis en vivo de tamaño/cor/fondo, e parse de iconos custom desde texto pegado.
+  </p>
+<style>
+  .iv-wrap { padding: 1rem 0; }
+  .iv-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .iv-tab { font-size: 13px; padding: 6px 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; color: var(--color-text-primary); font-family: var(--font-sans); }
+  .iv-tab:hover { border-color: var(--color-border-secondary); }
+  .iv-tab.on { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+  .iv-controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 14px; padding: 10px 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
+  .iv-ctrl { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .iv-ctrl label { color: var(--color-text-secondary); }
+  .iv-ctrl input[type="range"] { width: 80px; }
+  .iv-ctrl input[type="color"] { width: 28px; height: 28px; padding: 0; border: 0.5px solid var(--color-border-tertiary); border-radius: 4px; background: none; cursor: pointer; }
+  .iv-ctrl output { font-weight: 500; min-width: 28px; font-variant-numeric: tabular-nums; }
+  .iv-ctrl select { font-size: 13px; padding: 4px 8px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+  .iv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .iv-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px 10px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); cursor: pointer; transition: border-color 0.15s; }
+  .iv-card:hover { border-color: var(--color-border-secondary); }
+  .iv-card.bg-light { background: #ffffff; }
+  .iv-card.bg-dark { background: #1a1a1a; }
+  .iv-card.bg-auto { background: var(--color-background-primary); }
+  .iv-card svg { display: block; }
+  .iv-name { font-size: 11px; font-family: var(--font-mono); color: var(--color-text-secondary); text-align: center; word-break: break-word; line-height: 1.3; }
+  .iv-custom { margin-top: 14px; }
+  .iv-custom summary { font-size: 13px; color: var(--color-text-secondary); cursor: pointer; padding: 6px 0; user-select: none; }
+  .iv-custom textarea { width: 100%; min-height: 120px; margin-top: 8px; padding: 10px; font-family: var(--font-mono); font-size: 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); resize: vertical; box-sizing: border-box; line-height: 1.5; }
+  .iv-actions { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .iv-msg { font-size: 12px; }
+  .iv-msg.err { color: var(--color-text-danger); }
+  .iv-msg.ok { color: var(--color-text-success); }
+  .iv-msg.dim { color: var(--color-text-tertiary); }
+  .iv-loading { padding: 2rem; text-align: center; color: var(--color-text-secondary); font-size: 14px; grid-column: 1 / -1; }
+  .iv-empty { padding: 2rem; text-align: center; color: var(--color-text-tertiary); font-size: 13px; grid-column: 1 / -1; }
+  .iv-toast { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--color-background-info); color: var(--color-text-info); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+  .iv-card.copied .iv-toast { opacity: 1; }
+  .iv-card { position: relative; }
+</style>
+
+<h2 class="sr-only">Previsualizador de iconos SVG con controis de tamaño, grosor de trazo, cor e fondo.</h2>
+
+<div class="iv-wrap">
+  <div class="iv-tabs" id="iv-tabs"></div>
+  <div class="iv-controls">
+    <div class="iv-ctrl">
+      <label>Tamaño</label>
+      <input type="range" id="iv-size" min="24" max="96" step="4" value="48">
+      <output id="iv-size-out">48</output>
+    </div>
+    <div class="iv-ctrl">
+      <label>Trazo</label>
+      <input type="range" id="iv-stroke" min="0.5" max="3" step="0.1" value="1.5">
+      <output id="iv-stroke-out">1.5</output>
+    </div>
+    <div class="iv-ctrl">
+      <label>Cor</label>
+      <input type="color" id="iv-color" value="#2c2c2a">
+    </div>
+    <div class="iv-ctrl">
+      <label>Fondo</label>
+      <select id="iv-bg">
+        <option value="auto">Auto</option>
+        <option value="light">Claro</option>
+        <option value="dark">Escuro</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="iv-grid" id="iv-grid">
+    <div class="iv-loading">Cargando iconos…</div>
+  </div>
+
+  <div class="iv-custom">
+    <details>
+      <summary>Pegar conxunto personalizado ↓</summary>
+      <textarea id="iv-paste" placeholder="export const MY_ICONS = {&#10;  'icon-name': {&#10;    paths: [{ d: 'M12 4v16', mode: 'stroke' }]&#10;  },&#10;  ...&#10;}"></textarea>
+      <div class="iv-actions">
+        <button id="iv-load" type="button">Cargar conxunto</button>
+        <span class="iv-msg dim" id="iv-msg">Acepta o formato NORSE_ICONS coma o dos teus ficheiros.</span>
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ── Conxunto 2 (002 — máis recente) ──
+  const ICONS_V2 = {
+    'world-tree': { paths: [{ d: 'M12 20V13M12 13C9 13 7 11 7 8C7 5 9 4 12 4C15 4 17 5 17 8C17 11 15 13 12 13M9 17H15M8 20H16', mode: 'stroke' }] },
+    'rune-fehu': { paths: [{ d: 'M8 20V4M8 7H15M8 11H13', mode: 'stroke' }] },
+    'rune-algiz': { paths: [{ d: 'M12 20V6M12 6L7 11M12 6L17 11', mode: 'stroke' }] },
+    'rune-tiwaz': { paths: [{ d: 'M12 20V5M12 5L8 9M12 5L16 9', mode: 'stroke' }] },
+    'rune-sowilo': { paths: [{ d: 'M15 4L9 11H14L9 20', mode: 'stroke' }] },
+    'wolf': { paths: [{ d: 'M6 17L8 7L12 4L16 7L18 17L14 14H10L6 17Z', mode: 'stroke' }] },
+    'raven': { paths: [{ d: 'M5 13L10 8H16L19 11L15 13L19 16H11L5 13Z', mode: 'stroke' }] },
+    'serpent': { paths: [{ d: 'M7 7C7 5 9 4 12 4C15 4 17 5 17 7C17 9 15 10 12 10C9 10 7 11 7 13C7 15 9 16 12 16C15 16 17 17 17 20', mode: 'stroke' }] },
+    'mjolnir': { paths: [{ d: 'M8 6H16V10H13V20H11V10H8V6Z', mode: 'stroke' }] },
+    'axe': { paths: [{ d: 'M11 20V7M11 7C13 5 16 5 18 7C16 10 13 10 11 8', mode: 'stroke' }] },
+    'sword': { paths: [{ d: 'M12 4L16 8L12 12M12 12V20M9 17H15', mode: 'stroke' }] },
+    'shield': { paths: [{ d: 'M12 4L18 7V12C18 16 15 18 12 20C9 18 6 16 6 12V7L12 4Z', mode: 'stroke' }] },
+    'horned-helmet': { paths: [{ d: 'M7 16V12C7 8 9 6 12 6C15 6 17 8 17 12V16M7 9L4 6M17 9L20 6', mode: 'stroke' }] },
+    'drakkar': { paths: [{ d: 'M5 15H19L17 18H7L5 15ZM12 15V6M9 8H12', mode: 'stroke' }] },
+    'fire': { paths: [{ d: 'M12 4C14 7 16 9 16 13C16 17 14 20 12 20C10 20 8 17 8 13C8 10 10 8 12 4Z', mode: 'stroke' }] },
+    'ice-crystal': { paths: [{ d: 'M12 4V20M5 8L19 16M19 8L5 16', mode: 'stroke' }] },
+    'mountain': { paths: [{ d: 'M4 18L10 8L13 12L16 7L20 18H4Z', mode: 'stroke' }] },
+    'leaf': { paths: [{ d: 'M18 6C12 6 7 10 7 15C7 18 9 20 12 20C17 20 18 15 18 6ZM9 18L16 11', mode: 'stroke' }] },
+    'odin-eye': { paths: [{ d: 'M4 12C6 8 9 6 12 6C15 6 18 8 20 12C18 16 15 18 12 18C9 18 6 16 4 12ZM12 10V14', mode: 'stroke' }] },
+    'mead-horn': { paths: [{ d: 'M6 8C6 14 9 18 14 18C16 18 18 16 18 14V8H6Z', mode: 'stroke' }] },
+    'triquetra': { paths: [{ d: 'M12 6C15 6 17 8 17 11C17 14 15 16 12 16C9 16 7 14 7 11C7 8 9 6 12 6M9 15C9 18 11 20 14 20M15 15C15 18 13 20 10 20', mode: 'stroke' }] },
+    'moon': { paths: [{ d: 'M15 4C11 5 8 9 8 13C8 17 11 20 15 20C12 18 10 15 10 12C10 9 12 6 15 4Z', mode: 'stroke' }] },
+    'sun': { paths: [{ d: 'M12 4V6M12 18V20M4 12H6M18 12H20M7 7L8 8M16 16L17 17M16 8L17 7M7 17L8 16M12 8C14 8 16 10 16 12C16 14 14 16 12 16C10 16 8 14 8 12C8 10 10 8 12 8Z', mode: 'stroke' }] },
+    'lightning': { paths: [{ d: 'M14 4L8 13H12L10 20L16 11H12L14 4Z', mode: 'stroke' }] },
+    'sprout': { paths: [{ d: 'M12 20V13M12 13C10 9 7 8 5 8C5 11 7 13 10 13M12 13C14 9 17 8 19 8C19 11 17 13 14 13', mode: 'stroke' }] },
+    'sparkle': { paths: [{ d: 'M12 4L13.5 10.5L20 12L13.5 13.5L12 20L10.5 13.5L4 12L10.5 10.5L12 4Z', mode: 'stroke' }] }
+  };
+
+  // ── Conxunto 1 (001 — orixinal) ──
+  const ICONS_V1 = {
+    'world-tree': { paths: [{ d: 'M12 3v14M8 7c2-2 4-3 4-4c0 1 2 2 4 4M7 11c2-2 4-3 5-4c1 1 3 2 5 4M9 17l-2 4M15 17l2 4M8 21h8', mode: 'stroke' }] },
+    'rune-fehu': { paths: [{ d: 'M8 3v18M8 6h7M8 11h6', mode: 'stroke' }] },
+    'rune-algiz': { paths: [{ d: 'M12 3v18M12 9L6 4M12 9l6-5', mode: 'stroke' }] },
+    'rune-tiwaz': { paths: [{ d: 'M12 21V5M8 9l4-4 4 4', mode: 'stroke' }] },
+    'rune-sowilo': { paths: [{ d: 'M15 4L9 10h4l-4 10 6-6h-4z', mode: 'stroke' }] },
+    'wolf': { paths: [{ d: 'M6 17l2-8 4-4 4 4 2 8-3-2-3 3-3-3z', mode: 'stroke' }] },
+    'raven': { paths: [{ d: 'M5 13c3-5 8-7 14-6l-4 3 2 2-4 1-3 5-2-3-3-2z', mode: 'stroke' }] },
+    'serpent': { paths: [{ d: 'M18 6c-2-2-8-2-10 1s0 5 3 5 5 1 5 3-2 3-5 3-5-1-6-2', mode: 'stroke' }] },
+    'mjolnir': { paths: [{ d: 'M8 6h8v4h-2v3h-4v8h4v-4h2v4', mode: 'stroke' }] },
+    'axe': { paths: [{ d: 'M12 3v18M12 7c4 0 6 2 6 4s-2 4-6 4', mode: 'stroke' }] },
+    'sword': { paths: [{ d: 'M12 3l4 4-4 4-4-4 4-4M12 11v7M9 20h6', mode: 'stroke' }] },
+    'shield': { paths: [{ d: 'M12 3l6 2v5c0 5-3 8-6 11-3-3-6-6-6-11V5z', mode: 'stroke' }] },
+    'horned-helmet': { paths: [{ d: 'M6 15V11c0-3 2-5 6-5s6 2 6 5v4M6 9L3 6M18 9l3-3', mode: 'stroke' }] },
+    'drakkar': { paths: [{ d: 'M4 15h16l-2 3H6zM10 15V6l5 3', mode: 'stroke' }] },
+    'fire': { paths: [{ d: 'M12 4c2 3 4 5 4 8a4 4 0 1 1-8 0c0-2 1-4 4-8z', mode: 'stroke' }] },
+    'ice-crystal': { paths: [{ d: 'M12 3v18M6 6l12 12M18 6L6 18M5 12h14', mode: 'stroke' }] },
+    'mountain': { paths: [{ d: 'M4 18L10 8l2 3 2-3 6 10z', mode: 'stroke' }] },
+    'leaf': { paths: [{ d: 'M18 6c-7 0-11 4-11 9 0 3 2 4 4 4 5 0 9-4 9-13-1 0-1 0-2 0M9 15l6-6', mode: 'stroke' }] },
+    'odin-eye': { paths: [{ d: 'M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5M12 10v4', mode: 'stroke' }] },
+    'mead-horn': { paths: [{ d: 'M6 8c0 5 3 8 7 8h3v-3h-3c-2 0-4-2-4-5z', mode: 'stroke' }] },
+    'triquetra': { paths: [{ d: 'M12 6c2 0 4 2 4 4s-2 4-4 8c-2-4-4-6-4-8s2-4 4-4M8 14h8M10 9l4 7', mode: 'stroke' }] },
+    'moon': { paths: [{ d: 'M15 4a7 7 0 1 0 0 16c-3-1-5-4-5-8s2-7 5-8z', mode: 'stroke' }] },
+    'sun': { paths: [{ d: 'M12 3v2M12 19v2M3 12h2M19 12h2M6 6l1 1M17 17l1 1M18 6l-1 1M7 17l-1 1M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z', mode: 'stroke' }] },
+    'lightning': { paths: [{ d: 'M13 3L7 13h4l-1 8 7-11h-4z', mode: 'stroke' }] },
+    'seedling': { paths: [{ d: 'M12 21v-8M12 13c-3 0-5-2-5-5 3 0 5 2 5 5M12 13c0-3 2-5 5-5 0 3-2 5-5 5', mode: 'stroke' }] },
+    'sparkle': { paths: [{ d: 'M12 4l1 4 4 1-4 1-1 4-1-4-4-1 4-1zM17 15l1 2 2 1-2 1-1 2-1-2-2-1 2-1z', mode: 'stroke' }] }
+  };
+
+  const sets = [
+    { id: 'v2', label: 'Versión 2 (002)', icons: ICONS_V2 },
+    { id: 'v1', label: 'Versión 1 (001)', icons: ICONS_V1 },
+    { id: 'custom', label: 'Personalizado', icons: null }
+  ];
+  let currentId = 'v2';
+
+  const $ = (id) => document.getElementById(id);
+  const tabsEl = $('iv-tabs');
+  const gridEl = $('iv-grid');
+  const sizeEl = $('iv-size');
+  const sizeOut = $('iv-size-out');
+  const strokeEl = $('iv-stroke');
+  const strokeOut = $('iv-stroke-out');
+  const colorEl = $('iv-color');
+  const bgEl = $('iv-bg');
+  const pasteEl = $('iv-paste');
+  const loadBtn = $('iv-load');
+  const msgEl = $('iv-msg');
+
+  function buildTabs() {
+    tabsEl.innerHTML = '';
+    sets.forEach(s => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'iv-tab' + (s.id === currentId ? ' on' : '');
+      const count = s.icons ? Object.keys(s.icons).length : 0;
+      b.textContent = s.label + (count ? ' · ' + count : '');
+      b.onclick = () => { currentId = s.id; buildTabs(); render(); };
+      tabsEl.appendChild(b);
+    });
+  }
+
+  function makeSvg(def, size, stroke, color) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', size);
+    svg.setAttribute('height', size);
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', color);
+    svg.setAttribute('stroke-width', stroke);
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    (def.paths || []).forEach(p => {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.setAttribute('d', p.d);
+      if (p.mode === 'fill') {
+        el.setAttribute('fill', color);
+        el.setAttribute('stroke', 'none');
+      }
+      svg.appendChild(el);
+    });
+    return svg;
+  }
+
+  function render() {
+    const set = sets.find(s => s.id === currentId);
+    const icons = set.icons;
+    gridEl.innerHTML = '';
+    if (!icons || !Object.keys(icons).length) {
+      const empty = document.createElement('div');
+      empty.className = 'iv-empty';
+      empty.textContent = currentId === 'custom'
+        ? 'Aínda non cargaches ningún conxunto. Abre o panel de abaixo e pega o teu código.'
+        : 'Sen iconos.';
+      gridEl.appendChild(empty);
+      return;
+    }
+    const size = parseInt(sizeEl.value, 10);
+    const stroke = parseFloat(strokeEl.value);
+    const color = colorEl.value;
+    const bg = bgEl.value;
+    Object.entries(icons).forEach(([name, def]) => {
+      const card = document.createElement('div');
+      card.className = 'iv-card bg-' + bg;
+      card.title = 'Premer para copiar o nome';
+      const svg = makeSvg(def, size, stroke, color);
+      card.appendChild(svg);
+      const lbl = document.createElement('div');
+      lbl.className = 'iv-name';
+      lbl.textContent = name;
+      card.appendChild(lbl);
+      const toast = document.createElement('div');
+      toast.className = 'iv-toast';
+      toast.textContent = 'copiado';
+      card.appendChild(toast);
+      card.onclick = () => {
+        navigator.clipboard && navigator.clipboard.writeText(name);
+        card.classList.add('copied');
+        setTimeout(() => card.classList.remove('copied'), 900);
+      };
+      gridEl.appendChild(card);
+    });
+  }
+
+  function parseCustom(raw) {
+    let code = (raw || '').trim();
+    if (!code) throw new Error('Pega o código primeiro.');
+    code = code.replace(/^\s*export\s+(const|let|var)\s+\w+\s*=\s*/, '');
+    code = code.replace(/;\s*$/, '');
+    const obj = (new Function('return (' + code + ')'))();
+    if (!obj || typeof obj !== 'object') throw new Error('Non é un obxecto válido.');
+    const keys = Object.keys(obj);
+    if (!keys.length) throw new Error('O obxecto está baleiro.');
+    let ok = 0;
+    keys.forEach(k => {
+      const v = obj[k];
+      if (v && Array.isArray(v.paths) && v.paths.every(p => typeof p.d === 'string')) ok++;
+    });
+    if (!ok) throw new Error('Ningún icono ten o formato { paths: [{ d: "..." }] }.');
+    return obj;
+  }
+
+  loadBtn.addEventListener('click', () => {
+    try {
+      const obj = parseCustom(pasteEl.value);
+      const customSet = sets.find(s => s.id === 'custom');
+      customSet.icons = obj;
+      currentId = 'custom';
+      msgEl.className = 'iv-msg ok';
+      msgEl.textContent = 'Cargados ' + Object.keys(obj).length + ' iconos.';
+      buildTabs();
+      render();
+    } catch (e) {
+      msgEl.className = 'iv-msg err';
+      msgEl.textContent = 'Erro: ' + e.message;
+    }
+  });
+
+  sizeEl.addEventListener('input', () => { sizeOut.textContent = sizeEl.value; render(); });
+  strokeEl.addEventListener('input', () => { strokeOut.textContent = parseFloat(strokeEl.value).toFixed(1); render(); });
+  colorEl.addEventListener('input', render);
+  bgEl.addEventListener('change', render);
+
+  buildTabs();
+  render();
+})();
+</script></body>
+</html>

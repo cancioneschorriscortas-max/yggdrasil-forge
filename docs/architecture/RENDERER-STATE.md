@@ -32,6 +32,11 @@
   rexistro está lista; o iconset starter (6 iconos) é arte funcional
   pendente de refino. Engadir novos sets é trivial — `registerIcons({
   ... })` desde calquera lugar. Ampliable sen tocar o motor.
+  - **Ferramenta de iteración**: `tools/icon-preview/index.html`
+    (standalone, abre directamente no navegador) permite probar paths
+    SVG en vivo no formato `IconDef`. Inclúe un set de inspiración
+    norse (~28 iconos) listo para refinar. Útil tamén como base para
+    un futuro panel "Import icons" no Studio editor.
 - **F10.6+** (sen briefing aínda): a definir polo Director. Posibles:
   candidatos a polish: animacións de transición de estado nos nodos
   (locked→unlockable→unlocked), efectos de hover/focus máis ricos,
