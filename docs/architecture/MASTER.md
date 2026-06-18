@@ -3433,6 +3433,44 @@ Razón do principio: o **tema** (cores) é runtime e vive en
 `ThemeProvider` (A.6.17). A **xeometría**, en cambio, é estrutura — debe
 ir co TreeDef para que se conserve ao serializar/exportar/editar.
 
+### A.6.21 — Rexistros compartidos cross-bundle (Symbol.for singleton) + tree-shaking
+
+Esta é a forma xeneralizada de A.6.17: **calquera rexistro mutable
+compartido entre os múltiples entry points dun paquete** (Context, Map,
+Set, etc.) require o mesmo patrón `Symbol.for(globalThis)`. Se non, cada
+bundle (`/index`, `/headless`, ...) crea a súa propia instancia e os
+valores rexistrados nun non son visibles dende o outro.
+
+Detectado/aplicado en F10.5 cun rexistro de iconos SVG:
+- Patrón: `const REGISTRY_KEY = Symbol.for('@yggdrasil-forge/react#IconRegistry')`,
+  almacenado en `globalThis[REGISTRY_KEY]` como `Map<string, IconDef>`.
+- API pública: `registerIcon/registerIcons/getIcon/hasIcon`.
+
+**Sub-lección — auto-rexistro de defaults non pode depender de side-effect
+imports** cando `package.json` ten `"sideEffects": false`. O patrón
+inicial era `import './builtin.js'` desde os barrels para disparar
+`registerIcons(BUILTIN_ICONS)`. Esbuild/tsup recoñecen `sideEffects:
+false` e **eliminan** o bare import durante o build do propio paquete
+(o warning é explícito: `Ignoring this import because "X" was marked as
+having no side effects`). Resultado: o auto-rexistro non está no `dist`
+final, e os builtins **non se rexistran en runtime** mesmo aínda que o
+ficheiro fonte exista.
+
+Patrón correcto: o auto-rexistro vive **dentro do propio módulo do
+rexistro** (`registry.ts`), no top-level. Como o módulo é importado por
+calquera consumidor de `getIcon`/`registerIcon` (e por `SkillNode`), o
+seu top-level execútase sempre. Cero bare imports. Cero dependencia da
+política de side-effects.
+
+Regra para revisores: cando un PR introduce un *novo* rexistro mutable
+compartido (LRU cache, listener registry, factory registry...), revisar
+(1) que use Symbol.for + globalThis e (2) que o auto-rexistro de
+defaults estea no propio módulo do rexistro, non en módulos satélites
+acoplados por side-effect imports. Un Map a nivel de módulo é unha
+*trap* silenciosa: funciona nos tests (un só bundle por suite), rompe
+en runtime se o consumidor mestura `/index` + `/headless` ou se
+`sideEffects: false`.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

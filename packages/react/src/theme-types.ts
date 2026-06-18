@@ -27,6 +27,13 @@ export interface ThemeColors {
   /** Cor do texto (labels, progress). */
   readonly text: string
 
+  /**
+   * Cor dos iconos SVG do rexistro (F10.5). Opcional; fallback a
+   * `text`. Aplícase via CSS `color` no `<svg>` do icono; os paths
+   * usan `currentColor` (`fill` ou `stroke` segundo o seu `mode`).
+   */
+  readonly icon?: string
+
   /** Cor de fondo do nodo cando state='locked'. */
   readonly nodeLocked: string
 

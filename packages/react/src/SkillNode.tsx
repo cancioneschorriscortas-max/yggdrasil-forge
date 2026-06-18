@@ -13,6 +13,8 @@ import {
   useRef,
 } from 'react'
 import { useTheme } from './ThemeProvider.js'
+import { IconGlyph } from './icons/IconGlyph.js'
+import { getIcon } from './icons/registry.js'
 import { renderNodeShape, resolveRadius, resolveShape } from './nodeGeometry.js'
 import type { Theme } from './theme-types.js'
 
@@ -76,6 +78,18 @@ export function SkillNode({
   const textColor: string | undefined = theme?.colors.text
   const fontSize: number | undefined = theme?.sizes.fontSize
   const fontSizeSmall: number | undefined = theme?.sizes.fontSizeSmall
+
+  // F10.5: cor do icono = ThemeColors.icon (opt) ?? text (fallback).
+  const iconColor: string | undefined = theme?.colors.icon ?? textColor
+
+  // F10.5: resolución do icono — (a) ID rexistrado → IconGlyph;
+  // (b) URL (http/https/// relativa) → <image>; (c) calquera outro →
+  // <text> (emoji/char, fallback retrocompatible).
+  const iconDef = icon !== undefined ? getIcon(icon) : undefined
+  const iconIsUrl = icon !== undefined && /^(?:https?:)?\/\//.test(icon)
+  // Tamaño do icono SVG: proporcional ao raio. Mantén o oco do emoji
+  // anterior (radius=26 daba ~26px de glyph), e escala ao redor diso.
+  const iconSize = radius * 1.0
 
   const shapeStyle: CSSProperties = {
     fill,
@@ -149,7 +163,24 @@ export function SkillNode({
       })}
     >
       {renderNodeShape(shape, radius, shapeStyle)}
-      {icon !== undefined && (
+      {iconDef !== undefined && (
+        <IconGlyph
+          def={iconDef}
+          size={iconSize}
+          {...(iconColor !== undefined && { color: iconColor })}
+        />
+      )}
+      {iconDef === undefined && iconIsUrl && icon !== undefined && (
+        <image
+          className="yf-skill-node__icon"
+          href={icon}
+          x={-iconSize / 2}
+          y={-iconSize / 2}
+          width={iconSize}
+          height={iconSize}
+        />
+      )}
+      {iconDef === undefined && !iconIsUrl && icon !== undefined && (
         <text
           className="yf-skill-node__icon"
           textAnchor="middle"

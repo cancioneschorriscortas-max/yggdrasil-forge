@@ -47,4 +47,14 @@ export type { SkillTreeAnnouncerProps } from './SkillTreeAnnouncer.js'
 // Error boundary para SkillTree (class component; require 'use client').
 export { SkillTreeErrorBoundary } from './SkillTreeErrorBoundary.js'
 export type { SkillTreeErrorBoundaryProps } from './SkillTreeErrorBoundary.js'
+
+// F10.5: rexistro de iconos SVG recoloreables. O auto-rexistro dos
+// builtins vive en `registry.ts` (top-level), execútase cando
+// `SkillNode` importa `getIcon` — non require side-effect import aquí
+// (que sería tree-shaken por `package.json` `"sideEffects": false`).
+export { registerIcon, registerIcons, getIcon, hasIcon } from './icons/registry.js'
+export type { IconDef, IconPath } from './icons/registry.js'
+export { IconGlyph } from './icons/IconGlyph.js'
+export type { IconGlyphProps } from './icons/IconGlyph.js'
+export { BUILTIN_ICONS } from './icons/registry.js'
 // ── FIN: @yggdrasil-forge/react ──

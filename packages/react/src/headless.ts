@@ -51,4 +51,16 @@ export type { SkillTreeAnnouncerProps } from './SkillTreeAnnouncer.js'
 // Error boundary (class component; require 'use client').
 export { SkillTreeErrorBoundary } from './SkillTreeErrorBoundary.js'
 export type { SkillTreeErrorBoundaryProps } from './SkillTreeErrorBoundary.js'
+
+// F10.5: rexistro de iconos SVG. Mesma API en /index e /headless; o
+// singleton Symbol.for(globalThis) garante que ambos vexan o mesmo
+// Map (A.6.21 — caso xemelo de A.6.17 para ThemeContext). O auto-
+// rexistro dos builtins vive en `registry.ts` (top-level), non
+// require side-effect import (sería tree-shaken por
+// `"sideEffects": false`).
+export { registerIcon, registerIcons, getIcon, hasIcon } from './icons/registry.js'
+export type { IconDef, IconPath } from './icons/registry.js'
+export { IconGlyph } from './icons/IconGlyph.js'
+export type { IconGlyphProps } from './icons/IconGlyph.js'
+export { BUILTIN_ICONS } from './icons/registry.js'
 // ── FIN: headless entry point ──
