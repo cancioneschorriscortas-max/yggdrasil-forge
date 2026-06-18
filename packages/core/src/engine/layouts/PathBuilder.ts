@@ -1,5 +1,6 @@
 // ── INICIO: PathBuilder ──
 import type { Position } from '../../types/node.js'
+import type { TreeDef } from '../../types/tree.js'
 import type { EdgePath, LayoutResult } from './LayoutResult.js'
 
 /**
@@ -154,5 +155,77 @@ function buildPath(
       }
     }
   }
+}
+
+/**
+ * Aplica routing por-edge a un `LayoutResult` segundo o contrato de
+ * datos (F10.4b).
+ *
+ * Para cada edge do `treeDef`, resolve o estilo como
+ * `edge.style?.routing ?? treeDef.layout.curve`. Se o estilo resolto
+ * está definido **e** non é `'straight'`, reconstrúe o path do edge co
+ * helper interno `buildPath`. Calquera outro caso (sen routing
+ * resolto, `'straight'`, ou edge sen path no layout) → deixa o path
+ * tal cal.
+ *
+ * Inmutable: devolve un novo `LayoutResult` cun novo Map de edges. Os
+ * paths non modificados reutilízanse por referencia (sen clonado
+ * innecesario).
+ *
+ * O centro para `'radial'` (centerX/centerY) calcúlase desde os bounds
+ * do propio layout. `tension`/`cornerRatio` toman os defaults
+ * (mesmo comportamento que `buildPaths`).
+ */
+export function applyEdgeRouting(
+  layoutResult: LayoutResult,
+  treeDef: TreeDef,
+  options: PathBuilderOptions = {},
+): LayoutResult {
+  const layoutCurve = treeDef.layout.curve
+  // Fast path: cero edges teñen routing resolto → ningún cambio.
+  // Iteramos edges para saber se hai algo que facer; común en árbores
+  // que non opt-in (retrocompatibilidade total: paths rectos).
+  let anyResolved = false
+  for (const edge of treeDef.edges) {
+    const resolved = edge.style?.routing ?? layoutCurve
+    if (resolved !== undefined && resolved !== 'straight') {
+      anyResolved = true
+      break
+    }
+  }
+  if (!anyResolved) return layoutResult
+
+  const tension = options.tension ?? 0.5
+  const cornerRatio = options.cornerRatio ?? 0.5
+  // Centro derivado dos bounds (consistente con 'radial' de buildPaths).
+  const { bounds } = layoutResult
+  const centerX = options.centerX ?? (bounds.minX + bounds.maxX) / 2
+  const centerY = options.centerY ?? (bounds.minY + bounds.maxY) / 2
+
+  const newEdges = new Map<string, EdgePath>()
+  for (const [edgeId, oldPath] of layoutResult.edges) {
+    newEdges.set(edgeId, oldPath)
+  }
+
+  for (const edge of treeDef.edges) {
+    const resolved = edge.style?.routing ?? layoutCurve
+    if (resolved === undefined || resolved === 'straight') continue
+    const oldPath = layoutResult.edges.get(edge.id)
+    /* v8 ignore next -- defensivo: o layout produce paths para tódolos edges */
+    if (oldPath === undefined) continue
+    const pts = oldPath.points
+    /* v8 ignore next -- defensivo: paths sempre teñen polo menos 2 puntos */
+    if (pts.length < 2) continue
+    const source = pts[0]
+    const target = pts[pts.length - 1]
+    /* v8 ignore next -- defensivo: length>=2 garántese arriba */
+    if (source === undefined || target === undefined) continue
+    newEdges.set(
+      edge.id,
+      buildPath(resolved, source, target, { tension, centerX, centerY, cornerRatio }),
+    )
+  }
+
+  return { ...layoutResult, edges: newEdges }
 }
 // ── FIN: PathBuilder ──

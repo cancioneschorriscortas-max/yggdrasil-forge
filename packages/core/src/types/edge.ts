@@ -2,6 +2,7 @@
 // Conexións entre nodos: dependencias, exclusións, camiños visuais.
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
+import type { CurveStyle } from '../engine/layouts/PathBuilder.js'
 
 /**
  * Tipo semántico dunha conexión.
@@ -37,6 +38,12 @@ export interface EdgeStyle {
   readonly animated?: boolean
   /** Debuxar frecha no extremo `target` (F10.4). Default `false`. */
   readonly directed?: boolean
+  /**
+   * Override de curva por-edge (F10.4b). Gaña sobre
+   * `LayoutConfig.curve`. Se ambos están ausentes (ou son 'straight'),
+   * o path queda recto (do layout). Aplícase por `computeLayout`.
+   */
+  readonly routing?: CurveStyle
 }
 
 /**

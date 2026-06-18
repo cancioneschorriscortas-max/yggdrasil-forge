@@ -291,6 +291,14 @@ const edgeTypeSchema = z.union([
   z.literal('subtree_link'),
 ])
 
+const curveStyleSchema = z.enum([
+  'straight',
+  'diagonal-vertical',
+  'diagonal-horizontal',
+  'radial',
+  'orthogonal',
+])
+
 const edgeStyleSchema = z.object({
   color: z.string().optional(),
   width: z.number().optional(),
@@ -299,6 +307,8 @@ const edgeStyleSchema = z.object({
   animated: z.boolean().optional(),
   // F10.4: frechas opcionais no extremo target.
   directed: z.boolean().optional(),
+  // F10.4b: override de curva por-edge (gaña sobre LayoutConfig.curve).
+  routing: curveStyleSchema.optional(),
 })
 
 const edgeDefSchema = z.object({
@@ -420,7 +430,10 @@ const statDefSchema = z.object({
 // ── LayoutConfig (types/tree.ts): { type: string } + índice abierto ──
 // El contrato declara `readonly [key: string]: unknown`: catchall conserva
 // campos extra sin perder la clave `type` requerida.
-const layoutConfigSchema = z.object({ type: z.string() }).catchall(z.unknown())
+// F10.4b: `curve` opcional tipado (LayoutConfig.curve).
+const layoutConfigSchema = z
+  .object({ type: z.string(), curve: curveStyleSchema.optional() })
+  .catchall(z.unknown())
 
 // ── I18nConfig (types/i18n.ts) ──
 // Locale = string. `resolver` es una función opcional que no aparece en datos

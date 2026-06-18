@@ -14,7 +14,7 @@ export const rpgTreeDef: TreeDef = {
     en: 'A sample skill tree for an RPG character with melee and ranged branches.',
   },
   rootNodeId: 'combat',
-  layout: { type: 'tree' },
+  layout: { type: 'tree', curve: 'diagonal-vertical' },
   nodes: [
     {
       id: 'combat',
@@ -89,7 +89,16 @@ export const rpgTreeDef: TreeDef = {
       style: { directed: true },
     },
     { id: 'e-melee-sword', source: 'melee', target: 'sword-mastery', type: 'dependency' },
-    { id: 'e-melee-shield', source: 'melee', target: 'shield-bash', type: 'dependency' },
+    {
+      id: 'e-melee-shield',
+      source: 'melee',
+      target: 'shield-bash',
+      type: 'dependency',
+      // F10.4b: override por-edge — este edge úsase como mostra do
+      // contrato de datos (`EdgeStyle.routing`), debuxado en ángulos
+      // rectos contra os demais curvos da árbore.
+      style: { routing: 'orthogonal' },
+    },
     { id: 'e-ranged-bow', source: 'ranged', target: 'bow-mastery', type: 'dependency' },
     { id: 'e-bow-crit', source: 'bow-mastery', target: 'critical-shot', type: 'dependency' },
     { id: 'e-sword-whirl', source: 'sword-mastery', target: 'whirlwind', type: 'dependency' },

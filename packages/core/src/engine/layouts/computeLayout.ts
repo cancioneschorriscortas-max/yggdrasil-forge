@@ -6,10 +6,12 @@ import {
   YggdrasilError,
   err,
   getErrorMessage,
+  ok,
 } from '@yggdrasil-forge/common'
 import type { TreeDef } from '../../types/tree.js'
 import type { LayoutEngineRegistry } from './LayoutEngineRegistry.js'
 import type { LayoutResult } from './LayoutResult.js'
+import { applyEdgeRouting } from './PathBuilder.js'
 
 const DEFAULT_LOCALE: Locale = 'gl'
 
@@ -43,6 +45,12 @@ export function computeLayout(
     )
   }
 
-  return engine.compute(treeDef)
+  // F10.4b: aplicar routing por-edge segundo o contrato de datos
+  // (LayoutConfig.curve + EdgeStyle.routing). applyEdgeRouting é
+  // idempotente para árbores sen routing definido (fast-path: devolve
+  // o mesmo LayoutResult); polo tanto é retrocompatible.
+  const computeResult = engine.compute(treeDef)
+  if (!computeResult.ok) return computeResult
+  return ok(applyEdgeRouting(computeResult.value, treeDef))
 }
 // ── FIN: computeLayout función pública ──

@@ -3372,6 +3372,67 @@ singleton cross-bundle (`Symbol.for(globalThis)`). Adicionalmente,
 `/headless` debe re-exportar `ThemeProvider`/`Theme` para que un
 consumidor en modo headless poida tematizar dun único bundle.
 
+### A.6.18 — Multi-package builds con DTS interdependente
+
+`pnpm --filter <pkg> build` **non** respecta o pipeline de dependencias de
+turbo. Se `@react` depende de tipos de `@core` e ambos tiveron cambios no
+mesmo PR/patch, o `tsup-dts` de `@react` lerá `@core/dist/index.d.ts`
+**vello** porque o seu `@core/dist` non se reconstruíu antes. Síntoma:
+`error TS2339: Property 'X' does not exist on type 'Y'` durante o DTS
+build dunha rama onde X **si** existe no source.
+
+Regra: para builds multi-paquete tras aplicar un patch que toca varios,
+**sempre** `pnpm turbo run build --filter=@<consumidor> --force`. Turbo
+reconstrúe automáticamente os deps upstream antes do consumidor.
+
+Detectado en F10.4 (EdgeStyle.directed novo no core): `pnpm --filter
+@react build` rompeu DTS porque `EdgeStyle.directed` non existía en
+`packages/core/dist/index.d.ts`. `pnpm turbo run build --filter=@react
+--force` resolveu en un só comando.
+
+### A.6.19 — SVG `marker-end` e orde de render
+
+Un `<marker>` referenciado por `marker-end` debúxase **no último punto do
+path**, **centrado no anchor**. Se ese punto está dentro dun shape máis
+grande (ex. círculo dun nodo) e o shape se renderiza **despois** do path
+(orden estándar en skill trees: `<edges>` antes que `<nodes>` para que
+estes pinten encima), o marker queda **completamente oculto polo fill** do
+nodo.
+
+Solucións consideradas:
+- Aumentar `markerWidth/markerHeight`: non funciona — o marker queda
+  centrado no punto, polo que máis grande = máis cuberto polo nodo.
+- `markerUnits="userSpaceOnUse"`: mellora marxinal, mesmo problema.
+- **Acortar o path** no extremo target (escollida en F10.4): helper puro
+  `shortenEdgeAtTarget(path, gap)` move o último punto cara o anterior
+  unha distancia `gap`. Para edges `directed`, `gap = targetRadius + 2`.
+  A frecha queda visible fóra do bordo. Helper en
+  `packages/react/src/edgeGeometry.ts`.
+
+Aplicable a calquera SVG con markers e shapes opacos nos extremos.
+
+### A.6.20 — Curva/routing = contrato de datos (non prop de React)
+
+A xeometría dos edges (curva tree-wide, routing por-edge) é parte do
+**contrato de datos** (viaxa co `TreeDef`, serialízase, vale para Studio,
+exportadores e calquera renderer), **non** un prop de presentación.
+
+Canónico (F10.4b):
+- `LayoutConfig.curve?: CurveStyle` — estilo por defecto da árbore.
+- `EdgeStyle.routing?: CurveStyle` — override por-edge (gaña sobre o de
+  layout).
+- `computeLayout` aplica `applyEdgeRouting(layoutResult, treeDef)` tras o
+  layout para reescribir os paths afectados. Retrocompatible: árbores sen
+  routing definido seguen retas.
+
+`SkillTree.curve` (React) **sobrevive como override de presentación**:
+gaña sobre o dato cando se pasa. Útil para axustes de UI puntuais; non é
+o canónico.
+
+Razón do principio: o **tema** (cores) é runtime e vive en
+`ThemeProvider` (A.6.17). A **xeometría**, en cambio, é estrutura — debe
+ir co TreeDef para que se conserve ao serializar/exportar/editar.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

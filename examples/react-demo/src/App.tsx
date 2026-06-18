@@ -124,7 +124,7 @@ export function App(): JSX.Element {
         <div className="tree-frame">
           <div className="tree-container" style={wrapperStyle}>
             <ThemeProvider theme={builtTheme}>
-              <SkillTree engine={engine} onNodeClick={handleNodeClick} curve="diagonal-vertical" />
+              <SkillTree engine={engine} onNodeClick={handleNodeClick} />
             </ThemeProvider>
           </div>
         </div>

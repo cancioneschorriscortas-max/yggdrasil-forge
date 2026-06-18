@@ -34,9 +34,16 @@ export interface SkillTreeProps {
   readonly layoutRegistry?: LayoutEngineRegistry
   readonly padding?: number
   /**
-   * Estilo de curva para os edges (F10.4). Aplícase via
-   * `buildPaths(layoutResult, curve)` tras `computeLayout`. Opcional;
-   * default = sen curve (paths retos do layout).
+   * Override de presentación de curva (F10.4b). Cando se pasa, aplica
+   * `buildPaths(layoutResult, curve)` tree-wide **por riba** do que
+   * `computeLayout` produza (que xa pode traer xeometría desde o
+   * contrato de datos via `LayoutConfig.curve` + `EdgeStyle.routing`).
+   *
+   * **Canónico = contrato de datos**: para skill-trees serializables /
+   * que viaxen entre Studio, exportadores e outros renderers, prefire
+   * configurar `treeDef.layout.curve` (e `edge.style.routing` para
+   * overrides por-edge). Este prop é só para axustes de
+   * presentación puntuais en UI (MASTER A.6.20).
    */
   readonly curve?: CurveStyle
 }

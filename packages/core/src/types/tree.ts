@@ -4,6 +4,7 @@
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { Locale } from '@yggdrasil-forge/common'
 import type { StorageAdapter } from '@yggdrasil-forge/common'
+import type { CurveStyle } from '../engine/layouts/PathBuilder.js'
 import type { EdgeDef } from './edge.js'
 import type { I18nConfig } from './i18n.js'
 import type { NodeDef, NodeInstance, Position } from './node.js'
@@ -69,6 +70,20 @@ export interface BaseLayoutConfig {
  */
 export interface LayoutConfig {
   readonly type: string
+  /**
+   * Estilo de curva por defecto para os edges desta árbore (F10.4b).
+   * Aplícase por `computeLayout` tras o cálculo do layout: para cada
+   * edge, `edge.style?.routing` ten precedencia; en ausencia, úsase
+   * este `curve`. Se ningún dos dous está definido (ou é 'straight'),
+   * os paths quedan rectos.
+   *
+   * **Decisión arquitectónica** (MASTER A.6.20): a xeometría dos edges
+   * é parte do **contrato de datos** (viaxa co TreeDef, serialízase,
+   * pásalle a Studio/exportadores/calquera renderer), non un prop de
+   * presentación. Para overrides puntuais de UI, `SkillTree.curve`
+   * prop segue dispoñible como override tree-wide de presentación.
+   */
+  readonly curve?: CurveStyle
   readonly [key: string]: unknown
 }
 
