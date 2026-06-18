@@ -63,4 +63,7 @@ export type { IconDef, IconPath } from './icons/registry.js'
 export { IconGlyph } from './icons/IconGlyph.js'
 export type { IconGlyphProps } from './icons/IconGlyph.js'
 export { BUILTIN_ICONS } from './icons/registry.js'
+
+// F10.5b: iconset Norse (opt-in, mesmo patrón que /index).
+export { NORSE_ICONS } from './icons/norse.js'
 // ── FIN: headless entry point ──

@@ -57,4 +57,11 @@ export type { IconDef, IconPath } from './icons/registry.js'
 export { IconGlyph } from './icons/IconGlyph.js'
 export type { IconGlyphProps } from './icons/IconGlyph.js'
 export { BUILTIN_ICONS } from './icons/registry.js'
+
+// F10.5b: iconset Norse (opt-in). 26 iconos de inspiración nórdica
+// para o branding Yggdrasil. Non se auto-rexistran (byte-cost que
+// non todo consumidor quere). Uso explícito:
+//   import { registerIcons, NORSE_ICONS } from '@yggdrasil-forge/react'
+//   registerIcons(NORSE_ICONS)
+export { NORSE_ICONS } from './icons/norse.js'
 // ── FIN: @yggdrasil-forge/react ──

@@ -16,7 +16,8 @@
 | **F10.3.fix-2** | `ThemeContext` = **singleton cross-bundle** (`Symbol.for(globalThis)`); `/headless` re-exporta `ThemeProvider`. Resolve o `useTheme()===null` cando se mestura `/index` + `/headless`. | ✅ pushed |
 | **F10.4** | SkillEdge v2: `SkillTree.curve?` prop + edge-state coloring (`edgeStateFor`) + `ThemeColors.edgeActive?` + frechas (`EdgeStyle.directed?` + `<defs><marker>`) + `shortenEdgeAtTarget` para visibilidade. | ✅ pushed |
 | **F10.4b** | Curva e routing baixan ao **contrato de datos**: `LayoutConfig.curve?` + `EdgeStyle.routing?` aplicados por `computeLayout` via `applyEdgeRouting`. `SkillTree.curve` queda como override de presentación. | ✅ pushed |
-| **F10.5** | Rexistro de iconos SVG (`registerIcon/getIcon/hasIcon`, `Symbol.for` singleton — A.6.21). `IconGlyph` con recolor via `currentColor`. Resolución en `SkillNode`: id rexistrado → URL → emoji/char (fallback). Iconset starter de 6 iconos. `ThemeColors.icon?`. | ⏳ neste patch |
+| **F10.5** | Rexistro de iconos SVG (`registerIcon/getIcon/hasIcon`, `Symbol.for` singleton — A.6.21). `IconGlyph` con recolor via `currentColor`. Resolución en `SkillNode`: id rexistrado → URL → emoji/char (fallback). Iconset starter de 6 iconos. `ThemeColors.icon?`. | ✅ pushed |
+| **F10.5b** | Iconset **Norse** (26 iconos: yggdrasil, runas, bestiario, armamento, drakkar, elementos, celestes, simbólicos). **Opt-in** via `registerIcons(NORSE_ICONS)` (non auto-rexistra; mantén byte-size mínimo no paquete base). IDs prefixados `norse-*` sen colisión cos builtins. Demo usa 7 iconos norse + 1 emoji fallback (whirlwind). | ⏳ neste patch |
 
 ## Decisións arquitectónicas relacionadas (MASTER)
 
@@ -28,15 +29,15 @@
 
 ## Backlog (Renderer 2.0)
 
-- **Iconos temáticos ricos** (F10.5b ou similar): a *arquitectura* do
-  rexistro está lista; o iconset starter (6 iconos) é arte funcional
-  pendente de refino. Engadir novos sets é trivial — `registerIcons({
-  ... })` desde calquera lugar. Ampliable sen tocar o motor.
-  - **Ferramenta de iteración**: `tools/icon-preview/index.html`
-    (standalone, abre directamente no navegador) permite probar paths
-    SVG en vivo no formato `IconDef`. Inclúe un set de inspiración
-    norse (~28 iconos) listo para refinar. Útil tamén como base para
-    un futuro panel "Import icons" no Studio editor.
+- **Refinar arte do iconset Norse** (opcional): os 26 paths actuais
+  son arte funcional/decorativa boa de aspecto consistente; o refino
+  pode iterarse vía `tools/icon-preview/` (paste de paths novos →
+  preview en vivo → cando guste, substituír os paths en
+  `packages/react/src/icons/norse.ts`). Cero downtime arquitectónico.
+- **Iconsets adicionais** (opcionais): mesmo patrón opt-in que
+  `NORSE_ICONS` (`packages/react/src/icons/<setname>.ts` + export
+  desde os barrels). Candidatos futuros: `MEDIEVAL_ICONS`,
+  `SCIFI_ICONS`, etc., segundo demanda.
 - **F10.6+** (sen briefing aínda): a definir polo Director. Posibles:
   candidatos a polish: animacións de transición de estado nos nodos
   (locked→unlockable→unlocked), efectos de hover/focus máis ricos,
