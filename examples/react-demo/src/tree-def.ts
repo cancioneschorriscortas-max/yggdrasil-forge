@@ -73,8 +73,21 @@ export const rpgTreeDef: TreeDef = {
     },
   ],
   edges: [
-    { id: 'e-combat-melee', source: 'combat', target: 'melee', type: 'dependency' },
-    { id: 'e-combat-ranged', source: 'combat', target: 'ranged', type: 'dependency' },
+    // F10.4: dependencies principais marcadas como directed (con frecha).
+    {
+      id: 'e-combat-melee',
+      source: 'combat',
+      target: 'melee',
+      type: 'dependency',
+      style: { directed: true },
+    },
+    {
+      id: 'e-combat-ranged',
+      source: 'combat',
+      target: 'ranged',
+      type: 'dependency',
+      style: { directed: true },
+    },
     { id: 'e-melee-sword', source: 'melee', target: 'sword-mastery', type: 'dependency' },
     { id: 'e-melee-shield', source: 'melee', target: 'shield-bash', type: 'dependency' },
     { id: 'e-ranged-bow', source: 'ranged', target: 'bow-mastery', type: 'dependency' },

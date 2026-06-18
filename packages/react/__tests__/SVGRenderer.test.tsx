@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 // ── INICIO: tests SVGRenderer ──
 import { describe, expect, it } from 'vitest'
-import { SVGRenderer } from '../src/SVGRenderer.js'
+import { ARROW_MARKER_ID, SVGRenderer } from '../src/SVGRenderer.js'
 import { ThemeProvider } from '../src/ThemeProvider.js'
 import { minimal } from '../src/themes/minimal.js'
 
@@ -149,6 +149,34 @@ describe('SVGRenderer — integración con animacións', () => {
     )
     expect(container.querySelector('style')).toBeNull()
     expect(container.innerHTML).not.toContain('@keyframes')
+  })
+})
+
+// ── Bloque 4: <defs> con marker de frecha (F10.4) ──
+
+describe('SVGRenderer — marker de frecha en <defs> (F10.4)', () => {
+  it('con tema: <defs> presente con marker#yf-arrow-marker e fill=edge', () => {
+    const { container } = render(
+      <ThemeProvider theme={minimal}>
+        <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />
+      </ThemeProvider>,
+    )
+    const defs = container.querySelector('defs')
+    expect(defs).not.toBeNull()
+    const marker = container.querySelector(`marker#${ARROW_MARKER_ID}`)
+    expect(marker).not.toBeNull()
+    expect(marker?.getAttribute('orient')).toBe('auto-start-reverse')
+    const arrowPath = marker?.querySelector('path')
+    expect(arrowPath?.getAttribute('d')).toBe('M 0 0 L 10 5 L 0 10 z')
+    expect(arrowPath?.getAttribute('style') ?? '').toContain(`fill: ${minimal.colors.edge}`)
+  })
+
+  it('sen tema (headless): cero <defs> nin marker', () => {
+    const { container } = render(
+      <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />,
+    )
+    expect(container.querySelector('defs')).toBeNull()
+    expect(container.querySelector(`marker#${ARROW_MARKER_ID}`)).toBeNull()
   })
 })
 // ── FIN: tests SVGRenderer ──

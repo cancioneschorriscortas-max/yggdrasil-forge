@@ -297,6 +297,8 @@ const edgeStyleSchema = z.object({
   dashPattern: z.array(z.number()).optional(),
   glow: z.boolean().optional(),
   animated: z.boolean().optional(),
+  // F10.4: frechas opcionais no extremo target.
+  directed: z.boolean().optional(),
 })
 
 const edgeDefSchema = z.object({

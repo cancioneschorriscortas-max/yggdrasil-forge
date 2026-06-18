@@ -35,6 +35,8 @@ export interface EdgeStyle {
   readonly glow?: boolean
   /** Liña animada (partículas, pulso). */
   readonly animated?: boolean
+  /** Debuxar frecha no extremo `target` (F10.4). Default `false`. */
+  readonly directed?: boolean
 }
 
 /**

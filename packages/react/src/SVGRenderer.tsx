@@ -2,10 +2,21 @@
 
 import type { Bounds } from '@yggdrasil-forge/core'
 // ── INICIO: SVGRenderer ──
-import { type JSX, type ReactNode, useId } from 'react'
+import { type CSSProperties, type JSX, type ReactNode, useId } from 'react'
 import { useTheme } from './ThemeProvider.js'
 import { buildAnimationsCSS } from './animations.js'
 import { buildViewBox } from './svg-helpers.js'
+
+/**
+ * ID estable do marker `<marker>` da frecha (F10.4). Compartido entre
+ * `SVGRenderer` (que define o marker en `<defs>`) e `SkillEdge` (que o
+ * referencia via `marker-end="url(#...)"`).
+ *
+ * Estable cross-instance: hai un só skill-tree por viewport como caso
+ * típico; aínda con varios, todos comparten o mesmo marker (mesmo
+ * shape), polo que un id global é suficiente.
+ */
+export const ARROW_MARKER_ID = 'yf-arrow-marker'
 
 export interface SVGRendererProps {
   readonly bounds?: Bounds
@@ -63,6 +74,12 @@ export function SVGRenderer({
 
   const animationsCSS = theme !== null ? buildAnimationsCSS(themeId) : null
 
+  // F10.4: marker de frecha en <defs>. fill inline desde useTheme()
+  // (mesmo patrón que SkillEdge stroke). Só se emite cando hai tema —
+  // mesma convención que data-theme-id e o <style> de animacións.
+  const arrowFillStyle: CSSProperties | undefined =
+    theme !== null && theme.colors.edge !== undefined ? { fill: theme.colors.edge } : undefined
+
   return (
     <svg
       className="yf-skill-tree"
@@ -73,6 +90,24 @@ export function SVGRenderer({
       aria-label={ariaLabel ?? 'Skill tree'}
     >
       {animationsCSS !== null && <style>{animationsCSS}</style>}
+      {theme !== null && (
+        <defs>
+          <marker
+            id={ARROW_MARKER_ID}
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path
+              d="M 0 0 L 10 5 L 0 10 z"
+              {...(arrowFillStyle !== undefined && { style: arrowFillStyle })}
+            />
+          </marker>
+        </defs>
+      )}
       {children}
     </svg>
   )

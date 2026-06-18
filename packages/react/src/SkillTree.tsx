@@ -5,13 +5,20 @@
 // nativo de React 18+ (re-render automático). Computa layout
 // internamente via computeLayout. Headless: cero estilos hardcoded.
 
-import { type LayoutEngineRegistry, type TreeEngine, computeLayout } from '@yggdrasil-forge/core'
+import {
+  type CurveStyle,
+  type LayoutEngineRegistry,
+  type TreeEngine,
+  buildPaths,
+  computeLayout,
+} from '@yggdrasil-forge/core'
 import { type JSX, useMemo, useSyncExternalStore } from 'react'
 import { MeshOverlay } from './MeshOverlay.js'
 import { SVGRenderer } from './SVGRenderer.js'
-import { SkillEdge } from './SkillEdge.js'
+import { SkillEdge, edgeStateFor } from './SkillEdge.js'
 import { SkillNode } from './SkillNode.js'
 import { createDefaultLayoutRegistry } from './createDefaultLayoutRegistry.js'
+import { shortenEdgeAtTarget } from './edgeGeometry.js'
 import { resolveRadius } from './nodeGeometry.js'
 
 export interface SkillTreeProps {
@@ -26,6 +33,12 @@ export interface SkillTreeProps {
   readonly onNodeLongPress?: (nodeId: string) => void
   readonly layoutRegistry?: LayoutEngineRegistry
   readonly padding?: number
+  /**
+   * Estilo de curva para os edges (F10.4). Aplícase via
+   * `buildPaths(layoutResult, curve)` tras `computeLayout`. Opcional;
+   * default = sen curve (paths retos do layout).
+   */
+  readonly curve?: CurveStyle
 }
 
 export function SkillTree({
@@ -36,6 +49,7 @@ export function SkillTree({
   onNodeLongPress,
   layoutRegistry,
   padding = 16,
+  curve,
 }: SkillTreeProps): JSX.Element {
   const state = useSyncExternalStore(
     engine.subscribe.bind(engine),
@@ -55,7 +69,13 @@ export function SkillTree({
     return <SVGRenderer padding={padding} error={layoutResult.error.code} />
   }
 
-  const { nodes: nodePositions, edges: edgePaths, bounds, mesh } = layoutResult.value
+  // F10.4: aplicar curve (opcional). buildPaths é puro — recibe o
+  // LayoutResult sen mutar; cando `curve` non se pasa, salta a
+  // transformación (paths retos do layout, comportamento legacy).
+  const finalLayout =
+    curve !== undefined ? buildPaths(layoutResult.value, curve) : layoutResult.value
+
+  const { nodes: nodePositions, edges: edgePaths, bounds, mesh } = finalLayout
 
   // F10.3: padding efectivo conta o maior raio do nodo + espazo do label.
   // Sen isto, nodos cerca dos bordes do layout (especialmente con raios
@@ -66,6 +86,14 @@ export function SkillTree({
   const edgeMap = useMemo(() => {
     const m = new Map<string, (typeof treeDef.edges)[number]>()
     for (const e of treeDef.edges) m.set(e.id, e)
+    return m
+  }, [treeDef])
+
+  // F10.4.fix-arrow: lookup de raio por id de nodo, para acortar paths
+  // de edges `directed` e que a frecha quede visible fóra do nodo target.
+  const nodeRadius = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const n of treeDef.nodes) m.set(n.id, resolveRadius(n))
     return m
   }, [treeDef])
 
@@ -81,12 +109,23 @@ export function SkillTree({
           const edge = edgeMap.get(edgeId)
           /* v8 ignore next 1 -- defensivo: edgePaths vén de computeLayout sobre treeDef.edges */
           if (edge === undefined) return null
+          // F10.4: estado do edge = derivado do estado do source.
+          const sourceState = state.nodes[edge.source]?.state
+          const edgeState = edgeStateFor(sourceState)
+          // F10.4.fix-arrow: se o edge é directed, acortamos o path no
+          // extremo target o suficiente para que a frecha quede visible
+          // fóra do nodo. Gap = radio do target + pequena marxe.
+          const directed = edge.style?.directed === true
+          const targetRadius = nodeRadius.get(edge.target) ?? 0
+          const finalPath =
+            directed && targetRadius > 0 ? shortenEdgeAtTarget(path, targetRadius + 2) : path
           return (
             <SkillEdge
               key={edgeId}
               edgeId={edgeId}
               edge={edge}
-              path={path}
+              path={finalPath}
+              edgeState={edgeState}
               {...(onEdgeClick !== undefined && { onClick: onEdgeClick })}
             />
           )

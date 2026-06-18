@@ -48,6 +48,13 @@ export interface ThemeColors {
   /** Cor das liñas dos edges. */
   readonly edge: string
 
+  /**
+   * Cor dos edges activos/«acesos» (F10.4). Opcional; fallback a
+   * `edge`. Un edge é activo cando o seu nodo `source` está en
+   * `unlocked` ou `maxed` (camiños «acesos» desde nodos conquistados).
+   */
+  readonly edgeActive?: string
+
   /** Cor dos elementos do mesh overlay (line, circle, polygon). */
   readonly mesh: string
 

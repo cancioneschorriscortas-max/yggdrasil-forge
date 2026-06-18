@@ -26,6 +26,7 @@ export const minimal: Theme = {
     // específicas inxectan tema custom vía <ThemeProvider theme={...}>.
     nodeStroke: '#555555',
     edge: '#999999',
+    edgeActive: '#666666',
     mesh: '#dddddd',
     nodeFill: '#f4f4ef',
   },
