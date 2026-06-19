@@ -30,6 +30,7 @@
 - **A.6.22** — Modelo de viewport SVG: `viewBox` para o encadre base (fit visual), `<g transform>` arredor dos children para pan/zoom interactivo. **Non** manipular `viewBox` para zoom — mestura responsabilidades e dificulta o cálculo de cursor→user coords.
 - **A.6.23** — `onWheel` de React rexístrase como *passive*, polo que `preventDefault` é ignorado (a páxina rola ao facer zoom). Solución: rexistrar un listener nativo `{ passive: false }` no `<svg>` via `useEffect`. Aplicado en `useViewport`.
 - **A.6.24** — `setPointerCapture` en `onPointerDown` mata os `onClick` dos descendentes (redirixe o `pointerup`). Diferir o capture ata cruzar o umbral anti-click (F10.6 fix-click).
+- **A.6.25** — Versións consistentes de React+@types/react no monorepo: usar `catalog:` + `workspace:*` en tódolos paquetes; `^X.X.X` literal nun demo pode crear dúas versions de `@types/react` que crashean cando un paquete expón `forwardRef` (F10.6 deps-align).
 
 ## Backlog (Renderer 2.0)
 

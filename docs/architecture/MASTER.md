@@ -3589,6 +3589,46 @@ Regra para revisores: calquera handler que combine `setPointerCapture`
 en `onPointerDown`. Se o briefing menciona "anti-click threshold" ou
 "distinguir click de drag", esta é a pegada esperada.
 
+### A.6.25 — Versións consistentes de React no monorepo: `catalog:` + `workspace:*`
+
+Cando un paquete do monorepo expón `forwardRef` (ou calquera tipo que
+involucre `ReactNode`/`RefAttributes` internamente), o consumidor e o
+producer **deben compartir a mesma versión de `@types/react`**, ou TS
+falla cun erro críptico:
+
+```
+Type 'ForwardRefExoticComponent<...>' is not a valid JSX element type.
+  Type 'ReactNode' is not assignable to type 'React.ReactNode'.
+    Type 'bigint' is not assignable to type 'ReactNode'.
+```
+
+A mención de `bigint` é o "tell": engadiuse a `ReactNode` en `@types/react@18.3.x`+, polo que dúas versions cohabitando dan tipos
+incompatibles.
+
+Pegada en F10.6: o `pnpm-workspace.yaml` declaraba o catálogo con
+React 19 (`react: 19.2.7`, `@types/react: ^19.0.0`), pero o
+`examples/react-demo/package.json` tiña hardcoded `react: ^18.3.1` e
+`@types/react: ^18.3.12`. Tests do paquete pasaban (usan `@react`
+mesmo bundle), pero ao añadir `forwardRef` en `SkillTree` o typecheck
+do demo crashaba.
+
+Patrón canónico no proxecto:
+- **`pnpm-workspace.yaml`** define o catálogo (`catalog: { react: ... }`).
+- **Tódolos paquetes** que usen React refírense via `"react": "catalog:"`,
+  `"@types/react": "catalog:"`.
+- **Deps cross-workspace** usan workspace protocol: `"@yggdrasil-forge/react": "workspace:*"` (non `^X.X.X`). pnpm 11 require iso para resolver
+  vía symlink local en lugar de tentar fetch do rexistro.
+
+Regra para revisores: ao engadir un novo example/app, NUNCA hardcodear
+versions de React/@types/react; sempre `catalog:` para devDeps e
+`workspace:*` para deps locais. Antes de mergear un PR que toque tipos
+do `@react` (forwardRef, useImperativeHandle, novos hooks expostos),
+verificar que `pnpm why @types/react` devolve **unha sola versión**.
+
+Bonus React 19: o namespace global `JSX` deixou de existir; hai que
+importar `import type { JSX } from 'react'` cando se quere o tipo
+`JSX.Element`.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

@@ -11,17 +11,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@yggdrasil-forge/common": "^0.1.0",
-    "@yggdrasil-forge/core": "^0.3.0",
-    "@yggdrasil-forge/react": "^0.3.0",
-    "@yggdrasil-forge/storage": "^0.1.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@yggdrasil-forge/common": "workspace:*",
+    "@yggdrasil-forge/core": "workspace:*",
+    "@yggdrasil-forge/react": "workspace:*",
+    "@yggdrasil-forge/storage": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "typescript": "catalog:",
     "vite": "^6.0.3"
   },
