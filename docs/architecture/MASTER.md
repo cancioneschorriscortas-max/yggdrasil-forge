@@ -3537,6 +3537,58 @@ Regra para revisores: calquera `useEffect` que precise interactuar con
 listener nativo. Se o briefing fala de "wheel-zoom" / "scroll
 interception" / "pinch-to-zoom", verificar que se usa este patrón.
 
+### A.6.24 — `setPointerCapture` mata os `onClick` descendentes; difírelo ata cruzar o umbral
+
+Cando un compoñente quere distinguir entre **click** (target descendente
+recibe `onClick`) e **drag** (o propio compoñente arrastra), o patrón
+ingenuo é:
+
+```typescript
+onPointerDown(e) {
+  e.currentTarget.setPointerCapture(e.pointerId)
+  // ... garda estado inicial
+}
+```
+
+**Trap silenciosa**: `setPointerCapture` redirixe **todos** os eventos
+de punteiro posteriores ao elemento capturador. Resultado: o
+`pointerup` **non chega ao descendente** (nin a calquera elemento bajo o
+cursor distinto do capturador). Como `onClick` deriva da secuencia
+`pointerdown → pointerup → click`, e o `pointerup` perdeuse, o `click`
+**nunca se dispara**. Os clics nos descendentes (nodos, botóns, etc.)
+parecen mortos sen erro visible.
+
+Detectado en F10.6 (Agarfal: «non se activan os nodos»). Síntoma: a
+árbore arrastra perfectamente pero os clics non desbloquean nada.
+
+Patrón correcto: **diferir `setPointerCapture` ata que se confirme o
+drag** (cursor moveuse máis dun umbral, ex. 4 px). Mentres tanto, os
+eventos seguen propagándose normalmente e os descendentes reciben o seu
+`pointerup`/`click`. Cando se decide "é un drag", o capture redirixe os
+move/up restantes:
+
+```typescript
+onPointerDown(e) {
+  panStartRef.current = { ...initial, moved: false }
+  // NON capturamos aquí
+}
+onPointerMove(e) {
+  const ps = panStartRef.current
+  if (!ps) return
+  if (!ps.moved) {
+    if (belowThreshold(dx, dy)) return
+    ps.moved = true
+    e.currentTarget.setPointerCapture(e.pointerId) // AGORA
+  }
+  // ... aplica delta
+}
+```
+
+Regra para revisores: calquera handler que combine `setPointerCapture`
++ "modo drag" debe verificar que o capture se faga **post-umbral**, non
+en `onPointerDown`. Se o briefing menciona "anti-click threshold" ou
+"distinguir click de drag", esta é a pegada esperada.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

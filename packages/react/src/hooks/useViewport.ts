@@ -276,10 +276,12 @@ export function useViewport(
 
   const onPointerDown = useCallback(
     (e: ReactPointerEvent<SVGSVGElement>) => {
-      // Só botón principal e cando o target é o propio <svg> ou un
-      // descendente non-interactivo. Os clicks en nodos consume o seu
-      // propio onClick; o pan só dispara se o movemento supera o
-      // umbral.
+      // Só botón principal. **Non** capturamos o pointer aínda: se
+      // setamos `setPointerCapture` aquí, o `pointerup` redirixe ao
+      // `<svg>` e o `onClick` dos nodos non se dispara (trap clásica
+      // — A.6.24). O capture difírese ata que o cursor cruce o umbral
+      // anti-click en `onPointerMove`, momento no que xa **somos un
+      // pan** e queremos arrastrar o evento.
       if (e.button !== 0) return
       panStartRef.current = {
         startX: e.clientX,
@@ -288,9 +290,6 @@ export function useViewport(
         initialPanY: state.panY,
         moved: false,
       }
-      // Capturamos o pointer para que o move/up cheguen mesmo se o
-      // cursor sae do <svg>.
-      e.currentTarget.setPointerCapture(e.pointerId)
     },
     [state.panX, state.panY],
   )
@@ -306,6 +305,11 @@ export function useViewport(
         if (Math.abs(dx) < PAN_CLICK_THRESHOLD && Math.abs(dy) < PAN_CLICK_THRESHOLD) return
         ps.moved = true
         setIsPanning(true)
+        // **Agora** capturamos o pointer: cancela o `onClick` pendente
+        // dos targets descendentes (xa entramos en modo pan) e
+        // garante que o move/up cheguen mesmo se o cursor sae do
+        // `<svg>`.
+        e.currentTarget.setPointerCapture(e.pointerId)
       }
       // Pan en coords cliente: aplicamos un factor para que o
       // desprazamento sexa percibido coherentemente. Como o viewBox xa

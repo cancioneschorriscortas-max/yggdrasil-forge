@@ -29,6 +29,7 @@
 - **A.6.21** — Rexistros mutables compartidos requiren `Symbol.for(globalThis)` singleton (xeneralización de A.6.17). Sub-lección: o auto-rexistro de defaults debe vivir dentro do propio módulo do rexistro (non en módulos satélites con side-effect imports), porque `sideEffects: false` no `package.json` tree-shakea os bare imports.
 - **A.6.22** — Modelo de viewport SVG: `viewBox` para o encadre base (fit visual), `<g transform>` arredor dos children para pan/zoom interactivo. **Non** manipular `viewBox` para zoom — mestura responsabilidades e dificulta o cálculo de cursor→user coords.
 - **A.6.23** — `onWheel` de React rexístrase como *passive*, polo que `preventDefault` é ignorado (a páxina rola ao facer zoom). Solución: rexistrar un listener nativo `{ passive: false }` no `<svg>` via `useEffect`. Aplicado en `useViewport`.
+- **A.6.24** — `setPointerCapture` en `onPointerDown` mata os `onClick` dos descendentes (redirixe o `pointerup`). Diferir o capture ata cruzar o umbral anti-click (F10.6 fix-click).
 
 ## Backlog (Renderer 2.0)
 
