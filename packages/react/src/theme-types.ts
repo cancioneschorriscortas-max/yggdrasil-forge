@@ -72,6 +72,16 @@ export interface ThemeColors {
    * no anel (stroke).
    */
   readonly nodeFill?: string
+
+  /**
+   * Cor do anel de selección (F10.7). Opcional; fallback a
+   * `nodeUnlockable` para conservar pegada visual coherente (a
+   * selección destaca igual que un nodo accesible). Aplícase como
+   * `stroke` dun `<circle>` overlay exterior ao nodo seleccionado.
+   *
+   * Tamén se usa para o anel de **focus-visible** (dashed) en a11y.
+   */
+  readonly selected?: string
 }
 
 export interface ThemeSizes {

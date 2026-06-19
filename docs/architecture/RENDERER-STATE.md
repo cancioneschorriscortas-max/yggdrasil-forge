@@ -18,7 +18,8 @@
 | **F10.4b** | Curva e routing baixan ao **contrato de datos**: `LayoutConfig.curve?` + `EdgeStyle.routing?` aplicados por `computeLayout` via `applyEdgeRouting`. `SkillTree.curve` queda como override de presentación. | ✅ pushed |
 | **F10.5** | Rexistro de iconos SVG (`registerIcon/getIcon/hasIcon`, `Symbol.for` singleton — A.6.21). `IconGlyph` con recolor via `currentColor`. Resolución en `SkillNode`: id rexistrado → URL → emoji/char (fallback). Iconset starter de 6 iconos. `ThemeColors.icon?`. | ✅ pushed |
 | **F10.5b** | Iconset **Norse** (26 iconos: yggdrasil, runas, bestiario, armamento, drakkar, elementos, celestes, simbólicos). **Opt-in** via `registerIcons(NORSE_ICONS)` (non auto-rexistra; mantén byte-size mínimo no paquete base). IDs prefixados `norse-*` sen colisión cos builtins. Demo usa 7 iconos norse + 1 emoji fallback (whirlwind). | ✅ pushed |
-| **F10.6** | Viewport interactivo: **pan** (arrastrar con umbral anti-click), **wheel-zoom** cara ao cursor (listener nativo non-pasivo — A.6.23), **fit-to-bounds** ao montar + accesible imperativamente. Hook `useViewport` + helpers puros testables (`clampZoom`, `fitTransform`, `zoomToward`, `clampPan`). `<g transform>` arredor dos children do `SVGRenderer`; `<defs>` queda **fóra** para que os markers non escalen. `SkillTree` convertido a `forwardRef` expoñendo `SkillTreeHandle { fit, reset, zoomIn, zoomOut, getZoom }`; `SkillTreeWithDefaultTheme` reenvía o ref. Demo: 4 botóns Fit/Reset/Zoom±. | ⏳ neste patch |
+| **F10.6** | Viewport interactivo: **pan** (arrastrar con umbral anti-click), **wheel-zoom** cara ao cursor (listener nativo non-pasivo — A.6.23), **fit-to-bounds** ao montar + accesible imperativamente. Hook `useViewport` + helpers puros testables (`clampZoom`, `fitTransform`, `zoomToward`, `clampPan`). `<g transform>` arredor dos children do `SVGRenderer`; `<defs>` queda **fóra** para que os markers non escalen. `SkillTree` convertido a `forwardRef` expoñendo `SkillTreeHandle { fit, reset, zoomIn, zoomOut, getZoom }`; `SkillTreeWithDefaultTheme` reenvía o ref. Demo: 4 botóns Fit/Reset/Zoom±. | ✅ pushed |
+| **F10.7** | **Selección + hover + cursor de man + foco de teclado**. `SkillTree.selectedNodeId?: string` (controlado) marca un nodo cunha anel exterior themed (`theme.colors.selected`, fallback a `nodeUnlockable`). `SkillNode` engade estado local de hover/focus, render dun overlay con prioridade selected > focused > hovering: selección sólida, foco *dashed*, hover sutil opacity 0.5. `cursor: pointer` inline cando hai `onClick` (afordancia descubribilidade). Atributos `data-selected`/`data-hover`/`data-focused` para debug e selectores. Evento `onNodeHover(nodeId \| null)` propágase desde `SkillTree`. Tabindex preserved; nodos seguen sendo `role="button"`. | ⏳ neste patch |
 
 ## Decisións arquitectónicas relacionadas (MASTER)
 
@@ -43,9 +44,10 @@
   `NORSE_ICONS` (`packages/react/src/icons/<setname>.ts` + export
   desde os barrels). Candidatos futuros: `MEDIEVAL_ICONS`,
   `SCIFI_ICONS`, etc., segundo demanda.
-- **F10.6+** (sen briefing aínda): a definir polo Director. Posibles:
-  candidatos a polish: animacións de transición de estado nos nodos
-  (locked→unlockable→unlocked), efectos de hover/focus máis ricos,
+- **F10.7+** (sen briefing aínda): a definir polo Director. Polish
+  posibles: animacións de transición de estado nos nodos
+  (locked→unlockable→unlocked), tooltip externo controlado polo
+  consumidor (hook xa preparado vía `onNodeHover`),
   serialización de `LayoutConfig.curve` en exportadores; tema dark
   "Oberón" oficial; migración de emojis nativos a iconos
   recoloreables (xa anotada en F10.3 plano).

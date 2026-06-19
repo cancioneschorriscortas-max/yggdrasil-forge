@@ -128,7 +128,12 @@ export function App(): JSX.Element {
         <div className="tree-frame">
           <div className="tree-container" style={wrapperStyle}>
             <ThemeProvider theme={builtTheme}>
-              <SkillTree ref={treeRef} engine={engine} onNodeClick={handleNodeClick} />
+              <SkillTree
+                ref={treeRef}
+                engine={engine}
+                onNodeClick={handleNodeClick}
+                {...(selectedNode !== null && { selectedNodeId: selectedNode })}
+              />
             </ThemeProvider>
           </div>
         </div>

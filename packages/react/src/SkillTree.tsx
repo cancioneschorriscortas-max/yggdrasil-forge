@@ -76,6 +76,26 @@ export interface SkillTreeProps {
    * (F10.6).
    */
   readonly onViewportChange?: (state: ViewportState) => void
+
+  /**
+   * ID do nodo actualmente seleccionado (F10.7). Controlado polo
+   * consumidor; o `SkillTree` non xestiona internamente que nodo
+   * está seleccionado (cero estado interno aquí). O nodo cuxo `id`
+   * coincida recibe `selected` (anel exterior themed con
+   * `theme.colors.selected`).
+   *
+   * Patrón típico: `const [sel, setSel] = useState<string | null>(null)`
+   * + `onNodeClick={(id) => setSel(id)}` + `selectedNodeId={sel ?? undefined}`.
+   */
+  readonly selectedNodeId?: string
+
+  /**
+   * Callback opcional disparado cando o pointer entra/sae dun nodo
+   * (F10.7). Recibe o `nodeId` ao entrar, `null` ao saír. Permite
+   * sincronizar un panel lateral, tooltip externo, etc. Ortogonal a
+   * `selectedNodeId` (o consumidor decide se hover muta a selección).
+   */
+  readonly onNodeHover?: (nodeId: string | null) => void
 }
 
 export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function SkillTree(
@@ -92,6 +112,8 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     maxZoom,
     fitOnMount,
     onViewportChange,
+    selectedNodeId,
+    onNodeHover,
   },
   ref,
 ) {
@@ -207,6 +229,7 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
           const position = nodePositions.get(node.id)
           /* v8 ignore next 1 -- defensivo: computeLayout produce posicións para tódolos treeDef.nodes */
           if (position === undefined) return null
+          const isSelected = selectedNodeId !== undefined && node.id === selectedNodeId
           return (
             <SkillNode
               key={node.id}
@@ -215,6 +238,8 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
               position={position}
               {...(onNodeClick !== undefined && { onClick: onNodeClick })}
               {...(onNodeLongPress !== undefined && { onLongPress: onNodeLongPress })}
+              {...(isSelected && { selected: true })}
+              {...(onNodeHover !== undefined && { onHover: onNodeHover })}
             />
           )
         })}

@@ -6,11 +6,13 @@
 import type { NodeDef, NodeInstance, NodeState, Position } from '@yggdrasil-forge/core'
 import {
   type CSSProperties,
+  type FocusEvent,
   type JSX,
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
   useRef,
+  useState,
 } from 'react'
 import { useTheme } from './ThemeProvider.js'
 import { IconGlyph } from './icons/IconGlyph.js'
@@ -46,6 +48,27 @@ export interface SkillNodeProps {
    * Cero efecto se `onLongPress` é undefined.
    */
   readonly longPressDuration?: number
+
+  /**
+   * Marca este nodo como **seleccionado** (F10.7). Render: anel de
+   * selección exterior con `theme.colors.selected` (fallback a
+   * `nodeUnlockable`). Tamén pon `data-selected="true"` no `<g>` raíz.
+   *
+   * Controlado polo consumidor (vía `SkillTree.selectedNodeId`); este
+   * compoñente non xestiona internamente que nodo está seleccionado.
+   */
+  readonly selected?: boolean
+
+  /**
+   * Callback opcional disparado cando o pointer entra/sae do nodo
+   * (F10.7). Recibe o `nodeId` ao entrar, `null` ao saír. Permite
+   * que o consumidor sincronice un panel lateral, tooltip externo,
+   * etc.
+   *
+   * Ortogonal a `onClick` / `onLongPress`. Cero impacto no pan/zoom
+   * do viewport (events de pointer no SVG raíz seguen funcionando).
+   */
+  readonly onHover?: (nodeId: string | null) => void
 }
 
 const DEFAULT_LONG_PRESS_MS = 700
@@ -57,6 +80,8 @@ export function SkillNode({
   onClick,
   onLongPress,
   longPressDuration,
+  selected,
+  onHover,
 }: SkillNodeProps): JSX.Element {
   const state = instance?.state ?? 'locked'
   const tier = instance?.currentTier ?? 0
@@ -81,6 +106,19 @@ export function SkillNode({
 
   // F10.5: cor do icono = ThemeColors.icon (opt) ?? text (fallback).
   const iconColor: string | undefined = theme?.colors.icon ?? textColor
+
+  // F10.7: cor do anel de selección/foco. Fallback a `nodeUnlockable`
+  // que xa é unha cor accesible/destacada do tema (a do anel
+  // "podes desbloquearme"); mantén coherencia visual sen requirir
+  // que o consumidor declare unha nova cor.
+  const selectedColor: string | undefined = theme?.colors.selected ?? theme?.colors.nodeUnlockable
+
+  // F10.7: estado local de hover/focus para afordancias visuais. Non
+  // viaxa ao engine; é puramente UI. `onHover` (callback ao
+  // consumidor) é independente — engadímolo cando o pointer entra/sae,
+  // independentemente do estado local.
+  const [isHovering, setHovering] = useState(false)
+  const [isFocused, setFocused] = useState(false)
 
   // F10.5: resolución do icono — (a) ID rexistrado → IconGlyph;
   // (b) URL (http/https/// relativa) → <image>; (c) calquera outro →
@@ -141,13 +179,101 @@ export function SkillNode({
   const handlePointerEnd =
     onLongPress !== undefined ? (_e: PointerEvent<SVGGElement>) => cancelLongPress() : undefined
 
+  // F10.7: hover/focus handlers. Sempre actívanse (cero impacto se
+  // `onHover` non se pasa). O estado local móvese tanto se hai
+  // callback como se non — o overlay debúxase segundo o estado.
+  const handlePointerEnter = (_e: PointerEvent<SVGGElement>): void => {
+    setHovering(true)
+    if (onHover !== undefined) onHover(node.id)
+  }
+  const handlePointerLeave = (e: PointerEvent<SVGGElement>): void => {
+    setHovering(false)
+    if (onHover !== undefined) onHover(null)
+    // Se había un long press en curso, cancélase tamén (mesmo
+    // comportamento que tiña handlePointerEnd; mantemos ambos por
+    // claridade).
+    if (handlePointerEnd !== undefined) handlePointerEnd(e)
+  }
+  const handleFocus = (_e: FocusEvent<SVGGElement>): void => {
+    setFocused(true)
+  }
+  const handleBlur = (_e: FocusEvent<SVGGElement>): void => {
+    setFocused(false)
+  }
+
+  // F10.7: cursor de man cando o nodo é interactivo (afordancia
+  // descubribilidade). Inline style para que viaxe co tema sen
+  // depender de CSS externo.
+  const containerStyle: CSSProperties = {
+    ...(onClick !== undefined && { cursor: 'pointer' }),
+  }
+
+  // F10.7: cálculo do overlay de selección/foco/hover. Orde de
+  // prioridade visual: selected > focused > hovering. Cero overlay
+  // se ningún. Render como `<circle>` exterior universal (envolve
+  // shapes non circulares; pragmático e visualmente coherente).
+  const overlayRadius = radius + ringWidth + 4
+  let overlay: JSX.Element | null = null
+  if (selected === true && selectedColor !== undefined) {
+    overlay = (
+      <circle
+        className="yf-skill-node__selection"
+        r={overlayRadius}
+        style={{
+          fill: 'none',
+          stroke: selectedColor,
+          strokeWidth: ringWidth,
+        }}
+      />
+    )
+  } else if (isFocused && selectedColor !== undefined) {
+    // Foco de teclado: mesmo cor que selección pero dashed (distingue
+    // visualmente sen requirir nova cor).
+    overlay = (
+      <circle
+        className="yf-skill-node__focus"
+        r={overlayRadius}
+        style={{
+          fill: 'none',
+          stroke: selectedColor,
+          strokeWidth: ringWidth,
+          strokeDasharray: '4 3',
+        }}
+      />
+    )
+  } else if (isHovering && textColor !== undefined) {
+    // Hover: anel exterior fino sutil. Cor do texto (que xa é parte
+    // do tema), opacidade reducida para non competir con selección.
+    // Sen glow pesado (briefing §5).
+    overlay = (
+      <circle
+        className="yf-skill-node__hover"
+        r={overlayRadius}
+        style={{
+          fill: 'none',
+          stroke: textColor,
+          strokeWidth: 1,
+          opacity: 0.5,
+        }}
+      />
+    )
+  }
+
   return (
     <g
       className="yf-skill-node"
       data-node-id={node.id}
       data-state={state}
       data-tier={tier}
+      {...(selected === true && { 'data-selected': 'true' })}
+      {...(isHovering && { 'data-hover': 'true' })}
+      {...(isFocused && { 'data-focused': 'true' })}
       transform={`translate(${position.x},${position.y})`}
+      style={containerStyle}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
       {...(handleClick !== undefined && {
         onClick: handleClick,
         onKeyDown: handleKeyDown,
@@ -159,9 +285,9 @@ export function SkillNode({
         onPointerDown: handlePointerDown,
         onPointerUp: handlePointerEnd,
         onPointerCancel: handlePointerEnd,
-        onPointerLeave: handlePointerEnd,
       })}
     >
+      {overlay}
       {renderNodeShape(shape, radius, shapeStyle)}
       {iconDef !== undefined && (
         <IconGlyph
