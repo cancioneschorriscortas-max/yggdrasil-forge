@@ -17,7 +17,8 @@
 | **F10.4** | SkillEdge v2: `SkillTree.curve?` prop + edge-state coloring (`edgeStateFor`) + `ThemeColors.edgeActive?` + frechas (`EdgeStyle.directed?` + `<defs><marker>`) + `shortenEdgeAtTarget` para visibilidade. | ✅ pushed |
 | **F10.4b** | Curva e routing baixan ao **contrato de datos**: `LayoutConfig.curve?` + `EdgeStyle.routing?` aplicados por `computeLayout` via `applyEdgeRouting`. `SkillTree.curve` queda como override de presentación. | ✅ pushed |
 | **F10.5** | Rexistro de iconos SVG (`registerIcon/getIcon/hasIcon`, `Symbol.for` singleton — A.6.21). `IconGlyph` con recolor via `currentColor`. Resolución en `SkillNode`: id rexistrado → URL → emoji/char (fallback). Iconset starter de 6 iconos. `ThemeColors.icon?`. | ✅ pushed |
-| **F10.5b** | Iconset **Norse** (26 iconos: yggdrasil, runas, bestiario, armamento, drakkar, elementos, celestes, simbólicos). **Opt-in** via `registerIcons(NORSE_ICONS)` (non auto-rexistra; mantén byte-size mínimo no paquete base). IDs prefixados `norse-*` sen colisión cos builtins. Demo usa 7 iconos norse + 1 emoji fallback (whirlwind). | ⏳ neste patch |
+| **F10.5b** | Iconset **Norse** (26 iconos: yggdrasil, runas, bestiario, armamento, drakkar, elementos, celestes, simbólicos). **Opt-in** via `registerIcons(NORSE_ICONS)` (non auto-rexistra; mantén byte-size mínimo no paquete base). IDs prefixados `norse-*` sen colisión cos builtins. Demo usa 7 iconos norse + 1 emoji fallback (whirlwind). | ✅ pushed |
+| **F10.6** | Viewport interactivo: **pan** (arrastrar con umbral anti-click), **wheel-zoom** cara ao cursor (listener nativo non-pasivo — A.6.23), **fit-to-bounds** ao montar + accesible imperativamente. Hook `useViewport` + helpers puros testables (`clampZoom`, `fitTransform`, `zoomToward`, `clampPan`). `<g transform>` arredor dos children do `SVGRenderer`; `<defs>` queda **fóra** para que os markers non escalen. `SkillTree` convertido a `forwardRef` expoñendo `SkillTreeHandle { fit, reset, zoomIn, zoomOut, getZoom }`; `SkillTreeWithDefaultTheme` reenvía o ref. Demo: 4 botóns Fit/Reset/Zoom±. | ⏳ neste patch |
 
 ## Decisións arquitectónicas relacionadas (MASTER)
 
@@ -25,7 +26,9 @@
 - **A.6.18** — `pnpm turbo run build --force` (non `pnpm --filter`) para DTS interdependente.
 - **A.6.19** — `marker-end` SVG + orde de render + `shortenEdgeAtTarget`.
 - **A.6.20** — Curva/routing = contrato de datos, non prop de React.
-- **A.6.21** — Rexistros mutables compartidos requiren `Symbol.for(globalThis)` singleton (xeneralización de A.6.17).
+- **A.6.21** — Rexistros mutables compartidos requiren `Symbol.for(globalThis)` singleton (xeneralización de A.6.17). Sub-lección: o auto-rexistro de defaults debe vivir dentro do propio módulo do rexistro (non en módulos satélites con side-effect imports), porque `sideEffects: false` no `package.json` tree-shakea os bare imports.
+- **A.6.22** — Modelo de viewport SVG: `viewBox` para o encadre base (fit visual), `<g transform>` arredor dos children para pan/zoom interactivo. **Non** manipular `viewBox` para zoom — mestura responsabilidades e dificulta o cálculo de cursor→user coords.
+- **A.6.23** — `onWheel` de React rexístrase como *passive*, polo que `preventDefault` é ignorado (a páxina rola ao facer zoom). Solución: rexistrar un listener nativo `{ passive: false }` no `<svg>` via `useEffect`. Aplicado en `useViewport`.
 
 ## Backlog (Renderer 2.0)
 

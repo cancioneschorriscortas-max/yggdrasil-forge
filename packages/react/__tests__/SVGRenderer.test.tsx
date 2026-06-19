@@ -62,6 +62,35 @@ describe('SVGRenderer', () => {
     expect(child).not.toBeNull()
     expect(child?.tagName.toLowerCase()).toBe('rect')
   })
+
+  // F10.6: viewport transform group
+  it('children pasados quedan dentro do <g transform> (F10.6)', () => {
+    const { container } = render(
+      <SVGRenderer
+        bounds={{ minX: 0, minY: 0, maxX: 10, maxY: 10 }}
+        transform="translate(5 10) scale(2)"
+      >
+        <rect x="0" y="0" width="10" height="10" data-testid="child" />
+      </SVGRenderer>,
+    )
+    const child = container.querySelector('[data-testid="child"]')
+    expect(child).not.toBeNull()
+    const parent = child?.parentElement
+    expect(parent?.tagName.toLowerCase()).toBe('g')
+    expect(parent?.getAttribute('transform')).toBe('translate(5 10) scale(2)')
+  })
+
+  it('sen transform prop, o <g> wrap segue existindo pero sen atributo transform (F10.6)', () => {
+    const { container } = render(
+      <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 10, maxY: 10 }}>
+        <rect data-testid="child" />
+      </SVGRenderer>,
+    )
+    const child = container.querySelector('[data-testid="child"]')
+    const parent = child?.parentElement
+    expect(parent?.tagName.toLowerCase()).toBe('g')
+    expect(parent?.getAttribute('transform')).toBeNull()
+  })
 })
 
 // ── Bloque 2: Integración con tema ──

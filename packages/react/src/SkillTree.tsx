@@ -12,14 +12,29 @@ import {
   buildPaths,
   computeLayout,
 } from '@yggdrasil-forge/core'
-import { type JSX, useMemo, useSyncExternalStore } from 'react'
+import { forwardRef, useImperativeHandle, useMemo, useRef, useSyncExternalStore } from 'react'
 import { MeshOverlay } from './MeshOverlay.js'
 import { SVGRenderer } from './SVGRenderer.js'
 import { SkillEdge, edgeStateFor } from './SkillEdge.js'
 import { SkillNode } from './SkillNode.js'
 import { createDefaultLayoutRegistry } from './createDefaultLayoutRegistry.js'
 import { shortenEdgeAtTarget } from './edgeGeometry.js'
+import { type ViewportState, useViewport } from './hooks/useViewport.js'
 import { resolveRadius } from './nodeGeometry.js'
+
+/**
+ * Handle imperativo expoñido vía `ref` (F10.6) para que consumidores
+ * (ex. botóns no toolbar do demo) poidan controlar o viewport.
+ */
+export interface SkillTreeHandle {
+  /** Encadra `bounds` (con `padding`) no viewport actual. */
+  fit(): void
+  /** Volve ao transform identidade (panX=0, panY=0, zoom=1). */
+  reset(): void
+  zoomIn(): void
+  zoomOut(): void
+  getZoom(): number
+}
 
 export interface SkillTreeProps {
   readonly engine: TreeEngine
@@ -46,18 +61,40 @@ export interface SkillTreeProps {
    * presentación puntuais en UI (MASTER A.6.20).
    */
   readonly curve?: CurveStyle
+  /** Zoom mínimo do viewport interactivo (F10.6). Default `0.25`. */
+  readonly minZoom?: number
+  /** Zoom máximo do viewport interactivo (F10.6). Default `4`. */
+  readonly maxZoom?: number
+  /**
+   * Encadrar bounds ao montar (F10.6). Default `true`. Cando `false`,
+   * o viewport arranca con transform identidade (panX=0, panY=0,
+   * zoom=1).
+   */
+  readonly fitOnMount?: boolean
+  /**
+   * Callback opcional disparado cando cambia o transform do viewport
+   * (F10.6).
+   */
+  readonly onViewportChange?: (state: ViewportState) => void
 }
 
-export function SkillTree({
-  engine,
-  locale,
-  onNodeClick,
-  onEdgeClick,
-  onNodeLongPress,
-  layoutRegistry,
-  padding = 16,
-  curve,
-}: SkillTreeProps): JSX.Element {
+export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function SkillTree(
+  {
+    engine,
+    locale,
+    onNodeClick,
+    onEdgeClick,
+    onNodeLongPress,
+    layoutRegistry,
+    padding = 16,
+    curve,
+    minZoom,
+    maxZoom,
+    fitOnMount,
+    onViewportChange,
+  },
+  ref,
+) {
   const state = useSyncExternalStore(
     engine.subscribe.bind(engine),
     engine.getSnapshot.bind(engine),
@@ -69,6 +106,34 @@ export function SkillTree({
   const layoutResult = useMemo(
     () => computeLayout(treeDef, registry, locale),
     [treeDef, registry, locale],
+  )
+
+  // F10.6: bounds + effectivePadding pre-calculados (pasamos undefined
+  // ao useViewport cando layoutResult non é ok, e o hook xa guarda).
+  // Tódolos hooks (useRef, useViewport, useImperativeHandle) chamáns
+  // ANTES do return condicional para non violar a regra dos hooks.
+  const okBounds = layoutResult.ok ? layoutResult.value.bounds : undefined
+  const maxRadius = treeDef.nodes.reduce((m, n) => Math.max(m, resolveRadius(n)), 0)
+  const effectivePadding = padding + maxRadius + 28
+
+  const svgRef = useRef<SVGSVGElement>(null)
+  const viewport = useViewport(svgRef, okBounds, effectivePadding, {
+    ...(minZoom !== undefined && { minZoom }),
+    ...(maxZoom !== undefined && { maxZoom }),
+    ...(fitOnMount !== undefined && { fitOnMount }),
+    ...(onViewportChange !== undefined && { onChange: onViewportChange }),
+  })
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      fit: viewport.fit,
+      reset: viewport.reset,
+      zoomIn: viewport.zoomIn,
+      zoomOut: viewport.zoomOut,
+      getZoom: viewport.getZoom,
+    }),
+    [viewport.fit, viewport.reset, viewport.zoomIn, viewport.zoomOut, viewport.getZoom],
   )
 
   // Caso de erro: delegar en SVGRenderer co modo erro.
@@ -83,12 +148,6 @@ export function SkillTree({
     curve !== undefined ? buildPaths(layoutResult.value, curve) : layoutResult.value
 
   const { nodes: nodePositions, edges: edgePaths, bounds, mesh } = finalLayout
-
-  // F10.3: padding efectivo conta o maior raio do nodo + espazo do label.
-  // Sen isto, nodos cerca dos bordes do layout (especialmente con raios
-  // grandes como root r=40 ou keystone r=34) clipan polo viewBox.
-  const maxRadius = treeDef.nodes.reduce((m, n) => Math.max(m, resolveRadius(n)), 0)
-  const effectivePadding = padding + maxRadius + 28
 
   const edgeMap = useMemo(() => {
     const m = new Map<string, (typeof treeDef.edges)[number]>()
@@ -106,9 +165,14 @@ export function SkillTree({
 
   return (
     <SVGRenderer
+      ref={svgRef}
       bounds={bounds}
       padding={effectivePadding}
       layoutType={layoutResult.value.layoutType}
+      transform={viewport.transform}
+      onPointerDown={viewport.onPointerDown}
+      onPointerMove={viewport.onPointerMove}
+      onPointerUp={viewport.onPointerUp}
     >
       <MeshOverlay {...(mesh !== undefined && { mesh })} />
       <g className="yf-skill-edges">
@@ -157,5 +221,5 @@ export function SkillTree({
       </g>
     </SVGRenderer>
   )
-}
+})
 // ── FIN: SkillTree ──

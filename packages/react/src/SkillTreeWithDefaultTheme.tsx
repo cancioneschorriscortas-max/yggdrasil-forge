@@ -1,8 +1,12 @@
 'use client'
 
 // ── INICIO: SkillTreeWithDefaultTheme ──
-import type { JSX } from 'react'
-import { SkillTree as SkillTreeCore, type SkillTreeProps } from './SkillTree.js'
+import { type ForwardedRef, forwardRef } from 'react'
+import {
+  SkillTree as SkillTreeCore,
+  type SkillTreeHandle,
+  type SkillTreeProps,
+} from './SkillTree.js'
 import { ThemeProvider, useTheme } from './ThemeProvider.js'
 import { minimal } from './themes/minimal.js'
 
@@ -19,17 +23,22 @@ import { minimal } from './themes/minimal.js'
  * </ThemeProvider>`, o tema X **respéctase** (o wrapper detecta o tema
  * ascendente vía `useTheme` e non aplica `minimal`). Sen ThemeProvider
  * ascendente, aplícase `minimal` automaticamente.
+ *
+ * F10.6: tamén reenvía o `ref` (SkillTreeHandle) ao SkillTreeCore para
+ * que consumidores poidan controlar o viewport imperativamente.
  */
-export function SkillTreeWithDefaultTheme(props: SkillTreeProps): JSX.Element {
-  // Respecta un ThemeProvider ascendente; só aplica `minimal` se non o hai.
-  const ascendantTheme = useTheme()
-  if (ascendantTheme !== null) {
-    return <SkillTreeCore {...props} />
-  }
-  return (
-    <ThemeProvider theme={minimal}>
-      <SkillTreeCore {...props} />
-    </ThemeProvider>
-  )
-}
+export const SkillTreeWithDefaultTheme = forwardRef<SkillTreeHandle, SkillTreeProps>(
+  function SkillTreeWithDefaultTheme(props, ref: ForwardedRef<SkillTreeHandle>) {
+    // Respecta un ThemeProvider ascendente; só aplica `minimal` se non o hai.
+    const ascendantTheme = useTheme()
+    if (ascendantTheme !== null) {
+      return <SkillTreeCore ref={ref} {...props} />
+    }
+    return (
+      <ThemeProvider theme={minimal}>
+        <SkillTreeCore ref={ref} {...props} />
+      </ThemeProvider>
+    )
+  },
+)
 // ── FIN: SkillTreeWithDefaultTheme ──

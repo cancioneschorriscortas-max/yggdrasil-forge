@@ -2,7 +2,14 @@
 
 import type { Bounds } from '@yggdrasil-forge/core'
 // ── INICIO: SVGRenderer ──
-import { type CSSProperties, type JSX, type ReactNode, useId } from 'react'
+import {
+  type CSSProperties,
+  type JSX,
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+  forwardRef,
+  useId,
+} from 'react'
 import { useTheme } from './ThemeProvider.js'
 import { buildAnimationsCSS } from './animations.js'
 import { buildViewBox } from './svg-helpers.js'
@@ -25,6 +32,16 @@ export interface SVGRendererProps {
   readonly error?: string
   readonly ariaLabel?: string
   readonly children?: ReactNode
+  /**
+   * Transform SVG aplicado ao `<g>` que envolve os children (F10.6).
+   * Default: identidade (sen pan/zoom). O `<defs>` queda **fóra** do
+   * transform para que os markers non escalen co contido.
+   */
+  readonly transform?: string
+  /** Pan/zoom handlers (F10.6); todos opcionais. */
+  readonly onPointerDown?: (e: ReactPointerEvent<SVGSVGElement>) => void
+  readonly onPointerMove?: (e: ReactPointerEvent<SVGSVGElement>) => void
+  readonly onPointerUp?: (e: ReactPointerEvent<SVGSVGElement>) => void
 }
 
 /**
@@ -48,14 +65,21 @@ export interface SVGRendererProps {
  * interior para cores e usamos inline-style coa propiedade CSS (non
  * atributo SVG) para conservar transicións.
  */
-export function SVGRenderer({
-  bounds,
-  padding = 16,
-  layoutType,
-  error,
-  ariaLabel,
-  children,
-}: SVGRendererProps): JSX.Element {
+export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function SVGRenderer(
+  {
+    bounds,
+    padding = 16,
+    layoutType,
+    error,
+    ariaLabel,
+    children,
+    transform,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+  },
+  ref,
+): JSX.Element {
   const theme = useTheme()
   const themeId = useId()
   const viewBox = buildViewBox(bounds, padding)
@@ -63,6 +87,7 @@ export function SVGRenderer({
   if (error !== undefined) {
     return (
       <svg
+        ref={ref}
         className="yf-skill-tree yf-skill-tree--error"
         data-error={error}
         viewBox={viewBox}
@@ -82,12 +107,16 @@ export function SVGRenderer({
 
   return (
     <svg
+      ref={ref}
       className="yf-skill-tree"
       {...(layoutType !== undefined && { 'data-layout': layoutType })}
       {...(theme !== null && { 'data-theme-id': themeId })}
       viewBox={viewBox}
       role="img"
       aria-label={ariaLabel ?? 'Skill tree'}
+      {...(onPointerDown !== undefined && { onPointerDown })}
+      {...(onPointerMove !== undefined && { onPointerMove })}
+      {...(onPointerUp !== undefined && { onPointerUp })}
     >
       {animationsCSS !== null && <style>{animationsCSS}</style>}
       {theme !== null && (
@@ -108,8 +137,12 @@ export function SVGRenderer({
           </marker>
         </defs>
       )}
-      {children}
+      {/* F10.6: pan/zoom group. Identidade por defecto (cero impacto
+          se non se pasa `transform`). <defs> queda fóra para que os
+          markers non escalen co contido (decisión: markers manteñen
+          tamaño constante percibido, máis predecible). */}
+      <g {...(transform !== undefined && { transform })}>{children}</g>
     </svg>
   )
-}
+})
 // ── FIN: SVGRenderer ──

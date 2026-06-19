@@ -3471,6 +3471,72 @@ acoplados por side-effect imports. Un Map a nivel de módulo é unha
 en runtime se o consumidor mestura `/index` + `/headless` ou se
 `sideEffects: false`.
 
+### A.6.22 — Modelo de viewport SVG: viewBox para fit, `<g transform>` para interacción
+
+Cando un SVG precisa **encadre estable** (fit visual do contido) e
+**interacción** (pan + zoom), o patrón limpa é separar
+responsabilidades:
+
+- **`viewBox`** do `<svg>`: definido por `bounds + padding`. Responsable
+  do **fit base**: cando o usuario abre a app, todo o contido cabe e
+  está centrado. Non se toca durante a interacción.
+- **`<g transform={translate(panX panY) scale(zoom)}>`** arredor dos
+  children: aplica o pan/zoom **interactivo**. O `<svg>` recorta
+  naturalmente o que sobresae do viewBox.
+
+Tentación a evitar: **manipular o `viewBox` para zoom/pan**. Funciona en
+casos simples pero:
+1. Mestura encadre base e interacción nun só estado.
+2. Cursor → user coords vólvese máis complexo de calcular (o viewBox xa
+   non é constante; `getScreenCTM` cambia con cada zoom).
+3. Resetar a "fit inicial" require gardar o viewBox orixinal, duplicando
+   estado.
+
+Pegada no proxecto: F10.6 — `useViewport` mantén o viewBox fixo desde
+`SVGRenderer.bounds` e aplica un `<g transform>` arredor de
+`{children}` no `SVGRenderer`. Os helpers puros (`zoomToward` etc.)
+operan en coords usuario tras o `getScreenCTM().inverse()`.
+
+Detalle adicional: o `<defs>` queda **fóra** do `<g transform>`. Razón:
+markers e patterns referenciados con `marker-end="url(#...)"` non
+deberían escalar co contido — manteñen tamaño percibido constante,
+máis predecible. Se algún día se quere o oposto, mover `<defs>` dentro
+do `<g>`.
+
+### A.6.23 — `onWheel` de React é *passive*; usar listener nativo para `preventDefault`
+
+React 17+ rexistra `onWheel` (e outros eventos de touch/scroll) como
+*passive* listeners por defecto, polo que **`e.preventDefault()` non
+ten efecto**. Síntoma: cando se intenta facer wheel-zoom nun
+compoñente, a páxina **rola en lugar de zoom**. Os devtools amosan o
+warning `[Intervention] Unable to preventDefault inside passive event
+listener due to target being treated as passive`.
+
+Solución estándar: rexistrar un listener nativo `{ passive: false }`
+dentro dun `useEffect`:
+
+```typescript
+useEffect(() => {
+  const el = elRef.current
+  if (el === null) return undefined
+  const onWheel = (e: WheelEvent): void => {
+    e.preventDefault()
+    // ... lóxica de zoom
+  }
+  el.addEventListener('wheel', onWheel, { passive: false })
+  return () => el.removeEventListener('wheel', onWheel)
+}, [/* deps que afectan á lóxica */])
+```
+
+Aplicado en `useViewport` (F10.6). O `onPointer*` segue podendo usar
+React handlers normais (non son pasivos por defecto en jsdom moderno e
+non precisan `preventDefault`).
+
+Regra para revisores: calquera `useEffect` que precise interactuar con
+`wheel`, `touchstart`, ou `touchmove` (con `preventDefault`) debe usar
+listener nativo. Se o briefing fala de "wheel-zoom" / "scroll
+interception" / "pinch-to-zoom", verificar que se usa este patrón.
+
 ## A.7 — Protocolo consolidado
 
 Sección 0 en todo briefing. Salvagardas executables; afirmacións

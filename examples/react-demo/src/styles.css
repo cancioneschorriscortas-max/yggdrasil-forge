@@ -284,6 +284,21 @@ body::before {
   margin-bottom: 0;
 }
 
+/* F10.6: 2×2 grid de botóns de viewport ─────────────────────────── */
+
+.viewport-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rune-button--small {
+  padding: 6px 8px;
+  font-size: 11px;
+  margin-bottom: 0;
+}
+
 /* ── Info panel typography ──────────────────────────────────────── */
 
 .panel-info p {

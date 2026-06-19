@@ -11,7 +11,8 @@ export const VERSION = '0.0.0'
 // SkillTree exportado como wrapper con autoload de tema minimal.
 // O core SkillTree (sen wrapper) está dispoñible vía /headless.
 export { SkillTreeWithDefaultTheme as SkillTree } from './SkillTreeWithDefaultTheme.js'
-export type { SkillTreeProps } from './SkillTree.js'
+export type { SkillTreeHandle, SkillTreeProps } from './SkillTree.js'
+export type { ViewportState } from './hooks/useViewport.js'
 
 // Compoñentes individuais (cero diferenza fronte a /headless).
 export { SkillNode } from './SkillNode.js'

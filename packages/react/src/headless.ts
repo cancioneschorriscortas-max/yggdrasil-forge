@@ -14,7 +14,8 @@
 //   /index para preservar o "cero estilos" por defecto en headless).
 
 export { SkillTree } from './SkillTree.js'
-export type { SkillTreeProps } from './SkillTree.js'
+export type { SkillTreeHandle, SkillTreeProps } from './SkillTree.js'
+export type { ViewportState } from './hooks/useViewport.js'
 
 export { SkillNode } from './SkillNode.js'
 export type { SkillNodeProps } from './SkillNode.js'

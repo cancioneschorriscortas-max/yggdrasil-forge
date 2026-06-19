@@ -1,10 +1,10 @@
 import { TreeEngine } from '@yggdrasil-forge/core'
 import type { BuildSnapshot } from '@yggdrasil-forge/core'
-import { SkillTree, ThemeProvider } from '@yggdrasil-forge/react'
+import { SkillTree, type SkillTreeHandle, ThemeProvider } from '@yggdrasil-forge/react'
 import type { Theme } from '@yggdrasil-forge/react'
 import { MemoryStorage } from '@yggdrasil-forge/storage'
 import type { CSSProperties } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { longLabels, rpgTreeDef } from './tree-def.js'
 
@@ -13,6 +13,10 @@ export function App(): JSX.Element {
     const storage = new MemoryStorage()
     return new TreeEngine(rpgTreeDef, { storage })
   })
+
+  // F10.6: handle imperativo para controlar o viewport (Fit, Reset,
+  // Zoom +, Zoom −) desde botóns no panel Controls.
+  const treeRef = useRef<SkillTreeHandle>(null)
 
   const [unlockedCount, setUnlockedCount] = useState(0)
   const [lastAction, setLastAction] = useState<string>('')
@@ -124,7 +128,7 @@ export function App(): JSX.Element {
         <div className="tree-frame">
           <div className="tree-container" style={wrapperStyle}>
             <ThemeProvider theme={builtTheme}>
-              <SkillTree engine={engine} onNodeClick={handleNodeClick} />
+              <SkillTree ref={treeRef} engine={engine} onNodeClick={handleNodeClick} />
             </ThemeProvider>
           </div>
         </div>
@@ -163,6 +167,39 @@ export function App(): JSX.Element {
             >
               ↺ Restore
             </button>
+            {/* F10.6: viewport controls. Arrastrar e roda do rato xa
+                funcionan no propio SVG; estes botóns dan acceso directo
+                a accións concretas. */}
+            <div className="viewport-controls">
+              <button
+                type="button"
+                className="rune-button rune-button--small"
+                onClick={() => treeRef.current?.fit()}
+              >
+                ⛶ Fit
+              </button>
+              <button
+                type="button"
+                className="rune-button rune-button--small"
+                onClick={() => treeRef.current?.reset()}
+              >
+                ⟲ Reset
+              </button>
+              <button
+                type="button"
+                className="rune-button rune-button--small"
+                onClick={() => treeRef.current?.zoomIn()}
+              >
+                ⊕ Zoom +
+              </button>
+              <button
+                type="button"
+                className="rune-button rune-button--small"
+                onClick={() => treeRef.current?.zoomOut()}
+              >
+                ⊖ Zoom −
+              </button>
+            </div>
           </section>
 
           <ThemeLab value={themeVals} onChange={setThemeVals} />
