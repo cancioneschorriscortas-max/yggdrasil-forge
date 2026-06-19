@@ -6,7 +6,7 @@
 > interno das decisións) e o `RENDERER-STATE.md` (estado interno do renderer).
 >
 > **Mantéheno actualizado en cada sub-fase que cambie a API pública.**
-> _Última actualización: tras F10.8 (tema ampliado: typography + background + surface)._
+> _Última actualización: tras Showcase Capa 0 (`explainUnlock` exposto)._
 
 ---
 
@@ -97,6 +97,22 @@ engine.lock('a')
 // Re-render ao cambiar o engine:
 const unsub = engine.subscribe(() => { /* setState para forzar render */ })
 // ...máis tarde: unsub()
+
+// Veredicto único (¿pode desbloquearse agora?):
+const check = engine.canUnlock('paladin')
+// Result<{allowed: boolean, reason?: string}>
+
+// Explicación por-condición (¿que falta para desbloquear?):
+const explanation = engine.explainUnlock('paladin')
+if (explanation.ok) {
+  for (const cond of explanation.value.conditions) {
+    console.log(cond.satisfied ? '✓' : '✗', cond)
+  }
+}
+// Útil para tooltips, panel «Inspector de Condicións», devtools.
+// Diferenzas vs `canUnlock`:
+// - `canUnlock`: veredicto único + corta por estado (maxed/unlocked).
+// - `explainUnlock`: lista detallada + sempre informa dos prereqs.
 
 // Clic nun nodo (no compoñente):
 <SkillTree engine={engine} onNodeClick={(id) => engine.unlock(id)} />

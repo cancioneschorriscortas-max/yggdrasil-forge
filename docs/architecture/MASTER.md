@@ -4272,3 +4272,48 @@ como contratos observables silenciosos.
 
 **FIN DO DOCUMENTO MESTRE v6 — con Anexo A (Fase 1 completa + Fases
 2, 3, 4, 5, 6 PECHADAS; cadea 23 sub-fases sen rollback)**
+
+---
+
+### A.6.26 — `canUnlock` é veredicto; `explainUnlock` é explicación. Compárense, non se substitúen
+
+**Contexto.** Despois de pechar Renderer 2.0 MVP, o showcase de
+prerequisitos compostos (capa visual «que falta para desbloquear»)
+necesitaba acceso á explicación **por-condición** dos prereqs. O motor
+xa o sabía facer internamente (`UnlockResolver.explain` existe e
+devolve `UnlockExplanation`), pero `TreeEngine` só expoñía
+`canUnlock`, que reduce todo a `{allowed, reason}` único.
+
+**Decisión.** Engadir un método xemelgo de `canUnlock` chamado
+`explainUnlock(nodeId): Result<UnlockExplanation>` con tres
+constraints:
+
+1. **`ctx` idéntico ao de `canUnlock`** (mesmos campos `treeDef`,
+   `state`, `locale`, `progressManager`). Pa garantir que
+   `explain.satisfied` coincide co veredicto de prereqs cando se
+   chaman no mesmo momento. Cero diverxencia.
+2. **NON cortar por estado actual.** `canUnlock` corta `maxed`,
+   `unlocked`, `expired` antes de chegar a prereqs. `explainUnlock`
+   *non*: a explicación dos prereqs ten que seguir dispoñible mesmo
+   para nodos xa desbloqueados (o panel UI quere amosar «✓ Cumprida»
+   en todo o que está ben, non só nos nodos pendentes).
+3. **Soamente prereqs.** Exclusións (`node.exclusions`) e custos de
+   recursos (`node.cost`) son comprobacións á parte. A UI compón a
+   resposta completa («¿podo desbloquear?») a partir do estado +
+   `explainUnlock` + lecturas directas de exclusions/cost. *Build
+   narrow*: o método só fai unha cousa, ben definida.
+
+**Por que importa.** O patrón aplícase cada vez que un motor de
+regras precisa de dous niveis de feedback: un veredicto rápido (¿podo
+proceder agora?) e unha explicación verbose (¿como podo
+proceder?). Confundilos nun único API leva a complicar a sinal: o
+veredicto incorpora estado actual, mentres que a explicación non
+debería. Mantelos separados pero con **idéntica fonte de verdade**
+(o `ctx`) preserva a coherencia sen acoplar os usos.
+
+**Test de cordura.** Un test específico (`coherencia con canUnlock`)
+verifica que `explainUnlock.satisfied` == `canUnlock.allowed` para
+nodos en estado `locked`, e diverxe (intencionalmente) cando o nodo
+está `unlocked` (canUnlock corta por estado; explain segue informando
+dos prereqs). Iso protexe contra unha refactorización futura que
+homologue erroneamente os dous métodos.

@@ -38,6 +38,7 @@ import type {
   TreeEngineOptions,
   TreeState,
   UnlockCheck,
+  UnlockExplanation,
   UnlockResult,
 } from '../types/index.js'
 import { err, ok } from '../types/index.js'
@@ -814,6 +815,61 @@ export class TreeEngine {
     const modified = this.hookRunner.runComputeUnlockability(nodeId, defaultResult)
     return ok(modified)
     // ── FIN: 8.4.c ──
+  }
+
+  // ── explainUnlock: explicación por-condición dos prerequisitos (Showcase Capa 0) ──
+  /**
+   * Explica, condición a condición, por que os PREREQUISITOS dun nodo se
+   * cumpren ou non. Para UI pedagóxica («que falta para desbloquear»),
+   * tooltips, panel «Inspector de Condicións» e devtools.
+   *
+   * Cobre só `nodeDef.prerequisites` (a regra de desbloqueo). Exclusións
+   * (`node.exclusions`) e custos de recursos (`node.cost`) son
+   * comprobacións á parte e compóñense na capa de UI a partir do estado
+   * actual; non viaxan na regra de prerequisitos.
+   *
+   * Xemelgo de `canUnlock`, pero:
+   * - Devolve `UnlockExplanation` (explicación por-condición) en vez do
+   *   veredicto único `UnlockCheck`.
+   * - **NON** corta por estado actual (maxed/unlocked/expired): informa
+   *   dos prerequisitos sempre. O panel pode amosar «✓ Cumplida» mesmo
+   *   para nodos xa desbloqueados.
+   * - O `UnlockResolverContext` construído é **idéntico** ao de
+   *   `canUnlock` para garantir que `explain.satisfied` coincide co
+   *   veredicto de prereqs (cero diverxencia).
+   *
+   * Casos:
+   * - Nodo inexistente → `err(NODE_NOT_FOUND)`.
+   * - Sen `prerequisites` (raíz / nodo libre) → `ok({ satisfied: true,
+   *   conditions: [] })`.
+   * - Con `prerequisites` → `ok(resolver.explain(prerequisites, ctx))`.
+   */
+  explainUnlock(nodeId: string): Result<UnlockExplanation> {
+    const treeDef = this.store.getTreeDef()
+    const state = this.store.getState()
+
+    const nodeDef = treeDef.nodes.find((n) => n.id === nodeId)
+    if (nodeDef === undefined) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.NODE_NOT_FOUND,
+          getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, { nodeId }),
+        ),
+      )
+    }
+
+    if (nodeDef.prerequisites === undefined) {
+      return ok({ satisfied: true, conditions: [] })
+    }
+
+    // ctx idéntico a canUnlock (mesma fonte de verdade; cero diverxencia).
+    const ctx: UnlockResolverContext = {
+      treeDef,
+      state,
+      locale: this.locale,
+      progressManager: this.progressManager,
+    }
+    return ok(this.resolver.explain(nodeDef.prerequisites, ctx))
   }
 
   // ── unlock: mutación async (T4) ──
