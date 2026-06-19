@@ -6,7 +6,7 @@
 > interno das decisións) e o `RENDERER-STATE.md` (estado interno do renderer).
 >
 > **Mantéheno actualizado en cada sub-fase que cambie a API pública.**
-> _Última actualización: tras F10.7 (selección + hover + cursor + foco)._
+> _Última actualización: tras F10.8 (tema ampliado: typography + background + surface)._
 
 ---
 
@@ -142,6 +142,8 @@ import type { Theme } from '@yggdrasil-forge/react'
 
 const dark: Theme = {
   colors: {
+    background: '#11131a',      // fondo do canvas SVG (F10.8; opcional)
+    surface: '#1c2030',         // «tarxeta» detrás da árbore (F10.8; opcional)
     text: '#e6d5a8',
     nodeFill: '#2a2f3d',        // interior do orbe
     nodeLocked: '#5b6b86',
@@ -157,14 +159,26 @@ const dark: Theme = {
     mesh: 'rgba(148,163,184,0.08)',
   },
   sizes: { strokeWidth: 2.5, fontSize: 14, fontSizeSmall: 11, ringWidth: 3 },
+  typography: {                 // tipografía dos labels (F10.8; todo opcional)
+    fontFamily: '"Cinzel", serif',
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+    // textTransform: 'uppercase',
+  },
 }
 
 <ThemeProvider theme={dark}><SkillTree engine={engine} /></ThemeProvider>
 ```
 
-- Campos opcionais (`nodeFill`, `edgeActive`, `icon`, `selected`, `ringWidth`)
-  teñen fallback sensato → un tema mínimo só precisa `text` + as cores de
-  estado.
+- Campos opcionais (`background`, `surface`, `nodeFill`, `edgeActive`, `icon`,
+  `selected`, `ringWidth`, `typography`) teñen fallback sensato → un tema
+  mínimo só precisa `text` + as cores de estado.
+- `colors.background` aplícase **inline** ao `<svg>` (vía fiable post-F10.8;
+  cero CSS vars).
+- `colors.surface` debuxa unha «tarxeta» de fondo cubrindo o viewBox (panel
+  composible completo virá en F12).
+- `typography` aplícase aos `<text>` dos labels. Lembra cargar a fonte (`@import`
+  ou `<link>` do Google Fonts, etc.) antes de pasarlla ao tema.
 - Para experimentar paletas en vivo, mira o **Theme Lab** do demo
   (`examples/react-demo`): sliders + presets + «copiar valores».
 

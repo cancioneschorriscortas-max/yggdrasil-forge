@@ -104,6 +104,17 @@ export function SkillNode({
   const fontSize: number | undefined = theme?.sizes.fontSize
   const fontSizeSmall: number | undefined = theme?.sizes.fontSizeSmall
 
+  // F10.8: typography tokens opcionais do tema. Spread condicional
+  // para non emitir `prop: undefined` (rompería exactOptionalPropertyTypes).
+  // Aplícase aos `<text>` de label e ao fallback de icono-texto.
+  const typography = theme?.typography
+  const typographyStyle: CSSProperties = {
+    ...(typography?.fontFamily !== undefined && { fontFamily: typography.fontFamily }),
+    ...(typography?.fontWeight !== undefined && { fontWeight: typography.fontWeight }),
+    ...(typography?.letterSpacing !== undefined && { letterSpacing: typography.letterSpacing }),
+    ...(typography?.textTransform !== undefined && { textTransform: typography.textTransform }),
+  }
+
   // F10.5: cor do icono = ThemeColors.icon (opt) ?? text (fallback).
   const iconColor: string | undefined = theme?.colors.icon ?? textColor
 
@@ -137,10 +148,12 @@ export function SkillNode({
   const labelStyle: CSSProperties = {
     ...(textColor !== undefined && { fill: textColor }),
     ...(fontSize !== undefined && { fontSize }),
+    ...typographyStyle,
   }
   const progressStyle: CSSProperties = {
     ...(textColor !== undefined && { fill: textColor }),
     ...(fontSizeSmall !== undefined && { fontSize: fontSizeSmall }),
+    ...typographyStyle,
   }
 
   const handleClick =

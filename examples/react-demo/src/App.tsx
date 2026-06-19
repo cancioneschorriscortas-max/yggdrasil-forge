@@ -3,7 +3,7 @@ import type { BuildSnapshot } from '@yggdrasil-forge/core'
 import { SkillTree, type SkillTreeHandle, ThemeProvider } from '@yggdrasil-forge/react'
 import type { Theme } from '@yggdrasil-forge/react'
 import { MemoryStorage } from '@yggdrasil-forge/storage'
-import type { CSSProperties, JSX } from 'react'
+import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { longLabels, rpgTreeDef } from './tree-def.js'
@@ -29,10 +29,13 @@ export function App(): JSX.Element {
   // Construímos o `Theme` real desde os mandos do lab. F10.3.fix: os
   // valores `fill` e `ringWidth` viaxan agora dentro do propio Theme
   // (campos opcionais novos), non como CSS vars no wrapper.
+  // F10.8: `background` e `typography` viven no Theme; o wrapper xa
+  // non precisa style propio. O hack de `font-family: !important` no
+  // CSS do demo elimínase a favor de typography do tema.
   const builtTheme: Theme = useMemo(
     () => ({
       colors: {
-        background: 'transparent',
+        background: themeVals.canvas,
         text: themeVals.text,
         nodeLocked: themeVals.nodeLocked,
         nodeUnlockable: themeVals.nodeUnlockable,
@@ -50,13 +53,19 @@ export function App(): JSX.Element {
         fontSizeSmall: 11,
         ringWidth: themeVals.ringWidth,
       },
+      typography: {
+        fontFamily: '"Cinzel", serif',
+        fontWeight: 600,
+        letterSpacing: '0.04em',
+      },
     }),
     [themeVals],
   )
 
-  // Wrapper só co fondo do lenzo (F10.3.fix: as vars CSS do nodo
-  // eliminadas; agora aplícanse inline desde Theme dentro dos compoñentes).
-  const wrapperStyle: CSSProperties = useMemo(() => ({ background: themeVals.canvas }), [themeVals])
+  // F10.8: o wrapper xa non precisa style propio para o fondo.
+  // `colors.background` do tema viaxa ao `<svg>` do `SVGRenderer`
+  // como `style.background` inline (vía fiable, post-F10.8). Cero
+  // CSS vars / `<style>` interno requeridas.
 
   // Subscribe to engine changes:
   useEffect(() => {
@@ -126,7 +135,7 @@ export function App(): JSX.Element {
 
       <div className="app-body">
         <div className="tree-frame">
-          <div className="tree-container" style={wrapperStyle}>
+          <div className="tree-container">
             <ThemeProvider theme={builtTheme}>
               <SkillTree
                 ref={treeRef}

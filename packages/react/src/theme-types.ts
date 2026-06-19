@@ -18,11 +18,54 @@ export interface Theme {
 
   /** Sizes (radios, anchos, font sizes en unidades do layout). */
   readonly sizes: ThemeSizes
+
+  /**
+   * Tipografía dos labels do tema (F10.8). Opcional; sen typography,
+   * o texto renderiza coa fonte heredada do DOM e os defaults do
+   * navegador. Aplícase inline aos `<text>` de label e ao fallback
+   * de icono-texto.
+   */
+  readonly typography?: ThemeTypography
+}
+
+/**
+ * Tokens tipográficos do tema (F10.8). Aplícanse inline desde
+ * `useTheme()` aos `<text>` de label. Todos opcionais; campo non
+ * declarado = comportamento por defecto do navegador (fonte
+ * heredada do DOM ascendente).
+ *
+ * Doc de cada token:
+ * - `fontFamily`: stack CSS (ex. `'Cinzel, serif'`). Recoméndase
+ *   pasar tamén o fallback xenérico.
+ * - `fontWeight`: peso do texto dos labels (400/500/600/700 etc.).
+ *   Acepta tamén string ('bold', 'normal') para encaixar co tipo
+ *   CSS estándar.
+ * - `letterSpacing`: tracking (ex. `'0.05em'`). Útil para tipografía
+ *   épica con respiración.
+ * - `textTransform`: maiúsculas/minúsculas. Permite `none`,
+ *   `uppercase`, `lowercase`, `capitalize`.
+ */
+export interface ThemeTypography {
+  readonly fontFamily?: string
+  readonly fontWeight?: number | string
+  readonly letterSpacing?: string
+  readonly textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
 }
 
 export interface ThemeColors {
   /** Cor de fondo do svg (cero, fondo transparente). */
   readonly background?: string
+
+  /**
+   * Cor da «tarxeta»/superficie detrás da árbore (F10.8). Opcional;
+   * se está, o `SVGRenderer` debuxa un `<rect>` cubrindo o viewBox
+   * como primeiro fillo (queda detrás de mesh/edges/nodes). Útil
+   * para temas con fondo de canvas distinto da superficie interna
+   * (ex. canvas escuro + superficie crema neutral).
+   *
+   * Cero = só `background` (ou transparente).
+   */
+  readonly surface?: string
 
   /** Cor do texto (labels, progress). */
   readonly text: string

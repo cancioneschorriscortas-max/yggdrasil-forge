@@ -105,12 +105,34 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
   const arrowFillStyle: CSSProperties | undefined =
     theme !== null && theme.colors.edge !== undefined ? { fill: theme.colors.edge } : undefined
 
+  // F10.8: background do SVG aplicado **inline** (a vía CSS-var via
+  // <style> interior era inestable; o inline funciona). Cero
+  // background no tema = SVG transparente (comportamento previo).
+  const svgStyle: CSSProperties | undefined =
+    theme?.colors.background !== undefined ? { background: theme.colors.background } : undefined
+
+  // F10.8: surface = «tarxeta» opcional debaixo de todo o contido.
+  // Calcúlase a partir do mesmo bounds+padding que viewBox para
+  // cubrir exactamente a área visible da árbore. Cero surface no
+  // tema = nada. (Panel composible completo é F12.)
+  const surfaceRect =
+    theme?.colors.surface !== undefined && bounds !== undefined
+      ? {
+          x: bounds.minX - padding,
+          y: bounds.minY - padding,
+          width: bounds.maxX - bounds.minX + padding * 2,
+          height: bounds.maxY - bounds.minY + padding * 2,
+          fill: theme.colors.surface,
+        }
+      : null
+
   return (
     <svg
       ref={ref}
       className="yf-skill-tree"
       {...(layoutType !== undefined && { 'data-layout': layoutType })}
       {...(theme !== null && { 'data-theme-id': themeId })}
+      {...(svgStyle !== undefined && { style: svgStyle })}
       viewBox={viewBox}
       role="img"
       aria-label={ariaLabel ?? 'Skill tree'}
@@ -141,7 +163,23 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
           se non se pasa `transform`). <defs> queda fóra para que os
           markers non escalen co contido (decisión: markers manteñen
           tamaño constante percibido, máis predecible). */}
-      <g {...(transform !== undefined && { transform })}>{children}</g>
+      <g {...(transform !== undefined && { transform })}>
+        {/* F10.8: surface = «tarxeta» opcional debaixo de todo o
+            contido. Dentro do <g transform> a tarxeta acompaña a
+            árbore (parte do contido). O panel composible completo
+            queda para F12. */}
+        {surfaceRect !== null && (
+          <rect
+            className="yf-skill-tree__surface"
+            x={surfaceRect.x}
+            y={surfaceRect.y}
+            width={surfaceRect.width}
+            height={surfaceRect.height}
+            style={{ fill: surfaceRect.fill }}
+          />
+        )}
+        {children}
+      </g>
     </svg>
   )
 })

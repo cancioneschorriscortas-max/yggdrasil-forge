@@ -155,12 +155,6 @@ body::before {
   transition: stroke 0.3s ease;
 }
 
-.yf-skill-node text {
-  font-family: "Cinzel", serif !important;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
 .yf-skill-node[data-state="locked"] .yf-skill-node__shape {
   opacity: 0.85;
 }
