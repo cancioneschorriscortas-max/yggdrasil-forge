@@ -59,13 +59,15 @@ export const presetDarkClean: ThemeLabValues = {
   nodeInProgress: '#e08a3c',
   edge: '#46506b',
   ringWidth: 3,
-  // Showcase: bloqueados máis apagados; in_progress dourado tenue; maxed
-  // chea de cor. Iso fai que o "corpo enteiro fale", non só o anel.
-  nodeFillLocked: '#1d2230',
-  nodeFillUnlockable: '#2a2f3d',
-  nodeFillUnlocked: '#2a3d2f',
-  nodeFillMaxed: '#3d3320',
-  nodeFillInProgress: '#3d2f20',
+  // Showcase: o corpo enteiro fala. Contraste suficiente sobre `canvas`
+  // (#11131a): locked claramente visible pero atenuado; unlockable
+  // neutral; unlocked tinte verde; maxed e in_progress dourados pero
+  // diferenciados entre si para que un 2/3 e un 3/3 NON se confundan.
+  nodeFillLocked: '#363c4d', // máis claro ca antes (#1d2230 era case invisible)
+  nodeFillUnlockable: '#3b3f55',
+  nodeFillUnlocked: '#2e4538', // verdoso saturado
+  nodeFillMaxed: '#6d5118', // dourado escuro e pleno
+  nodeFillInProgress: '#4d3a1a', // dourado tenue, ben distinto de maxed
 }
 
 interface ThemeLabProps {
