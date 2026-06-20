@@ -45,6 +45,7 @@ export const paladinTreeDef: TreeDef = {
       max: 20,
       icon: '💧',
       color: '#4aa3df',
+      refundable: true,
     },
     // Showcase «Economía de Puntos»: pool xeral de progresión.
     // Cada nodo non-divino consume 1 punto por tier desbloqueado;
@@ -58,6 +59,7 @@ export const paladinTreeDef: TreeDef = {
       max: 18,
       icon: '⭐',
       color: '#f0c040',
+      refundable: true,
     },
   ],
   startingBudget: { resources: { 'skill-points': 18, piety: 7 } },

@@ -152,6 +152,42 @@ const [selected, setSelected] = useState<string | null>(null)
   Recibe o id ao entrar, `null` ao saír. Ortogonal a `selectedNodeId` (decides
   ti se hover muta selección, abre tooltip, etc.).
 
+### Construtor interactivo (➕/➖ por nodo)
+
+Para construír árbores **punto a punto** (como en Path of Exile / Diablo):
+
+```tsx
+<SkillTree
+  engine={engine}
+  selectedNodeId={selected ?? undefined}
+  onNodeClick={(id) => setSelected(id)}
+  // Badge visible "1/3" na esquina inferior dereita do nodo:
+  showTierBadge
+  // ➕ aparece ao lado do nodo seleccionado, sube tier+1:
+  onNodeTierIncrease={(id) => void engine.unlock(id)}
+  // ➖ aparece tamén, baixa tier-1 e devolve o punto:
+  onNodeTierDecrease={(id) => void engine.lockOneTier(id)}
+  // Hint visual de afordabilidade (sen prereqs / sen budget → ➕ disabled):
+  canIncrease={(id) => engine.canUnlock(id).ok && engine.canUnlock(id).value.allowed}
+/>
+```
+
+- **`showTierBadge`**: `true` forza badge en todos os nodos; `false` apágao;
+  ausente = só multi-tier (`maxTier > 1`).
+- **`onNodeTierIncrease` / `onNodeTierDecrease`**: callbacks puros; o
+  `SkillTree` non chama ao motor (cero acoplamento). Ti cableas a `unlock` /
+  `lockOneTier`.
+- **`canIncrease`**: predicado opcional que disabilita ➕ visualmente cando
+  devolve `false`. Default: ➕ activo sempre que `currentTier < maxTier`.
+- Os botóns aparecen **só** se hai `selectedNodeId` E algún dos dous callbacks
+  está presente. Renderízanse como SVG nativo dentro do viewport (móvense co
+  pan/zoom). Disabled automaticamente en bordes (➖ en tier 0, ➕ en maxed).
+- **Importante**: para que `lockOneTier` devolva puntos ao budget, declara
+  `refundable: true` no Resource do TreeDef:
+  ```ts
+  resources: [{ id: 'pts', label: 'Points', initial: 18, max: 18, refundable: true }]
+  ```
+
 ## 5. Tematización
 
 O tema aplícase por **inline style desde `useTheme()`** (alta prioridade, sen

@@ -17,6 +17,7 @@ import { MeshOverlay } from './MeshOverlay.js'
 import { SVGRenderer } from './SVGRenderer.js'
 import { SkillEdge, edgeStateFor } from './SkillEdge.js'
 import { SkillNode } from './SkillNode.js'
+import { SkillNodeControls } from './SkillNodeControls.js'
 import { createDefaultLayoutRegistry } from './createDefaultLayoutRegistry.js'
 import { shortenEdgeAtTarget } from './edgeGeometry.js'
 import { type ViewportState, useViewport } from './hooks/useViewport.js'
@@ -96,6 +97,43 @@ export interface SkillTreeProps {
    * `selectedNodeId` (o consumidor decide se hover muta a selección).
    */
   readonly onNodeHover?: (nodeId: string | null) => void
+
+  /**
+   * Mostrar o badge `currentTier/maxTier` nos nodos (Interactivo
+   * Capa B). Pásase tal cal a cada `SkillNode`. Default = só nodos
+   * multi-tier; `true` fórzao en todos, `false` apágao en todos.
+   */
+  readonly showTierBadge?: boolean
+
+  /**
+   * Callback para investir un punto no nodo (Interactivo Capa B).
+   * Cando se pasa **e** hai `selectedNodeId`, renderízase un botón
+   * **➕** SVG nativo dentro do `<g transform>` adxacente ao nodo.
+   * O consumidor cablea normalmente a `engine.unlock(nodeId)`. Cero
+   * acoplamento ao motor (callback, non chamada directa).
+   */
+  readonly onNodeTierIncrease?: (nodeId: string) => void
+
+  /**
+   * Callback para retirar un punto do nodo (Interactivo Capa B).
+   * Cando se pasa **e** hai `selectedNodeId`, renderízase un botón
+   * **➖** SVG nativo dentro do `<g transform>` adxacente ao nodo.
+   * O consumidor cablea normalmente a `engine.lockOneTier(nodeId)`.
+   *
+   * Disabled automático en `currentTier === 0` (sen nada que
+   * retirar). O consumidor non precisa engadir lóxica adicional.
+   */
+  readonly onNodeTierDecrease?: (nodeId: string) => void
+
+  /**
+   * Predicado opcional que decide se ➕ está habilitado para o nodo
+   * seleccionado (afordabilidade, prereqs cumpridos, etc.). Se
+   * devolve `false`, ➕ apárece disabled visualmente. Default
+   * (ausente): ➕ activo sempre que `currentTier < maxTier`. O motor
+   * rexeitará igualmente se non hai budget; este predicado é só un
+   * hint visual para evitar o feedback err do motor en clics inutiles.
+   */
+  readonly canIncrease?: (nodeId: string) => boolean
 }
 
 export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function SkillTree(
@@ -114,6 +152,10 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     onViewportChange,
     selectedNodeId,
     onNodeHover,
+    showTierBadge,
+    onNodeTierIncrease,
+    onNodeTierDecrease,
+    canIncrease,
   },
   ref,
 ) {
@@ -240,10 +282,44 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
               {...(onNodeLongPress !== undefined && { onLongPress: onNodeLongPress })}
               {...(isSelected && { selected: true })}
               {...(onNodeHover !== undefined && { onHover: onNodeHover })}
+              {...(showTierBadge !== undefined && { showTierBadge })}
             />
           )
         })}
       </g>
+      {/* Interactivo Capa B: controis ➕/➖ no nodo seleccionado. Renderízanse
+          dentro do <g transform> do viewport (móvense co pan/zoom). Cero
+          chamada ao motor; o consumidor cablea via onNodeTierIncrease /
+          onNodeTierDecrease. */}
+      {selectedNodeId !== undefined &&
+        (onNodeTierIncrease !== undefined || onNodeTierDecrease !== undefined) &&
+        (() => {
+          const selectedDef = treeDef.nodes.find((n) => n.id === selectedNodeId)
+          const selectedPos = nodePositions.get(selectedNodeId)
+          if (selectedDef === undefined || selectedPos === undefined) return null
+          const inst = state.nodes[selectedNodeId]
+          const currentTier = inst?.currentTier ?? 0
+          const maxTier = selectedDef.maxTier ?? 1
+          const nodeRadius = resolveRadius(selectedDef)
+          // Noop fallback se só un callback foi pasado.
+          const onInc = onNodeTierIncrease ?? (() => undefined)
+          const onDec = onNodeTierDecrease ?? (() => undefined)
+          const canInc = canIncrease !== undefined ? canIncrease(selectedNodeId) : true
+          return (
+            <g className="yf-skill-tree-controls-layer">
+              <SkillNodeControls
+                position={selectedPos}
+                nodeRadius={nodeRadius}
+                nodeId={selectedNodeId}
+                currentTier={currentTier}
+                maxTier={maxTier}
+                canIncrease={canInc}
+                onIncrease={onInc}
+                onDecrease={onDec}
+              />
+            </g>
+          )
+        })()}
     </SVGRenderer>
   )
 })

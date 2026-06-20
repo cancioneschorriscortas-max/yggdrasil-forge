@@ -69,6 +69,19 @@ export interface SkillNodeProps {
    * do viewport (events de pointer no SVG raíz seguen funcionando).
    */
   readonly onHover?: (nodeId: string | null) => void
+
+  /**
+   * Mostrar o badge de progresión `currentTier/maxTier` na esquina
+   * inferior dereita do nodo (Interactivo Capa B). Por defecto **só
+   * se amosa para nodos multi-tier** (`maxTier > 1`); con
+   * `showTierBadge: false` ocúltase sempre; con `true` fórzase
+   * mesmo en single-tier (útil para depuración / construtores
+   * interactivos onde todos os nodos deben amosar o seu progreso).
+   *
+   * O badge é un `<text>` SVG inline-tematizado; non depende do icono
+   * (segue visible aínda que o icon id caia ao fallback de texto).
+   */
+  readonly showTierBadge?: boolean
 }
 
 const DEFAULT_LONG_PRESS_MS = 700
@@ -82,6 +95,7 @@ export function SkillNode({
   longPressDuration,
   selected,
   onHover,
+  showTierBadge,
 }: SkillNodeProps): JSX.Element {
   const state = instance?.state ?? 'locked'
   const tier = instance?.currentTier ?? 0
@@ -342,6 +356,44 @@ export function SkillNode({
           {progress}%
         </text>
       )}
+      {/* Interactivo Capa B: badge currentTier/maxTier na esquina inferior
+          dereita. Default: amosar en multi-tier; con showTierBadge controla. */}
+      {(() => {
+        const maxTier = node.maxTier ?? 1
+        const visible = showTierBadge ?? maxTier > 1
+        if (!visible) return null
+        const badgeX = radius * 0.75
+        const badgeY = radius * 0.75
+        const badgeR = Math.max(8, radius * 0.32)
+        return (
+          <g className="yf-skill-node__tier-badge" data-testid="tier-badge" pointerEvents="none">
+            <circle
+              cx={badgeX}
+              cy={badgeY}
+              r={badgeR}
+              fill={fill}
+              stroke={ring ?? '#666'}
+              strokeWidth={1.5}
+            />
+            <text
+              x={badgeX}
+              y={badgeY}
+              textAnchor="middle"
+              dominantBaseline="central"
+              style={{
+                fontSize: Math.max(9, radius * 0.28),
+                fontWeight: 600,
+                fill: textColor ?? '#2a2a2a',
+                ...(typography?.fontFamily !== undefined && {
+                  fontFamily: typography.fontFamily,
+                }),
+              }}
+            >
+              {tier}/{maxTier}
+            </text>
+          </g>
+        )
+      })()}
     </g>
   )
 }

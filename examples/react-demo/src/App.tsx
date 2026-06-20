@@ -178,6 +178,29 @@ export function App(): JSX.Element {
                 engine={engine}
                 onNodeClick={handleNodeClick}
                 {...(selectedNode !== null && { selectedNodeId: selectedNode })}
+                showTierBadge
+                onNodeTierIncrease={(nodeId) => {
+                  void engine.unlock(nodeId).then((r) => {
+                    if (r.ok) {
+                      setLastAction(`✨ +1 ${paladinLongLabels[nodeId] ?? nodeId}`)
+                    } else {
+                      setLastAction(`⛔ ${r.error.message}`)
+                    }
+                  })
+                }}
+                onNodeTierDecrease={(nodeId) => {
+                  void engine.lockOneTier(nodeId).then((r) => {
+                    if (r.ok) {
+                      setLastAction(`↩️ -1 ${paladinLongLabels[nodeId] ?? nodeId}`)
+                    } else {
+                      setLastAction(`⛔ ${r.error.message}`)
+                    }
+                  })
+                }}
+                canIncrease={(nodeId) => {
+                  const check = engine.canUnlock(nodeId)
+                  return check.ok && check.value.allowed
+                }}
               />
             </ThemeProvider>
           </div>
