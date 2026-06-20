@@ -112,6 +112,7 @@ export const paladinTreeDef: TreeDef = {
     // ── Columna central: CONVERXENCIA (hexágonos) ──
     {
       id: 'holy-warrior',
+      tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
       maxTier: 1,
@@ -128,6 +129,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'champion-of-light',
+      tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
       maxTier: 2,
@@ -144,6 +146,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'valor-aura',
+      tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
       maxTier: 1,
@@ -160,6 +163,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'dark-pact',
+      tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
       maxTier: 1,
@@ -173,6 +177,7 @@ export const paladinTreeDef: TreeDef = {
     // ── Columna dereita: CLÉRIGO ──
     {
       id: 'holy-light',
+      tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
       maxTier: 3,
@@ -183,6 +188,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'healing-hands',
+      tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
       maxTier: 2,
@@ -194,6 +200,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'smite',
+      tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
       maxTier: 1,
@@ -205,6 +212,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'divine-shield',
+      tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
       maxTier: 1,
@@ -222,6 +230,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'divine-judgment',
+      tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
       maxTier: 1,

@@ -1,4 +1,4 @@
-import type { CSSProperties, JSX } from 'react'
+import type { JSX } from 'react'
 import { useState } from 'react'
 
 /**
@@ -73,6 +73,17 @@ export const presetDarkClean: ThemeLabValues = {
 interface ThemeLabProps {
   readonly value: ThemeLabValues
   readonly onChange: (next: ThemeLabValues) => void
+  // Capa 2 — Selector de rexión (columna activa) + cor da rexión.
+  /** Lista de rexións dispoñibles (id + label) para o selector. */
+  readonly regions?: ReadonlyArray<{ readonly id: string; readonly label: string }>
+  /** Mapa id → cor actual de cada rexión. */
+  readonly regionColors?: Readonly<Record<string, string>>
+  /** Id da rexión activa (a que está sendo editada). */
+  readonly activeRegion?: string
+  /** Callback ao cambiar de rexión activa no selector. */
+  readonly onActiveRegionChange?: (id: string) => void
+  /** Callback ao cambiar a cor da rexión activa. */
+  readonly onRegionColorChange?: (id: string, color: string) => void
 }
 
 interface ColorFieldDef {
@@ -98,8 +109,15 @@ const COLOR_FIELDS: readonly ColorFieldDef[] = [
   { key: 'nodeFillInProgress', label: 'Fill: in progress' },
 ]
 
-export function ThemeLab({ value, onChange }: ThemeLabProps): JSX.Element {
-  const [open, setOpen] = useState<boolean>(true)
+export function ThemeLab({
+  value,
+  onChange,
+  regions,
+  regionColors,
+  activeRegion,
+  onActiveRegionChange,
+  onRegionColorChange,
+}: ThemeLabProps): JSX.Element {
   const [copyStatus, setCopyStatus] = useState<string>('')
 
   const updateColor = (key: keyof Omit<ThemeLabValues, 'ringWidth'>, hex: string): void => {
@@ -120,95 +138,110 @@ export function ThemeLab({ value, onChange }: ThemeLabProps): JSX.Element {
     setTimeout(() => setCopyStatus(''), 1800)
   }
 
-  const headerStyle: CSSProperties = {
-    cursor: 'pointer',
-    userSelect: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    background: 'transparent',
-    border: 'none',
-    padding: 0,
-    color: 'inherit',
-    font: 'inherit',
-    textAlign: 'left',
-  }
+  // Capa 2 — Selector de rexión activa + picker da súa cor.
+  const hasRegions = regions !== undefined && regions.length > 0
+  const activeColor =
+    activeRegion !== undefined && regionColors !== undefined
+      ? (regionColors[activeRegion] ?? '#999999')
+      : '#999999'
 
   return (
     <section className="panel theme-lab">
-      <button
-        type="button"
-        className="panel-title"
-        style={headerStyle}
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-      >
-        <span>⚜ Theme Lab</span>
-        <span style={{ fontSize: '0.75em', opacity: 0.7 }}>{open ? '▾' : '▸'}</span>
-      </button>
+      <h2 className="panel-title">⚜ Theme Lab</h2>
 
-      {open && (
-        <div className="theme-lab-body">
-          <div className="theme-lab-presets">
-            <button
-              type="button"
-              className="rune-button rune-button-small"
-              onClick={() => onChange(presetFlatLight)}
-            >
-              ☀ Plano claro
-            </button>
-            <button
-              type="button"
-              className="rune-button rune-button-small"
-              onClick={() => onChange(presetDarkClean)}
-            >
-              ☾ Escuro limpo
-            </button>
-          </div>
+      <div className="theme-lab-body">
+        <div className="theme-lab-presets">
+          <button
+            type="button"
+            className="rune-button rune-button-small"
+            onClick={() => onChange(presetFlatLight)}
+          >
+            ☀ Plano claro
+          </button>
+          <button
+            type="button"
+            className="rune-button rune-button-small"
+            onClick={() => onChange(presetDarkClean)}
+          >
+            ☾ Escuro limpo
+          </button>
+        </div>
 
-          <div className="theme-lab-fields">
-            {COLOR_FIELDS.map((field) => (
-              <label className="theme-lab-row" key={field.key}>
-                <span className="theme-lab-label">{field.label}</span>
-                <input
-                  type="color"
-                  className="theme-lab-color"
-                  value={value[field.key]}
-                  onChange={(e) => updateColor(field.key, e.target.value)}
-                />
-                <code className="theme-lab-hex">{value[field.key]}</code>
-              </label>
-            ))}
-
+        {hasRegions && (
+          <div className="theme-lab-region-block">
+            <h3 className="theme-lab-subtitle">Cor por columna</h3>
             <label className="theme-lab-row">
-              <span className="theme-lab-label">Grosor de anel</span>
+              <span className="theme-lab-label">Columna</span>
+              <select
+                className="theme-lab-select"
+                value={activeRegion ?? ''}
+                onChange={(e) => onActiveRegionChange?.(e.target.value)}
+              >
+                {regions.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="theme-lab-row">
+              <span className="theme-lab-label">Tinte</span>
               <input
-                type="range"
-                min={1}
-                max={8}
-                step={1}
-                value={value.ringWidth}
-                onChange={(e) => updateRing(Number.parseInt(e.target.value, 10))}
-                className="theme-lab-range"
+                type="color"
+                className="theme-lab-color"
+                value={activeColor}
+                onChange={(e) => {
+                  if (activeRegion !== undefined) {
+                    onRegionColorChange?.(activeRegion, e.target.value)
+                  }
+                }}
               />
-              <code className="theme-lab-hex">{value.ringWidth}</code>
+              <code className="theme-lab-hex">{activeColor}</code>
             </label>
           </div>
+        )}
 
-          <div className="theme-lab-actions">
-            <button type="button" className="rune-button" onClick={handleCopy}>
-              ⎘ Copiar valores
-            </button>
-            {copyStatus !== '' && <span className="theme-lab-status">{copyStatus}</span>}
-          </div>
+        <div className="theme-lab-fields">
+          {COLOR_FIELDS.map((field) => (
+            <label className="theme-lab-row" key={field.key}>
+              <span className="theme-lab-label">{field.label}</span>
+              <input
+                type="color"
+                className="theme-lab-color"
+                value={value[field.key]}
+                onChange={(e) => updateColor(field.key, e.target.value)}
+              />
+              <code className="theme-lab-hex">{value[field.key]}</code>
+            </label>
+          ))}
 
-          <p className="theme-lab-note">
-            <strong>Nota:</strong> no fondo escuro, os emojis nativos non se ven — iso resólvese
-            migrando a iconos recoloreables (sub-fase futura).
-          </p>
+          <label className="theme-lab-row">
+            <span className="theme-lab-label">Grosor de anel</span>
+            <input
+              type="range"
+              min={1}
+              max={8}
+              step={1}
+              value={value.ringWidth}
+              onChange={(e) => updateRing(Number.parseInt(e.target.value, 10))}
+              className="theme-lab-range"
+            />
+            <code className="theme-lab-hex">{value.ringWidth}</code>
+          </label>
         </div>
-      )}
+
+        <div className="theme-lab-actions">
+          <button type="button" className="rune-button" onClick={handleCopy}>
+            ⎘ Copiar valores
+          </button>
+          {copyStatus !== '' && <span className="theme-lab-status">{copyStatus}</span>}
+        </div>
+
+        <p className="theme-lab-note">
+          <strong>Nota:</strong> no fondo escuro, os emojis nativos non se ven — iso resólvese
+          migrando a iconos recoloreables (sub-fase futura).
+        </p>
+      </div>
     </section>
   )
 }

@@ -81,14 +81,62 @@ body::before {
 
 .app-body {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 24px;
+  grid-template-columns: 1fr 320px 320px;
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .app-body {
+    grid-template-columns: 1fr 340px;
+  }
+  .theme-lab-column {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 900px) {
   .app-body {
     grid-template-columns: 1fr;
   }
+}
+
+.theme-lab-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Capa 2 — subtítulo + selector dentro do Theme Lab. */
+.theme-lab-region-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid rgba(212, 160, 23, 0.18);
+  border-radius: 8px;
+  background: rgba(212, 160, 23, 0.04);
+}
+
+.theme-lab-subtitle {
+  margin: 0;
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rune-gold, #d4a017);
+  opacity: 0.85;
+}
+
+.theme-lab-select {
+  background: rgba(15, 17, 25, 0.6);
+  color: inherit;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
 }
 
 /* ── Tree frame (ornate border) ─────────────────────────────────── */

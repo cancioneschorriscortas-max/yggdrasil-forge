@@ -18,6 +18,7 @@ import { SVGRenderer } from './SVGRenderer.js'
 import { SkillEdge, edgeStateFor } from './SkillEdge.js'
 import { SkillNode } from './SkillNode.js'
 import { SkillNodeControls } from './SkillNodeControls.js'
+import { type RegionSpec, SkillRegions } from './SkillRegions.js'
 import { createDefaultLayoutRegistry } from './createDefaultLayoutRegistry.js'
 import { shortenEdgeAtTarget } from './edgeGeometry.js'
 import { type ViewportState, useViewport } from './hooks/useViewport.js'
@@ -134,6 +135,19 @@ export interface SkillTreeProps {
    * hint visual para evitar o feedback err do motor en clics inutiles.
    */
   readonly canIncrease?: (nodeId: string) => boolean
+
+  /**
+   * Especificacións de **rexións visuais** (Capa 2 — rexións + Theme Lab).
+   * Cada rexión agrupa os nodos que comparten `tag` no seu `NodeDef.tags`
+   * e píntase como un `<rect>` con tinte de fondo detrás dos edges/nodos.
+   *
+   * Cero schema en `@core`: as rexións son unha capa visual de presentación
+   * sobre tags xa existentes do TreeDef. Útil para distinguir columnas
+   * lóxicas (ex. Guerreiro / Paladín / Clérigo) sen tocar o motor.
+   *
+   * Sen `regions` (ou array baleiro) → cero render extra (regresión cero).
+   */
+  readonly regions?: readonly RegionSpec[]
 }
 
 export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function SkillTree(
@@ -156,6 +170,7 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     onNodeTierIncrease,
     onNodeTierDecrease,
     canIncrease,
+    regions,
   },
   ref,
 ) {
@@ -239,6 +254,9 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
       onPointerUp={viewport.onPointerUp}
     >
       <MeshOverlay {...(mesh !== undefined && { mesh })} />
+      {regions !== undefined && regions.length > 0 && (
+        <SkillRegions regions={regions} nodePositions={nodePositions} nodes={treeDef.nodes} />
+      )}
       <g className="yf-skill-edges">
         {[...edgePaths.entries()].map(([edgeId, path]) => {
           const edge = edgeMap.get(edgeId)

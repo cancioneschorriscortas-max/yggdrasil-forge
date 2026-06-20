@@ -15,6 +15,7 @@
 
 export { SkillTree } from './SkillTree.js'
 export type { SkillTreeHandle, SkillTreeProps } from './SkillTree.js'
+export type { RegionSpec } from './SkillRegions.js'
 export type { ViewportState } from './hooks/useViewport.js'
 
 export { SkillNode } from './SkillNode.js'

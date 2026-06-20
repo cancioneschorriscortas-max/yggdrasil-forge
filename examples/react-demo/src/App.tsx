@@ -67,6 +67,32 @@ export function App(): JSX.Element {
   // Theme Lab — tema vivo controlado polo panel lateral.
   const [themeVals, setThemeVals] = useState<ThemeLabValues>(presetDarkClean)
 
+  // Capa 2 — Rexións visuais por columna. Cores en estado do demo,
+  // editables no Theme Lab vía selector. Cada rexión = un tag de
+  // `NodeDef.tags`. As cores son tintes de baixa opacidade aplicadas
+  // detrás de edges/nodos.
+  const [regionColors, setRegionColors] = useState<Record<string, string>>({
+    warrior: '#c1442e', // vermello (Guerreiro)
+    paladin: '#d4a017', // dourado (Paladín, centro)
+    cleric: '#3a7ec7', // azul (Clérigo)
+  })
+  // Selector da rexión activa no Theme Lab (cal estase a editar).
+  const [activeRegion, setActiveRegion] = useState<string>('warrior')
+
+  const regions = useMemo(
+    () => [
+      {
+        id: 'warrior',
+        label: 'Guerreiro',
+        tag: 'warrior',
+        color: regionColors.warrior ?? '#c1442e',
+      },
+      { id: 'paladin', label: 'Paladín', tag: 'paladin', color: regionColors.paladin ?? '#d4a017' },
+      { id: 'cleric', label: 'Clérigo', tag: 'cleric', color: regionColors.cleric ?? '#3a7ec7' },
+    ],
+    [regionColors],
+  )
+
   // Construímos o `Theme` real desde os mandos do lab. F10.3.fix: os
   // valores `fill` e `ringWidth` viaxan agora dentro do propio Theme
   // (campos opcionais novos), non como CSS vars no wrapper.
@@ -218,6 +244,7 @@ export function App(): JSX.Element {
                   const check = engine.canUnlock(nodeId)
                   return check.ok && check.value.allowed
                 }}
+                regions={regions}
               />
             </ThemeProvider>
           </div>
@@ -321,8 +348,6 @@ export function App(): JSX.Element {
             </div>
           </section>
 
-          <ThemeLab value={themeVals} onChange={setThemeVals} />
-
           <section className="panel panel-info">
             <h2 className="panel-title">⚜ About</h2>
             <p>
@@ -340,6 +365,20 @@ export function App(): JSX.Element {
               </a>
             </p>
           </section>
+        </aside>
+
+        <aside className="theme-lab-column">
+          <ThemeLab
+            value={themeVals}
+            onChange={setThemeVals}
+            regions={regions.map((r) => ({ id: r.id, label: r.label }))}
+            regionColors={regionColors}
+            activeRegion={activeRegion}
+            onActiveRegionChange={setActiveRegion}
+            onRegionColorChange={(id, color) =>
+              setRegionColors((prev) => ({ ...prev, [id]: color }))
+            }
+          />
         </aside>
       </div>
     </div>

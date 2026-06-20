@@ -162,6 +162,40 @@ const [selected, setSelected] = useState<string | null>(null)
   Recibe o id ao entrar, `null` ao saír. Ortogonal a `selectedNodeId` (decides
   ti se hover muta selección, abre tooltip, etc.).
 
+### Rexións visuais (cor por columna)
+
+Para distinguir agrupacións lóxicas da árbore (ramas, escolas, columnas)
+sen tocar o motor, podes pasar `regions` a `<SkillTree>`. Cada rexión é
+un grupo de nodos identificados por un **tag** no seu `NodeDef.tags`,
+e píntase como un `<rect>` con tinte de fondo detrás dos edges/nodos.
+
+```ts
+import type { RegionSpec } from '@yggdrasil-forge/react'
+
+const regions: RegionSpec[] = [
+  { id: 'warrior', label: 'Guerreiro', tag: 'warrior', color: '#c1442e' },
+  { id: 'paladin', label: 'Paladín',   tag: 'paladin', color: '#d4a017' },
+  { id: 'cleric',  label: 'Clérigo',   tag: 'cleric',  color: '#3a7ec7' },
+]
+
+// Os nodos do TreeDef declaran os tags:
+{ id: 'sword-basics', tags: ['warrior'], /* ... */ }
+{ id: 'holy-light',   tags: ['cleric'],  /* ... */ }
+
+<SkillTree engine={engine} regions={regions} />
+```
+
+- **`RegionSpec`**: `{ id, label, tag, color }`. `tag` debe coincidir cun
+  valor incluído en `NodeDef.tags`.
+- O bbox calcúlase automaticamente envolvendo tódolos nodos con ese tag,
+  con padding configurable (default 32).
+- Render: tinte de baixa opacidade (~0.12) detrás dos edges/nodos. Z-order:
+  rexións → edges → nodos. `pointerEvents="none"` para non interferir
+  con clics.
+- Sen rexións (ou array baleiro) → cero render extra (cero regresión).
+- Cero schema en `@core`: é unha capa de presentación sobre os tags xa
+  existentes do TreeDef.
+
 ### Construtor interactivo (➕/➖ por nodo)
 
 Para construír árbores **punto a punto** (como en Path of Exile / Diablo):
