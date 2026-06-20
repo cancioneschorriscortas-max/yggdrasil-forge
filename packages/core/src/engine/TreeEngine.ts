@@ -1356,6 +1356,149 @@ export class TreeEngine {
     return ok({ nodeId, newState: 'locked', refunded: costs })
   }
 
+  // ── lockOneTier: decrementa UN tier (Interactivo Capa A) ──
+  /**
+   * Retira UN tier do nodo e refunde **só** o custo dese tier (para
+   * reasignar puntos no construtor interactivo). A diferenza de
+   * `lock()` (que resetea o nodo enteiro e refunde o custo total),
+   * `lockOneTier()` decrementa `currentTier` en 1 e refunde só o custo
+   * do tier que se retira.
+   *
+   * **Local**: NON re-bloquea dependentes (igual ca `lock()`). Os
+   * prerequisitos son portas no momento de unlock, non invariantes
+   * continuos; se queres cascada explícita, usa `respec()` ou
+   * `applyChanges()`.
+   *
+   * Casos:
+   * - Nodo inexistente → `err(NODE_NOT_FOUND)`.
+   * - `currentTier === 0` ou estado `'locked'` → `err(INVALID_NODE_STATE)`.
+   * - Senón: `targetTier = currentTier - 1`;
+   *          `refunded = getCostForTier(nodeDef, currentTier)`;
+   *          `newState = targetTier === 0 ? 'locked' : 'unlocked'`;
+   *          aplica refund + emite eventos `stateChange` + `lock` +
+   *          `budgetChange`, igual ca `lock()`.
+   */
+  async lockOneTier(nodeId: string): Promise<Result<LockResult>> {
+    if (this.readOnly) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.READ_ONLY_VIOLATION,
+          getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+
+    const treeDef = this.store.getTreeDef()
+    const nodeDef = treeDef.nodes.find((n) => n.id === nodeId)
+    if (nodeDef === undefined) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.NODE_NOT_FOUND,
+          getErrorMessage(ErrorCode.NODE_NOT_FOUND, this.locale, { nodeId }),
+        ),
+      )
+    }
+
+    const state = this.store.getState()
+    const instance = state.nodes[nodeId]
+    const currentNodeState = instance?.state ?? 'locked'
+    const currentTier = instance?.currentTier ?? 0
+
+    // Garda de estado: só se pode decrementar un tier dun nodo con tier >= 1.
+    // Nodos en estado 'locked' (tier 0) non teñen nada que retirar.
+    if (currentTier === 0 || currentNodeState === 'locked') {
+      return err(
+        new YggdrasilError(
+          ErrorCode.INVALID_NODE_STATE,
+          getErrorMessage(ErrorCode.INVALID_NODE_STATE, this.locale, {
+            nodeId,
+            details: `non se pode decrementar un tier dun nodo en estado "${currentNodeState}" (tier ${currentTier})`,
+          }),
+        ),
+      )
+    }
+
+    // Refund só do tier que se retira (non o total).
+    const refundedCosts = this.resources.getCostForTier(nodeDef, currentTier)
+    const oldBudget = state.budget
+    const newBudget = this.resources.refund(refundedCosts, oldBudget)
+    const now = Date.now()
+    const targetTier = currentTier - 1
+    const newState: NodeState = targetTier === 0 ? 'locked' : 'unlocked'
+
+    // ── runBeforeLock (mesmo hook ca lock; semanticamente é unha
+    // operación de "retirar" capacidade). ──
+    const ctx: HookContext = {
+      locale: this.locale,
+      timestamp: Date.now(),
+      metadata: { partial: true, targetTier },
+    }
+    const proceed = await this.hookRunner.runBeforeLock(nodeId, ctx)
+    if (!proceed) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.OPERATION_CANCELLED_BY_HOOK,
+          getErrorMessage(ErrorCode.OPERATION_CANCELLED_BY_HOOK, this.locale, {
+            operation: 'lockOneTier',
+          }),
+        ),
+      )
+    }
+
+    this.store.update((draft) => {
+      const node = draft.nodes[nodeId]
+      if (node !== undefined) {
+        node.state = newState
+        node.currentTier = targetTier
+        // Se ficamos en 'locked', limpamos `unlockedAt`; senón consérvase
+        // (o nodo segue desbloqueado, só con menos tier investido).
+        if (newState === 'locked') {
+          Reflect.deleteProperty(node, 'unlockedAt')
+        }
+        node.history = [
+          ...(node.history ?? []),
+          { from: currentNodeState, to: newState, timestamp: now, reason: 'manual' },
+        ]
+      }
+      draft.budget = newBudget
+    })
+
+    // Construír a instancia actualizada para o evento.
+    const newInstance: NodeInstance = this.store.getState().nodes[nodeId] ?? {
+      id: nodeId,
+      state: newState,
+      currentTier: targetTier,
+    }
+
+    // Emitir eventos (mesmos canles ca lock).
+    for (const [resourceId, newAmount] of Object.entries(newBudget.resources)) {
+      const oldAmount = oldBudget.resources[resourceId] ?? 0
+      if (oldAmount !== newAmount) {
+        this.events.emit('budgetChange', resourceId, oldAmount, newAmount)
+      }
+    }
+    this.events.emit('stateChange', nodeId, {
+      from: currentNodeState,
+      to: newState,
+      timestamp: now,
+      reason: 'manual',
+    })
+    this.events.emit('lock', nodeId, newInstance)
+
+    // Audit: rexistro tras a mutación exitosa.
+    const auditEntry = this.audit.record({ type: 'node_locked', nodeId }, { rollbackable: true })
+    if (auditEntry !== null) {
+      this.events.emit('auditEntry', auditEntry)
+    }
+
+    // Invalidar cache do StatComputer (o nodo contribúe menos ou nada agora).
+    this.statComputer.invalidate()
+
+    await this.hookRunner.runAfterLock(nodeId, ctx)
+
+    return ok({ nodeId, newState, refunded: refundedCosts })
+  }
+
   // ── respec: mutación async (T5, extendido en 8.3) ──
   // Con string: lock dese nodo + cascada de dependentes.
   // Con array: lock dos nodos especificados (filter non-unlocked) +

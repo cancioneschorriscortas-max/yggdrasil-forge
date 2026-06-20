@@ -4374,3 +4374,53 @@ en vivo en lugar de ler a caché**. O accessor pode delegar á caché
 internamente cando esta sexa fiable; pero o consumidor non debería
 asumilo. Aplícase a calquera caché-morta latente (revisado: no core
 non hai outras coñecidas tras este fix).
+
+---
+
+### A.6.28 — `lock` resetea o nodo; `lockOneTier` decrementa un tier. Locales, sen cascada
+
+**Contexto.** O construtor interactivo (botóns ➕/➖ por nodo) precisa
+poder retirar **un só punto** de cada vez, non resetear todo o nodo.
+`lock()` calcula `getTotalCost(0, currentTier)` e refunda completo;
+para reasignación punto a punto fai falta unha variante reducida.
+
+**Decisión.** Engadir `TreeEngine.lockOneTier(nodeId)` como **espello
+de `lock()`** con dous cambios cirúrxicos:
+
+1. `refunded = getCostForTier(nodeDef, currentTier)` — só o custo do
+   tier que se retira, non o total.
+2. `targetTier = currentTier - 1`; `newState = targetTier === 0 ?
+   'locked' : 'unlocked'`. Tiers intermedios deixan o nodo en
+   `unlocked` (con menos puntos investidos); só decrementar tier 1 o
+   leva a `locked`.
+
+Resto do flujo idéntico a `lock()`: mesmos hooks (`runBeforeLock` /
+`runAfterLock`), mesmos eventos (`stateChange` + `lock` +
+`budgetChange`), mesmo audit (`node_locked`), mesma invalidación de
+caché do `StatComputer`. Iso garante que calquera observador do motor
+**non necesita coñecer a distinción**: ve un nodo cambiar de estado
+e o budget axustarse, exactamente como cun `lock()` parcial.
+
+**Locais, sen cascada.** Igual ca `lock()`, `lockOneTier()` non
+re-bloquea nodos dependentes aínda que decrementar rompa un prereq
+xa cumprido. **Prereqs son portas no momento de unlock, non
+invariantes continuos.** Se queres efecto cascada, usa `respec()` ou
+`applyChanges()`, que xa o manexan explícitamente. Documentado en
+test (caso "decrementar A non re-bloquea B").
+
+**`lock()` intacto.** A semántica de "reset total" segue alí; os
+consumidores que xa a usaban (por exemplo o futuro botón de "Reset
+este nodo" no demo, ou builds tools que limpan estado) seguen
+funcionando sen cambios. Os dous métodos coexisten porque modelan
+operacións distintas: `lock` = "esquece este nodo enteiro",
+`lockOneTier` = "retira un punto para reasignalo".
+
+**Trampa lateral descuberta.** Os recursos deben declarar
+`refundable: true` para que `refund()` (chamado dende `lock`,
+`lockOneTier`, `respec`) restaure puntos. Sen ese flag, o
+`ResourceManager` salta o recurso silenciosamente. **Non é un bug
+de `lockOneTier`** — é un constraint preexistente do
+`ResourceManager`, agora explícitamente documentado a través dos
+tests (que esixen `refundable: true` para que a aritmética cuadre).
+Consumidores de skill-tree interactivos teñen que asegurar
+`refundable: true` nos seus recursos de puntos.

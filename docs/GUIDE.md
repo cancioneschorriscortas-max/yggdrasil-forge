@@ -91,8 +91,13 @@ const state = engine.getNodeState('a')?.state
 // 'locked' | 'unlockable' | 'in_progress' | 'unlocked' | 'maxed'
 
 // Desbloquear / bloquear (devolven un resultado que podes inspeccionar):
-engine.unlock('a')
-engine.lock('a')
+engine.unlock('a')         // sobe currentTier en 1 (gasta o custo do tier)
+engine.lock('a')           // reseta o nodo enteiro (currentTier → 0, refunde TODO)
+engine.lockOneTier('a')    // decrementa currentTier en 1 (refunde só ese tier).
+                           // Útil para construtores interactivos con ➕/➖.
+                           // Require currentTier >= 1; senón err(INVALID_NODE_STATE).
+                           // Importante: os recursos deben ter `refundable: true`
+                           // no TreeDef para que os puntos volvan ao budget.
 
 // Re-render ao cambiar o engine:
 const unsub = engine.subscribe(() => { /* setState para forzar render */ })
