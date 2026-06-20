@@ -59,7 +59,7 @@ export const presetDarkClean: ThemeLabValues = {
   nodeUnlockable: '#22d3ee', // cián (chamativo: "podes!")
   nodeInProgress: '#f59e0b', // ámbar (progreso parcial)
   nodeUnlocked: '#4ade80', // verde (completado un tier ou single-tier maxed)
-  nodeMaxed: '#a855f7', // morado (cima da progresión multi-tier)
+  nodeMaxed: '#94a3b8', // azyk clariño(cima da progresión multi-tier)
   edge: '#46506b',
   ringWidth: 3,
   // Fill por estado: locked claramente apagado, resto discretos para non
@@ -67,7 +67,7 @@ export const presetDarkClean: ThemeLabValues = {
   nodeFillLocked: '#363c4d', // escuro apagado (corpo "off")
   nodeFillUnlockable: '#1d3b4a', // tinte cián suave
   nodeFillUnlocked: '#1f3d2a', // tinte verde suave
-  nodeFillMaxed: '#3a1f5a', // tinte morado suave
+  nodeFillMaxed: '#fde68a ', // tinte morado suave
   nodeFillInProgress: '#4a3617', // tinte ámbar suave
 }
 

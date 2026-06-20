@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="gl">
+<head>
+<meta charset="utf-8" />
+<title>Yggdrasil Forge — Logic icons preview</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; background: #11131a; color: #e6d5a8; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  p.sub { margin: 0 0 24px; color: #9aa0aa; font-size: 13px; }
+  .controls { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; flex-wrap: wrap; }
+  .controls label { font-size: 13px; color: #9aa0aa; }
+  .controls input[type="range"] { vertical-align: middle; }
+  .controls input[type="color"] { width: 32px; height: 24px; border: none; background: transparent; cursor: pointer; vertical-align: middle; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .cell { background: #1c1f29; border-radius: 8px; padding: 14px 10px; text-align: center; border: 1px solid #2a2f3d; }
+  .cell svg { display: block; margin: 0 auto 8px; }
+  .name { font-size: 13px; font-weight: 600; margin: 0; }
+  .concept { font-size: 11px; color: #9aa0aa; margin: 2px 0 6px; }
+  .id { font-size: 10px; color: #6e7480; font-family: ui-monospace, monospace; word-break: break-all; }
+  details { margin-top: 32px; background: #1c1f29; border-radius: 8px; padding: 16px; }
+  summary { cursor: pointer; font-weight: 600; }
+  pre { white-space: pre-wrap; word-break: break-all; font-size: 11px; color: #d3d1c7; margin: 12px 0 0; line-height: 1.5; }
+</style>
+</head>
+<body>
+<h1>Logic icons preview</h1>
+<p class="sub">19 iconos lóxicos para showcase de prerequisitos. Editables abaixo — copia paths probados ao iconset.</p>
+
+<div class="controls">
+  <label>Tamaño <input type="range" id="size" min="24" max="96" value="48" /> <span id="sizeOut">48</span>px</label>
+  <label>Cor <input type="color" id="color" value="#e6d5a8" /></label>
+  <label>Grosor <input type="range" id="stroke" min="1" max="3" step="0.5" value="1.5" /> <span id="strokeOut">1.5</span></label>
+</div>
+
+<div id="grid" class="grid"></div>
+
+<details>
+  <summary>Pega un path SVG novo (probar antes de bancar)</summary>
+  <p style="font-size:12px;color:#9aa0aa;margin:8px 0 0;">Pégaa aquí (só o `d`) e premé Enter para previsualizar:</p>
+  <input id="custom" placeholder="M4 4 L20 20" style="width:100%;padding:8px;background:#11131a;color:#e6d5a8;border:1px solid #2a2f3d;border-radius:4px;font-family:ui-monospace,monospace;font-size:12px;margin-top:8px;" />
+  <div id="customPreview" style="margin-top:12px;display:flex;justify-content:center;"></div>
+</details>
+
+<details>
+  <summary>Exportar todo como TypeScript (LOGIC_ICONS)</summary>
+  <pre id="export"></pre>
+</details>
+
+<script>
+const ICONS = [
+  { id: 'logic-lock',       concept: 'locked',           d: 'M8 11V8a4 4 0 0 1 8 0v3M7 11h10v9H7z' },
+  { id: 'logic-unlock',     concept: 'unlocked event',   d: 'M16 11V8a4 4 0 0 0-8 0M7 11h10v9H7z' },
+  { id: 'logic-key',        concept: 'unlockable',       d: 'M11 7a3 3 0 1 0 0 6a3 3 0 1 0 0-6M14 10h6M17 10v2M20 10v2' },
+  { id: 'logic-crown',      concept: 'keystone',         d: 'M4 17l2-8 6 4 6-4 2 8H4z' },
+  { id: 'logic-gate',       concept: 'points threshold', d: 'M6 20V6h12v14M12 6v14' },
+  { id: 'logic-scroll',     concept: 'requirement',      d: 'M8 4h7l3 3v13H8z M8 4v0a2 2 0 0 0-2 2v12a2 2 0 0 1-2 2h12' },
+  { id: 'logic-check',      concept: 'validated',        d: 'M5 13l4 4L19 7' },
+  { id: 'logic-cross',      concept: 'failed / error',   d: 'M6 6l12 12M18 6L6 18' },
+  { id: 'logic-compass',    concept: 'region',           d: 'M12 3l6 6-3 9-9 3 3-9z' },
+  { id: 'logic-map-marker', concept: 'quest',            d: 'M12 3a6 6 0 0 1 6 6c0 5-6 12-6 12s-6-7-6-12a6 6 0 0 1 6-6zM12 7a2 2 0 1 0 0 4a2 2 0 1 0 0-4' },
+  { id: 'logic-flame',      concept: 'boss / climax',    d: 'M12 3c1 3 4 5 4 9a4 4 0 1 1-8 0c0-2 1-3 2-4M12 14c0-1 1-2 2-2' },
+  { id: 'logic-intersect',  concept: 'AND / all_of',     d: 'M9 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M15 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8' },
+  { id: 'logic-fork',       concept: 'OR / any_of',      d: 'M12 20V8M12 8l-5-5M12 8l5-5' },
+  { id: 'logic-forbidden',  concept: 'NOT / none_of',    d: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M6 18L18 6' },
+  { id: 'logic-eye-closed', concept: 'hidden',           d: 'M3 12c2 3 5 5 9 5s7-2 9-5M5 16l14-8' },
+  { id: 'logic-sparkle',    concept: 'discovery',        d: 'M12 5l1 3 3 1-3 1-1 3-1-3-3-1 3-1z' },
+  { id: 'logic-star',       concept: 'mastery',          d: 'M12 4l2 5 5 1-4 4 1 5-4-2-4 2 1-5-4-4 5-1z' },
+  { id: 'logic-rune',       concept: 'attribute',        d: 'M12 3v18M6 3l6 8 6-8M9 14h6' },
+  { id: 'logic-seedling',   concept: 'progress',         d: 'M12 20v-8M12 12c0-3 3-5 6-5c0 3-2 6-6 6M12 12c0-3-3-5-6-5c0 3 2 6 6 6' },
+]
+
+const grid = document.getElementById('grid')
+const sizeIn = document.getElementById('size')
+const sizeOut = document.getElementById('sizeOut')
+const colorIn = document.getElementById('color')
+const strokeIn = document.getElementById('stroke')
+const strokeOut = document.getElementById('strokeOut')
+const exportEl = document.getElementById('export')
+const customIn = document.getElementById('custom')
+const customPreview = document.getElementById('customPreview')
+
+function svgEl(d, size, color, stroke) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`
+}
+
+function render() {
+  const size = sizeIn.value
+  const color = colorIn.value
+  const stroke = strokeIn.value
+  sizeOut.textContent = size
+  strokeOut.textContent = stroke
+  grid.innerHTML = ICONS.map(ic => `
+    <div class="cell">
+      ${svgEl(ic.d, size, color, stroke)}
+      <p class="name">${ic.id.replace('logic-', '')}</p>
+      <p class="concept">${ic.concept}</p>
+      <p class="id">${ic.id}</p>
+    </div>
+  `).join('')
+
+  const tsExport = `export const LOGIC_ICONS: Record<string, IconDef> = {\n` +
+    ICONS.map(ic => `  '${ic.id}': {\n    viewBox: '0 0 24 24',\n    paths: [{ d: '${ic.d}', mode: 'stroke' }],\n  },`).join('\n') +
+    `\n}`
+  exportEl.textContent = tsExport
+}
+
+customIn.addEventListener('input', () => {
+  const d = customIn.value.trim()
+  if (!d) { customPreview.innerHTML = ''; return }
+  customPreview.innerHTML = svgEl(d, 96, colorIn.value, strokeIn.value)
+})
+sizeIn.addEventListener('input', render)
+colorIn.addEventListener('input', render)
+strokeIn.addEventListener('input', render)
+render()
+</script>
+</body>
+</html>
