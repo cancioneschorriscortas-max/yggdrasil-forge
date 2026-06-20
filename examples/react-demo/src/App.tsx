@@ -4,13 +4,13 @@ import { SkillTree, type SkillTreeHandle, ThemeProvider } from '@yggdrasil-forge
 import type { Theme } from '@yggdrasil-forge/react'
 import { MemoryStorage } from '@yggdrasil-forge/storage'
 import type { JSX } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { ConditionInspector } from './ConditionInspector.js'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 // Showcase Capa 1a: árbore activa = «O Paladín» (13 nodos / 11 capacidades).
 // `rpgTreeDef` segue exportado en ./tree-def.js para un futuro toggle
 // multi-exemplo (sub-fase posterior).
-import { paladinLongLabels, paladinTreeDef, setupPaladinSnapshot } from './tree-def-paladin.js'
+import { paladinLongLabels, paladinTreeDef } from './tree-def-paladin.js'
 
 export function App(): JSX.Element {
   const [engine] = useState(() => {
@@ -35,17 +35,11 @@ export function App(): JSX.Element {
   const treeState = useSyncExternalStore(subscribe, getSnapshot)
   const budget = useSyncExternalStore(subscribe, getBudgetSnapshot)
 
-  // Showcase Capa 1a: setup inicial async (reproduce a foto do mockup).
-  // Guard anti-doble-execución por React StrictMode (que monta os
-  // effects dúas veces en dev). Co `useSyncExternalStore` rexistrado
-  // antes do primeiro effect, os unlocks do snapshot xa reflíctense
-  // automaticamente — sen depender deste useEffect para o conteo.
-  const setupDoneRef = useRef(false)
-  useEffect(() => {
-    if (setupDoneRef.current) return
-    setupDoneRef.current = true
-    void setupPaladinSnapshot(engine)
-  }, [engine])
+  // Interactivo Capa C: arranque LIMPO. `setupPaladinSnapshot` segue
+  // exportado por se algún test quere precargar a foto do mockup, pero
+  // o demo arranca con 0 nodos investidos e 18 puntos no budget. O
+  // usuario constrúe a árbore punto a punto cos botóns ➕ no canvas
+  // (Capa B) e pode resetear todo co botón Reset do panel Status.
 
   // Conta derivada do snapshot reactivo: nodos con tier >= 1
   // (unlocked + in_progress + maxed). Corrixe o bug do contador
@@ -162,6 +156,21 @@ export function App(): JSX.Element {
     }
   }, [engine, snapshotId])
 
+  // Interactivo Capa C: reset global de toda a árbore. Confirmation
+  // dialog antes para evitar resets accidentais. `engine.respec()` sen
+  // args desbloquea todo cun refund completo (require recursos cun
+  // flag `refundable: true` no TreeDef — xa o fai paladín).
+  const handleResetAll = useCallback(async () => {
+    const confirmed = window.confirm('¿Reiniciar toda a árbore? Tódolos puntos volverán ao budget.')
+    if (!confirmed) return
+    const result = await engine.respec()
+    if (result.ok) {
+      setLastAction('↻ Árbore reseteada')
+    } else {
+      setLastAction(`⛔ Reset failed: ${result.error.message}`)
+    }
+  }, [engine])
+
   return (
     <div className="app">
       <header className="app-header">
@@ -220,6 +229,16 @@ export function App(): JSX.Element {
               <span className="stat-value">
                 {pietyPoints} <span className="stat-of">/ 20</span>
               </span>
+            </div>
+            <div className="stat-row">
+              <button
+                type="button"
+                className="rune-button"
+                onClick={() => void handleResetAll()}
+                style={{ width: '100%' }}
+              >
+                ↻ Reset puntos
+              </button>
             </div>
             <div className="stat-row">
               <span className="stat-label">Unlocked</span>
