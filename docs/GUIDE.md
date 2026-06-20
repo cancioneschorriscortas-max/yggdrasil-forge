@@ -6,7 +6,9 @@
 > interno das decisións) e o `RENDERER-STATE.md` (estado interno do renderer).
 >
 > **Mantéheno actualizado en cada sub-fase que cambie a API pública.**
-> _Última actualización: tras Showcase Capa 0 (`explainUnlock` exposto)._
+> _Última actualización: post UI polish (`origin/main` @ `483d778`) — Renderer
+> sub-fase 1, regions, level system, exclusións bidireccionais (A.6.30),
+> paleta distinguible e Inspector con relación de incompatibilidade._
 
 ---
 
@@ -25,6 +27,11 @@ React (`@yggdrasil-forge/react`) consómeo. Contrato entre ambos = un `TreeDef`
 | `@yggdrasil-forge/importers` | importar datos externos a `TreeDef` |
 | `@yggdrasil-forge/common` | `SCHEMA_VERSION` e utilidades compartidas |
 
+> Outros paquetes opcionais (`analytics`, `cli`, `devtools`, `diff`, `exporters`,
+> `heatmap`, `i18n`, `multitenancy`, `neo4j`, `plugins`, `search`, `stats`,
+> `themes`, `validators`, `webhooks`) cobren casos avanzados. A maioría dos
+> proxectos só precisa `core` + `react` + `storage`.
+
 ## 2. Instalación e **compatibilidades** (le isto antes)
 
 ```bash
@@ -42,7 +49,7 @@ pnpm add @yggdrasil-forge/core @yggdrasil-forge/react @yggdrasil-forge/storage
   resolve por symlink local; con `^x.y.z` literal tenta o rexistro, onde quizais
   a versión aínda non está publicada).
 - 📦 **ESM + CJS** ambos soportados (`import`/`require`).
-- 🚪 **Tres entry points** (ver §9): `.` (con tema por defecto), `./headless`
+- 🚪 **Tres entry points** (ver §10): `.` (con tema por defecto), `./headless`
   (sen autoload de tema), `./server` (SSR).
 
 ## 3. Quickstart (mínimo copiable)
@@ -108,6 +115,13 @@ engine.grantResource('xp', 250)     // engade XP; emite budgetChange se cambia
 // Combinado con prerequisites `resource_min`, gata nodos por valor:
 //   { type: 'resource_min', resourceId: 'level', amount: 10 }
 // O Inspector explica automaticamente "Necesitas 10 en level, tes 3 ✗".
+//
+// Importante (lección A.6.28): os prereqs son PORTAS EN UNLOCK, non
+// invariantes continuos. Se desbloqueas un nodo con `resource_min(level, 10)`
+// e despois baixas o nivel a 1, o nodo NON se re-bloquea automaticamente.
+// O motor verifica prereqs no momento de unlock e a partir de aí o estado
+// é persistente. Para "volver a bloquear" usa `lock()` ou `lockOneTier()`
+// explicitamente.
 
 // Re-render ao cambiar o engine:
 const unsub = engine.subscribe(() => { /* setState para forzar render */ })
@@ -243,7 +257,45 @@ Para construír árbores **punto a punto** (como en Path of Exile / Diablo):
   resources: [{ id: 'pts', label: 'Points', initial: 18, max: 18, refundable: true }]
   ```
 
-## 5. Tematización
+## 5. Localización de mensaxes do motor
+
+**O motor é locale-agnostic na construción de reasons**. As mensaxes que
+devolven `canUnlock().reason` e `explainUnlock().conditions[].reason` veñen
+en `LocalizedValue` (dict `{ gl, es, en, ... }`), pero **inclúen `resourceId`
+crus** entre comiñas — non labels localizados — porque o motor non sabe
+que locale usa o consumidor para os labels dos recursos.
+
+Exemplo: o motor xera `'Necesítanse 10 de "level", tes 1'` (con `"level"`
+en cru). O consumidor é responsable de substituír `"level"` polo label
+localizado `"Nivel"` antes de mostralo.
+
+Patrón do demo (`examples/react-demo/src/ConditionInspector.tsx`):
+
+```ts
+function localizeResourceIds(
+  reason: string,
+  resources: ReadonlyArray<{ id: string; label?: LocalizedValue }>,
+  locale: string,
+): string {
+  let out = reason
+  for (const r of resources ?? []) {
+    const label = resolveLocalized(r.label, locale, r.id)
+    if (label === r.id) continue
+    out = out.split(`"${r.id}"`).join(`"${label}"`)
+  }
+  return out
+}
+
+// Aplica antes de renderer:
+<span>{localizeResourceIds(reasonText, treeDef.resources, locale)}</span>
+```
+
+Decisión arquitectónica: a localización **vive na capa de presentación**
+(o consumidor) porque é onde se coñece o locale do usuario. Acoplar o
+motor ao locale obrigaría a recompilar mensaxes en cada cambio. Esta
+separación é deliberada.
+
+## 6. Tematización
 
 O tema aplícase por **inline style desde `useTheme()`** (alta prioridade, sen
 problemas de cascada). Provéelo cun `ThemeProvider`:
@@ -338,7 +390,7 @@ con cor temática) que deben destacar independentemente do tema activo:
 { id: 'dark-pact', type: 'keystone', color: '#6b2e2e', /*...*/ }
 ```
 
-## 6. Iconos (SVG recoloreables)
+## 7. Iconos (SVG recoloreables)
 
 `node.icon` é un **ID de rexistro** (con fallback a emoji/char ou URL→imaxe).
 
@@ -363,7 +415,7 @@ registerIcons({ 'my-x': myIcon })
 - **Por que opt-in os sets temáticos:** byte-cost; o paquete base só carga os
   esenciais. Calquera set (norse, e os que veñan) expórtase como data pura.
 
-## 7. Edges (xeometría = contrato de datos)
+## 8. Edges (xeometría = contrato de datos)
 
 A **curva e o routing viaxan no `TreeDef`** (para que calquera renderer/editor
 os respecten), non só na UI:
@@ -387,7 +439,7 @@ edges: [
 - Override de presentación (non recomendado salvo casos puntuais): o prop
   `<SkillTree curve="...">` gaña sobre `layout.curve`.
 
-## 8. Viewport (pan / zoom / fit)
+## 9. Viewport (pan / zoom / fit)
 
 Pan (arrastrar) e wheel-zoom van de serie; expón un **handle imperativo** para
 botóns:
@@ -407,7 +459,7 @@ const ref = useRef<SkillTreeHandle>(null)
 <button onClick={() => ref.current?.zoomOut()}>−</button>
 ```
 
-## 9. Entry points: cal usar
+## 10. Entry points: cal usar
 
 | Import | Cando |
 |---|---|
@@ -419,7 +471,7 @@ const ref = useRef<SkillTreeHandle>(null)
 > `ThemeContext` é un singleton cross-bundle, así que mesturar non rompe, pero
 > usar un só entry evita sorpresas e bundles duplicados.)
 
-## 10. Gotchas / compatibilidade (resumo)
+## 11. Gotchas / compatibilidade (resumo)
 
 - **React 19** obrigatorio (peer). React 18 → erro de tipos `ReactNode`/`bigint`.
 - **Unha versión de `@types/react`** (`pnpm why @types/react`). Dúas rompen refs.
@@ -429,12 +481,50 @@ const ref = useRef<SkillTreeHandle>(null)
 - **SSR**: usa `./server`; o viewport mide tamaño só en cliente (effects).
 - **Tematizar**: usa `ThemeProvider` (Context) + `useTheme` inline; **non**
   dependas de CSS vars nun `<style>` interno (modelo antigo, descartado).
+- **Prereqs son portas, non invariantes** (lección A.6.28): unha vez que un
+  nodo está unlocked, baixar un recurso por debaixo do `resource_min` que o
+  gataba NON o re-bloquea automaticamente. O motor só comproba prereqs no
+  momento de `unlock()`. Usa `lock()` ou `lockOneTier()` para reverter.
+- **Exclusións son simétricas** (lección A.6.30): declarar `A.exclusions=['B']`
+  abonda; o motor garante que A e B nunca coexisten **en calquera orde**.
+  Non precisas duplicar a declaración en `B.exclusions`. Para consultar a
+  unión de exclusións declaradas + inversas usa `getEffectiveExclusions(id)`.
+- **Mensaxes do motor en cru**: `canUnlock().reason` e os reasons de
+  `explainUnlock()` traen `resourceId`s sen localizar (ex. `"level"` en vez
+  de `"Nivel"`). É deliberado — ver §5 para o patrón de localización.
+- **`NodeDef.color` gana sempre** sobre `nodeFill<State>` no resolvedor de
+  fill (lección A.6.17). Útil para identidade temática (ex. un Pacto Escuro
+  morado en calquera tema); ten en conta que iso fai que o nodo se vexa
+  igual mesmo cando está locked. Para apagar a cor en certos estados haberá
+  que modular `node.color` por estado (sub-fase futura).
 
-## 11. Estado e roadmap
+## 12. Estado e roadmap
 
-Renderer 2.0 (átomos node+edge+iconos+viewport) **funcionalmente completo**.
-Para o estado detallado e o backlog (10.7 selección/hover, 10.8 tema ampliado,
-tema fantasía AAA, editor visual…), mira `docs/architecture/RENDERER-STATE.md`.
+Renderer 2.0 **completo a nivel funcional**:
+
+- ✅ Átomos: node + edge + iconos + viewport (zoom/pan/fit, F10.6).
+- ✅ Selección, hover e foco de teclado (F10.7).
+- ✅ Tema ampliado: `background`, `surface`, `typography`, `selected`,
+  fill por estado (F10.8 + Renderer sub-fase 1).
+- ✅ Rexións visuais (cor por columna / tag, Capa 2).
+- ✅ Construtor interactivo (➕/➖ por nodo, badges de tier).
+- ✅ Sistema de nivel showcaseado no demo (recurso `level` + `grantResource` +
+  gates `resource_min`).
+- ✅ Exclusións simétricas (BUGFIX A.6.30 + `getEffectiveExclusions`).
+- ✅ Paleta de estados distinguible no demo (gris/cián/ámbar/verde +
+  reserva de cor de identidade).
+
+Backlog principal:
+- **Pulido de columnas e labels** (Briefing 4 pendente do Director).
+- **Tema fantasía AAA** (mockup norte bancado polo Director).
+- **`node.color` modulable por estado** (deferida en Nivel · Capa B §5).
+- **Logic iconset (Capa 1A)**: 19 iconos pulidos para showcase de
+  prerequisitos; ver `tools/icon-preview/` para o material listo a bancar.
+- **Editor visual / Studio**: roadmap a medio prazo.
+
+Para o estado interno detallado e o by-design do renderer, mira
+`docs/architecture/RENDERER-STATE.md`. Para as leccións de arquitectura
+(A.6.x), `docs/architecture/MASTER.md`.
 
 ---
 
