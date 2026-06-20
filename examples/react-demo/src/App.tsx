@@ -6,17 +6,31 @@ import { MemoryStorage } from '@yggdrasil-forge/storage'
 import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
-import { longLabels, rpgTreeDef } from './tree-def.js'
+// Showcase Capa 1a: árbore activa = «O Paladín» (13 nodos / 11 capacidades).
+// `rpgTreeDef` segue exportado en ./tree-def.js para un futuro toggle
+// multi-exemplo (sub-fase posterior).
+import { paladinLongLabels, paladinTreeDef, setupPaladinSnapshot } from './tree-def-paladin.js'
 
 export function App(): JSX.Element {
   const [engine] = useState(() => {
     const storage = new MemoryStorage()
-    return new TreeEngine(rpgTreeDef, { storage })
+    return new TreeEngine(paladinTreeDef, { storage })
   })
 
   // F10.6: handle imperativo para controlar o viewport (Fit, Reset,
   // Zoom +, Zoom −) desde botóns no panel Controls.
   const treeRef = useRef<SkillTreeHandle>(null)
+
+  // Showcase Capa 1a: setup inicial async (reproduce a foto do mockup).
+  // Guard anti-doble-execución por React StrictMode (que monta os
+  // effects dúas veces en dev). Se ben `engine.unlock` con nodo xa maxed
+  // devolve un Result.err inocuo, evitamos o ruído da segunda pasada.
+  const setupDoneRef = useRef(false)
+  useEffect(() => {
+    if (setupDoneRef.current) return
+    setupDoneRef.current = true
+    void setupPaladinSnapshot(engine)
+  }, [engine])
 
   const [unlockedCount, setUnlockedCount] = useState(0)
   const [lastAction, setLastAction] = useState<string>('')
@@ -71,7 +85,7 @@ export function App(): JSX.Element {
   useEffect(() => {
     const updateCount = (): void => {
       let count = 0
-      for (const node of rpgTreeDef.nodes) {
+      for (const node of paladinTreeDef.nodes) {
         const state = engine.getNodeState(node.id)
         if (state?.state === 'unlocked') count += 1
       }
@@ -91,14 +105,14 @@ export function App(): JSX.Element {
       if (state?.state === 'unlocked') {
         const result = await engine.lock(nodeId)
         if (result.ok) {
-          setLastAction(`🔒 Locked: ${longLabels[nodeId] ?? nodeId}`)
+          setLastAction(`🔒 Locked: ${paladinLongLabels[nodeId] ?? nodeId}`)
         } else {
           setLastAction(`✗ Cannot lock: ${result.error.message}`)
         }
       } else {
         const result = await engine.unlock(nodeId)
         if (result.ok) {
-          setLastAction(`✨ Unlocked: ${longLabels[nodeId] ?? nodeId}`)
+          setLastAction(`✨ Unlocked: ${paladinLongLabels[nodeId] ?? nodeId}`)
         } else {
           setLastAction(`⛔ ${result.error.message}`)
         }
@@ -153,7 +167,7 @@ export function App(): JSX.Element {
             <div className="stat-row">
               <span className="stat-label">Unlocked</span>
               <span className="stat-value">
-                {unlockedCount} <span className="stat-of">/ {rpgTreeDef.nodes.length}</span>
+                {unlockedCount} <span className="stat-of">/ {paladinTreeDef.nodes.length}</span>
               </span>
             </div>
             <div className="stat-row">
@@ -163,7 +177,9 @@ export function App(): JSX.Element {
             {selectedNode !== null && (
               <div className="stat-row">
                 <span className="stat-label">Selected</span>
-                <span className="stat-value-text">{longLabels[selectedNode] ?? selectedNode}</span>
+                <span className="stat-value-text">
+                  {paladinLongLabels[selectedNode] ?? selectedNode}
+                </span>
               </div>
             )}
           </section>
