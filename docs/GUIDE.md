@@ -239,6 +239,50 @@ const dark: Theme = {
 - Para experimentar paletas en vivo, mira o **Theme Lab** do demo
   (`examples/react-demo`): sliders + presets + «copiar valores».
 
+### Fill por estado (Renderer sub-fase 1)
+
+Por defecto o **anel** do nodo cambia de cor co estado pero o **corpo** é único
+(`colors.nodeFill`). Se queres que o corpo enteiro fale, declara fills por
+estado:
+
+```ts
+const dark: Theme = {
+  colors: {
+    // ...resto do tema...
+    nodeFill: '#2a2f3d',           // legado / fallback
+    nodeFillLocked: '#1d2230',     // bloqueados máis escuros
+    nodeFillUnlockable: '#2a2f3d',
+    nodeFillUnlocked: '#2a3d2f',   // tinte verde
+    nodeFillMaxed: '#3d3320',      // dourado pleno
+    nodeFillInProgress: '#3d2f20', // dourado tenue
+  },
+}
+```
+
+Tódolos `nodeFill<State>` son **opcionais**: sen declarar ningún → comportamento
+legado (`nodeFill` para todos). Con só un definido, o resto seguen caendo a
+`nodeFill`. Cero regresión.
+
+**Resolución (`fillColorForState`)**:
+1. `NodeDef.color` (override por-nodo do TreeDef) — **gaña sempre**.
+2. `colors.nodeFill<State>` se o tema o declara.
+3. `colors.nodeFill` (legado).
+4. `'#f4f4ef'` (default último recurso).
+
+**Estado visual derivado (`visualStateFor`)**: un nodo multi-tier
+(`maxTier > 1`) **a medias** (`0 < currentTier < maxTier`) píntase como
+`in_progress` aínda que o motor lle dea `unlocked`. Iso é **cosmético**: o motor
+segue actuando sobre o `NodeState` real; aquí só decidimos cor. O efecto é que
+con declarar `nodeFillInProgress` + `nodeInProgress` (anel), os tiers parciais
+acéndense automaticamente cunha cor distinta sen tocar o motor.
+
+**`NodeDef.color`** xa tinguir o corpo. Útil para nodos especiais (keystones
+con cor temática) que deben destacar independentemente do tema activo:
+
+```ts
+{ id: 'dark-pact', type: 'keystone', color: '#6b2e2e', /*...*/ }
+```
+
 ## 6. Iconos (SVG recoloreables)
 
 `node.icon` é un **ID de rexistro** (con fallback a emoji/char ou URL→imaxe).

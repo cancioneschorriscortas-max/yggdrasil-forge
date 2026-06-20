@@ -111,8 +111,15 @@ export function SkillNode({
   // exactOptionalPropertyTypes: spread condicional para non emitir
   // `prop: undefined` (rompería con strict 'exactOptionalPropertyTypes').
   const theme = useTheme()
-  const fill: string = theme?.colors.nodeFill ?? '#f4f4ef'
-  const ring: string | undefined = theme !== null ? ringColorForState(theme, state) : undefined
+  // Renderer sub-fase 1: estado visual derivado (in_progress cosmético
+  // para multi-tier a medias) + fill por estado + override `node.color`.
+  // Cero regresión: sen tokens de fill por estado nin `node.color`, o
+  // resultado é `theme.colors.nodeFill` (idéntico ao previo).
+  const visualState = visualStateFor(state, tier, node.maxTier)
+  const fill: string =
+    theme !== null ? fillColorForState(theme, visualState, node.color) : (node.color ?? '#f4f4ef')
+  const ring: string | undefined =
+    theme !== null ? ringColorForState(theme, visualState) : undefined
   const ringWidth: number = theme?.sizes.ringWidth ?? 3
   const textColor: string | undefined = theme?.colors.text
   const fontSize: number | undefined = theme?.sizes.fontSize
@@ -455,5 +462,73 @@ export function ringColorForState(theme: Theme, state: NodeState): string {
     default:
       return theme.colors.nodeLocked
   }
+}
+
+/**
+ * Derivación cosmética do estado visual a partir do `NodeState` do
+ * motor (Renderer sub-fase 1).
+ *
+ * Un nodo multi-tier (`maxTier > 1`) **a medias** (`0 < currentTier <
+ * maxTier`) píntase como `in_progress` aínda que o motor lle dea
+ * `unlocked`. Iso é cosmético: o motor segue facendo as súas
+ * comprobacións sobre o `NodeState` real; aquí só decidimos cor.
+ *
+ * Casos:
+ * - Single-tier (maxTier === 1 ou undefined): devolve o `state` cru.
+ * - Multi-tier coa tier no medio: devolve `'in_progress'`.
+ * - Multi-tier en 0 ou en maxTier: devolve o `state` cru (locked/maxed).
+ *
+ * Aplícase **tanto** ao anel coma ao fill, de modo que o tema só ten
+ * que definir `nodeFillInProgress` para que os tiers parciais teñan
+ * o seu corpo característico (ex. dourado tenue).
+ */
+export function visualStateFor(
+  state: NodeState,
+  currentTier: number,
+  maxTier: number | undefined,
+): NodeState {
+  if (maxTier !== undefined && maxTier > 1 && currentTier > 0 && currentTier < maxTier) {
+    return 'in_progress'
+  }
+  return state
+}
+
+/**
+ * Resolve o fill do corpo do nodo (Renderer sub-fase 1).
+ *
+ * Prioridade (de máis específico a máis xenérico):
+ * 1. `nodeColor` (override por-nodo desde `NodeDef.color`) — gaña sempre.
+ * 2. `theme.colors.nodeFill<State>` — fill por estado, se o tema o declara.
+ * 3. `theme.colors.nodeFill` — interior único (comportamento legado).
+ * 4. `'#f4f4ef'` — default último recurso.
+ *
+ * O `visualState` esperado é o derivado por `visualStateFor`, non o
+ * `NodeState` cru: así, un multi-tier a medias usa `nodeFillInProgress`
+ * automaticamente.
+ *
+ * **Cero regresión por defecto**: sen tokens `nodeFill<State>` no tema
+ * e sen `node.color`, devolve `theme.colors.nodeFill ?? '#f4f4ef'`,
+ * idéntico ao comportamento previo á sub-fase 1.
+ *
+ * Helper puro; exportado para tests.
+ */
+export function fillColorForState(
+  theme: Theme,
+  visualState: NodeState,
+  nodeColor?: string,
+): string {
+  if (nodeColor !== undefined) return nodeColor
+  const c = theme.colors
+  const byState =
+    visualState === 'locked'
+      ? c.nodeFillLocked
+      : visualState === 'unlockable'
+        ? c.nodeFillUnlockable
+        : visualState === 'in_progress'
+          ? c.nodeFillInProgress
+          : visualState === 'maxed'
+            ? c.nodeFillMaxed
+            : c.nodeFillUnlocked
+  return byState ?? c.nodeFill ?? '#f4f4ef'
 }
 // ── FIN: SkillNode ──

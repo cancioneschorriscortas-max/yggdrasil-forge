@@ -117,6 +117,42 @@ export interface ThemeColors {
   readonly nodeFill?: string
 
   /**
+   * Fill do corpo do nodo por **estado visual** (Renderer sub-fase 1).
+   * Cinco tokens opcionais que permiten que o **corpo** do nodo varíe
+   * coa progresión, non só o anel. Sen establecer ningún, o
+   * comportamento é idéntico ao previo (todos caen a `nodeFill`).
+   *
+   * Prioridade no resolutor (`fillColorForState`):
+   * 1. `NodeDef.color` (override por-nodo) — gaña sempre se está.
+   * 2. `nodeFill<State>` (este token) se o tema o declara.
+   * 3. `nodeFill` (interior único, comportamento legado).
+   * 4. `'#f4f4ef'` (default último recurso).
+   *
+   * O **estado visual** que se aplica aquí é o **derivado** (ver
+   * `visualStateFor`), non o `NodeState` cru do motor: un multi-tier
+   * a medias píntase `in_progress` por cosmética aínda que o motor
+   * lle dea `unlocked`. Iso fai que a aceleración visual de tiers
+   * parciais "simplemente funcione" co tema.
+   */
+  readonly nodeFillLocked?: string
+
+  /** Fill do corpo cando o estado visual é `unlockable`. Ver `nodeFillLocked`. */
+  readonly nodeFillUnlockable?: string
+
+  /** Fill do corpo cando o estado visual é `unlocked`. Ver `nodeFillLocked`. */
+  readonly nodeFillUnlocked?: string
+
+  /** Fill do corpo cando o estado visual é `maxed`. Ver `nodeFillLocked`. */
+  readonly nodeFillMaxed?: string
+
+  /**
+   * Fill do corpo cando o estado visual é `in_progress`. Inclúe **tanto**
+   * o `in_progress` real do motor **como** o derivado por
+   * `visualStateFor` (multi-tier a medias). Ver `nodeFillLocked`.
+   */
+  readonly nodeFillInProgress?: string
+
+  /**
    * Cor do anel de selección (F10.7). Opcional; fallback a
    * `nodeUnlockable` para conservar pegada visual coherente (a
    * selección destaca igual que un nodo accesible). Aplícase como

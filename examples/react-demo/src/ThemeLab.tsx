@@ -17,6 +17,14 @@ export interface ThemeLabValues {
   readonly nodeInProgress: string
   readonly edge: string
   readonly ringWidth: number
+  // Renderer sub-fase 1: fill por estado (opcional). Cadea baleira =
+  // "non establecer" (cae a `fill` legado). Manter como strings sempre
+  // para que o input de cor mostre algo razoable.
+  readonly nodeFillLocked: string
+  readonly nodeFillUnlockable: string
+  readonly nodeFillUnlocked: string
+  readonly nodeFillMaxed: string
+  readonly nodeFillInProgress: string
 }
 
 /** Preset "plano claro" — fondo papel + cores vivas. */
@@ -31,6 +39,12 @@ export const presetFlatLight: ThemeLabValues = {
   nodeInProgress: '#c77a2e',
   edge: '#b9b3a5',
   ringWidth: 3,
+  // Plano claro: sen fills por estado (todos = fill xeral, comportamento legado).
+  nodeFillLocked: '#ffffff',
+  nodeFillUnlockable: '#ffffff',
+  nodeFillUnlocked: '#ffffff',
+  nodeFillMaxed: '#ffffff',
+  nodeFillInProgress: '#ffffff',
 }
 
 /** Preset "escuro limpo" — fondo noite + cores vivas pero saturadas. */
@@ -45,6 +59,13 @@ export const presetDarkClean: ThemeLabValues = {
   nodeInProgress: '#e08a3c',
   edge: '#46506b',
   ringWidth: 3,
+  // Showcase: bloqueados máis apagados; in_progress dourado tenue; maxed
+  // chea de cor. Iso fai que o "corpo enteiro fale", non só o anel.
+  nodeFillLocked: '#1d2230',
+  nodeFillUnlockable: '#2a2f3d',
+  nodeFillUnlocked: '#2a3d2f',
+  nodeFillMaxed: '#3d3320',
+  nodeFillInProgress: '#3d2f20',
 }
 
 interface ThemeLabProps {
@@ -67,6 +88,12 @@ const COLOR_FIELDS: readonly ColorFieldDef[] = [
   { key: 'nodeMaxed', label: 'Anel: maxed' },
   { key: 'nodeInProgress', label: 'Anel: in progress' },
   { key: 'edge', label: 'Edges' },
+  // Renderer sub-fase 1: fills por estado (corpo do nodo).
+  { key: 'nodeFillLocked', label: 'Fill: locked' },
+  { key: 'nodeFillUnlockable', label: 'Fill: unlockable' },
+  { key: 'nodeFillUnlocked', label: 'Fill: unlocked' },
+  { key: 'nodeFillMaxed', label: 'Fill: maxed' },
+  { key: 'nodeFillInProgress', label: 'Fill: in progress' },
 ]
 
 export function ThemeLab({ value, onChange }: ThemeLabProps): JSX.Element {

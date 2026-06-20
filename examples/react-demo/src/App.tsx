@@ -87,6 +87,14 @@ export function App(): JSX.Element {
         edge: themeVals.edge,
         mesh: 'rgba(148, 163, 184, 0.08)',
         nodeFill: themeVals.fill,
+        // Renderer sub-fase 1: fills por estado. O Theme Lab garda os 5
+        // como cadeas non-baleiras (presets sempre os providen); pasamos
+        // tal cal.
+        nodeFillLocked: themeVals.nodeFillLocked,
+        nodeFillUnlockable: themeVals.nodeFillUnlockable,
+        nodeFillUnlocked: themeVals.nodeFillUnlocked,
+        nodeFillMaxed: themeVals.nodeFillMaxed,
+        nodeFillInProgress: themeVals.nodeFillInProgress,
       },
       sizes: {
         strokeWidth: 2.5,
