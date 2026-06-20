@@ -4317,3 +4317,60 @@ nodos en estado `locked`, e diverxe (intencionalmente) cando o nodo
 está `unlocked` (canUnlock corta por estado; explain segue informando
 dos prereqs). Iso protexe contra unha refactorización futura que
 homologue erroneamente os dous métodos.
+
+---
+
+### A.6.27 — `state.computedStats` era caché morta; o resolver consulta `StatComputer` en vivo
+
+**Contexto.** `TreeState.computedStats` declarábase como caché de stats
+globais (mapa `statId → number`). En `StateStore.ts:131` iniciábase a
+`{}` e **non se reescribía nunca**. O `UnlockResolver.getStat`
+(UnlockResolver.ts:597) lía esa caché:
+
+```ts
+return ctx.state.computedStats?.[statId] ?? 0
+```
+
+Polo tanto, **todos** os `stat_min` se avaliaban sobre `0` e fallaban
+sempre, incluso cando `TreeEngine.getStat(statId)` (que delega no
+`StatComputer`) devolvía o valor correcto (ex. `faith=12` no demo do
+Paladín). Bug detectado pola verificación externa da Showcase Capa
+1a, escalado polo Executor, arranxado en Capa 1a-fix-core.
+
+**Decisión.** Mover a fonte de verdade ao `StatComputer` vía un
+**accessor** inxectado no `UnlockResolverContext`:
+
+```ts
+readonly getStat?: (statId: string) => number
+```
+
+`TreeEngine` cableao a `this.statComputer.computeStat(statId)` nos
+**tres** lugares onde constrúe o ctx: `canUnlock`, `explainUnlock`, e
+o relock-cascade de `applyChanges`. Coherente con A.6.26 (mesmo ctx
+entre canUnlock e explainUnlock).
+
+`UnlockResolver.getStat` delega cando o accessor está presente; cae
+ao comportamento legacy (caché morta → 0) se ausente, para non
+romper consumidores que constrúan ctxs sen motor completo (tests
+illados, EffectsRunner, StatComputer.computeStatDef — ver A.2.4.d).
+
+**`state.computedStats` non se borra**: queda como campo legacy
+declarativo en `TreeState`, marcado implícitamente como deprecado
+polo seu nulo uso real. Un fix futuro pode (a) eliminar o campo, ou
+(b) sincronizalo dende o `StatComputer` tras cada mutación para
+servir como verdadeira caché. Fora de alcance deste bugfix.
+
+**Limitación coñecida.** O ctx do relock-cascade en `applyChanges`
+usa un `simulatedState` (nodos hipoteticamente bloqueados); o
+`getStat` consulta o `StatComputer` real, non simulado. Mellora
+neta sobre o anterior (sempre 0), pero non perfecto: un fix completo
+require `StatComputer.computeStatFromState(state)`, que aínda non
+existe.
+
+**Patrón xeral.** Cando un módulo mantén unha caché que require
+sincronización con outra fonte de verdade, e a sincronización non
+está garantida en cada mutación, **prefírese inxectar un accessor
+en vivo en lugar de ler a caché**. O accessor pode delegar á caché
+internamente cando esta sexa fiable; pero o consumidor non debería
+asumilo. Aplícase a calquera caché-morta latente (revisado: no core
+non hai outras coñecidas tras este fix).

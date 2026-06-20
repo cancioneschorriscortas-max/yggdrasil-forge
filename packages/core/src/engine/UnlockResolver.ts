@@ -127,6 +127,42 @@ export interface UnlockResolverContext {
    */
   readonly progressManager?: ProgressManagerLike
   // ── FIN: 2.4.d ──
+
+  // ── INICIO: 1a-fix-core — accessor de stats en vivo (BUG 1) ──
+  /**
+   * Accessor opcional para obter o valor actual dun stat global,
+   * **en vivo** desde o `StatComputer`. Necesario para que
+   * `stat_min` se avalíe contra o valor real (initial +
+   * contribucións de nodos desbloqueados, incluído `perTier`).
+   *
+   * **Historia do bug**: ata este fix, `getStat` lía
+   * `ctx.state.computedStats?.[statId] ?? 0`, pero `computedStats`
+   * inicialízase a `{}` en `StateStore.ts` e **nunca se escribe**
+   * (é unha caché morta). Resultado: tódolos `stat_min` avaliábanse
+   * sobre 0 e fallaban sempre, incluso cando `engine.getStat()`
+   * devolvía un valor correcto. O fix é trasladar a fonte de
+   * verdade ao `StatComputer` vía este accessor.
+   *
+   * **Inxectado por `TreeEngine`** nos tres lugares onde se
+   * constrúe `UnlockResolverContext` (canUnlock, explainUnlock, e
+   * a simulación de relock en applyChanges). Coherente con A.6.26
+   * (mesmo ctx entre canUnlock e explainUnlock).
+   *
+   * **Se ausente** (consumidores que constrúan o ctx sen motor
+   * completo, ex. tests illados), o resolver cae ao comportamento
+   * legacy de ler `state.computedStats` — devolvendo 0 — para
+   * conservar retrocompatibilidade.
+   *
+   * **Limitación coñecida**: o ctx do relock-cascade en
+   * `applyChanges` usa un `simulatedState` (nodos hipoteticamente
+   * bloqueados). O `getStat` inxectado consulta o `StatComputer`
+   * real (estado real, non simulado). Iso é unha mellora neta
+   * sobre o anterior (sempre 0) pero non é perfecto: un fix
+   * completo requiriría `StatComputer.computeStatFromState(state)`,
+   * que excede o alcance deste bugfix.
+   */
+  readonly getStat?: (statId: string) => number
+  // ── FIN: 1a-fix-core ──
 }
 
 /**
@@ -594,6 +630,13 @@ export class UnlockResolver {
   }
 
   private getStat(statId: string, ctx: UnlockResolverContext): number {
+    // 1a-fix-core (BUG 1): consultar en vivo se hai accessor inxectado;
+    // se non (ctx legacy sen motor), fallback á caché morta para non
+    // romper consumidores antigos (sempre devolverá 0, mesmo
+    // comportamento ca antes).
+    if (ctx.getStat !== undefined) {
+      return ctx.getStat(statId)
+    }
     return ctx.state.computedStats?.[statId] ?? 0
   }
 

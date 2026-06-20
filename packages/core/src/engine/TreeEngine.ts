@@ -759,13 +759,16 @@ export class TreeEngine {
     if (nodeDef.prerequisites !== undefined) {
       // ── INICIO: 2.4.d — pasar progressManager para soportar
       // condicións progress_min sobre nodos computed ──
+      // ── 1a-fix-core (BUG 1): inxectar getStat para que stat_min lea
+      //    do StatComputer en vivo (computedStats era caché morta). ──
       const ctx: UnlockResolverContext = {
         treeDef,
         state,
         locale: this.locale,
         progressManager: this.progressManager,
+        getStat: (statId) => this.statComputer.computeStat(statId),
       }
-      // ── FIN: 2.4.d ──
+      // ── FIN: 2.4.d / 1a-fix-core ──
       const satisfied = this.resolver.evaluate(nodeDef.prerequisites, ctx)
       if (!satisfied) {
         return ok({
@@ -863,11 +866,13 @@ export class TreeEngine {
     }
 
     // ctx idéntico a canUnlock (mesma fonte de verdade; cero diverxencia).
+    // 1a-fix-core (BUG 1): incluír getStat para stat_min (mesmo motivo).
     const ctx: UnlockResolverContext = {
       treeDef,
       state,
       locale: this.locale,
       progressManager: this.progressManager,
+      getStat: (statId) => this.statComputer.computeStat(statId),
     }
     return ok(this.resolver.explain(nodeDef.prerequisites, ctx))
   }
@@ -1439,13 +1444,21 @@ export class TreeEngine {
             ),
           }
           // ── INICIO: 2.4.d — pasar progressManager (igual ca en canUnlock) ──
+          // ── 1a-fix-core (BUG 1): inxectar getStat tamén aquí para
+          //    coherencia (mesmo ctx en tódolos lugares onde se constrúe;
+          //    cero diverxencia). Limitación coñecida: o `getStat`
+          //    consulta o `StatComputer` real (estado real, non
+          //    simulado). Mellora neta sobre o anterior (sempre 0); un
+          //    fix completo con stats simulados require
+          //    `computeStatFromState`, fora de alcance deste bugfix. ──
           const ctx: UnlockResolverContext = {
             treeDef,
             state: simulatedState,
             locale: this.locale,
             progressManager: this.progressManager,
+            getStat: (statId) => this.statComputer.computeStat(statId),
           }
-          // ── FIN: 2.4.d ──
+          // ── FIN: 2.4.d / 1a-fix-core ──
           const stillSatisfied = this.resolver.evaluate(candidateDef.prerequisites, ctx)
           if (!stillSatisfied) {
             nodeIdsToLock.push(candidateDef.id)
