@@ -3,7 +3,7 @@
 //
 //   1. node_unlocked        (dependencia simple)            → Muro de Escudos
 //   2. node_maxed           (require maxed)                 → Furia Berserker
-//   3. node_state           (estado in_progress)            → Escudo Divino
+//   3. node_state           (estado unlocked)               → Escudo Divino
 //   4. nodes_count + scope  (tag-scoped progression)        → Veterano (4 'warrior')
 //   5. tier_min             (tier ≥ N)                      → Campeón (sword tier ≥ 3)
 //   6. stat_min             (stat acumulado)                → Xuízo Divino (faith ≥ 10)
@@ -46,8 +46,21 @@ export const paladinTreeDef: TreeDef = {
       icon: '💧',
       color: '#4aa3df',
     },
+    // Showcase «Economía de Puntos»: pool xeral de progresión.
+    // Cada nodo non-divino consume 1 punto por tier desbloqueado;
+    // un multi-tier maxed (ex. sword-basics tier 3) gasta 3 puntos.
+    // Inicial = 18, abondo para reproducir o snapshot e deixar marxe
+    // visible (5 restantes tras a foto do mockup).
+    {
+      id: 'skill-points',
+      label: { gl: 'Puntos', es: 'Puntos', en: 'Points' },
+      initial: 18,
+      max: 18,
+      icon: '⭐',
+      color: '#f0c040',
+    },
   ],
-  startingBudget: { resources: { piety: 7 } },
+  startingBudget: { resources: { 'skill-points': 18, piety: 7 } },
   layout: { type: 'custom', curve: 'diagonal-vertical' },
   nodes: [
     // ── Columna esquerda: GUERREIRO ──
@@ -60,6 +73,7 @@ export const paladinTreeDef: TreeDef = {
       icon: 'sword',
       tags: ['warrior'],
       position: { x: 80, y: 40 },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'shield-wall',
@@ -71,6 +85,7 @@ export const paladinTreeDef: TreeDef = {
       tags: ['warrior'],
       position: { x: 80, y: 190 },
       prerequisites: { type: 'node_unlocked', nodeId: 'sword-basics' },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'berserker-rage',
@@ -82,6 +97,7 @@ export const paladinTreeDef: TreeDef = {
       tags: ['warrior'],
       position: { x: 80, y: 340 },
       prerequisites: { type: 'node_maxed', nodeId: 'sword-basics' },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'war-veteran',
@@ -93,6 +109,7 @@ export const paladinTreeDef: TreeDef = {
       tags: ['warrior'],
       position: { x: 80, y: 490 },
       prerequisites: { type: 'nodes_count', count: 4, scope: 'warrior' },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     // ── Columna central: CONVERXENCIA (hexágonos) ──
     {
@@ -110,6 +127,7 @@ export const paladinTreeDef: TreeDef = {
           { type: 'node_unlocked', nodeId: 'healing-hands' },
         ],
       },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'champion-of-light',
@@ -126,6 +144,7 @@ export const paladinTreeDef: TreeDef = {
           { type: 'node_unlocked', nodeId: 'smite' },
         ],
       },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'valor-aura',
@@ -142,6 +161,7 @@ export const paladinTreeDef: TreeDef = {
           { type: 'node_unlocked', nodeId: 'divine-shield' },
         ],
       },
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'dark-pact',
@@ -154,6 +174,7 @@ export const paladinTreeDef: TreeDef = {
       position: { x: 360, y: 575 },
       prerequisites: { type: 'node_unlocked', nodeId: 'sword-basics' },
       exclusions: ['champion-of-light', 'holy-warrior'],
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     // ── Columna dereita: CLÉRIGO ──
     {
@@ -165,6 +186,7 @@ export const paladinTreeDef: TreeDef = {
       icon: 'sun',
       position: { x: 640, y: 40 },
       statContributions: [{ statId: 'faith', op: '+', value: 3 }],
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'healing-hands',
@@ -176,6 +198,7 @@ export const paladinTreeDef: TreeDef = {
       position: { x: 640, y: 190 },
       prerequisites: { type: 'node_unlocked', nodeId: 'holy-light' },
       statContributions: [{ statId: 'faith', op: '+', value: 2 }],
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'smite',
@@ -187,6 +210,7 @@ export const paladinTreeDef: TreeDef = {
       position: { x: 640, y: 340 },
       prerequisites: { type: 'node_unlocked', nodeId: 'holy-light' },
       statContributions: [{ statId: 'faith', op: '+', value: 1 }],
+      cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     {
       id: 'divine-shield',
@@ -196,7 +220,7 @@ export const paladinTreeDef: TreeDef = {
       label: { gl: 'Escudo Divino', es: 'Escudo Divino', en: 'Divine Shield' },
       icon: 'shield-cross',
       position: { x: 640, y: 490 },
-      prerequisites: { type: 'node_state', nodeId: 'healing-hands', state: 'in_progress' },
+      prerequisites: { type: 'node_state', nodeId: 'healing-hands', state: 'unlocked' },
       cost: [{ resourceId: 'piety', amount: 3 }],
     },
     {

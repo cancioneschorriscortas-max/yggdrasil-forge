@@ -4,7 +4,7 @@ import { SkillTree, type SkillTreeHandle, ThemeProvider } from '@yggdrasil-forge
 import type { Theme } from '@yggdrasil-forge/react'
 import { MemoryStorage } from '@yggdrasil-forge/storage'
 import type { JSX } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 // Showcase Capa 1a: árbore activa = «O Paladín» (13 nodos / 11 capacidades).
 // `rpgTreeDef` segue exportado en ./tree-def.js para un futuro toggle
@@ -21,10 +21,24 @@ export function App(): JSX.Element {
   // Zoom +, Zoom −) desde botóns no panel Controls.
   const treeRef = useRef<SkillTreeHandle>(null)
 
+  // Showcase «Economía de Puntos»: subscribe estable para
+  // `useSyncExternalStore`. Devolve un ref-stable subscribe que React
+  // pode rexistrar/desrexistrar sen perder eventos do snapshot async
+  // (arranxo do BUG 3: o subscribe manual con useEffect perdía os
+  // primeiros unlocks porque rexistrábase tras eles).
+  const subscribe = useCallback((listener: () => void) => engine.subscribe(listener), [engine])
+  const getSnapshot = useCallback(() => engine.getSnapshot(), [engine])
+  const getBudgetSnapshot = useCallback(() => engine.getBudget(), [engine])
+
+  // Estado da árbore en vivo (renderízase a cada cambio do engine).
+  const treeState = useSyncExternalStore(subscribe, getSnapshot)
+  const budget = useSyncExternalStore(subscribe, getBudgetSnapshot)
+
   // Showcase Capa 1a: setup inicial async (reproduce a foto do mockup).
   // Guard anti-doble-execución por React StrictMode (que monta os
-  // effects dúas veces en dev). Se ben `engine.unlock` con nodo xa maxed
-  // devolve un Result.err inocuo, evitamos o ruído da segunda pasada.
+  // effects dúas veces en dev). Co `useSyncExternalStore` rexistrado
+  // antes do primeiro effect, os unlocks do snapshot xa reflíctense
+  // automaticamente — sen depender deste useEffect para o conteo.
   const setupDoneRef = useRef(false)
   useEffect(() => {
     if (setupDoneRef.current) return
@@ -32,7 +46,25 @@ export function App(): JSX.Element {
     void setupPaladinSnapshot(engine)
   }, [engine])
 
-  const [unlockedCount, setUnlockedCount] = useState(0)
+  // Conta derivada do snapshot reactivo: nodos con tier >= 1
+  // (unlocked + in_progress + maxed). Corrixe o bug do contador
+  // anterior que só miraba `state === 'unlocked'` e ignoraba `maxed`.
+  const unlockedCount = useMemo(() => {
+    let count = 0
+    for (const node of paladinTreeDef.nodes) {
+      const inst = treeState.nodes[node.id]
+      if (inst === undefined) continue
+      if (inst.state === 'unlocked' || inst.state === 'in_progress' || inst.state === 'maxed') {
+        count += 1
+      }
+    }
+    return count
+  }, [treeState])
+
+  // Pools en vivo (lectura directa do budget reactivo).
+  const skillPoints = budget.resources['skill-points'] ?? 0
+  const pietyPoints = budget.resources.piety ?? 0
+
   const [lastAction, setLastAction] = useState<string>('')
   const [snapshotId, setSnapshotId] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
@@ -81,21 +113,10 @@ export function App(): JSX.Element {
   // como `style.background` inline (vía fiable, post-F10.8). Cero
   // CSS vars / `<style>` interno requeridas.
 
-  // Subscribe to engine changes:
-  useEffect(() => {
-    const updateCount = (): void => {
-      let count = 0
-      for (const node of paladinTreeDef.nodes) {
-        const state = engine.getNodeState(node.id)
-        if (state?.state === 'unlocked') count += 1
-      }
-      setUnlockedCount(count)
-    }
-
-    updateCount()
-    const unsubscribe = engine.subscribe(updateCount)
-    return unsubscribe
-  }, [engine])
+  // (BUG 3 fixed) O efecto manual `engine.subscribe(updateCount)` foi
+  // substituído por `useSyncExternalStore` arriba — rexístrase no
+  // primeiro render, sen perder eventos do snapshot async nin do
+  // StrictMode double-mount.
 
   const handleNodeClick = useCallback(
     async (nodeId: string) => {
@@ -164,6 +185,18 @@ export function App(): JSX.Element {
         <aside className="sidebar">
           <section className="panel">
             <h2 className="panel-title">⚜ Status</h2>
+            <div className="stat-row">
+              <span className="stat-label">⭐ Puntos</span>
+              <span className="stat-value">
+                {skillPoints} <span className="stat-of">/ 18</span>
+              </span>
+            </div>
+            <div className="stat-row">
+              <span className="stat-label">💧 Piedade</span>
+              <span className="stat-value">
+                {pietyPoints} <span className="stat-of">/ 20</span>
+              </span>
+            </div>
             <div className="stat-row">
               <span className="stat-label">Unlocked</span>
               <span className="stat-value">
