@@ -400,6 +400,37 @@ body::before {
   padding: 6px 10px;
 }
 
+/* Nivel · Capa B: control +/- inline na fila do nivel. */
+.rune-button-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 6px;
+}
+
+.rune-button-icon:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.stat-value-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-level-value {
+  min-width: 56px;
+  text-align: center;
+  font-weight: 700;
+}
+
 .theme-lab-fields {
   display: flex;
   flex-direction: column;

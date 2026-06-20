@@ -59,6 +59,7 @@ export function App(): JSX.Element {
   // Pools en vivo (lectura directa do budget reactivo).
   const skillPoints = budget.resources['skill-points'] ?? 0
   const pietyPoints = budget.resources.piety ?? 0
+  const level = budget.resources.level ?? 1
 
   const [lastAction, setLastAction] = useState<string>('')
   const [snapshotId, setSnapshotId] = useState<string | null>(null)
@@ -205,6 +206,26 @@ export function App(): JSX.Element {
     }
   }, [engine])
 
+  // Nivel · Capa B: control +/- que invoca engine.grantResource('level', ±1).
+  // O clamp [0, max=10] xa o fai o motor; o feedback de Last action confirma
+  // a operación e o clamp cando se intenta superar os bordes.
+  const handleLevelChange = useCallback(
+    async (delta: number) => {
+      const result = await engine.grantResource('level', delta)
+      if (result.ok) {
+        const { previous, current } = result.value
+        if (previous === current) {
+          setLastAction(`🎖️ Nivel ${current} (no límite, sen cambio)`)
+        } else {
+          setLastAction(`🎖️ Nivel ${previous} → ${current}`)
+        }
+      } else {
+        setLastAction(`⛔ ${result.error.message}`)
+      }
+    },
+    [engine],
+  )
+
   return (
     <div className="app">
       <header className="app-header">
@@ -263,6 +284,37 @@ export function App(): JSX.Element {
               <span className="stat-label">💧 Piedade</span>
               <span className="stat-value">
                 {pietyPoints} <span className="stat-of">/ 20</span>
+              </span>
+            </div>
+            {/* Nivel · Capa B: control +/- que sobe/baixa o recurso `level`
+                vía grantResource (clamp [0,10] no motor). Os nodos gatados
+                con resource_min(level,N) abren/cerran conforme cambia.
+                Baixar nivel NON re-bloquea nodos xa abertos (briefing §2.4
+                + lección A.6.28: prereqs = portas en unlock). */}
+            <div className="stat-row stat-row-level">
+              <span className="stat-label">🎖️ Nivel</span>
+              <span className="stat-value stat-value-level">
+                <button
+                  type="button"
+                  className="rune-button rune-button-icon"
+                  onClick={() => void handleLevelChange(-1)}
+                  aria-label="Baixar nivel"
+                  disabled={level <= 1}
+                >
+                  −
+                </button>
+                <span className="stat-level-value">
+                  {level} <span className="stat-of">/ 10</span>
+                </span>
+                <button
+                  type="button"
+                  className="rune-button rune-button-icon"
+                  onClick={() => void handleLevelChange(+1)}
+                  aria-label="Subir nivel"
+                  disabled={level >= 10}
+                >
+                  +
+                </button>
               </span>
             </div>
             <div className="stat-row">

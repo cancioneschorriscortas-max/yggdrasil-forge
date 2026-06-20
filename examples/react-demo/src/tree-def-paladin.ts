@@ -61,8 +61,19 @@ export const paladinTreeDef: TreeDef = {
       color: '#f0c040',
       refundable: true,
     },
+    // Nivel · Capa B: recurso `level` 1→10 que gata nodos por valor mediante
+    // `resource_min(level, N)`. Non se gasta (cero `cost` en level); só se
+    // axusta co control +/- do Status, que chama a `engine.grantResource`.
+    {
+      id: 'level',
+      label: { gl: 'Nivel', es: 'Nivel', en: 'Level' },
+      initial: 1,
+      max: 10,
+      icon: '🎖️',
+      color: '#c0a8ff',
+    },
   ],
-  startingBudget: { resources: { 'skill-points': 18, piety: 7 } },
+  startingBudget: { resources: { 'skill-points': 18, piety: 7, level: 1 } },
   layout: { type: 'custom', curve: 'diagonal-vertical' },
   nodes: [
     // ── Columna esquerda: GUERREIRO ──
@@ -106,7 +117,17 @@ export const paladinTreeDef: TreeDef = {
       label: { gl: 'Veterano de Guerra', es: 'Veterano de Guerra', en: 'War Veteran' },
       tags: ['warrior'],
       position: { x: 80, y: 490 },
-      prerequisites: { type: 'nodes_count', count: 4, scope: 'warrior' },
+      // Nivel · Capa B: desbloqueo escalonado. Require 4 nodos warrior
+      // desbloqueados (xa estaba) E nivel ≥ 3 (novo). Demostra que un
+      // mesmo nodo pode estar gatado por dúas condicións de natureza
+      // distinta (contaxe + nivel).
+      prerequisites: {
+        type: 'all',
+        conditions: [
+          { type: 'nodes_count', count: 4, scope: 'warrior' },
+          { type: 'resource_min', resourceId: 'level', amount: 3 },
+        ],
+      },
       cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
     // ── Columna central: CONVERXENCIA (hexágonos) ──
@@ -170,7 +191,17 @@ export const paladinTreeDef: TreeDef = {
       label: { gl: 'Pacto Escuro', es: 'Pacto Oscuro', en: 'Dark Pact' },
       color: '#7d3cff',
       position: { x: 360, y: 575 },
-      prerequisites: { type: 'node_unlocked', nodeId: 'sword-basics' },
+      // Nivel · Capa B: o Pacto Escuro maldito ábrese a nivel 10 (o tope
+      // do recurso). Combínase co prereq orixinal en `all`. As exclusións
+      // co Campeón da Luz e Guerreiro Sagrado seguen aplicándose tras o
+      // veredicto positivo do `all`.
+      prerequisites: {
+        type: 'all',
+        conditions: [
+          { type: 'node_unlocked', nodeId: 'sword-basics' },
+          { type: 'resource_min', resourceId: 'level', amount: 10 },
+        ],
+      },
       exclusions: ['champion-of-light', 'holy-warrior'],
       cost: [{ resourceId: 'skill-points', amount: 1 }],
     },
