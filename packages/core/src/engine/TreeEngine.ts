@@ -21,6 +21,7 @@ import type {
   Cost,
   EventMap,
   EventName,
+  GrantResult,
   HookContext,
   Loadout,
   LockResult,
@@ -1497,6 +1498,68 @@ export class TreeEngine {
     await this.hookRunner.runAfterLock(nodeId, ctx)
 
     return ok({ nodeId, newState, refunded: refundedCosts })
+  }
+
+  // ── grantResource: mutación directa de recurso (Nivel · Capa A) ──
+  /**
+   * Concede ou retira unha cantidade dun recurso no budget. A diferenza dun
+   * `cost` (que require afordabilidade e está acoplado a un unlock) ou un
+   * `refund` (que reverte un custo previo), `grantResource` é unha **mutación
+   * directa**: simplemente axusta o valor do recurso por `amount`
+   * (positivo ou negativo), **clampeado a `[0, resource.max]`**.
+   *
+   * Caso de uso típico: sistemas de nivel/XP onde o nivel sobe e baixa por
+   * acción externa á progresión da árbore. Combinado coas condicións
+   * `resource_min` existentes, permite gatar nodos por nivel (e o Inspector
+   * xa o explica por si).
+   *
+   * - `resourceId` non está en `treeDef.resources` → `err(UNKNOWN_RESOURCE)`.
+   * - Senón: `previous = budget.resources[id] ?? 0`;
+   *          `current = clamp(previous + amount, 0, resource.max ?? +∞)`;
+   *          escribe budget; se cambia, emite `budgetChange(id, prev, curr)`;
+   *          devolve `ok({ resourceId, previous, current })`.
+   *
+   * `readOnly` engine → `err(READ_ONLY_VIOLATION)` (consistente con
+   * unlock/lock/respec).
+   */
+  async grantResource(resourceId: string, amount: number): Promise<Result<GrantResult>> {
+    if (this.readOnly) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.READ_ONLY_VIOLATION,
+          getErrorMessage(ErrorCode.READ_ONLY_VIOLATION, this.locale, {}),
+        ),
+      )
+    }
+
+    const treeDef = this.store.getTreeDef()
+    const resource = treeDef.resources?.find((r) => r.id === resourceId)
+    if (resource === undefined) {
+      return err(
+        new YggdrasilError(
+          ErrorCode.UNKNOWN_RESOURCE,
+          getErrorMessage(ErrorCode.UNKNOWN_RESOURCE, this.locale, { resourceId }),
+        ),
+      )
+    }
+
+    const state = this.store.getState()
+    const previous = state.budget.resources[resourceId] ?? 0
+    const max = resource.max ?? Number.POSITIVE_INFINITY
+    const current = Math.max(0, Math.min(max, previous + amount))
+
+    if (current !== previous) {
+      this.store.update((draft) => {
+        draft.budget.resources[resourceId] = current
+      })
+      this.events.emit('budgetChange', resourceId, previous, current)
+      // Invalidar caché do StatComputer: aínda que `level` non sexa unha
+      // stat derivada, condicións `resource_min` que dependan deste
+      // recurso pasarán a avaliarse contra o novo valor.
+      this.statComputer.invalidate()
+    }
+
+    return ok({ resourceId, previous, current })
   }
 
   // ── respec: mutación async (T5, extendido en 8.3) ──

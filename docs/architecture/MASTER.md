@@ -4424,3 +4424,39 @@ de `lockOneTier`** — é un constraint preexistente do
 tests (que esixen `refundable: true` para que a aritmética cuadre).
 Consumidores de skill-tree interactivos teñen que asegurar
 `refundable: true` nos seus recursos de puntos.
+
+---
+
+### A.6.29 — `grantResource` = concesión directa, distinta de cost/refund
+
+**Contexto.** O motor tiña tres formas de mutar un recurso: `cost` (gasto
+acoplado a unlock), `refund` (reversión dun custo previo, esixe
+`refundable: true`), e `respec` (refund global). Faltaba a **mutación
+directa**: subir/baixar un recurso sen contexto de unlock — necesaria
+para sistemas de nivel/XP/ouro onde o valor cambia por acción externa.
+
+**Decisión.** `TreeEngine.grantResource(resourceId, amount)` axusta o
+recurso por `amount` (positivo ou negativo), **clampeado a `[0,
+resource.max]`**. Cero acoplamento con custos ou unlocks; é unha
+operación independente.
+
+Comportamento:
+1. `resourceId` non está en `treeDef.resources` → `err(UNKNOWN_RESOURCE)`.
+2. `previous = budget.resources[id] ?? 0`.
+3. `current = max(0, min(resource.max ?? Infinity, previous + amount))`.
+4. Se `current !== previous`: escribe budget + emite `budgetChange(id,
+   previous, current)` + invalida `StatComputer` (para que condicións
+   `resource_min` dependentes se reavalúen).
+5. Se `current === previous` (clamp deixou igual): **non emite evento**
+   nin escribe. Operación idempotente neses extremos.
+
+**Combinación con `resource_min`.** Un nodo gatado por `prerequisites:
+{ type: 'resource_min', resourceId: 'level', amount: 10 }` queda
+automaticamente vinculado: `grantResource('level', +1)` abre/pecha o
+acceso conforme o valor cruza o umbral. **Sen código extra**, o
+Inspector explica «Necesitas 10 en 'level', tes 3 ✗» porque
+`resource_min` xa pasa por `explainUnlock`.
+
+**Non é cost nin refund.** `grantResource` non require `refundable:
+true`, non rexistra audit como `node_locked`, e non interactúa con
+`respec`. É unha primitiva separada para semánticas non-custo.

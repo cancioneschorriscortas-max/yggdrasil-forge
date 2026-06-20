@@ -52,7 +52,7 @@ export type {
 export type { Selector } from './selector.js'
 
 // Resources (1.3)
-export type { Resource, Cost, Budget } from './resources.js'
+export type { Resource, Cost, Budget, GrantResult } from './resources.js'
 
 // I18n config (1.3)
 export type { I18nConfig } from './i18n.js'

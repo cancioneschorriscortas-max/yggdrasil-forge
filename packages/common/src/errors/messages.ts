@@ -186,6 +186,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, Record<SupportedLocale, string>> 
     es: 'Permiso denegado: {action} para usuario {userId}',
     en: 'Permission denied: {action} for user {userId}',
   },
+  [ErrorCode.UNKNOWN_RESOURCE]: {
+    gl: 'Recurso descoñecido: "{resourceId}" non está declarado no TreeDef',
+    es: 'Recurso desconocido: "{resourceId}" no está declarado en el TreeDef',
+    en: 'Unknown resource: "{resourceId}" is not declared in the TreeDef',
+  },
   [ErrorCode.INVALID_COST]: {
     gl: 'Custo inválido: o importe debe ser non negativo (recibido {amount})',
     es: 'Coste inválido: el importe debe ser no negativo (recibido {amount})',

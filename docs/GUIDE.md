@@ -99,6 +99,16 @@ engine.lockOneTier('a')    // decrementa currentTier en 1 (refunde só ese tier)
                            // Importante: os recursos deben ter `refundable: true`
                            // no TreeDef para que os puntos volvan ao budget.
 
+// Conceder ou retirar recursos en runtime (XP, nivel, ouro, mana...):
+engine.grantResource('level', +1)   // sobe 1 nivel; clampea a resource.max
+engine.grantResource('level', -1)   // baixa 1 nivel; clampea a 0
+engine.grantResource('xp', 250)     // engade XP; emite budgetChange se cambia
+// Devolve Result<{ resourceId, previous, current }>.
+// Recurso descoñecido → err(UNKNOWN_RESOURCE).
+// Combinado con prerequisites `resource_min`, gata nodos por valor:
+//   { type: 'resource_min', resourceId: 'level', amount: 10 }
+// O Inspector explica automaticamente "Necesitas 10 en level, tes 3 ✗".
+
 // Re-render ao cambiar o engine:
 const unsub = engine.subscribe(() => { /* setState para forzar render */ })
 // ...máis tarde: unsub()

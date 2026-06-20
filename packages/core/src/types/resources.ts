@@ -54,4 +54,24 @@ export interface Budget {
   /** Mapa de resourceId → cantidade actual disponible. */
   resources: Record<string, number>
 }
+
+/**
+ * Resultado dunha concesión directa de recurso (`TreeEngine.grantResource`).
+ *
+ * Distinto dun custo (que require afordabilidade) ou dun refund (que reverte
+ * un custo previo): unha concesión simplemente axusta o valor do recurso por
+ * un delta (positivo ou negativo), clampeado a `[0, resource.max]`.
+ *
+ * Caso de uso típico: sistemas de nivel/XP onde o nivel sobe e baixa por
+ * acción externa ao motor.
+ *
+ * @example
+ * { resourceId: 'level', previous: 3, current: 4 }   // grant +1
+ * { resourceId: 'xp', previous: 1240, current: 1500 } // grant +260 cap a max
+ */
+export interface GrantResult {
+  readonly resourceId: string
+  readonly previous: number
+  readonly current: number
+}
 // ── FIN: Resource types ──
