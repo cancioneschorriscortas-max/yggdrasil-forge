@@ -4460,3 +4460,48 @@ Inspector explica «Necesitas 10 en 'level', tes 3 ✗» porque
 **Non é cost nin refund.** `grantResource` non require `refundable:
 true`, non rexistra audit como `node_locked`, e non interactúa con
 `respec`. É unha primitiva separada para semánticas non-custo.
+
+---
+
+### A.6.30 — Exclusións son simétricas (bug histórico)
+
+**Contexto.** `canUnlock` e `unlock` comprobaban exclusións percorrendo
+**só** `nodeDef.exclusions` (o array declarado no nodo que se quere
+desbloquear). Iso facía a comprobación **unidireccional**: se A
+declaraba `exclusions: ['B']` pero B non declaraba nada, podíase
+unlock A → unlock B → ambos coexistían, violando a semántica.
+
+**Bug exposed**: ata Nivel · Capa B (gate de nivel 10 no Pacto Escuro)
+o demo nunca expoñía o "Camiño B" porque o demo arranca a nivel 1 e o
+Pacto Escuro era inalcanzable. Cando Agarfal subiu o nivel a 10 e
+desbloqueou o Pacto Escuro **primeiro**, os outros nodos da columna
+Paladín (Campeón da Luz, Guerreiro Sagrado) seguían desbloqueables —
+violando a regra que el mesmo definira.
+
+**Decisión.** As exclusións son **simétricas**: declarar `A.exclusions =
+['B']` debe garantir que A e B **nunca** coexistan, indistintamente da
+orde. Sen cambiar o schema (non se obriga ao consumidor a duplicar a
+relación), o motor calcula a simetría:
+
+1. **Índice inverso** (construído unha vez no constructor): para cada
+   `Y` con `Y.exclusions: [..., X, ...]`, rexistra Y como excluído
+   inverso de X. `Map<string, Set<string>>` final é estático.
+2. **Helper privado** `findActiveExclusionConflict(nodeId, state)`:
+   percorre `(nodeDef.exclusions ∪ reverseExclusions[nodeId])` buscando
+   o primeiro nodo activo (`unlocked`|`maxed`). Devolve o id do
+   conflito ou `undefined`.
+3. **`canUnlock` e `unlock`** invocan ese helper. **Helper único**:
+   nada diverxe entre os dous métodos (regression preventiva).
+4. **API pública** `getEffectiveExclusions(nodeId): readonly string[]`
+   devolve a unión (deduplicada, ordenada) para que a UI mostre as
+   incompatibilidades reais en ambas direccións sen reimplementar.
+
+**Por que `Map<string,Set<string>>` no constructor**: o TreeDef é
+estático (non muta tras crear o engine). Construír unha vez evita un
+O(N²) por chamada a `canUnlock/unlock` con N nodos. Memoria desprezable
+para árboles típicas (centos de nodos máximo).
+
+**Compatibilidade.** Cero break: se un TreeDef xa declaraba a relación
+en ambos lados (`A.exclusions=['B']` E `B.exclusions=['A']`), o
+`getEffectiveExclusions` deduplica e o comportamento mantén. O fix non
+require migración de datos.

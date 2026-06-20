@@ -129,6 +129,17 @@ if (explanation.ok) {
 // - `canUnlock`: veredicto único + corta por estado (maxed/unlocked).
 // - `explainUnlock`: lista detallada + sempre informa dos prereqs.
 
+// Incompatibilidades reais dun nodo (exclusións bidireccionais):
+const conflicts = engine.getEffectiveExclusions('paladin')
+// readonly string[] — devolve TODOS os nodos cuxa unlock é incompatible:
+// - Os que `paladin.exclusions` declara directamente.
+// - Os que declaran `paladin` no seu propio `exclusions` (relación inversa).
+//
+// As exclusións son SIMÉTRICAS: declarar `A.exclusions = ['B']` xa garante
+// que A e B nunca coexisten, en calquera orde. Non precisas duplicar a
+// declaración no TreeDef. O motor calcula a simetría automaticamente vía
+// un índice inverso construído ao crear o engine (lección MASTER A.6.30).
+
 // Clic nun nodo (no compoñente):
 <SkillTree engine={engine} onNodeClick={(id) => engine.unlock(id)} />
 ```

@@ -134,6 +134,23 @@ export class TreeEngine {
   private readonly hookRunner: HookRunner
   // ── FIN: 8.4.b.ii ──
 
+  // ── INICIO: Exclusións bidireccionais (bugfix) ──
+  // Índice inverso construído unha vez no constructor a partir de
+  // `treeDef.nodes[].exclusions`. Para cada nodo X, este mapa contén o
+  // conxunto de nodos Y tales que X aparece en Y.exclusions.
+  //
+  // Razón: as exclusións son **simétricas** (incompatibilidade vai nos
+  // dous sentidos). Declarando `A.exclusions = ['B']` o motor garante
+  // que NIN se pode unlock A se B xa está unlocked, NIN viceversa.
+  // Sen este índice, `unlock(B)` (cuxo array exclusions está baleiro)
+  // pasaba a comprobación e quedaba activo xunto con A, violando a
+  // regra (BUG: A.6.30).
+  //
+  // Const at construct-time: o TreeDef é estático tras crear o engine;
+  // construír unha vez evita un O(N²) por chamada a canUnlock/unlock.
+  private readonly reverseExclusions: ReadonlyMap<string, ReadonlySet<string>>
+  // ── FIN: Exclusións bidireccionais ──
+
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
     this.readOnly = options?.readOnly ?? false
@@ -242,6 +259,25 @@ export class TreeEngine {
       locale: this.locale,
     })
     // ── FIN: 2.3.b ──
+
+    // ── INICIO: Exclusións bidireccionais — construción do índice ──
+    // Para cada Y con Y.exclusions:[..., X, ...], rexistrar Y como
+    // excluído inverso de X. Construímos un Map<string,Set<string>>
+    // unha vez; reutilízase en canUnlock/unlock.
+    const reverseMap = new Map<string, Set<string>>()
+    for (const node of treeDef.nodes) {
+      if (node.exclusions === undefined) continue
+      for (const excludedId of node.exclusions) {
+        let set = reverseMap.get(excludedId)
+        if (set === undefined) {
+          set = new Set<string>()
+          reverseMap.set(excludedId, set)
+        }
+        set.add(node.id)
+      }
+    }
+    this.reverseExclusions = reverseMap
+    // ── FIN: Exclusións bidireccionais ──
   }
 
   // ── Validación mínima do TreeDef (T3.b) ──
@@ -661,6 +697,70 @@ export class TreeEngine {
 
   // ── FIN: 5.2 — subtree integration ──
 
+  // ── Exclusións bidireccionais: helpers + API pública ──
+  /**
+   * Devolve o conxunto de nodos cuxa unlock é mutuamente excluínte
+   * con `nodeId`, considerando **ambas direccións**:
+   * - As exclusións declaradas en `nodeDef.exclusions` (relación directa).
+   * - As exclusións inversas: outros nodos Y que declaran `nodeId` no
+   *   seu `Y.exclusions` (relación inversa, automaticamente engadida).
+   *
+   * Útil para a UI: amosar as incompatibilidades dun nodo sen ter que
+   * percorrer todo o TreeDef. Con só declarar `A.exclusions = ['B']`,
+   * `getEffectiveExclusions('B')` xa devolve `['A']` automaticamente.
+   *
+   * Devolve array ordenado alfabeticamente, sen duplicados.
+   */
+  getEffectiveExclusions(nodeId: string): readonly string[] {
+    const treeDef = this.store.getTreeDef()
+    const nodeDef = treeDef.nodes.find((n) => n.id === nodeId)
+    if (nodeDef === undefined) return []
+    const direct = nodeDef.exclusions ?? []
+    const inverse = this.reverseExclusions.get(nodeId) ?? new Set<string>()
+    const merged = new Set<string>(direct)
+    for (const id of inverse) merged.add(id)
+    return [...merged].sort()
+  }
+
+  /**
+   * Helper privado: dada a posición actual do estado, comproba se algún
+   * dos nodos en `effectiveExclusions(nodeId)` está actualmente activo
+   * (`unlocked` ou `maxed`). Devolve o id do primeiro conflito atopado
+   * (orde da iteración do Set: direct primeiro, inverso despois) ou
+   * `undefined` se non hai conflito.
+   *
+   * Usado por `canUnlock` E `unlock` para non duplicar a lóxica de
+   * comprobación de exclusións.
+   */
+  private findActiveExclusionConflict(
+    nodeId: string,
+    state: { readonly nodes: Readonly<Record<string, { readonly state: string } | undefined>> },
+  ): string | undefined {
+    const treeDef = this.store.getTreeDef()
+    const nodeDef = treeDef.nodes.find((n) => n.id === nodeId)
+    if (nodeDef === undefined) return undefined
+    // Recorrido en dúas fases (direct → inverse) para que o primeiro
+    // conflito reportado sexa o "máis intuitivo" desde a perspectiva
+    // do consumidor que declarou a exclusión.
+    const checkId = (id: string): boolean => {
+      const inst = state.nodes[id]
+      return inst?.state === 'unlocked' || inst?.state === 'maxed'
+    }
+    if (nodeDef.exclusions !== undefined) {
+      for (const id of nodeDef.exclusions) {
+        if (checkId(id)) return id
+      }
+    }
+    const inverse = this.reverseExclusions.get(nodeId)
+    if (inverse !== undefined) {
+      for (const id of inverse) {
+        if (checkId(id)) return id
+      }
+    }
+    return undefined
+  }
+  // ── FIN: Exclusións bidireccionais ──
+
   // ── canUnlock: comprobación síncrona pura (T3) ──
   // Decisión: nodo xa unlocked/maxed → ok({ allowed: false, reason }) non err,
   // porque é información válida da comprobación, non un fallo do sistema.
@@ -779,21 +879,18 @@ export class TreeEngine {
       }
     }
 
-    // Comprobar exclusións: se algún nodo excluído está unlocked/maxed → non permitido
-    if (nodeDef.exclusions !== undefined) {
-      for (const excludedId of nodeDef.exclusions) {
-        const excludedInst = state.nodes[excludedId]
-        const excludedState = excludedInst?.state
-        if (excludedState === 'unlocked' || excludedState === 'maxed') {
-          return ok({
-            allowed: false,
-            reason: getErrorMessage(ErrorCode.EXCLUSION_VIOLATION, this.locale, {
-              nodeId,
-              conflictId: excludedId,
-            }),
-          })
-        }
-      }
+    // Comprobar exclusións (BUGFIX bidireccional): considera tanto
+    // `nodeDef.exclusions` como a relación inversa. Ver
+    // `findActiveExclusionConflict` + lección A.6.30 no MASTER.
+    const conflictId = this.findActiveExclusionConflict(nodeId, state)
+    if (conflictId !== undefined) {
+      return ok({
+        allowed: false,
+        reason: getErrorMessage(ErrorCode.EXCLUSION_VIOLATION, this.locale, {
+          nodeId,
+          conflictId,
+        }),
+      })
     }
 
     // Comprobar custo con ResourceManager
@@ -941,22 +1038,18 @@ export class TreeEngine {
       }
       // ── FIN: derivación coherente con canUnlock (DT-10) ──
 
-      // Comprobar se é por exclusión
-      if (nodeDef.exclusions !== undefined) {
-        for (const excludedId of nodeDef.exclusions) {
-          const excl = state.nodes[excludedId]
-          if (excl?.state === 'unlocked' || excl?.state === 'maxed') {
-            return err(
-              new YggdrasilError(
-                ErrorCode.EXCLUSION_VIOLATION,
-                getErrorMessage(ErrorCode.EXCLUSION_VIOLATION, this.locale, {
-                  nodeId,
-                  conflictId: excludedId,
-                }),
-              ),
-            )
-          }
-        }
+      // Comprobar se é por exclusión (bidireccional; ver canUnlock + A.6.30)
+      const conflictId = this.findActiveExclusionConflict(nodeId, state)
+      if (conflictId !== undefined) {
+        return err(
+          new YggdrasilError(
+            ErrorCode.EXCLUSION_VIOLATION,
+            getErrorMessage(ErrorCode.EXCLUSION_VIOLATION, this.locale, {
+              nodeId,
+              conflictId,
+            }),
+          ),
+        )
       }
 
       // Comprobar se é por recursos
