@@ -52,22 +52,23 @@ export const presetDarkClean: ThemeLabValues = {
   canvas: '#11131a',
   fill: '#2a2f3d',
   text: '#e6d5a8',
-  nodeLocked: '#5b6b86',
-  nodeUnlockable: '#e0a93c',
-  nodeUnlocked: '#6fcf97',
-  nodeMaxed: '#f0c14b',
-  nodeInProgress: '#e08a3c',
+  // Paleta por defecto (briefing UI: exclusións + paleta). Estados claramente
+  // diferenciables: gris/cián/ámbar/verde/morado. O vermello queda reservado
+  // para incompatibilidade activa no Inspector (non aparece como anel).
+  nodeLocked: '#5b6b86', // gris azulado
+  nodeUnlockable: '#22d3ee', // cián (chamativo: "podes!")
+  nodeInProgress: '#f59e0b', // ámbar (progreso parcial)
+  nodeUnlocked: '#4ade80', // verde (completado un tier ou single-tier maxed)
+  nodeMaxed: '#a855f7', // morado (cima da progresión multi-tier)
   edge: '#46506b',
   ringWidth: 3,
-  // Showcase: o corpo enteiro fala. Contraste suficiente sobre `canvas`
-  // (#11131a): locked claramente visible pero atenuado; unlockable
-  // neutral; unlocked tinte verde; maxed e in_progress dourados pero
-  // diferenciados entre si para que un 2/3 e un 3/3 NON se confundan.
-  nodeFillLocked: '#363c4d', // máis claro ca antes (#1d2230 era case invisible)
-  nodeFillUnlockable: '#3b3f55',
-  nodeFillUnlocked: '#2e4538', // verdoso saturado
-  nodeFillMaxed: '#6d5118', // dourado escuro e pleno
-  nodeFillInProgress: '#4d3a1a', // dourado tenue, ben distinto de maxed
+  // Fill por estado: locked claramente apagado, resto discretos para non
+  // pasar de garrido. O anel é quen leva a cor saturada; o corpo dá soporte.
+  nodeFillLocked: '#363c4d', // escuro apagado (corpo "off")
+  nodeFillUnlockable: '#1d3b4a', // tinte cián suave
+  nodeFillUnlocked: '#1f3d2a', // tinte verde suave
+  nodeFillMaxed: '#3a1f5a', // tinte morado suave
+  nodeFillInProgress: '#4a3617', // tinte ámbar suave
 }
 
 interface ThemeLabProps {
