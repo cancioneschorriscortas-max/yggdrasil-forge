@@ -72,7 +72,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 3,
       label: { gl: 'Esgrima Básica', es: 'Esgrima Básica', en: 'Basic Fencing' },
-      icon: 'sword',
       tags: ['warrior'],
       position: { x: 80, y: 40 },
       cost: [{ resourceId: 'skill-points', amount: 1 }],
@@ -83,7 +82,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 2,
       label: { gl: 'Muro de Escudos', es: 'Muro de Escudos', en: 'Shield Wall' },
-      icon: 'shield',
       tags: ['warrior'],
       position: { x: 80, y: 190 },
       prerequisites: { type: 'node_unlocked', nodeId: 'sword-basics' },
@@ -95,7 +93,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 1,
       label: { gl: 'Furia Berserker', es: 'Furia Berserker', en: 'Berserker Rage' },
-      icon: 'norse-axe',
       tags: ['warrior'],
       position: { x: 80, y: 340 },
       prerequisites: { type: 'node_maxed', nodeId: 'sword-basics' },
@@ -107,7 +104,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 1,
       label: { gl: 'Veterano de Guerra', es: 'Veterano de Guerra', en: 'War Veteran' },
-      icon: 'helmet',
       tags: ['warrior'],
       position: { x: 80, y: 490 },
       prerequisites: { type: 'nodes_count', count: 4, scope: 'warrior' },
@@ -120,7 +116,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'hexagon',
       maxTier: 1,
       label: { gl: 'Guerreiro Sagrado', es: 'Guerrero Sagrado', en: 'Holy Warrior' },
-      icon: 'paladin-cross',
       position: { x: 360, y: 115 },
       prerequisites: {
         type: 'all',
@@ -137,7 +132,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'hexagon',
       maxTier: 2,
       label: { gl: 'Campeón da Luz', es: 'Campeón de la Luz', en: 'Champion of Light' },
-      icon: 'radiant-sun',
       position: { x: 360, y: 265 },
       prerequisites: {
         type: 'all',
@@ -154,7 +148,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'hexagon',
       maxTier: 1,
       label: { gl: 'Aura de Valor', es: 'Aura de Valor', en: 'Valor Aura' },
-      icon: 'aura-tree',
       position: { x: 360, y: 415 },
       prerequisites: {
         type: 'any',
@@ -171,7 +164,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'hexagon',
       maxTier: 1,
       label: { gl: 'Pacto Escuro', es: 'Pacto Oscuro', en: 'Dark Pact' },
-      icon: 'dark-rune',
       color: '#7d3cff',
       position: { x: 360, y: 575 },
       prerequisites: { type: 'node_unlocked', nodeId: 'sword-basics' },
@@ -185,7 +177,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 3,
       label: { gl: 'Luz Sagrada', es: 'Luz Sagrada', en: 'Holy Light' },
-      icon: 'sun',
       position: { x: 640, y: 40 },
       statContributions: [{ statId: 'faith', op: '+', value: 3 }],
       cost: [{ resourceId: 'skill-points', amount: 1 }],
@@ -196,7 +187,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 2,
       label: { gl: 'Mans Sanadoras', es: 'Manos Sanadoras', en: 'Healing Hands' },
-      icon: 'hands',
       position: { x: 640, y: 190 },
       prerequisites: { type: 'node_unlocked', nodeId: 'holy-light' },
       statContributions: [{ statId: 'faith', op: '+', value: 2 }],
@@ -208,7 +198,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 1,
       label: { gl: 'Golpe Divino', es: 'Golpe Divino', en: 'Smite' },
-      icon: 'lightning',
       position: { x: 640, y: 340 },
       prerequisites: { type: 'node_unlocked', nodeId: 'holy-light' },
       statContributions: [{ statId: 'faith', op: '+', value: 1 }],
@@ -220,9 +209,15 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 1,
       label: { gl: 'Escudo Divino', es: 'Escudo Divino', en: 'Divine Shield' },
-      icon: 'shield-cross',
       position: { x: 640, y: 490 },
-      prerequisites: { type: 'node_state', nodeId: 'healing-hands', state: 'unlocked' },
+      // ⚠️ Capa Reset-Bugs: prereq cambiado de `node_state: 'unlocked'`
+      // (estricto, rexeitaba 'maxed') a `node_unlocked` (acepta unlocked
+      // OU maxed). O orixinal pretendía demostrar a capacidade
+      // `node_state` pero era unha trampa lóxica: max-ear `healing-hands`
+      // volvía imposible desbloquear o Escudo Divino. Mantemos a
+      // demostración das outras 10 capacidades; `node_state` cae do
+      // escaparate.
+      prerequisites: { type: 'node_unlocked', nodeId: 'healing-hands' },
       cost: [{ resourceId: 'piety', amount: 3 }],
     },
     {
@@ -231,7 +226,6 @@ export const paladinTreeDef: TreeDef = {
       shape: 'circle',
       maxTier: 1,
       label: { gl: 'Xuízo Divino', es: 'Juicio Divino', en: 'Divine Judgment' },
-      icon: 'scales',
       position: { x: 640, y: 640 },
       prerequisites: { type: 'stat_min', statId: 'faith', amount: 10 },
       cost: [{ resourceId: 'piety', amount: 3 }],
