@@ -5,6 +5,7 @@ import type { Theme } from '@yggdrasil-forge/react'
 import { MemoryStorage } from '@yggdrasil-forge/storage'
 import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { ConditionInspector } from './ConditionInspector.js'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 // Showcase Capa 1a: árbore activa = «O Paladín» (13 nodos / 11 capacidades).
 // `rpgTreeDef` segue exportado en ./tree-def.js para un futuro toggle
@@ -216,6 +217,11 @@ export function App(): JSX.Element {
               </div>
             )}
           </section>
+
+          {/* Showcase Capa 1b: panel ConditionInspector — fai visible o que
+              o motor xa sabe (explainUnlock + cost vs budget + exclusións +
+              canUnlock). Reactivo vía useSyncExternalStore interno. */}
+          <ConditionInspector engine={engine} selectedNodeId={selectedNode} locale="es" />
 
           <section className="panel">
             <h2 className="panel-title">⚜ Controls</h2>
