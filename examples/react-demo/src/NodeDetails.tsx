@@ -1,7 +1,8 @@
 // ── INICIO: NodeDetails — pestana Node do Inspector ──
-// Mostra a identidade dun nodo seleccionado: label, tipo (badge), tier,
-// descrición, custos e estado actual. Datos do TreeDef + instancia do
-// engine; nada inventado.
+// Cando hai un nodo seleccionado, mostra a súa identidade (label, tipo,
+// estado, tier, descrición, custos). Cando NON hai selección, mostra
+// un resumo da árbore (título, descrición, desbloqueados, nº de stats)
+// en lugar dunha mensaxe morta.
 import type { Cost, NodeDef, TreeDef, TreeEngine } from '@yggdrasil-forge/core'
 import type { JSX } from 'react'
 import { useSyncExternalStore } from 'react'
@@ -28,6 +29,52 @@ function formatCosts(costs: readonly Cost[] | undefined): string {
   return costs.map((c) => `${c.amount} ${c.resourceId}`).join(', ')
 }
 
+function TreeSummary({
+  engine,
+  treeDef,
+}: {
+  readonly engine: TreeEngine
+  readonly treeDef: TreeDef
+}): JSX.Element {
+  // Re-render reactivo para que o contador suba ao desbloquear.
+  const snapshot = useSyncExternalStore(
+    (l) => engine.subscribe(l),
+    () => engine.getSnapshot(),
+  )
+
+  let unlockedCount = 0
+  for (const node of treeDef.nodes) {
+    const inst = snapshot.nodes[node.id]
+    if (inst === undefined) continue
+    if (inst.state === 'unlocked' || inst.state === 'in_progress' || inst.state === 'maxed') {
+      unlockedCount += 1
+    }
+  }
+
+  const totalNodes = treeDef.nodes.length
+  const statsCount = treeDef.stats?.length ?? 0
+  const description = resolveLocalized(treeDef.description, '')
+  const title = resolveLocalized(treeDef.label, treeDef.id)
+
+  return (
+    <div className="tree-summary">
+      <div className="tree-summary-head">
+        <h3 className="tree-summary-title">{title}</h3>
+      </div>
+      {description !== '' && <p className="tree-summary-desc">{description}</p>}
+      <dl className="node-details-grid">
+        <dt>Desbloqueados</dt>
+        <dd>
+          <strong>{unlockedCount}</strong> / {totalNodes}
+        </dd>
+        <dt>Stats</dt>
+        <dd>{statsCount === 0 ? '—' : statsCount}</dd>
+      </dl>
+      <p className="tree-summary-hint">Fai clic nun nodo do lenzo para ver os seus detalles.</p>
+    </div>
+  )
+}
+
 export interface NodeDetailsProps {
   readonly engine: TreeEngine
   readonly treeDef: TreeDef
@@ -43,7 +90,7 @@ export function NodeDetails({ engine, treeDef, selectedNodeId }: NodeDetailsProp
   )
 
   if (selectedNodeId === null) {
-    return <p className="inspector-empty">Selecciona un nodo no lenzo…</p>
+    return <TreeSummary engine={engine} treeDef={treeDef} />
   }
 
   const node: NodeDef | undefined = treeDef.nodes.find((n) => n.id === selectedNodeId)

@@ -254,19 +254,16 @@ body::before {
     rgba(218, 165, 32, 0.4)
   );
   min-width: 0;
+  display: flex;
 }
 
-.canvas-zone > [data-theme-provider],
-.canvas-zone > .yggdrasil-theme {
+.canvas-zone > svg.yf-skill-tree {
+  flex: 1;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   background: rgba(10, 8, 16, 0.6);
   border-radius: 10px;
-  position: relative;
-  overflow: hidden;
 }
 
 .canvas-zone svg {
@@ -302,19 +299,7 @@ body::before {
 
 /* Counter pequeno arriba dereita */
 .canvas-counter {
-  position: absolute;
-  top: 14px;
-  right: 18px;
-  z-index: 3;
-  font-family: "Cinzel", serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(218, 165, 32, 0.85);
-  padding: 4px 10px;
-  background: rgba(15, 12, 22, 0.7);
-  border: 1px solid rgba(218, 165, 32, 0.3);
-  border-radius: 6px;
-  letter-spacing: 0.08em;
+  display: none; /* Movido ao Inspector (resumo da árbore) en pulido v3. */
 }
 
 /* "Last action" toast — abaixo, esquerda do lenzo */
@@ -497,6 +482,46 @@ body::before {
   font-style: italic;
   color: rgba(230, 213, 168, 0.45);
   font-size: 12px;
+}
+
+/* ── TreeSummary (estado baleiro do Inspector / pestana Node) ───── */
+
+.tree-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tree-summary-head {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+}
+
+.tree-summary-title {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #daa520;
+  letter-spacing: 0.04em;
+}
+
+.tree-summary-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(230, 213, 168, 0.85);
+  font-style: italic;
+}
+
+.tree-summary-hint {
+  margin: 8px 0 0;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(218, 165, 32, 0.18);
+  font-size: 11px;
+  color: rgba(230, 213, 168, 0.45);
+  font-style: italic;
+  text-align: center;
 }
 
 /* ── NodeDetails ─────────────────────────────────────────────────── */

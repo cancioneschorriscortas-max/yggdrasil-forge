@@ -28,24 +28,9 @@ export function App(): JSX.Element {
   // Subscribe estable para `useSyncExternalStore` (sen perder eventos
   // do snapshot async; arranxo do BUG 3).
   const subscribe = useCallback((listener: () => void) => engine.subscribe(listener), [engine])
-  const getSnapshot = useCallback(() => engine.getSnapshot(), [engine])
   const getBudgetSnapshot = useCallback(() => engine.getBudget(), [engine])
 
-  const treeState = useSyncExternalStore(subscribe, getSnapshot)
   const budget = useSyncExternalStore(subscribe, getBudgetSnapshot)
-
-  // Conta de nodos con tier >= 1 (unlocked + in_progress + maxed).
-  const unlockedCount = useMemo(() => {
-    let count = 0
-    for (const node of paladinTreeDef.nodes) {
-      const inst = treeState.nodes[node.id]
-      if (inst === undefined) continue
-      if (inst.state === 'unlocked' || inst.state === 'in_progress' || inst.state === 'maxed') {
-        count += 1
-      }
-    }
-    return count
-  }, [treeState])
 
   // Pools en vivo (lectura directa do budget reactivo).
   const skillPoints = budget.resources['skill-points'] ?? 0
@@ -306,10 +291,6 @@ export function App(): JSX.Element {
               {lastAction}
             </div>
           )}
-
-          <div className="canvas-counter" aria-label="Contador de nodos desbloqueados">
-            {unlockedCount} / {paladinTreeDef.nodes.length}
-          </div>
         </div>
 
         <Inspector
