@@ -75,5 +75,25 @@ describe('SkillTreeStatic', () => {
     )
     expect(html).toContain('yf-skill-tree')
   })
+
+  // Layout-L fix: o <svg> enche o seu contedor por defecto.
+  it('o <svg> renderiza con style que enche o contedor', () => {
+    const html = renderToString(<SkillTreeStatic treeDef={makeMinimalTreeDef()} />)
+    expect(html).toContain('display:block')
+    expect(html).toContain('width:100%')
+    expect(html).toContain('height:100%')
+  })
+
+  it('o svg de erro tamén leva o style de fill', () => {
+    const html = renderToString(
+      <SkillTreeStatic
+        treeDef={makeMinimalTreeDef({ layout: { type: 'nonexistent-layout' as 'custom' } })}
+      />,
+    )
+    expect(html).toContain('yf-skill-tree--error')
+    expect(html).toContain('display:block')
+    expect(html).toContain('width:100%')
+    expect(html).toContain('height:100%')
+  })
 })
 // ── FIN: tests SkillTreeStatic ──

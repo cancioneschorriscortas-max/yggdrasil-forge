@@ -56,6 +56,7 @@ export function SkillTreeStatic({
       <svg
         className="yf-skill-tree yf-skill-tree--error"
         data-error={layoutResult.error.code}
+        style={{ display: 'block', width: '100%', height: '100%' }}
         viewBox={buildViewBox(undefined, padding)}
         role="img"
         aria-label="Skill tree (layout error)"
@@ -77,6 +78,7 @@ export function SkillTreeStatic({
     <svg
       className="yf-skill-tree"
       data-layout={layoutResult.value.layoutType}
+      style={{ display: 'block', width: '100%', height: '100%' }}
       viewBox={buildViewBox(bounds, padding)}
       role="img"
       aria-label="Skill tree"

@@ -56,6 +56,23 @@ import { SkillTree } from '@yggdrasil-forge/react/headless'
 | `SVGRenderer` | Lower-level SVG container. |
 | `ThemeProvider` | Provides theme context to descendants. |
 
+### Sizing
+
+`SkillTree` (and the static `SkillTreeStatic`) renders an `<svg>` that
+fills its container by default (`display: block; width: 100%; height: 100%`).
+Give the parent element an explicit size — the SVG's `viewBox` plus the
+default `preserveAspectRatio="xMidYMid meet"` will scale and center the
+tree inside that box.
+
+```tsx
+<div style={{ width: 800, height: 600 }}>
+  <SkillTree engine={engine} />
+</div>
+```
+
+If you don't size the container you'll get the SVG's intrinsic viewBox
+size (often surprisingly small).
+
 ## Hooks
 
 Subscribe to `TreeEngine` state from React with reactive hooks:

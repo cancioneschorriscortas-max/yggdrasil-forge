@@ -100,10 +100,11 @@ describe('SVGRenderer — integración con tema', () => {
     const { container } = render(
       <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />,
     )
-    const svg = q(container, 'svg')
+    const svg = q(container, 'svg') as SVGElement
     expect(container.querySelector('style')).toBeNull()
     expect(svg.getAttribute('data-theme-id')).toBeNull()
-    expect(svg.getAttribute('style')).toBeNull()
+    // Layout-L fix: o style existe (fill base), pero NON ten background do tema.
+    expect(svg.style.background).toBe('')
   })
 
   it('con Provider(minimal): <style> só con animacións + data-theme-id (sen vars de cor)', () => {
@@ -112,11 +113,12 @@ describe('SVGRenderer — integración con tema', () => {
         <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />
       </ThemeProvider>,
     )
-    const svg = q(container, 'svg')
+    const svg = q(container, 'svg') as SVGElement
     // F10.3.fix: data-theme-id consérvase (áncora das animacións).
     expect(svg.getAttribute('data-theme-id')).toBeTruthy()
-    // F10.3.fix: o <svg> NON leva CSS variables no style (eliminado).
-    expect(svg.getAttribute('style')).toBeNull()
+    // Layout-L fix: minimal NON define colors.background, polo que o style
+    // existe (fill base) pero o background queda baleiro.
+    expect(svg.style.background).toBe('')
     const styleEl = container.querySelector('style')
     expect(styleEl).not.toBeNull()
     // F10.3.fix: o <style> só ten animacións; cero regras de cor de nodo/edge/mesh.
@@ -206,6 +208,49 @@ describe('SVGRenderer — marker de frecha en <defs> (F10.4)', () => {
     )
     expect(container.querySelector('defs')).toBeNull()
     expect(container.querySelector(`marker#${ARROW_MARKER_ID}`)).toBeNull()
+  })
+
+  // Layout-L fix: o <svg> enche o seu contedor por defecto (cero
+  // sorpresa de "banda morta" para o consumidor).
+  describe('estilo base do <svg> (enche contedor por defecto)', () => {
+    it('caso normal: style ten display:block + width/height 100%', () => {
+      const { container } = render(
+        <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />,
+      )
+      const svg = q(container, 'svg') as SVGElement
+      expect(svg.style.display).toBe('block')
+      expect(svg.style.width).toBe('100%')
+      expect(svg.style.height).toBe('100%')
+    })
+
+    it('caso erro: tamén leva o estilo de fill', () => {
+      const { container } = render(<SVGRenderer error="YGG_E018" />)
+      const svg = q(container, 'svg') as SVGElement
+      expect(svg.style.display).toBe('block')
+      expect(svg.style.width).toBe('100%')
+      expect(svg.style.height).toBe('100%')
+    })
+
+    it('o background do tema sobreescribe pero conserva o fill', () => {
+      // minimal non define colors.background; usamos un tema cun
+      // background explícito para verificar a fusión.
+      const themedBackground = {
+        ...minimal,
+        colors: { ...minimal.colors, background: '#101020' },
+      }
+      const { container } = render(
+        <ThemeProvider theme={themedBackground}>
+          <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />
+        </ThemeProvider>,
+      )
+      const svg = q(container, 'svg') as SVGElement
+      // Background ven do tema
+      expect(svg.style.background).toContain('rgb(16, 16, 32)')
+      // Fill base segue presente
+      expect(svg.style.display).toBe('block')
+      expect(svg.style.width).toBe('100%')
+      expect(svg.style.height).toBe('100%')
+    })
   })
 })
 // ── FIN: tests SVGRenderer ──

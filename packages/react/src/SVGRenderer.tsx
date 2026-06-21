@@ -90,6 +90,7 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
         ref={ref}
         className="yf-skill-tree yf-skill-tree--error"
         data-error={error}
+        style={{ display: 'block', width: '100%', height: '100%' }}
         viewBox={viewBox}
         role="img"
         aria-label={ariaLabel ?? 'Skill tree (layout error)'}
@@ -108,8 +109,20 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
   // F10.8: background do SVG aplicado **inline** (a vía CSS-var via
   // <style> interior era inestable; o inline funciona). Cero
   // background no tema = SVG transparente (comportamento previo).
-  const svgStyle: CSSProperties | undefined =
+  const themeStyle: CSSProperties | undefined =
     theme?.colors.background !== undefined ? { background: theme.colors.background } : undefined
+
+  // Layout-L fix: o <svg> enche o seu contedor por defecto. Sen isto,
+  // o navegador usa as dimensións intrínsecas do viewBox e o consumidor
+  // ten que engadir CSS para evitar bandas mortas. `display: block`
+  // ademais elimina o gap baseline de svg inline. O background do tema
+  // sobreescribe se está definido.
+  const svgStyle: CSSProperties = {
+    display: 'block',
+    width: '100%',
+    height: '100%',
+    ...(themeStyle ?? {}),
+  }
 
   // F10.8: surface = «tarxeta» opcional debaixo de todo o contido.
   // Calcúlase a partir do mesmo bounds+padding que viewBox para
@@ -132,7 +145,7 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
       className="yf-skill-tree"
       {...(layoutType !== undefined && { 'data-layout': layoutType })}
       {...(theme !== null && { 'data-theme-id': themeId })}
-      {...(svgStyle !== undefined && { style: svgStyle })}
+      style={svgStyle}
       viewBox={viewBox}
       role="img"
       aria-label={ariaLabel ?? 'Skill tree'}
