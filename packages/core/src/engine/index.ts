@@ -99,6 +99,12 @@ export type {
   TreeDirection,
 } from './layouts/TreeLayoutConfig.js'
 export { parseTreeConfig } from './layouts/TreeLayoutConfig.js'
+export { ClusteredRadialLayout } from './layouts/ClusteredRadialLayout.js'
+export type {
+  ClusteredRadialConfig,
+  ClusteredMeshType,
+} from './layouts/ClusteredRadialConfig.js'
+export { parseClusteredRadialConfig } from './layouts/ClusteredRadialConfig.js'
 export type { CustomLayoutConfig } from './layouts/CustomLayoutConfig.js'
 export { parseCustomConfig } from './layouts/CustomLayoutConfig.js'
 export type { CurveStyle, PathBuilderOptions } from './layouts/PathBuilder.js'
