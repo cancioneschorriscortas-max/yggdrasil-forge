@@ -15,4 +15,11 @@ export type {
   GaiaMicroskill,
   GaiaProfession,
 } from './gaia.js'
+
+// ── F9.4: import xenérico + identity import ──
+export { importTree, importTreeFromJson, importTreeFromYaml } from './generic.js'
+export type { TreeMapping } from './generic.js'
+
+// ── F9.2: helper de coherencia canónica (opt-in) ──
+export { checkCanonicalCoherence } from './canonical.js'
 // ── FIN: @yggdrasil-forge/importers ──

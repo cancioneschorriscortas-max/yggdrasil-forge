@@ -1,9 +1,12 @@
 // ── INICIO: @yggdrasil-forge/exporters ──
 // Image and document exporters for Yggdrasil Forge
-// O contido real engadirase en sub-fases posteriores.
 
 /**
  * Versión actual do paquete.
  */
 export const VERSION = '0.0.0'
+
+// ── F9.4: serialización ──
+export { exportTreeToJson, exportTreeToYaml } from './serialize.js'
+export type { JsonExportOptions } from './serialize.js'
 // ── FIN: @yggdrasil-forge/exporters ──

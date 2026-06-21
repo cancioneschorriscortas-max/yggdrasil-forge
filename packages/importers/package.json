@@ -29,12 +29,14 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
     "@yggdrasil-forge/common": "workspace:*",
-    "@yggdrasil-forge/core": "workspace:*"
+    "@yggdrasil-forge/core": "workspace:*",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "tsup": "catalog:",
