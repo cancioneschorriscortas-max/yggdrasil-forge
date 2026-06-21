@@ -68,6 +68,10 @@ Existing GAIA importer (F9.3). Maps a `GaiaProfession` (profession +
 groups + microskills with `conectadas`) to a `TreeDef`. See [GAIA fixture](../../docs/architecture/data-contracts/panadeiro.fixture.json)
 for the contract.
 
+The output `tree.metadata.gaia` carries the lossless GAIA-specific fields,
+including `canonicalSkills` (array of `{ id, label, categoria, peso, icono? }`)
+plus `canonicalWeights` (the `id → peso` map kept for compatibility).
+
 ## Related packages
 
 - [@yggdrasil-forge/common](../common): Shared types and utilities.

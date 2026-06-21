@@ -157,6 +157,16 @@ function buildTreeMetadata(input: GaiaProfession): Record<string, unknown> {
     canonicalWeights[s.id] = s.peso
   }
 
+  // canonicalSkills: obxectos completos (sen perda de label/categoria/icono).
+  // canonicalWeights mantense por compatibilidade (mapa id→peso).
+  const canonicalSkills = input.skills.map((s) => ({
+    id: s.id,
+    label: s.label,
+    categoria: s.categoria,
+    peso: s.peso,
+    ...(s.icono !== undefined ? { icono: s.icono } : {}),
+  }))
+
   // groupCanonical: { groupId: skill_canonica_dominante }
   const groupCanonical: Record<string, string> = {}
   for (const g of input.grupos) {
@@ -169,6 +179,7 @@ function buildTreeMetadata(input: GaiaProfession): Record<string, unknown> {
     gaia: {
       profession,
       canonicalWeights,
+      canonicalSkills,
       ...(Object.keys(groupCanonical).length > 0 ? { groupCanonical } : {}),
     },
   }

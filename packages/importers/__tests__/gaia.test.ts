@@ -210,6 +210,29 @@ describe('importGaiaProfession', () => {
       expect(gaia.canonicalWeights).toEqual({ sk1: 3, sk2: 2 })
     })
 
+    // ── F9.3.c: canonicalSkills (preservación sen perda) ──
+    it('contén canonicalSkills cos obxectos completos (icono condicional)', () => {
+      const result = importGaiaProfession(makeMinimalInput())
+      const gaia = gaiaMetaOf(result)
+      const skills = gaia.canonicalSkills as readonly Record<string, unknown>[]
+      expect(skills).toHaveLength(2)
+      // sk1 ten icono '💪' en makeMinimalInput; sk2 non ten icono.
+      expect(skills[0]).toEqual({
+        id: 'sk1',
+        label: 'Skill 1',
+        categoria: 'física',
+        peso: 3,
+        icono: '💪',
+      })
+      expect(skills[1]).toEqual({
+        id: 'sk2',
+        label: 'Skill 2',
+        categoria: 'cognitiva',
+        peso: 2,
+      })
+      expect('icono' in (skills[1] ?? {})).toBe(false)
+    })
+
     it('contén groupCanonical desde grupos', () => {
       const result = importGaiaProfession(makeMinimalInput())
       const gaia = gaiaMetaOf(result)
@@ -437,6 +460,21 @@ describe('round-trip fixture real panadeiro', () => {
     const weights = (gaia as Record<string, unknown>).canonicalWeights as Record<string, number>
     expect(Object.keys(weights)).toHaveLength(10)
     expect(weights.resistencia_física).toBe(3)
+  })
+
+  it('canonicalSkills ten 10 entradas + spot-check coordinación', () => {
+    const meta = result.metadata as Record<string, Record<string, unknown>>
+    const gaia = meta.gaia as Record<string, unknown>
+    const skills = gaia.canonicalSkills as readonly Record<string, unknown>[]
+    expect(skills).toHaveLength(10)
+    const coord = skills.find((s) => s.id === 'coordinación')
+    expect(coord).toEqual({
+      id: 'coordinación',
+      label: 'Coordinación',
+      categoria: 'física',
+      peso: 2,
+      icono: '🤲',
+    })
   })
 
   it('spot-check pan_amasado: group, canonicalSkillId, flavor, maxTier', () => {
