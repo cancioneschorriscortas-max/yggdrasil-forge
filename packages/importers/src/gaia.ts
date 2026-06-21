@@ -6,6 +6,8 @@ import type {
   GroupDef,
   LayoutConfig,
   NodeDef,
+  StatContribution,
+  StatDef,
   TreeDef,
   UnlockRule,
 } from '@yggdrasil-forge/core'
@@ -185,6 +187,56 @@ function buildTreeMetadata(input: GaiaProfession): Record<string, unknown> {
   }
 }
 
+// ── INICIO: F9.5 — competencia → stats (Capa A: por skill, Capa B: por categoría) ──
+
+function buildStats(
+  input: GaiaProfession,
+  skillIndex: ReadonlyMap<string, GaiaCanonicalWeight>,
+): StatDef[] {
+  // Capa A — por skill: max = nº de microskills que a desenvolven.
+  const perSkillCount = new Map<string, number>()
+  for (const m of input.microskills) {
+    const sid = m.skill_canonica_id
+    if (sid !== undefined && skillIndex.has(sid)) {
+      perSkillCount.set(sid, (perSkillCount.get(sid) ?? 0) + 1)
+    }
+  }
+  const skillStats: StatDef[] = input.skills.map((s) => ({
+    id: `skill:${s.id}`,
+    label: s.label,
+    min: 0,
+    max: perSkillCount.get(s.id) ?? 0,
+    format: 'number',
+  }))
+
+  // Capa B — por categoría: max = suma ponderada (peso) das microskills da categoría.
+  const perCatMax = new Map<string, number>()
+  for (const m of input.microskills) {
+    const sid = m.skill_canonica_id
+    if (sid === undefined) continue
+    const skill = skillIndex.get(sid)
+    if (skill === undefined) continue
+    perCatMax.set(skill.categoria, (perCatMax.get(skill.categoria) ?? 0) + skill.peso)
+  }
+  // Categorías distintas (orde estable de aparición nas skills).
+  const seen = new Set<string>()
+  const categoryStats: StatDef[] = []
+  for (const s of input.skills) {
+    if (seen.has(s.categoria)) continue
+    seen.add(s.categoria)
+    categoryStats.push({
+      id: `cat:${s.categoria}`,
+      label: s.categoria,
+      min: 0,
+      max: perCatMax.get(s.categoria) ?? 0,
+      format: 'number',
+    })
+  }
+
+  return [...skillStats, ...categoryStats]
+}
+// ── FIN: F9.5 ──
+
 // ── INICIO: F9.3.b — microskills + edges ──
 
 function toPrerequisites(conectadas?: string[]): UnlockRule | undefined {
@@ -198,7 +250,11 @@ function toPrerequisites(conectadas?: string[]): UnlockRule | undefined {
   return { type: 'all', conditions }
 }
 
-function buildMicroskillNode(m: GaiaMicroskill, options?: GaiaImportOptions): NodeDef {
+function buildMicroskillNode(
+  m: GaiaMicroskill,
+  skillIndex: ReadonlyMap<string, GaiaCanonicalWeight>,
+  options?: GaiaImportOptions,
+): NodeDef {
   const description = toI18n(m.que_significa_gl, m.que_significa_es, m.que_significa_en)
   const flavor = toI18n(m.accion_clave_gl, m.accion_clave_es, m.accion_clave_en)
   const prerequisites = toPrerequisites(m.conectadas)
@@ -216,6 +272,17 @@ function buildMicroskillNode(m: GaiaMicroskill, options?: GaiaImportOptions): No
   }
   const hasGaiaMeta = Object.keys(gaiaMeta).length > 0
 
+  // F9.5: contribucións a stats (Capa A + Capa B). Só se a skill se resolve.
+  const statContributions: StatContribution[] = []
+  const sid = m.skill_canonica_id
+  if (sid !== undefined) {
+    const skill = skillIndex.get(sid)
+    if (skill !== undefined) {
+      statContributions.push({ statId: `skill:${sid}`, op: '+', value: 1 })
+      statContributions.push({ statId: `cat:${skill.categoria}`, op: '+', value: skill.peso })
+    }
+  }
+
   return {
     id: m.id,
     type: 'small',
@@ -228,6 +295,7 @@ function buildMicroskillNode(m: GaiaMicroskill, options?: GaiaImportOptions): No
     maxTier: options?.microskillMaxTier ?? 3,
     ...(prerequisites !== undefined ? { prerequisites } : {}),
     ...(hasGaiaMeta ? { metadata: { gaia: gaiaMeta } } : {}),
+    ...(statContributions.length > 0 ? { statContributions } : {}),
   }
 }
 
@@ -261,6 +329,9 @@ export function importGaiaProfession(input: GaiaProfession, options?: GaiaImport
   const version = options?.version ?? '1.0.0'
   const layout: LayoutConfig = options?.layout ?? { type: 'identity' }
   const description = toI18n(input.epigrafe_gl, input.epigrafe_es, input.epigrafe_en)
+  // F9.5: índice de skills + xeración de stats (dúas capas).
+  const skillIndex = new Map(input.skills.map((s) => [s.id, s] as const))
+  const stats = buildStats(input, skillIndex)
 
   return {
     id: input.id,
@@ -269,9 +340,13 @@ export function importGaiaProfession(input: GaiaProfession, options?: GaiaImport
     label: input.label,
     ...(description !== undefined ? { description } : {}),
     rootNodeId: input.id,
-    nodes: [buildRootNode(input), ...input.microskills.map((m) => buildMicroskillNode(m, options))],
+    nodes: [
+      buildRootNode(input),
+      ...input.microskills.map((m) => buildMicroskillNode(m, skillIndex, options)),
+    ],
     edges: buildEdges(input.microskills),
     groups: input.grupos.map(toGroupDef),
+    ...(stats.length > 0 ? { stats } : {}),
     layout,
     metadata: buildTreeMetadata(input),
   }

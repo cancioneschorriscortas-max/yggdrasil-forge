@@ -72,6 +72,22 @@ The output `tree.metadata.gaia` carries the lossless GAIA-specific fields,
 including `canonicalSkills` (array of `{ id, label, categoria, peso, icono? }`)
 plus `canonicalWeights` (the `id → peso` map kept for compatibility).
 
+#### Competency stats (F9.5)
+
+The importer also declares `tree.stats` and per-microskill
+`node.statContributions`, plugging GAIA's canonical-skill dimension into
+the existing `StatComputer` / `useStat` machinery in `@core`. Two layers,
+both generated automatically:
+
+- **Per skill** (granular): `StatDef { id: 'skill:<skillId>', label, min: 0, max: <count of microskills developing it>, format: 'number' }`. Each microskill contributes `{ statId: 'skill:<skillId>', op: '+', value: 1 }`. Read as "developed 3 of 5 microskills of *coordinación*".
+- **Per category** (aggregated, weighted): `StatDef { id: 'cat:<categoria>', label, min: 0, max: <sum of peso of contributing microskills>, format: 'number' }`. Each microskill contributes `{ statId: 'cat:<categoria>', op: '+', value: <peso of its canonical skill> }`. Read as a weighted competency profile (física / atencional / …).
+
+Microskills with no `skill_canonica_id` (or one that doesn't resolve in
+`input.skills`) get no `statContributions` — they don't move the profile.
+Categories are derived from the skills' `categoria`, so they exist even if
+no microskill currently contributes (e.g. `cat:social` ends up with `max: 0`
+in the panadeiro fixture).
+
 ## Related packages
 
 - [@yggdrasil-forge/common](../common): Shared types and utilities.

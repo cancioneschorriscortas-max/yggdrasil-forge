@@ -487,7 +487,151 @@ describe('round-trip fixture real panadeiro', () => {
     expect(content?.flavor?.gl).toContain('A masa fala')
     expect(ms?.maxTier).toBe(3)
   })
+
+  // ── F9.5: stats de competencia ──
+  it('tree.stats ten 14 entradas (10 skills + 4 categorías)', () => {
+    expect(result.stats).toBeDefined()
+    expect(result.stats).toHaveLength(14)
+  })
+
+  it('skill:coordinación ten max=2 (pan_amasado + pan_formado)', () => {
+    const stat = result.stats?.find((s) => s.id === 'skill:coordinación')
+    expect(stat).toBeDefined()
+    expect(stat?.max).toBe(2)
+    expect(stat?.min).toBe(0)
+    expect(stat?.format).toBe('number')
+    expect(stat?.label).toBe('Coordinación')
+  })
+
+  it('cat:física existe e ten max ponderado pola fixture', () => {
+    // Computado contra a fixture real: a suma de peso das microskills da
+    // categoría "física" (vía os skill_canonica_id que apuntan a skills
+    // físicas: coordinación peso 2 ×2 microskills + resistencia_física
+    // peso 3 ×3 microskills = 4 + 9 = 13).
+    const stat = result.stats?.find((s) => s.id === 'cat:física')
+    expect(stat).toBeDefined()
+    expect(stat?.max).toBe(13)
+  })
+
+  it('cat:social existe con max=0 (ningunha microskill panadeira é social)', () => {
+    // social está nas skills canónicas (comunicación, empatía) pero ningunha
+    // microskill ten esas como skill_canonica_id. O StatDef créase igual.
+    const stat = result.stats?.find((s) => s.id === 'cat:social')
+    expect(stat).toBeDefined()
+    expect(stat?.max).toBe(0)
+  })
+
+  it('pan_amasado ten statContributions cara skill:coordinación e cat:física', () => {
+    const ms = result.nodes.find((n) => n.id === 'pan_amasado')
+    expect(ms?.statContributions).toEqual([
+      { statId: 'skill:coordinación', op: '+', value: 1 },
+      { statId: 'cat:física', op: '+', value: 2 },
+    ])
+  })
 })
 // ── FIN: F9.3.b ──
+
+// ── INICIO: F9.5 — stats de competencia (unit) ──
+describe('F9.5 — stats de competencia (unit)', () => {
+  /** Input mínimo de 2 skills (distintas categorías) + 3 microskills. */
+  function makeInputForStats(): GaiaProfession {
+    return {
+      id: 'p',
+      rol: 'r',
+      bloque: 'b',
+      label: 'P',
+      skills: [
+        { id: 'sA', label: 'SA', categoria: 'física', peso: 3 },
+        { id: 'sB', label: 'SB', categoria: 'cognitiva', peso: 2 },
+      ],
+      grupos: [{ id: 'g1', label_gl: 'G1' }],
+      microskills: [
+        { id: 'm1', label_gl: 'M1', grupo_id: 'g1', skill_canonica_id: 'sA' },
+        { id: 'm2', label_gl: 'M2', grupo_id: 'g1', skill_canonica_id: 'sA' },
+        { id: 'm3', label_gl: 'M3', grupo_id: 'g1', skill_canonica_id: 'sB' },
+      ],
+    }
+  }
+
+  describe('buildStats — capas A e B', () => {
+    const result = importGaiaProfession(makeInputForStats())
+
+    it('xera 4 stats (2 skills + 2 categorías)', () => {
+      expect(result.stats).toHaveLength(4)
+    })
+
+    it('Capa A: skill:sA con max=2; skill:sB con max=1', () => {
+      const sA = result.stats?.find((s) => s.id === 'skill:sA')
+      const sB = result.stats?.find((s) => s.id === 'skill:sB')
+      expect(sA).toEqual({
+        id: 'skill:sA',
+        label: 'SA',
+        min: 0,
+        max: 2,
+        format: 'number',
+      })
+      expect(sB?.max).toBe(1)
+    })
+
+    it('Capa B: cat:física con max=6 (3×2); cat:cognitiva con max=2 (2×1)', () => {
+      const cF = result.stats?.find((s) => s.id === 'cat:física')
+      const cC = result.stats?.find((s) => s.id === 'cat:cognitiva')
+      expect(cF).toEqual({
+        id: 'cat:física',
+        label: 'física',
+        min: 0,
+        max: 6,
+        format: 'number',
+      })
+      expect(cC?.max).toBe(2)
+    })
+  })
+
+  describe('statContributions nos microskills', () => {
+    it('microskill con skill coñecida → dúas contribucións (skill + cat)', () => {
+      const result = importGaiaProfession(makeInputForStats())
+      const m1 = result.nodes.find((n) => n.id === 'm1')
+      expect(m1?.statContributions).toEqual([
+        { statId: 'skill:sA', op: '+', value: 1 },
+        { statId: 'cat:física', op: '+', value: 3 },
+      ])
+    })
+
+    it('microskill orfa (sen skill_canonica_id) → sen statContributions', () => {
+      const input = makeInputForStats()
+      input.microskills = [{ id: 'orphan', label_gl: 'O', grupo_id: 'g1' }]
+      const result = importGaiaProfession(input)
+      const orphan = result.nodes.find((n) => n.id === 'orphan')
+      expect(orphan).toBeDefined()
+      expect('statContributions' in (orphan ?? {})).toBe(false)
+    })
+
+    it('microskill con skill descoñecida → sen statContributions', () => {
+      const input = makeInputForStats()
+      input.microskills = [
+        { id: 'ghost', label_gl: 'G', grupo_id: 'g1', skill_canonica_id: 'sk_ghost' },
+      ]
+      const result = importGaiaProfession(input)
+      const ghost = result.nodes.find((n) => n.id === 'ghost')
+      expect(ghost).toBeDefined()
+      expect('statContributions' in (ghost ?? {})).toBe(false)
+    })
+  })
+
+  it('input sen microskills nin skills → tree.stats omitido', () => {
+    const input: GaiaProfession = {
+      id: 'empty',
+      rol: 'r',
+      bloque: 'b',
+      label: 'E',
+      skills: [],
+      grupos: [{ id: 'g1', label_gl: 'G1' }],
+      microskills: [],
+    }
+    const result = importGaiaProfession(input)
+    expect('stats' in result).toBe(false)
+  })
+})
+// ── FIN: F9.5 ──
 
 // ── FIN: tests F9.3.a ──
