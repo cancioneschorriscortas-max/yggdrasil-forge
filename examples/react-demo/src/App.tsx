@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Inspector } from './Inspector.js'
 import { Modal } from './Modal.js'
 import { type StateChip, StatesLegend } from './StatesLegend.js'
-import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
+import { type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { type ResourceBar, TopHud } from './TopHud.js'
 import { ZoomControl } from './ZoomControl.js'
 // Showcase Capa 1a: árbore activa = «O Paladín» (13 nodos / 11 capacidades).
@@ -56,8 +56,7 @@ export function App(): JSX.Element {
   const [snapshotId, setSnapshotId] = useState<string | null>(null)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
 
-  // UI chrome: modais (Tema, Axuda).
-  const [themeOpen, setThemeOpen] = useState(false)
+  // UI chrome: modal de Axuda (Tema agora vive como pestana no Inspector).
   const [helpOpen, setHelpOpen] = useState(false)
 
   // Zoom: `getZoom()` non é reactivo; gardamos o % en estado e
@@ -68,7 +67,17 @@ export function App(): JSX.Element {
     setZoomPercent(Math.round(z * 100))
   }, [])
   useEffect(() => {
-    refreshZoom()
+    // Tras o primeiro paint, encadramos a árbore ao canvas dispoñible.
+    // Isto centra o conxunto e evita ter o lenzo medio baleiro cando o
+    // panel dereito é máis estreito que a viewport por defecto do
+    // renderer. requestAnimationFrame asegura que o SVG xa ten layout.
+    const id = requestAnimationFrame(() => {
+      treeRef.current?.fit()
+      refreshZoom()
+    })
+    return () => {
+      cancelAnimationFrame(id)
+    }
   }, [refreshZoom])
 
   // Theme Lab — tema vivo controlado polo panel lateral.
@@ -244,7 +253,6 @@ export function App(): JSX.Element {
         onSave={handleSnapshot}
         onRestore={handleRestore}
         canRestore={snapshotId !== null}
-        onOpenTheme={() => setThemeOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
       />
 
@@ -304,20 +312,22 @@ export function App(): JSX.Element {
           </div>
         </div>
 
-        <Inspector engine={engine} treeDef={paladinTreeDef} selectedNodeId={selectedNode} />
-      </div>
-
-      <Modal open={themeOpen} onClose={() => setThemeOpen(false)} title="Tema">
-        <ThemeLab
-          value={themeVals}
-          onChange={setThemeVals}
-          regions={regions.map((r) => ({ id: r.id, label: r.label }))}
-          regionColors={regionColors}
-          activeRegion={activeRegion}
-          onActiveRegionChange={setActiveRegion}
-          onRegionColorChange={(id, color) => setRegionColors((prev) => ({ ...prev, [id]: color }))}
+        <Inspector
+          engine={engine}
+          treeDef={paladinTreeDef}
+          selectedNodeId={selectedNode}
+          theme={{
+            value: themeVals,
+            onChange: setThemeVals,
+            regions: regions.map((r) => ({ id: r.id, label: r.label })),
+            regionColors,
+            activeRegion,
+            onActiveRegionChange: setActiveRegion,
+            onRegionColorChange: (id, color) =>
+              setRegionColors((prev) => ({ ...prev, [id]: color })),
+          }}
         />
-      </Modal>
+      </div>
 
       <Modal open={helpOpen} onClose={() => setHelpOpen(false)} title="Axuda">
         <div className="help-body">

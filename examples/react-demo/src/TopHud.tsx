@@ -19,7 +19,6 @@ export interface TopHudProps {
   readonly onSave: () => void
   readonly onRestore: () => void
   readonly canRestore: boolean
-  readonly onOpenTheme: () => void
   readonly onOpenHelp: () => void
 }
 
@@ -49,7 +48,6 @@ export function TopHud({
   onSave,
   onRestore,
   canRestore,
-  onOpenTheme,
   onOpenHelp,
 }: TopHudProps): JSX.Element {
   return (
@@ -98,9 +96,6 @@ export function TopHud({
         </button>
         <button type="button" className="hud-action" onClick={onRestore} disabled={!canRestore}>
           ↺ Restaurar
-        </button>
-        <button type="button" className="hud-action" onClick={onOpenTheme}>
-          🎨 Tema
         </button>
         <button
           type="button"
