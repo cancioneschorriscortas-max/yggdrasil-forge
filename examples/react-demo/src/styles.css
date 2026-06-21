@@ -1,4 +1,7 @@
-/* Yggdrasil Forge — React Demo — dragonborn theme styles */
+/* Yggdrasil Forge — React Demo — dragonborn theme styles
+ * Layout Pase L: HUD superior + lenzo maximizado + Inspector con
+ * pestanas + modais (Tema, Axuda). Linguaxe visual preservada
+ * (dourado/escuro + Cinzel); só reorganización estrutural. */
 
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 
@@ -25,7 +28,6 @@ body {
   background-attachment: fixed;
 }
 
-/* Subtle noise overlay via SVG data-URI (cero asset externo) */
 body::before {
   content: "";
   position: fixed;
@@ -41,163 +43,726 @@ body::before {
   z-index: 1;
 }
 
-/* ── Header ─────────────────────────────────────────────────────── */
+/* ── Layout shell (Pase L) ──────────────────────────────────────── */
 
 .app {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  width: 100%;
 }
 
-.app-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-bottom: 24px;
+.app-body {
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 380px);
+  min-height: 0; /* permite ao grid encoller fillos */
+  padding: 12px;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .app-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+}
+
+/* ── Top HUD ────────────────────────────────────────────────────── */
+
+.top-hud {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  padding: 14px 24px;
   border-bottom: 1px solid rgba(218, 165, 32, 0.25);
+  background: linear-gradient(180deg, rgba(20, 16, 30, 0.92) 0%, rgba(15, 12, 22, 0.86) 100%);
+  backdrop-filter: blur(6px);
 }
 
-.app-title {
-  margin: 0 0 8px;
+.hud-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hud-title {
+  margin: 0;
   font-family: "Cinzel", serif;
-  font-size: 42px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: 0.08em;
   background: linear-gradient(180deg, #f4d878 0%, #b8860b 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 8px rgba(218, 165, 32, 0.3));
+  filter: drop-shadow(0 2px 6px rgba(218, 165, 32, 0.25));
 }
 
-.app-subtitle {
+.hud-tagline {
   margin: 0;
   font-family: "Cinzel", serif;
-  font-size: 15px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(230, 213, 168, 0.6);
+}
+
+.hud-bars {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hud-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+}
+
+.hud-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: rgba(230, 213, 168, 0.7);
 }
 
-/* ── Layout ─────────────────────────────────────────────────────── */
-
-.app-body {
-  display: grid;
-  grid-template-columns: 1fr 320px 320px;
-  gap: 20px;
+.hud-bar-icon {
+  font-size: 13px;
 }
 
-@media (max-width: 1100px) {
-  .app-body {
-    grid-template-columns: 1fr 340px;
-  }
-  .theme-lab-column {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 900px) {
-  .app-body {
-    grid-template-columns: 1fr;
-  }
-}
-
-.theme-lab-column {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Capa 2 — subtítulo + selector dentro do Theme Lab. */
-.theme-lab-region-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid rgba(212, 160, 23, 0.18);
-  border-radius: 8px;
-  background: rgba(212, 160, 23, 0.04);
-}
-
-.theme-lab-subtitle {
-  margin: 0;
-  font-size: 0.85em;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--rune-gold, #d4a017);
-  opacity: 0.85;
-}
-
-.theme-lab-select {
-  background: rgba(15, 17, 25, 0.6);
-  color: inherit;
-  border: 1px solid rgba(212, 160, 23, 0.3);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font: inherit;
-  font-size: 0.85em;
-  cursor: pointer;
-}
-
-/* ── Tree frame (ornate border) ─────────────────────────────────── */
-
-.tree-frame {
+.hud-bar-track {
   position: relative;
-  padding: 4px;
+  height: 8px;
+  background: rgba(15, 17, 25, 0.6);
+  border: 1px solid rgba(218, 165, 32, 0.25);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hud-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #b8860b 0%, #f4d878 100%);
+  transition: width 0.25s ease;
+}
+
+.hud-bar-value {
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #daa520;
+  letter-spacing: 0.04em;
+}
+
+.hud-bar-of {
+  color: rgba(230, 213, 168, 0.45);
+  font-weight: 400;
+}
+
+.hud-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-level-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.hud-icon-button {
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(218, 165, 32, 0.45);
+  background: linear-gradient(180deg, rgba(60, 45, 25, 0.85) 0%, rgba(40, 30, 18, 0.85) 100%);
+  color: #e6d5a8;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Cinzel", serif;
+}
+
+.hud-icon-button:hover:not(:disabled) {
+  border-color: rgba(218, 165, 32, 0.85);
+  box-shadow: 0 0 8px rgba(218, 165, 32, 0.25);
+}
+
+.hud-icon-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.hud-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hud-action {
+  padding: 8px 14px;
+  background: linear-gradient(180deg, rgba(60, 45, 25, 0.9) 0%, rgba(40, 30, 18, 0.9) 100%);
+  color: #e6d5a8;
+  border: 1px solid rgba(218, 165, 32, 0.5);
+  border-radius: 6px;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hud-action:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(80, 60, 30, 0.95) 0%, rgba(55, 40, 22, 0.95) 100%);
+  border-color: rgba(218, 165, 32, 0.8);
+  box-shadow: 0 0 10px rgba(218, 165, 32, 0.18);
+}
+
+.hud-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.hud-action--icon {
+  width: 32px;
+  padding: 8px 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ── Canvas zone ────────────────────────────────────────────────── */
+
+.canvas-zone {
+  position: relative;
+  overflow: hidden;
   border-radius: 12px;
+  padding: 3px;
   background: linear-gradient(
     135deg,
     rgba(218, 165, 32, 0.4),
     rgba(218, 165, 32, 0.1),
     rgba(218, 165, 32, 0.4)
   );
+  min-width: 0;
 }
 
-.tree-container {
-  /* F10.3 + theme-lab: o background aplícase inline desde App.tsx (themeVals.canvas).
-     Aquí só estrutura. */
-  border-radius: 10px;
-  padding: 32px;
-  min-height: 520px;
+.canvas-zone > [data-theme-provider],
+.canvas-zone > .yggdrasil-theme {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(10, 8, 16, 0.6);
+  border-radius: 10px;
   position: relative;
   overflow: hidden;
 }
 
-/* Corner ornaments via pseudo-elements */
-.tree-container::before,
-.tree-container::after {
-  content: "";
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  border: 2px solid rgba(218, 165, 32, 0.4);
-  pointer-events: none;
+.canvas-zone svg {
+  max-width: 100%;
+  max-height: 100%;
 }
 
-.tree-container::before {
-  top: 8px;
-  left: 8px;
+/* Corner ornaments — discretos, dentro da capa de fondo */
+.canvas-zone::before,
+.canvas-zone::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(218, 165, 32, 0.4);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.canvas-zone::before {
+  top: 12px;
+  left: 12px;
   border-right: none;
   border-bottom: none;
 }
 
-.tree-container::after {
-  bottom: 8px;
-  right: 8px;
+.canvas-zone::after {
+  bottom: 12px;
+  right: 12px;
   border-left: none;
   border-top: none;
 }
 
-.tree-container svg {
-  max-width: 100%;
-  height: auto;
+/* Counter pequeno arriba dereita */
+.canvas-counter {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 3;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(218, 165, 32, 0.85);
+  padding: 4px 10px;
+  background: rgba(15, 12, 22, 0.7);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  border-radius: 6px;
+  letter-spacing: 0.08em;
 }
 
-/* ── SkillTree CSS overrides via data-state selectors ───────────── */
-/* F10.3 plano: selectores agnósticos (__shape) + SEN filter/drop-shadow. */
+/* "Last action" toast — abaixo, esquerda do lenzo */
+.last-action {
+  position: absolute;
+  left: 18px;
+  bottom: 56px;
+  z-index: 3;
+  padding: 6px 12px;
+  background: rgba(15, 12, 22, 0.85);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #e6d5a8;
+  max-width: 50%;
+  pointer-events: none;
+}
+
+/* ── States legend (franxa inferior do lenzo) ───────────────────── */
+
+.states-legend {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 14px;
+  margin: 0;
+  background: rgba(15, 12, 22, 0.75);
+  border: 1px solid rgba(218, 165, 32, 0.25);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.states-legend-title {
+  /* Visible para lectores de pantalla pero non visualmente. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.states-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(230, 213, 168, 0.85);
+  letter-spacing: 0.04em;
+}
+
+.states-chip-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ── Zoom control (flotante abaixo-dereita do lenzo) ────────────── */
+
+.zoom-control {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(15, 12, 22, 0.85);
+  border: 1px solid rgba(218, 165, 32, 0.35);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+}
+
+.zoom-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #e6d5a8;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: "Cinzel", serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.zoom-button:hover {
+  background: rgba(218, 165, 32, 0.12);
+  border-color: rgba(218, 165, 32, 0.45);
+  color: #daa520;
+}
+
+.zoom-percent {
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #daa520;
+  min-width: 36px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* ── Inspector (panel dereito con pestanas) ─────────────────────── */
+
+.inspector {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, rgba(40, 30, 20, 0.8) 0%, rgba(20, 16, 30, 0.9) 100%);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.inspector-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 8px 0 8px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+  background: rgba(15, 12, 22, 0.5);
+}
+
+.inspector-tab {
+  flex: 1;
+  padding: 8px 10px;
+  background: transparent;
+  color: rgba(230, 213, 168, 0.55);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inspector-tab:hover {
+  color: rgba(230, 213, 168, 0.9);
+}
+
+.inspector-tab--active {
+  color: #daa520;
+  background: linear-gradient(180deg, rgba(40, 30, 20, 0.9) 0%, rgba(20, 16, 30, 0.95) 100%);
+  border-color: rgba(218, 165, 32, 0.35);
+  border-bottom-color: transparent;
+}
+
+.inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  font-size: 13px;
+}
+
+.inspector-empty {
+  margin: 0;
+  padding: 20px 0;
+  text-align: center;
+  font-style: italic;
+  color: rgba(230, 213, 168, 0.45);
+  font-size: 12px;
+}
+
+/* ── NodeDetails ─────────────────────────────────────────────────── */
+
+.node-details-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+}
+
+.node-details-title {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #daa520;
+  letter-spacing: 0.04em;
+}
+
+.node-badge {
+  font-family: "Cinzel", serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(218, 165, 32, 0.12);
+  border: 1px solid rgba(218, 165, 32, 0.35);
+  color: rgba(230, 213, 168, 0.85);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.node-badge--keystone {
+  background: rgba(218, 165, 32, 0.22);
+  color: #daa520;
+}
+
+.node-details-grid {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.node-details-grid dt {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(230, 213, 168, 0.55);
+  align-self: center;
+}
+
+.node-details-grid dd {
+  margin: 0;
+  font-size: 13px;
+  color: #e6d5a8;
+}
+
+.node-details-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(230, 213, 168, 0.85);
+  font-style: italic;
+}
+
+.state-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: rgba(218, 165, 32, 0.12);
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  color: #daa520;
+}
+
+.state-pill--locked {
+  background: rgba(154, 149, 138, 0.12);
+  border-color: rgba(154, 149, 138, 0.35);
+  color: rgba(154, 149, 138, 0.95);
+}
+
+.state-pill--unlockable {
+  background: rgba(192, 138, 46, 0.14);
+  border-color: rgba(192, 138, 46, 0.4);
+  color: #c08a2e;
+}
+
+.state-pill--unlocked,
+.state-pill--maxed {
+  background: rgba(79, 154, 63, 0.14);
+  border-color: rgba(79, 154, 63, 0.45);
+  color: #6fcf97;
+}
+
+.state-pill--in_progress {
+  background: rgba(199, 122, 46, 0.14);
+  border-color: rgba(199, 122, 46, 0.4);
+  color: #c77a2e;
+}
+
+.state-pill--excluded {
+  background: rgba(160, 60, 60, 0.16);
+  border-color: rgba(160, 60, 60, 0.4);
+  color: rgba(220, 120, 120, 0.95);
+}
+
+/* ── StatsPanel (filas key/value, mesma linguaxe que stat-row) ──── */
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  font-size: 13px;
+}
+
+.stat-row + .stat-row {
+  border-top: 1px dashed rgba(218, 165, 32, 0.12);
+}
+
+.stat-label {
+  color: rgba(230, 213, 168, 0.7);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-family: "Cinzel", serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #daa520;
+}
+
+/* ── Modal (native <dialog>) ────────────────────────────────────── */
+
+.modal-dialog {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: 540px;
+  width: calc(100% - 48px);
+  max-height: 85vh;
+  border-radius: 12px;
+  color: inherit;
+}
+
+.modal-dialog::backdrop {
+  background: rgba(8, 6, 14, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-box {
+  background: linear-gradient(135deg, rgba(40, 30, 20, 0.95) 0%, rgba(20, 16, 30, 0.98) 100%);
+  border: 1px solid rgba(218, 165, 32, 0.45);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 85vh;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.25);
+}
+
+.modal-title {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #daa520;
+  text-transform: uppercase;
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: rgba(230, 213, 168, 0.7);
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-close:hover {
+  background: rgba(218, 165, 32, 0.12);
+  border-color: rgba(218, 165, 32, 0.4);
+  color: #daa520;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* ── Help body typography ───────────────────────────────────────── */
+
+.help-body p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(230, 213, 168, 0.85);
+}
+
+.help-body ul {
+  margin: 0 0 16px;
+  padding-left: 18px;
+}
+
+.help-body li {
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(230, 213, 168, 0.8);
+  margin-bottom: 4px;
+}
+
+.help-body code {
+  background: rgba(218, 165, 32, 0.12);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #daa520;
+}
+
+.rune-link {
+  color: #daa520;
+  text-decoration: none;
+  font-family: "Cinzel", serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+
+.rune-link:hover {
+  color: #f4d878;
+  text-shadow: 0 0 8px rgba(218, 165, 32, 0.5);
+}
+
+/* ── SkillTree node overrides (conservados desde estilo previo) ──── */
 
 .yf-skill-node__shape {
   transition: stroke 0.3s ease;
@@ -211,97 +776,36 @@ body::before {
   transition: stroke 0.3s ease, stroke-width 0.3s ease;
 }
 
-/* ── Sidebar panels ─────────────────────────────────────────────── */
+/* ── Theme Lab (dentro do modal; estilos conservados) ───────────── */
 
-.sidebar {
+.theme-lab .panel-title {
+  margin-bottom: 12px;
+}
+
+.theme-lab-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.panel {
-  position: relative;
-  background: linear-gradient(135deg, rgba(40, 30, 20, 0.8) 0%, rgba(20, 16, 30, 0.9) 100%);
-  border: 1px solid rgba(218, 165, 32, 0.3);
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(218, 165, 32, 0.06), transparent);
-  pointer-events: none;
-}
-
-.panel-title {
-  margin: 0 0 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
-  font-family: "Cinzel", serif;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  color: #daa520;
-  text-transform: uppercase;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   gap: 12px;
-  padding: 8px 0;
-  font-size: 13px;
 }
 
-.stat-row + .stat-row {
-  border-top: 1px dashed rgba(218, 165, 32, 0.12);
+.theme-lab-presets {
+  display: flex;
+  gap: 8px;
 }
-
-.stat-label {
-  color: rgba(230, 213, 168, 0.6);
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.stat-value {
-  font-family: "Cinzel", serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #daa520;
-}
-
-.stat-value .stat-of {
-  color: rgba(230, 213, 168, 0.4);
-  font-weight: 400;
-  font-size: 14px;
-}
-
-.stat-value-text {
-  text-align: right;
-  color: #e6d5a8;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-/* ── Rune buttons ───────────────────────────────────────────────── */
 
 .rune-button {
   display: block;
   width: 100%;
   margin-bottom: 10px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: linear-gradient(180deg, rgba(60, 45, 25, 0.9) 0%, rgba(40, 30, 18, 0.9) 100%);
   color: #e6d5a8;
   border: 1px solid rgba(218, 165, 32, 0.5);
   border-radius: 6px;
   font-family: "Cinzel", serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: inset 0 1px 0 rgba(218, 165, 32, 0.15);
@@ -326,109 +830,10 @@ body::before {
   margin-bottom: 0;
 }
 
-/* F10.6: 2×2 grid de botóns de viewport ─────────────────────────── */
-
-.viewport-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.rune-button--small {
-  padding: 6px 8px;
-  font-size: 11px;
-  margin-bottom: 0;
-}
-
-/* ── Info panel typography ──────────────────────────────────────── */
-
-.panel-info p {
-  margin: 0 0 12px;
-  font-size: 12px;
-  line-height: 1.6;
-  color: rgba(230, 213, 168, 0.75);
-}
-
-.panel-info p:last-child {
-  margin-bottom: 0;
-}
-
-.panel-info code {
-  background: rgba(218, 165, 32, 0.12);
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  color: #daa520;
-}
-
-.rune-link {
-  color: #daa520;
-  text-decoration: none;
-  font-family: "Cinzel", serif;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  transition: color 0.2s ease;
-}
-
-.rune-link:hover {
-  color: #f4d878;
-  text-shadow: 0 0 8px rgba(218, 165, 32, 0.5);
-}
-
-/* ── Theme Lab panel (F10.x theme-lab) ───────────────────────────── */
-
-.theme-lab .panel-title {
-  margin-bottom: 12px;
-}
-
-.theme-lab-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.theme-lab-presets {
-  display: flex;
-  gap: 8px;
-}
-
 .rune-button-small {
   flex: 1;
   font-size: 0.85em;
   padding: 6px 10px;
-}
-
-/* Nivel · Capa B: control +/- inline na fila do nivel. */
-.rune-button-icon {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1em;
-  font-weight: 700;
-  line-height: 1;
-  border-radius: 6px;
-}
-
-.rune-button-icon:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-.stat-value-level {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stat-level-value {
-  min-width: 56px;
-  text-align: center;
-  font-weight: 700;
 }
 
 .theme-lab-fields {
@@ -497,4 +902,50 @@ body::before {
 
 .theme-lab-note strong {
   color: rgba(230, 213, 168, 0.9);
+}
+
+.theme-lab-region-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid rgba(212, 160, 23, 0.18);
+  border-radius: 8px;
+  background: rgba(212, 160, 23, 0.04);
+}
+
+.theme-lab-subtitle {
+  margin: 0;
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rune-gold, #d4a017);
+  opacity: 0.85;
+}
+
+.theme-lab-select {
+  background: rgba(15, 17, 25, 0.6);
+  color: inherit;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+/* Panel-title inside theme-lab modal */
+.theme-lab .panel-title,
+.panel-title {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #daa520;
+  text-transform: uppercase;
 }
