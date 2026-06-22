@@ -50,7 +50,11 @@ export class ResourceManager {
     const required = this.aggregateCosts(costs)
 
     for (const [resourceId, amount] of required.entries()) {
+      /* v8 ignore start -- ?? 0 defensivo: budget.resources contén todos
+         os resourceIds da treeDef (validado en ResourceManager.applyCost
+         e no constructor). */
       const available = budget.resources[resourceId] ?? 0
+      /* v8 ignore stop */
       if (available < amount) {
         return err(
           new YggdrasilError(

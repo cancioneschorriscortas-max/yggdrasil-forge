@@ -251,8 +251,9 @@ export function reconcile(
     if (!isUnlocked(instance.state)) continue
 
     const oldNode = oldNodeMap.get(nodeId)
-    /* v8 ignore next -- defensivo: cobre nodos novos (sen comparación posible). */
+    /* v8 ignore start -- defensivo: cobre nodos novos (sen comparación posible). */
     if (oldNode === undefined) continue // Nodo novo; cero comparación
+    /* v8 ignore stop */
 
     const costChanges = compareCosts(oldNode.cost, newNode.cost)
 
@@ -277,9 +278,10 @@ export function reconcile(
           newAmount,
           refundAmount,
         })
-        /* v8 ignore next -- defensivo: workingResources inicialízase con todos
+        /* v8 ignore start -- defensivo: workingResources inicialízase con todos
            os resourceIds do budget; o `?? 0` só cubre resourceIds novos. */
         workingResources[resourceId] = (workingResources[resourceId] ?? 0) + refundAmount
+        /* v8 ignore stop */
       }
     }
   }
@@ -314,9 +316,10 @@ export function reconcile(
         const refunds: { resourceId: string; amount: number }[] = []
         if (oldNode?.cost !== undefined) {
           for (const c of oldNode.cost) {
-            /* v8 ignore next -- defensivo: workingResources inicialízase
+            /* v8 ignore start -- defensivo: workingResources inicialízase
                co budget; o `?? 0` cubre resourceIds novos. */
             workingResources[c.resourceId] = (workingResources[c.resourceId] ?? 0) + c.amount
+            /* v8 ignore stop */
             refunds.push({ resourceId: c.resourceId, amount: c.amount })
           }
         }

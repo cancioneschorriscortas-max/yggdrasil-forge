@@ -260,6 +260,16 @@ describe('analyzeChanges (function)', () => {
       expect(result.cachesToInvalidate.has('layout')).toBe(true)
       expect(result.cachesToInvalidate.has('dependency')).toBe(true)
     })
+
+    it('modify_edge cun campo non-LAYOUT_AFFECTING: cobre rama false', () => {
+      // 'description' non está en LAYOUT_AFFECTING_EDGE_FIELDS nin en
+      // DEPENDENCY_AFFECTING_EDGE_FIELDS → cobre as ramas "false" de ambas.
+      const result = analyzeChanges([
+        { type: 'modify_edge', edgeId: 'e1', changes: { description: 'x' } },
+      ])
+      expect(result.cachesToInvalidate.has('layout')).toBe(false)
+      expect(result.cachesToInvalidate.has('dependency')).toBe(false)
+    })
   })
 
   describe('groups, resources, layout', () => {

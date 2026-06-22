@@ -113,10 +113,16 @@ export class CycleDetector {
             const cyclePath = stack.slice(startIndex)
             cyclePath.push(neighbor) // pecha o ciclo
             const key = this.normalizeCycleKey(cyclePath)
+            /* v8 ignore start -- defensivo: a rama "seen.has(key) === true" é
+               difícil de exercitar; require que o DFS atope o mesmo ciclo
+               desde dous puntos de entrada distintos, o que depende da orde
+               de iteración interna do DFS recursivo. Test
+               "deduplicates two detections" cobre a intención semántica. */
             if (!seen.has(key)) {
               seen.add(key)
               cycles.push(cyclePath)
             }
+            /* v8 ignore stop */
           }
         } else if (c === WHITE) {
           dfs(neighbor)

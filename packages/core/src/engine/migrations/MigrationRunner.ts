@@ -44,9 +44,10 @@ function compareSemver(a: string, b: string): number {
     /* v8 ignore stop */
     if (va !== vb) return va - vb
   }
-  /* v8 ignore next -- defensivo: versións idénticas non se comparan no
+  /* v8 ignore start -- defensivo: versións idénticas non se comparan no
      fluxo de migración (de-x-a-x non require salto). */
   return 0
+  /* v8 ignore stop */
 }
 
 /**

@@ -107,9 +107,13 @@ export class QuadTree {
       // É interno
       const childIndex = this.whichChild(node, position)
       const child = node.children[childIndex]
+      /* v8 ignore start -- defensivo: whichChild devolve sempre 0..3 e
+         children é unha tupla de 4 elementos; child sempre está definido.
+         Guarda esixida por noUncheckedIndexedAccess. */
       if (child !== undefined) {
         this.insert(child, id, position)
       }
+      /* v8 ignore stop */
     }
   }
 
@@ -173,9 +177,12 @@ export class QuadTree {
     for (const p of node.points) {
       const childIndex = this.whichChild(node, p.position)
       const child = node.children[childIndex]
+      /* v8 ignore start -- defensivo: igual ca insert; whichChild devolve
+         sempre un índice válido para a tupla de 4 children. */
       if (child !== undefined) {
         this.insert(child, p.id, p.position)
       }
+      /* v8 ignore stop */
     }
     node.points = []
   }

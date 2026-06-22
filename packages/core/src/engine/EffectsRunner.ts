@@ -249,8 +249,11 @@ export class EffectsRunner {
     }
 
     // 2. Comprobacións específicas por tipo.
+    /* v8 ignore start -- defensivo: os casos 'modify_stat' e 'plugin' do
+       switch xa están filtrados por isUnsupportedType arriba; o switch ten
+       que ser exhaustivo para o type checker. As branches do switch
+       atribúense á liña do `switch`, polo que o ignore ten que envolvelo. */
     switch (effect.type) {
-      /* c8 ignore start -- defensivo: estes casos xa se filtran en isUnsupportedType arriba; o switch ten que ser exhaustivo para o checker. */
       case 'modify_stat':
       case 'plugin': {
         // Inalcanzable se isUnsupportedType funciona, pero o switch ten
@@ -265,7 +268,7 @@ export class EffectsRunner {
           ),
         )
       }
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       case 'modify_resource': {
         if (!resourceExistsInTreeDef(treeDef, effect.resourceId)) {
           return err(
@@ -453,6 +456,9 @@ export class EffectsRunner {
     }
 
     switch (effect.type) {
+      /* v8 ignore start -- defensivo: igual ca o switch de validateOne; estes
+         casos xa están rexeitados por isUnsupportedType, pero o switch ten
+         que ser exhaustivo para o type checker. */
       case 'modify_stat':
       case 'plugin': {
         return err(
@@ -464,6 +470,7 @@ export class EffectsRunner {
           ),
         )
       }
+      /* v8 ignore stop */
 
       case 'modify_resource':
         return this.applyModifyResource(effect)
@@ -498,8 +505,9 @@ export class EffectsRunner {
   ): Promise<Result<EffectResult>> {
     const { store, resources, locale, events } = this.context
     const state = store.getState()
-    /* c8 ignore next -- ?? 0 defensivo: o validate xa garantiu que o recurso existe na treeDef e o startingBudget ponse no constructor; rama undefined só se daría con consumidor que muta a estructura por hack. */
+    /* v8 ignore start -- ?? 0 defensivo: o validate xa garantiu que o recurso existe na treeDef e o startingBudget ponse no constructor; rama undefined só se daría con consumidor que muta a estructura por hack. */
     const currentAmount = state.budget.resources[effect.resourceId] ?? 0
+    /* v8 ignore stop */
 
     // Calcular o delta efectivo segundo a operación.
     // applyCost resta; refund suma. Para '*' calcúlase o diferencial e
@@ -539,7 +547,7 @@ export class EffectsRunner {
       // Resta: usar applyCost (devolve Result<Budget>).
       const costs: readonly Cost[] = [{ resourceId: effect.resourceId, amount: -delta }]
       const applyResult = resources.applyCost(costs, state.budget)
-      /* c8 ignore start -- defensivo: xa fixemos a comprobación nextAmount<0 arriba, polo que applyCost non debería fallar aquí. Rama queda como salvaguarda fronte a regresións de ResourceManager. */
+      /* v8 ignore start -- defensivo: xa fixemos a comprobación nextAmount<0 arriba, polo que applyCost non debería fallar aquí. Rama queda como salvaguarda fronte a regresións de ResourceManager. */
       if (!applyResult.ok) {
         return err(
           makeError(
@@ -554,11 +562,12 @@ export class EffectsRunner {
           ),
         )
       }
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       const newBudget = applyResult.value
       store.update((draft) => {
-        /* c8 ignore next -- ?? 0 defensivo: applyCost garante que o resourceId está en newBudget.resources. */
+        /* v8 ignore start -- ?? 0 defensivo: applyCost garante que o resourceId está en newBudget.resources. */
         draft.budget.resources[effect.resourceId] = newBudget.resources[effect.resourceId] ?? 0
+        /* v8 ignore stop */
       })
     } else if (delta > 0) {
       // Suma: aplicación directa (refund respecta refundable; aquí queremos
@@ -715,7 +724,7 @@ export class EffectsRunner {
     }
 
     // Profundidade tamén controlada (defense in depth).
-    /* c8 ignore start -- defensivo: a comprobación primaria está en applyOne; esta é unha salvaguarda redundante para o caso de que alguén chame directamente a applyUnlockNode no futuro. */
+    /* v8 ignore start -- defensivo: a comprobación primaria está en applyOne; esta é unha salvaguarda redundante para o caso de que alguén chame directamente a applyUnlockNode no futuro. */
     if (depth > MAX_EFFECT_DEPTH) {
       return err(
         makeError(
@@ -726,7 +735,7 @@ export class EffectsRunner {
         ),
       )
     }
-    /* c8 ignore stop */
+    /* v8 ignore stop */
 
     unlockedDuringRun.add(effect.nodeId)
 
@@ -968,8 +977,10 @@ export class EffectsRunner {
     const { locale } = this.context
     const { effect, previousValue } = result
 
+    /* v8 ignore start -- defensivo: os casos 'modify_stat' e 'plugin' do
+       switch rexéitanse en applyOne; un EffectResult deste tipo non se
+       construiría normalmente. */
     switch (effect.type) {
-      /* c8 ignore start -- defensivo: estes casos rexéitanse en applyOne; un EffectResult deste tipo non se construiría normalmente. */
       case 'modify_stat':
       case 'plugin': {
         // Nunca deberían chegar aquí (rexéitanse en applyOne) pero
@@ -983,7 +994,7 @@ export class EffectsRunner {
           ),
         )
       }
-      /* c8 ignore stop */
+      /* v8 ignore stop */
 
       case 'modify_resource':
         return this.reverseModifyResource(effect, previousValue)
@@ -1096,7 +1107,7 @@ export class EffectsRunner {
     if (previousValue === undefined) {
       store.update((draft) => {
         const node = draft.nodes[effect.nodeId]
-        /* c8 ignore next -- defensivo: applySetNodeVisibility creou o nodo se non existía; non pode desaparecer entre forward e reverse no fluxo normal. */
+        /* v8 ignore start -- defensivo: applySetNodeVisibility creou o nodo se non existía; non pode desaparecer entre forward e reverse no fluxo normal. */
         if (node !== undefined) {
           // Elimina o campo para preservar a distinción "ausente vs
           // explicitamente undefined" pedida polo arquitecto. Asignar
@@ -1105,22 +1116,24 @@ export class EffectsRunner {
           // biome-ignore lint/performance/noDelete: requerido para preservar ausencia exacta do campo opcional.
           delete node.visible
         }
+        /* v8 ignore stop */
       })
       return ok(undefined)
     }
     if (typeof previousValue !== 'boolean') {
       // Defensa: previousValue non é boolean nin undefined → estado
       // corrupto. Non revertemos pero non fallamos critically.
-      /* c8 ignore next 2 */
+      /* v8 ignore next 2 */
       return ok(undefined)
     }
     const restore = previousValue
     store.update((draft) => {
       const node = draft.nodes[effect.nodeId]
-      /* c8 ignore next -- defensivo: applySetNodeVisibility garantiu a existencia do nodo no forward. */
+      /* v8 ignore start -- defensivo: applySetNodeVisibility garantiu a existencia do nodo no forward. */
       if (node !== undefined) {
         node.visible = restore
       }
+      /* v8 ignore stop */
     })
     return ok(undefined)
   }
@@ -1145,7 +1158,7 @@ export class EffectsRunner {
     previousValue: unknown,
   ): Promise<Result<void>> {
     if (typeof previousValue !== 'string') {
-      /* c8 ignore next 2 */
+      /* v8 ignore next 2 */
       return ok(undefined)
     }
     const previousState = previousValue as NodeState
@@ -1200,7 +1213,7 @@ export class EffectsRunner {
       return ok(undefined)
     }
     if (typeof previousValue !== 'number') {
-      /* c8 ignore next 2 */
+      /* v8 ignore next 2 */
       return ok(undefined)
     }
     const restore = previousValue

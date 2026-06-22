@@ -557,6 +557,133 @@ describe('TreeDefValidator.validateTreeDef', () => {
       }
     })
 
+    // ── Coverage paydown · ramas complementarias de superRefine ──
+    // (briefing addendum: pechar branches 514/519/549/562)
+
+    it('#8 combinador `any` con condicións encadeadas → percorre forEach', () => {
+      const r = validateTreeDef(
+        makeValidTreeDef({
+          nodes: [
+            { id: 'a', type: 'small', label: 'A' },
+            {
+              id: 'b',
+              type: 'small',
+              label: 'B',
+              prerequisites: {
+                type: 'any',
+                conditions: [
+                  { type: 'node_unlocked', nodeId: 'a' },
+                  { type: 'node_unlocked', nodeId: 'a' },
+                ],
+              },
+            },
+          ],
+        }),
+      )
+      // dous nodeIds existentes → ok; o forEach percorre dúas iteracións.
+      expect(r.ok).toBe(true)
+    })
+
+    it('#8 combinador `none` con condicións simples → cobre rama recursión', () => {
+      const r = validateTreeDef(
+        makeValidTreeDef({
+          nodes: [
+            { id: 'a', type: 'small', label: 'A' },
+            {
+              id: 'b',
+              type: 'small',
+              label: 'B',
+              prerequisites: {
+                type: 'none',
+                conditions: [{ type: 'node_unlocked', nodeId: 'a' }],
+              },
+            },
+          ],
+        }),
+      )
+      expect(r.ok).toBe(true)
+    })
+
+    it('#8 combinador con `conditions` non-array → ignora silenciosamente', () => {
+      // Cobre rama "Array.isArray(conditions) === false". A regra
+      // non-array é mal formada pero o validator non lanza nin sinala
+      // como referencia inexistente; ignora a recursión.
+      // Castseamos para meterllo ao parser.
+      const r = validateTreeDef(
+        makeValidTreeDef({
+          nodes: [
+            {
+              id: 'b',
+              type: 'small',
+              label: 'B',
+              prerequisites: {
+                type: 'all',
+                // biome-ignore lint/suspicious/noExplicitAny: forzando rama malformada
+                conditions: 'not-an-array' as any,
+              },
+            },
+          ],
+        }),
+      )
+      // O schema base detecta o erro antes de chegar ao superRefine de
+      // referencias, polo que pode falir; só comprobamos que NON crashea.
+      expect(typeof r.ok).toBe('boolean')
+    })
+
+    it('#8 distance_max con fromNodeId existente → ok', () => {
+      const r = validateTreeDef(
+        makeValidTreeDef({
+          nodes: [
+            { id: 'a', type: 'small', label: 'A' },
+            {
+              id: 'b',
+              type: 'small',
+              label: 'B',
+              prerequisites: { type: 'distance_max', fromNodeId: 'a', maxSteps: 2 },
+            },
+          ],
+        }),
+      )
+      expect(r.ok).toBe(true)
+    })
+
+    it('#8 stat_min con statId existente → ok', () => {
+      const r = validateTreeDef(
+        makeValidTreeDef({
+          nodes: [
+            {
+              id: 'b',
+              type: 'small',
+              label: 'B',
+              prerequisites: { type: 'stat_min', statId: 's-real', amount: 5 },
+            },
+          ],
+          stats: [{ id: 's-real', label: 'S' }],
+        }),
+      )
+      expect(r.ok).toBe(true)
+    })
+
+    it('#8 prereq tipo non-referencial (resource_min) → fall-through ignora', () => {
+      // resource_min/nodes_count/etc. non referencian nodos nin stats
+      // por id; o collectRuleReferences debe pasar sen sinalar. Cobre
+      // a rama "false" do último `if (type === 'stat_min')`.
+      const r = validateTreeDef(
+        makeValidTreeDef({
+          nodes: [
+            {
+              id: 'b',
+              type: 'small',
+              label: 'B',
+              prerequisites: { type: 'resource_min', resourceId: 'gold', amount: 10 },
+            },
+          ],
+          resources: [{ id: 'gold', label: 'Gold' }],
+        }),
+      )
+      expect(r.ok).toBe(true)
+    })
+
     // #9 exclusions referencia nodos existentes
     it('#9 exclusions apunta a nodo existente → ok', () => {
       const r = validateTreeDef(

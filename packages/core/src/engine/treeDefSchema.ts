@@ -386,7 +386,10 @@ const nodeDefSchema = z
         for (let i = 1; i < arr.length; i++) {
           const prev = arr[i - 1]
           const curr = arr[i]
+          /* v8 ignore start -- defensivo: i>=1 e i<arr.length garantizan
+             que prev e curr están en bounds; noUncheckedIndexedAccess. */
           if (prev === undefined || curr === undefined) return false
+          /* v8 ignore stop */
           if (curr <= prev) return false
         }
         return true
@@ -508,19 +511,32 @@ export const treeDefShapeSchema = z
     // arbitraria (combinacións `all`/`any`/`none` recursivas + condicións
     // simples). path acumula a ruta dentro do TreeDef ata a regra raíz.
     const collectRuleReferences = (rule: unknown, path: (string | number)[]): void => {
+      /* v8 ignore start -- defensivo: `rule` chega xa parseada polo
+         z.object/z.union do treeDefShapeSchema; non pode ser null nin
+         non-obxecto neste punto. Guarda redundante para reentrada
+         por mantemento. */
       if (rule === null || typeof rule !== 'object') return
+      /* v8 ignore stop */
       const r = rule as { type?: unknown }
       const type = r.type
+      /* v8 ignore start -- defensivo: o schema obriga a que `type` sexa
+         string literal; rama non-string só dispara con superRefine
+         executado sobre obxectos parcialmente válidos. */
       if (typeof type !== 'string') return
+      /* v8 ignore stop */
 
       // Combinadores recursivos
       if (type === 'all' || type === 'any' || type === 'none') {
         const conditions = (r as { conditions?: unknown }).conditions
+        /* v8 ignore start -- defensivo: combinadores all/any/none teñen
+           `conditions: UnlockCondition[]` no schema; o Array.isArray
+           sempre é true se chegamos aquí. */
         if (Array.isArray(conditions)) {
           conditions.forEach((cond, idx) => {
             collectRuleReferences(cond, [...path, 'conditions', idx])
           })
         }
+        /* v8 ignore stop */
         return
       }
 

@@ -304,10 +304,11 @@ function resolveCalendarToMs(cal: {
         case 'hour':
           // Intl pode devolver '24' para medianoite nalgunhas locales;
           // normalizamos a 0 para que Date.UTC non rebote.
-          /* v8 ignore next -- defensivo: Intl moderno (V8) devolve '00'
+          /* v8 ignore start -- defensivo: Intl moderno (V8) devolve '00'
              para medianoite, non '24'. Rama existe por compatibilidade
              histórica con locales que devolvían 24. */
           h = Number(part.value) === 24 ? 0 : Number(part.value)
+          /* v8 ignore stop */
           break
         case 'minute':
           mi = Number(part.value)

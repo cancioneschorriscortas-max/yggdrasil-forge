@@ -93,8 +93,9 @@ export function deserialize(
   try {
     parsed = JSON.parse(json)
   } catch (cause) {
-    /* v8 ignore next -- defensivo: JSON.parse só lanza SyntaxError (Error). */
+    /* v8 ignore start -- defensivo: JSON.parse só lanza SyntaxError (Error). */
     const detail = cause instanceof Error ? cause.message : 'JSON parse error'
+    /* v8 ignore stop */
     return err(
       new YggdrasilError(
         ErrorCode.INVALID_TREE_DEF,
@@ -156,8 +157,9 @@ export async function deserializeAsync(
   try {
     parsed = JSON.parse(json)
   } catch (cause) {
-    /* v8 ignore next -- defensivo: JSON.parse só lanza SyntaxError (Error). */
+    /* v8 ignore start -- defensivo: JSON.parse só lanza SyntaxError (Error). */
     const detail = cause instanceof Error ? cause.message : 'JSON parse error'
+    /* v8 ignore stop */
     return err(
       new YggdrasilError(
         ErrorCode.INVALID_TREE_DEF,

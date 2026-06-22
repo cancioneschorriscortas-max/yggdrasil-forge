@@ -89,13 +89,19 @@ export class DependencyGraph implements DependencyGraphLike {
     this.ensureNode(source)
     this.ensureNode(target)
     const out = this.outgoing.get(source)
+    /* v8 ignore start -- defensivo: ensureNode(source) acaba de crear o
+       Set en outgoing; out sempre está definido. */
     if (out !== undefined) {
       out.add(target)
     }
+    /* v8 ignore stop */
     const inc = this.incoming.get(target)
+    /* v8 ignore start -- defensivo: ensureNode(target) acaba de crear o
+       Set en incoming; inc sempre está definido. */
     if (inc !== undefined) {
       inc.add(source)
     }
+    /* v8 ignore stop */
   }
 
   /**

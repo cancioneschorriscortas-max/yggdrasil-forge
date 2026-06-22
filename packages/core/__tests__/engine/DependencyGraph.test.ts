@@ -111,9 +111,12 @@ describe('DependencyGraph', () => {
     })
 
     it('getAllDependents revisita: cobre rama result.has(current)', () => {
+      // Topoloxía A→B, A→C, C→B: forza que 'B' se push dúas veces no
+      // stack de getAllDependents('A') (unha vez como dependent directo,
+      // outra vía C). A segunda pop dispara `result.has(current) → continue`.
       const g2 = new DependencyGraph(
         ['a', 'b', 'c'],
-        [edge('e1', 'a', 'b'), edge('e2', 'a', 'c'), edge('e3', 'b', 'c')],
+        [edge('e1', 'a', 'b'), edge('e2', 'a', 'c'), edge('e3', 'c', 'b')],
       )
       expect(g2.getAllDependents('a')).toEqual(new Set(['b', 'c']))
     })
@@ -176,6 +179,24 @@ describe('DependencyGraph', () => {
 
     it('disconnected node is POSITIVE_INFINITY', () => {
       expect(g.distanceBetween('a', 'isolated')).toBe(Number.POSITIVE_INFINITY)
+    })
+
+    // Cobertura paydown: rama "visited.has(neighbor) === true" no BFS.
+    // Topoloxía: root→a, root→b, a→c, b→c, c→target. O BFS visita 'c'
+    // desde 'a' e marca como visitada; cando 'b' tamén tenta engadir
+    // 'c', cae na rama "xa visitada" do `if (!visited.has(neighbor))`.
+    it('diamond: cobre rama visited.has(neighbor) ao re-explorar', () => {
+      const diamond = new DependencyGraph(
+        ['root', 'a', 'b', 'c', 'target'],
+        [
+          edge('e1', 'root', 'a'),
+          edge('e2', 'root', 'b'),
+          edge('e3', 'a', 'c'),
+          edge('e4', 'b', 'c'),
+          edge('e5', 'c', 'target'),
+        ],
+      )
+      expect(diamond.distanceBetween('root', 'target')).toBe(3)
     })
   })
 
