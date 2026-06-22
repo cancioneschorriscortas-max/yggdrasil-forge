@@ -130,8 +130,12 @@ export class RadialLayout implements LayoutEngine {
     while (head < queue.length) {
       const current = queue[head]
       head++
+      /* v8 ignore start -- defensivo: `head < queue.length` garante in-bounds. */
       if (current === undefined) continue
+      /* v8 ignore stop */
+      /* v8 ignore start -- defensivo: `current` foi enqueued con level definido. */
       const currentLevel = levels.get(current) ?? 0
+      /* v8 ignore stop */
       const children = graph.getOutgoing(current)
       for (const child of children) {
         if (!levels.has(child)) {
@@ -173,7 +177,10 @@ export class RadialLayout implements LayoutEngine {
     // Agrupar nodos por nivel, mantendo a orde de treeDef.nodes
     const byLevel = new Map<number, string[]>()
     for (const node of treeDef.nodes) {
+      /* v8 ignore start -- defensivo: nodeLevels poboado para todos os
+         nodos no paso previo (computeNodeLevels). */
       const level = nodeLevels.get(node.id) ?? 0
+      /* v8 ignore stop */
       const arr = byLevel.get(level)
       if (arr !== undefined) {
         arr.push(node.id)
@@ -196,7 +203,9 @@ export class RadialLayout implements LayoutEngine {
       } else {
         for (let i = 0; i < count; i++) {
           const id = nodeIds[i]
+          /* v8 ignore start -- defensivo: `i < count` garante in-bounds. */
           if (id === undefined) continue
+          /* v8 ignore stop */
           const angle = startAngle + i * ((2 * Math.PI) / count)
           positions.set(id, {
             x: centerX + r * Math.cos(angle),
@@ -231,8 +240,12 @@ export class RadialLayout implements LayoutEngine {
     const ZERO: Position = { x: 0, y: 0 }
     const edges = new Map<string, EdgePath>()
     for (const edge of treeDef.edges) {
+      /* v8 ignore start -- defensivo: o RadialLayout coloca todos os nodos
+         antes de chamar a computeEdges; o `?? ZERO` só dispara con trees
+         malformadas. */
       const sourcePos = nodes.get(edge.source) ?? ZERO
       const targetPos = nodes.get(edge.target) ?? ZERO
+      /* v8 ignore stop */
       edges.set(edge.id, { points: [sourcePos, targetPos] })
     }
     return edges

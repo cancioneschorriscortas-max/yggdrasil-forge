@@ -261,7 +261,11 @@ export class StatComputer {
         const hasConditions =
           contribution.conditions !== undefined && contribution.conditions.length > 0
         const conditionsPass = hasConditions
-          ? this.evaluateConditions(contribution.conditions ?? [], resolverCtx)
+          ? this.evaluateConditions(
+              /* v8 ignore next -- defensivo: `hasConditions` garante !== undefined. */
+              contribution.conditions ?? [],
+              resolverCtx,
+            )
           : true
 
         if (!conditionsPass) {

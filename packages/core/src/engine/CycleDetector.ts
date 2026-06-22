@@ -104,7 +104,12 @@ export class CycleDetector {
         if (c === GRAY) {
           // Back-edge: extrae o ciclo dende `neighbor` ata o tope da pila.
           const startIndex = stack.indexOf(neighbor)
+          /* v8 ignore start -- defensivo da CONDICIÓN: c===GRAY garante
+             neighbor na pila DFS, polo que `startIndex !== -1` sempre é
+             true. O corpo do `if` está testado (descúbrense ciclos en
+             múltiples test cases); só a rama "else" é inalcanzable. */
           if (startIndex !== -1) {
+            /* v8 ignore stop */
             const cyclePath = stack.slice(startIndex)
             cyclePath.push(neighbor) // pecha o ciclo
             const key = this.normalizeCycleKey(cyclePath)
@@ -161,9 +166,12 @@ export class CycleDetector {
    */
   private normalizeCycleKey(cycle: string[]): string {
     const core = cycle.slice(0, -1) // quita o peche duplicado
+    /* v8 ignore start -- defensivo: un ciclo válido sempre ten >= 2
+       elementos (incluído o peche duplicado), polo que `core.length >= 1`. */
     if (core.length === 0) {
       return ''
     }
+    /* v8 ignore stop */
     let minIndex = 0
     for (let i = 1; i < core.length; i++) {
       const candidate = core[i]

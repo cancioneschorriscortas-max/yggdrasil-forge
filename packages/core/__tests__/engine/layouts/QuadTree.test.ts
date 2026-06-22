@@ -174,5 +174,30 @@ describe('QuadTree', () => {
     const range = { minX: 0, minY: 0, maxX: 6, maxY: 6 }
     expect(qt1.queryRange(range)).toEqual(qt2.queryRange(range))
   })
+
+  // queryNearest sobre QuadTree subdividida: cobre ramas internas
+  // (visita ordenada de children + prune por distancia).
+  it('queryNearest nun QuadTree subdividido visita children ordenados', () => {
+    const qt = new QuadTree(
+      pts(['a', 1, 1], ['b', 99, 1], ['c', 1, 99], ['d', 99, 99], ['e', 50, 50]),
+      { maxPointsPerNode: 2 }, // forza subdivisión
+    )
+    // Pregunta cerca de 'a'; visita o seu cuadrante primeiro.
+    expect(qt.queryNearest({ x: 2, y: 2 })).toBe('a')
+    // Pregunta cerca de 'd'; visita o seu cuadrante primeiro.
+    expect(qt.queryNearest({ x: 98, y: 98 })).toBe('d')
+  })
+
+  it('queryNearest con punto distante: o prune por distancia executase', () => {
+    // Forzamos 100 puntos repartidos para subdividir profundamente.
+    const points = new Map<string, { x: number; y: number }>()
+    for (let i = 0; i < 100; i++) {
+      points.set(`p${i}`, { x: i, y: i })
+    }
+    const qt = new QuadTree(points, { maxPointsPerNode: 4 })
+    // Buscar máis preto de (5,5) → debería ser 'p5'. A prune dispara
+    // ao saltar cuadrantes lonxe.
+    expect(qt.queryNearest({ x: 5, y: 5 })).toBe('p5')
+  })
 })
 // ── FIN: tests de QuadTree ──

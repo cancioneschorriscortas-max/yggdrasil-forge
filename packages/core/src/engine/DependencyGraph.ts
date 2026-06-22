@@ -172,9 +172,13 @@ export class DependencyGraph implements DependencyGraphLike {
     const stack: string[] = [...this.getDependencies(nodeId)]
     while (stack.length > 0) {
       const current = stack.pop()
+      /* v8 ignore start -- defensivo: o `while(stack.length > 0)` garante
+         que `pop()` devolve un valor non-undefined. Guarda esixida por
+         noUncheckedIndexedAccess. */
       if (current === undefined) {
         continue
       }
+      /* v8 ignore stop */
       if (result.has(current)) {
         continue
       }
@@ -196,9 +200,13 @@ export class DependencyGraph implements DependencyGraphLike {
     const stack: string[] = [...this.getDependents(nodeId)]
     while (stack.length > 0) {
       const current = stack.pop()
+      /* v8 ignore start -- defensivo: o `while(stack.length > 0)` garante
+         que `pop()` devolve un valor non-undefined. Guarda esixida por
+         noUncheckedIndexedAccess. */
       if (current === undefined) {
         continue
       }
+      /* v8 ignore stop */
       if (result.has(current)) {
         continue
       }
@@ -330,10 +338,13 @@ export class DependencyGraph implements DependencyGraphLike {
     let current = toId
     while (current !== fromId) {
       const prev = predecessor.get(current)
+      /* v8 ignore start -- defensivo: chámase tras atopar toId, polo que
+         o mapa de predecesores ten unha cadea completa ata fromId. */
       if (prev === undefined) {
         // Non debería ocorrer se chamamos tras atopar toId; defensivo.
         break
       }
+      /* v8 ignore stop */
       path.push(prev)
       current = prev
     }

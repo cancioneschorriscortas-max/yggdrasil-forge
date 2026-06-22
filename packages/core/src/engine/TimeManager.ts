@@ -254,9 +254,13 @@ function resolveCalendarToMs(cal: {
   const second = timeMatch[3] !== undefined ? Number(timeMatch[3]) : 0
 
   const utcGuess = Date.UTC(year, month - 1, day, hour, minute, second)
+  /* v8 ignore start -- defensivo: Date.UTC só devolve NaN con argumentos
+     non-numéricos; os números pasados aquí proveñen de matches de regex
+     numéricos previos, polo que sempre son finitos. */
   if (Number.isNaN(utcGuess)) {
     return Number.NaN
   }
+  /* v8 ignore stop */
 
   // Intentamos construír o formatter; se a TZ é inválida, Intl lanza
   // un RangeError que capturamos e convertemos a NaN (§5.6).
@@ -300,6 +304,9 @@ function resolveCalendarToMs(cal: {
         case 'hour':
           // Intl pode devolver '24' para medianoite nalgunhas locales;
           // normalizamos a 0 para que Date.UTC non rebote.
+          /* v8 ignore next -- defensivo: Intl moderno (V8) devolve '00'
+             para medianoite, non '24'. Rama existe por compatibilidade
+             histórica con locales que devolvían 24. */
           h = Number(part.value) === 24 ? 0 : Number(part.value)
           break
         case 'minute':

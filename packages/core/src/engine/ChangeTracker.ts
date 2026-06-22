@@ -172,9 +172,12 @@ export function analyzeChanges(changes: readonly TreeChange[]): ChangeAnalysis {
 
   for (let i = 0; i < changes.length; i++) {
     const change = changes[i]
+    /* v8 ignore start -- defensivo: i < changes.length garante in-bounds.
+       Guarda esixida por noUncheckedIndexedAccess. */
     if (change === undefined) {
       continue
     }
+    /* v8 ignore stop */
     analyzeOne(change, i, {
       affectedNodes,
       cachesToInvalidate,
@@ -244,9 +247,13 @@ function analyzeOne(change: TreeChange, position: number, acc: AnalysisAccumulat
 
       // Detección: add despois de remove.
       const removedAt = acc.removedNodePositions.get(id)
+      /* v8 ignore start -- rama defensiva: corpo do if é só comentario
+         documental (patrón "add → remove → add" é válido pero non rexistra
+         conflito). Sen efecto observable. */
       if (removedAt !== undefined) {
         // engadir + remove + engadir é un patrón válido (reset). Non é conflito.
       }
+      /* v8 ignore stop */
       return
     }
 
@@ -312,7 +319,12 @@ function analyzeOne(change: TreeChange, position: number, acc: AnalysisAccumulat
             type: 'rename_chain',
             firstRename: { oldId: prevOld, newId: prevNew },
             secondRename: { oldId: change.oldId, newId: change.newId },
-            positions: [acc.renamePositions.get(prevOld) ?? -1, position],
+            positions: [
+              /* v8 ignore next -- defensivo: renamePositions inclúe prevOld
+                 porque tiña rename rexistrado en `acc.renames`. */
+              acc.renamePositions.get(prevOld) ?? -1,
+              position,
+            ],
           })
           break
         }
@@ -323,6 +335,8 @@ function analyzeOne(change: TreeChange, position: number, acc: AnalysisAccumulat
         acc.conflicts.push({
           type: 'rename_to_existing',
           newId: change.newId,
+          /* v8 ignore next -- defensivo: change.newId está en renames; o
+             rename correspondente foi rexistrado en renamePositions tamén. */
           conflictingPosition: acc.renamePositions.get(change.newId) ?? -1,
         })
       }

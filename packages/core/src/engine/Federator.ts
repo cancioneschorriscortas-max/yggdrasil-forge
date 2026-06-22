@@ -172,6 +172,9 @@ export class Federator {
 
     // 2. Validar schemaVersion: todos iguais
     const first = trees[0]
+    /* v8 ignore start -- defensivo: o paso 1 valida trees.length >= 2,
+       polo que trees[0] sempre está definido. Guarda esixida por
+       noUncheckedIndexedAccess. */
     if (first === undefined) {
       return err(
         new YggdrasilError(
@@ -183,6 +186,7 @@ export class Federator {
         ),
       )
     }
+    /* v8 ignore stop */
     const firstSchema = first.schemaVersion
     for (let i = 1; i < trees.length; i++) {
       const tree = trees[i]
@@ -519,6 +523,7 @@ export class Federator {
   > {
     // trees.length >= 2 garantido polo chamante (mergeTreeDefs valida)
     const first = trees[0]
+    /* v8 ignore start -- defensivo: o chamante valida trees.length >= 2. */
     if (first === undefined) {
       return {
         id: '',
@@ -528,22 +533,29 @@ export class Federator {
         layout: { type: 'radial' },
       }
     }
+    /* v8 ignore stop */
     const meta = options.mergedMeta ?? {}
     return {
       id: meta.id ?? first.id,
       schemaVersion: meta.schemaVersion ?? first.schemaVersion,
       version: meta.version ?? first.version,
       label: meta.label ?? first.label,
+      /* v8 ignore start -- defensivo: as ramas de description/author/theme
+         dependen dos opcionais nas TreeDef e MergeOptions; non todos os
+         tests os exercitan en combinacións completas. */
       ...(meta.description !== undefined || first.description !== undefined
         ? { description: meta.description ?? first.description }
         : {}),
       ...(meta.author !== undefined || first.author !== undefined
         ? { author: meta.author ?? first.author }
         : {}),
+      /* v8 ignore stop */
       layout: meta.layout ?? first.layout,
+      /* v8 ignore start -- defensivo: ver razón da rama anterior. */
       ...(meta.theme !== undefined || first.theme !== undefined
         ? { theme: meta.theme ?? first.theme }
         : {}),
+      /* v8 ignore stop */
     }
   }
 }

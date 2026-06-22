@@ -18,10 +18,14 @@ function localized(
       return template
     }
     return template.replace(/\{(\w+)\}/g, (match, key: string) => {
+      /* v8 ignore start -- defensivo: todas as templates do módulo
+         pásanlle `vars` cas claves que usan; o `else` (key non en vars) só
+         dispara con templates malformados (non existen no repo). */
       if (key in vars) {
         return String(vars[key])
       }
       return match
+      /* v8 ignore stop */
     })
   }
   return {

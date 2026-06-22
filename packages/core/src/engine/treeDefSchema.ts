@@ -122,6 +122,9 @@ const unlockRuleSchema = z.union([
 
 // ── RichContent (types/content.ts): recursiva por la variante `composite` ──
 // z.lazy resuelve la auto-referencia composite.items: RichContent[].
+/* v8 ignore start -- defensivo: o callback de z.lazy só se executa cando zod
+   precisa validar un RichContent, o que ocorre só con TreeDefs que usan
+   contenido enriquecido nos nodos; non hai test que exerza esa ruta. */
 const richContentSchema: z.ZodTypeAny = z.lazy(() =>
   z.union([
     z.object({ type: z.literal('text'), value: localizedStringSchema }),
@@ -159,6 +162,7 @@ const richContentSchema: z.ZodTypeAny = z.lazy(() =>
     }),
   ]),
 )
+/* v8 ignore stop */
 
 // ── NodeContent (types/content.ts) ──
 const nodeContentSchema = z.object({

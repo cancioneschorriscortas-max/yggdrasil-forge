@@ -292,9 +292,13 @@ export function freezeNodeDef(def: NodeDef): NodeDef {
  * funcións dedicadas.
  */
 function deepFreeze<T>(value: T): T {
+  /* v8 ignore start -- defensivo: a recursión inferior filtra primitivos
+     (só chama deepFreeze(child) se child é object), e a entrada inicial
+     é sempre un NodeDef. Garda redundante por seguridade de tipos. */
   if (value === null || typeof value !== 'object') {
     return value
   }
+  /* v8 ignore stop */
 
   if (Object.isFrozen(value)) {
     return value

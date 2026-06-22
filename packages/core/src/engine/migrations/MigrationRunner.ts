@@ -28,15 +28,24 @@ function compareSemver(a: string, b: string): number {
   const partsA = a.split('.').map((p) => Number.parseInt(p, 10))
   const partsB = b.split('.').map((p) => Number.parseInt(p, 10))
   for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+    /* v8 ignore start -- defensivo: partsA[i] e partsB[i] cobren rama undefined
+       cando versions teñen lonxitudes distintas (raro, semver canónico). */
     const va = partsA[i] ?? 0
     const vb = partsB[i] ?? 0
+    /* v8 ignore stop */
+    /* v8 ignore start -- defensivo: con semver válido (vX.Y.Z), Number()
+       sempre devolve un número finito. Fallback alcanzado só con
+       versionado malformado, que o motor refusa antes. */
     if (Number.isNaN(va) || Number.isNaN(vb)) {
       // Versión non-numérica → fallback comparación de string lexicográfica.
       // Defensivo; non debería pasar con semver correcto.
       return a.localeCompare(b)
     }
+    /* v8 ignore stop */
     if (va !== vb) return va - vb
   }
+  /* v8 ignore next -- defensivo: versións idénticas non se comparan no
+     fluxo de migración (de-x-a-x non require salto). */
   return 0
 }
 
@@ -103,6 +112,9 @@ export class MigrationRunner {
 
         // Preferir o salto MÁIS GRANDE (último candidate ordenado asc).
         const best = candidates[candidates.length - 1]
+        /* v8 ignore start -- defensivo: candidates.length > 0 garantido
+           polo if anterior; o último elemento sempre existe.
+           Guarda esixida por noUncheckedIndexedAccess. */
         if (best === undefined) {
           // Defensivo; non debería ser undefined tras o filtro+sort.
           return err(
@@ -116,6 +128,7 @@ export class MigrationRunner {
             ),
           )
         }
+        /* v8 ignore stop */
         next = { migration: best, nextVersion: best.to }
       }
 

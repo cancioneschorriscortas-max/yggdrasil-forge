@@ -83,10 +83,14 @@ export function validateTreeDef(
 
   const issues = extractIssues(parsed.error)
   // Resumen compacto para el mensaje localizado ({details}).
+  /* v8 ignore start -- defensivo: cando parsed.success é false, zod sempre
+     produce polo menos un issue, polo que `issues.length === 0` non se
+     alcanza desde a API pública. */
   const summary =
     issues.length === 0
       ? 'estructura inválida'
       : issues.map((i) => (i.path === '' ? i.message : `${i.path}: ${i.message}`)).join('; ')
+  /* v8 ignore stop */
 
   return err(
     new YggdrasilError(

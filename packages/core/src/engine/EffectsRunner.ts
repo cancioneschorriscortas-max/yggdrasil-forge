@@ -117,10 +117,11 @@ function makeError(
   context?: Readonly<Record<string, unknown>>,
 ): YggdrasilError {
   const message = getErrorMessage(code, locale, vars)
-  /* c8 ignore next 3 -- defensivo: todos os call-sites internos pasan context; rama existe só pola sinatura pública. */
+  /* v8 ignore start -- defensivo: todos os call-sites internos pasan context; rama existe só pola sinatura pública. */
   if (context === undefined) {
     return new YggdrasilError(code, message)
   }
+  /* v8 ignore stop */
   return new YggdrasilError(code, message, {
     context: context as Record<string, unknown>,
   })
@@ -946,15 +947,17 @@ export class EffectsRunner {
     let revertedCount = 0
     for (let i = applied.length - 1; i >= 0; i--) {
       const r = applied[i]
-      /* c8 ignore next 3 -- r===undefined defensivo: o array `applied` constrúese internamente con push() de valores ok; nunca contén ocos. Quédase como guarda contra noUncheckedIndexedAccess. */
+      /* v8 ignore start -- r===undefined defensivo: o array `applied` constrúese internamente con push() de valores ok; nunca contén ocos. Quédase como guarda contra noUncheckedIndexedAccess. */
       if (r === undefined || !r.applied) {
         continue
       }
+      /* v8 ignore stop */
       const rev = await this.reverseOne(r)
-      /* c8 ignore next 3 -- `if (rev.ok)` cobre o caso de revert exitoso (xa exercitado). A rama non-ok require fabricar EffectResults corruptos en stream concorrente; documentamos pero non testamos pola complexidade. */
+      /* v8 ignore start -- `if (rev.ok)` cobre o caso de revert exitoso (xa exercitado). A rama non-ok require fabricar EffectResults corruptos en stream concorrente; documentamos pero non testamos pola complexidade. */
       if (rev.ok) {
         revertedCount++
       }
+      /* v8 ignore stop */
       // Se algún revert falla, segue intentando os demais. O reporte
       // detallado queda nos comentarios do contexto do error principal.
     }
@@ -1169,10 +1172,11 @@ export class EffectsRunner {
     }
     this.context.store.update((draft) => {
       const node = draft.nodes[effect.nodeId]
-      /* c8 ignore next -- defensivo: applyModifyNodeState creou o nodo se non existía. */
+      /* v8 ignore start -- defensivo: applyModifyNodeState creou o nodo se non existía. */
       if (node !== undefined) {
         node.state = previousState
       }
+      /* v8 ignore stop */
     })
     return ok(undefined)
   }
@@ -1187,10 +1191,11 @@ export class EffectsRunner {
       // con consumidores que asumen progress sempre presente.
       store.update((draft) => {
         const node = draft.nodes[effect.nodeId]
-        /* c8 ignore next -- defensivo: applySetProgress creou o nodo se non existía. */
+        /* v8 ignore start -- defensivo: applySetProgress creou o nodo se non existía. */
         if (node !== undefined) {
           node.progress = 0
         }
+        /* v8 ignore stop */
       })
       return ok(undefined)
     }
@@ -1201,10 +1206,11 @@ export class EffectsRunner {
     const restore = previousValue
     store.update((draft) => {
       const node = draft.nodes[effect.nodeId]
-      /* c8 ignore next -- defensivo: applySetProgress creou o nodo se non existía. */
+      /* v8 ignore start -- defensivo: applySetProgress creou o nodo se non existía. */
       if (node !== undefined) {
         node.progress = restore
       }
+      /* v8 ignore stop */
     })
     return ok(undefined)
   }

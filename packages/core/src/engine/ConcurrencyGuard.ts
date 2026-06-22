@@ -64,6 +64,10 @@ export class ConcurrencyGuard {
     const previous = this.tail
 
     // Placeholders que se sobreescriben inmediatamente polo executor da Promise.
+    /* v8 ignore start -- defensivo: estas asignacións iniciais son
+       sobreescritas síncronamente polo executor de new Promise() na liña 76.
+       Os corpos só executarían se a promesa nunca chamase a resolve/reject
+       (imposible co código actual). */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     let resolveOp: (value: T) => void = (_v: T) => {
       /* sobreescrito polo executor */
@@ -72,6 +76,7 @@ export class ConcurrencyGuard {
     let rejectOp: (reason: unknown) => void = (_r: unknown) => {
       /* sobreescrito polo executor */
     }
+    /* v8 ignore stop */
 
     const operationPromise = new Promise<T>((resolve, reject) => {
       resolveOp = resolve
@@ -123,9 +128,13 @@ export class ConcurrencyGuard {
     try {
       return await Promise.race([promise, timeoutPromise])
     } finally {
+      /* v8 ignore start -- defensivo: timeoutHandle sempre se asigna no
+         executor de timeoutPromise antes de chegar ao finally (síncrono).
+         Garda esixida por TS porque é `| undefined`. */
       if (timeoutHandle !== undefined) {
         clearTimeout(timeoutHandle)
       }
+      /* v8 ignore stop */
     }
   }
 

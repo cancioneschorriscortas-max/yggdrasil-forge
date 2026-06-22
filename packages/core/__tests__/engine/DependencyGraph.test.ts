@@ -97,6 +97,26 @@ describe('DependencyGraph', () => {
       expect(g.getDependencies('zzz')).toEqual([])
       expect(g.getDependents('zzz')).toEqual([])
     })
+
+    // Topoloxía A→B→C, A→C: 'A' é pushed dúas veces no stack durante
+    // getAllDependencies('C') (unha por B, outra por C directo), polo
+    // que a rama "if (result.has(current)) continue" dentro do while
+    // do BFS dispárase. (Cobertura paydown.)
+    it('getAllDependencies revisita: cobre rama result.has(current)', () => {
+      const g2 = new DependencyGraph(
+        ['a', 'b', 'c'],
+        [edge('e1', 'a', 'b'), edge('e2', 'a', 'c'), edge('e3', 'b', 'c')],
+      )
+      expect(g2.getAllDependencies('c')).toEqual(new Set(['a', 'b']))
+    })
+
+    it('getAllDependents revisita: cobre rama result.has(current)', () => {
+      const g2 = new DependencyGraph(
+        ['a', 'b', 'c'],
+        [edge('e1', 'a', 'b'), edge('e2', 'a', 'c'), edge('e3', 'b', 'c')],
+      )
+      expect(g2.getAllDependents('a')).toEqual(new Set(['b', 'c']))
+    })
   })
 
   describe('roots & leaves', () => {

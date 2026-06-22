@@ -157,6 +157,21 @@ describe('EventEmitter', () => {
       // Primeira emisión: first + second. Segunda: só second.
       expect(calls).toEqual(['first', 'second', 'second'])
     })
+
+    it('off() sobre evento sen handlers: non lanza', () => {
+      const emitter = new EventEmitter()
+      // Cobre rama `handlers === undefined`. Cero handlers rexistrados.
+      expect(() => emitter.off('unlock', () => undefined)).not.toThrow()
+    })
+
+    it('off() cun handler que non foi rexistrado: non lanza', () => {
+      const emitter = new EventEmitter()
+      const registered = (): void => undefined
+      const notRegistered = (): void => undefined
+      emitter.on('unlock', registered)
+      // Cobre rama `index === -1` (handler non rexistrado).
+      expect(() => emitter.off('unlock', notRegistered)).not.toThrow()
+    })
   })
 })
 // ── FIN: tests de EventEmitter ──

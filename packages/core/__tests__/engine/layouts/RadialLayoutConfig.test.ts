@@ -107,5 +107,37 @@ describe('parseRadialConfig', () => {
     const r = parseRadialConfig(validConfig({ polygon: { sides: 3.5, radius: 50 } }))
     expect(isErr(r)).toBe(true)
   })
+
+  // ── Coverage paydown: campos opcionais presentes pero inválidos ──
+  it('centerX presente non-finito: err', () => {
+    const r = parseRadialConfig(validConfig({ centerX: Number.POSITIVE_INFINITY }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('centerX presente non-número: err', () => {
+    const r = parseRadialConfig(validConfig({ centerX: 'centro' as unknown as number }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('centerY presente NaN: err', () => {
+    const r = parseRadialConfig(validConfig({ centerY: Number.NaN }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('startAngle presente non-finito: err', () => {
+    const r = parseRadialConfig(validConfig({ startAngle: Number.NEGATIVE_INFINITY }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('meshType valor inválido: err', () => {
+    const r = parseRadialConfig(validConfig({ meshType: 'spiral' }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  // polygon=null: cobre rama do String() ternario interno
+  it('polygon null: err (cobre rama interna do error message)', () => {
+    const r = parseRadialConfig(validConfig({ polygon: null as unknown as undefined }))
+    expect(isErr(r)).toBe(true)
+  })
 })
 // ── FIN: tests de RadialLayoutConfig ──

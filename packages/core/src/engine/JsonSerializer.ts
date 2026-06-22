@@ -93,6 +93,7 @@ export function deserialize(
   try {
     parsed = JSON.parse(json)
   } catch (cause) {
+    /* v8 ignore next -- defensivo: JSON.parse só lanza SyntaxError (Error). */
     const detail = cause instanceof Error ? cause.message : 'JSON parse error'
     return err(
       new YggdrasilError(
@@ -155,6 +156,7 @@ export async function deserializeAsync(
   try {
     parsed = JSON.parse(json)
   } catch (cause) {
+    /* v8 ignore next -- defensivo: JSON.parse só lanza SyntaxError (Error). */
     const detail = cause instanceof Error ? cause.message : 'JSON parse error'
     return err(
       new YggdrasilError(

@@ -63,10 +63,14 @@ export function buildPaths(
     }
     const source = points[0]
     const target = points[points.length - 1]
+    /* v8 ignore start -- defensivo: o `points.length < 2` previo garante
+       length >= 2, polo que points[0] e points[last] sempre existen.
+       Guarda esixida por noUncheckedIndexedAccess. */
     if (source === undefined || target === undefined) {
       newEdges.set(edgeId, oldPath)
       continue
     }
+    /* v8 ignore stop */
     const newPath = buildPath(style, source, target, {
       tension,
       centerX,
@@ -211,15 +215,18 @@ export function applyEdgeRouting(
     const resolved = edge.style?.routing ?? layoutCurve
     if (resolved === undefined || resolved === 'straight') continue
     const oldPath = layoutResult.edges.get(edge.id)
-    /* v8 ignore next -- defensivo: o layout produce paths para tódolos edges */
+    /* v8 ignore start -- defensivo: o layout produce paths para tódolos edges */
     if (oldPath === undefined) continue
+    /* v8 ignore stop */
     const pts = oldPath.points
-    /* v8 ignore next -- defensivo: paths sempre teñen polo menos 2 puntos */
+    /* v8 ignore start -- defensivo: paths sempre teñen polo menos 2 puntos */
     if (pts.length < 2) continue
+    /* v8 ignore stop */
     const source = pts[0]
     const target = pts[pts.length - 1]
-    /* v8 ignore next -- defensivo: length>=2 garántese arriba */
+    /* v8 ignore start -- defensivo: length>=2 garántese arriba */
     if (source === undefined || target === undefined) continue
+    /* v8 ignore stop */
     newEdges.set(
       edge.id,
       buildPath(resolved, source, target, { tension, centerX, centerY, cornerRatio }),
