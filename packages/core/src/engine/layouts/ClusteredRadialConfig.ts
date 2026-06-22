@@ -22,6 +22,8 @@ export type ClusteredMeshType = 'none' | 'spokes'
 
 const VALID_CLUSTERED_MESH_TYPES = new Set<string>(['none', 'spokes'])
 
+const VALID_MEMBER_LAYOUTS = new Set<string>(['fan', 'list'])
+
 /**
  * Configuración do ClusteredRadialLayout (F11.2a — base común).
  *
@@ -62,6 +64,37 @@ export interface ClusteredRadialConfig extends BaseLayoutConfig {
 
   /** Tipo de esqueleto estrutural. Default `'spokes'`. */
   readonly meshType?: ClusteredMeshType
+
+  /**
+   * Distribución intra-grupo dos membros arredor do punto-de-grupo.
+   *
+   * - `'fan'` (default): abano placeholder de 2a (orbitRadius + arco
+   *   `DEFAULT_MEMBER_ARC`). Os membros distribúense radialmente cara
+   *   afóra desde o punto-de-grupo.
+   * - `'list'`: columna vertical estrita cara abaixo desde o
+   *   punto-de-grupo, con separación `rowGap`. Caso "panadeiro":
+   *   etiquetas lexibles unha sobre outra. O motor auto-expande
+   *   `groupRadius` se necesario para que ningunha columna chegue ao
+   *   centro (anti-colisión).
+   *
+   * O valor `'cluster'` (camareiro orgánico) chegará nunha sub-fase
+   * posterior ampliando esta unión.
+   */
+  readonly memberLayout?: 'fan' | 'list'
+
+  /**
+   * Separación vertical entre membros consecutivos en modo `'list'`.
+   * Opcional, `> 0`. Default `64`. Ignorado en modo `'fan'`.
+   */
+  readonly rowGap?: number
+
+  /**
+   * Marxe mínima entre o fondo dunha columna `'list'` e o centro do
+   * layout. Opcional, `>= 0`. Default = `rowGap`. Ignorado en `'fan'`.
+   * Úsase no cálculo anti-colisión que pode auto-expandir
+   * `groupRadius` cara unha distancia efectiva maior.
+   */
+  readonly centerClearance?: number
 }
 
 const DEFAULT_LOCALE: Locale = 'gl'
@@ -169,6 +202,45 @@ export function parseClusteredRadialConfig(
     }
   }
 
+  // memberLayout opcional ∈ {'fan','list'}
+  const memberLayout = config.memberLayout
+  if (memberLayout !== undefined) {
+    if (typeof memberLayout !== 'string' || !VALID_MEMBER_LAYOUTS.has(memberLayout)) {
+      return validationErr(
+        `memberLayout must be one of fan/list; got '${String(memberLayout)}'`,
+        locale,
+        { field: 'memberLayout', value: memberLayout },
+      )
+    }
+  }
+
+  // rowGap opcional, debe ser > 0 se presente
+  const rowGap = config.rowGap
+  if (rowGap !== undefined) {
+    if (typeof rowGap !== 'number' || !Number.isFinite(rowGap) || rowGap <= 0) {
+      return validationErr(`rowGap must be a positive number; got ${String(rowGap)}`, locale, {
+        field: 'rowGap',
+        value: rowGap,
+      })
+    }
+  }
+
+  // centerClearance opcional, debe ser >= 0 se presente
+  const centerClearance = config.centerClearance
+  if (centerClearance !== undefined) {
+    if (
+      typeof centerClearance !== 'number' ||
+      !Number.isFinite(centerClearance) ||
+      centerClearance < 0
+    ) {
+      return validationErr(
+        `centerClearance must be a non-negative number; got ${String(centerClearance)}`,
+        locale,
+        { field: 'centerClearance', value: centerClearance },
+      )
+    }
+  }
+
   // Constrúe resultado tipado — todos os campos validados.
   // Spread condicional para `exactOptionalPropertyTypes`.
   return ok({
@@ -179,6 +251,9 @@ export function parseClusteredRadialConfig(
     ...(centerY !== undefined ? { centerY } : {}),
     ...(startAngle !== undefined ? { startAngle } : {}),
     ...(meshType !== undefined ? { meshType: meshType as ClusteredMeshType } : {}),
+    ...(memberLayout !== undefined ? { memberLayout: memberLayout as 'fan' | 'list' } : {}),
+    ...(rowGap !== undefined ? { rowGap } : {}),
+    ...(centerClearance !== undefined ? { centerClearance } : {}),
   })
 }
 // ── FIN: ClusteredRadialConfig tipos + parseClusteredRadialConfig ──

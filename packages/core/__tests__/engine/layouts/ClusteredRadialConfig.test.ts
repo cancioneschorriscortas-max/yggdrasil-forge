@@ -171,5 +171,89 @@ describe('parseClusteredRadialConfig', () => {
     const r = parseClusteredRadialConfig({ type: 'tree' }, 'es')
     expect(isErr(r)).toBe(true)
   })
+
+  // ── F11.2b: memberLayout / rowGap / centerClearance ──
+
+  it("memberLayout 'fan': ok", () => {
+    const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'fan' }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).memberLayout).toBe('fan')
+  })
+
+  it("memberLayout 'list': ok", () => {
+    const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'list' }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).memberLayout).toBe('list')
+  })
+
+  it("memberLayout 'cluster' (futuro, aínda non aceptado): err", () => {
+    const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'cluster' }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('memberLayout valor arbitrario: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'spiral' }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('memberLayout non-string: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ memberLayout: 42 as unknown as string }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('rowGap presente e válido: ok', () => {
+    const r = parseClusteredRadialConfig(validConfig({ rowGap: 80 }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).rowGap).toBe(80)
+  })
+
+  it('rowGap = 0: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ rowGap: 0 }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('rowGap negativo: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ rowGap: -10 }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('rowGap NaN: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ rowGap: Number.NaN }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('rowGap non-número: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ rowGap: 'big' as unknown as number }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('centerClearance = 0: ok (permítese)', () => {
+    const r = parseClusteredRadialConfig(validConfig({ centerClearance: 0 }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).centerClearance).toBe(0)
+  })
+
+  it('centerClearance presente positivo: ok', () => {
+    const r = parseClusteredRadialConfig(validConfig({ centerClearance: 50 }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).centerClearance).toBe(50)
+  })
+
+  it('centerClearance negativo: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ centerClearance: -5 }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('centerClearance NaN: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ centerClearance: Number.NaN }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('centerClearance non-número: err', () => {
+    const r = parseClusteredRadialConfig(
+      validConfig({ centerClearance: null as unknown as number }),
+    )
+    expect(isErr(r)).toBe(true)
+  })
 })
 // ── FIN: tests de ClusteredRadialConfig ──

@@ -129,5 +129,64 @@ describe('ClusteredRadialLayout — integración', () => {
     const v = unwrap(r)
     expect(v.layoutType).toBe('clustered-radial')
   })
+
+  // ── F11.2b: integración panadeiro con memberLayout: 'list' ──
+
+  it("panadeiro con memberLayout 'list': 5 columnas + datos intactos", () => {
+    const layout = new ClusteredRadialLayout()
+    const base = makePanadeiroLike()
+    // Mesma topoloxía, layout en modo 'list'.
+    const treeList: TreeDef = {
+      ...base,
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        memberLayout: 'list',
+        rowGap: 40,
+      },
+    }
+    const v = unwrap(layout.compute(treeList))
+    // 21 posicións (raíz + 20 microskills)
+    expect(v.nodes.size).toBe(21)
+    // Raíz no centro
+    expect(v.nodes.get('panadeiro')).toEqual({ x: 0, y: 0 })
+    // 5 grupos → 5 spokes
+    const lines = (v.mesh ?? []).filter((m) => m.type === 'line')
+    expect(lines).toHaveLength(5)
+    // Os datos do TreeDef base non se mutaron (referencia preservada)
+    expect(treeList.nodes).toBe(base.nodes)
+    expect(treeList.edges).toBe(base.edges)
+    expect(treeList.groups).toBe(base.groups)
+  })
+
+  it("panadeiro 'list' vs 'fan': mesmos datos, distintas posicións", () => {
+    const layout = new ClusteredRadialLayout()
+    const base = makePanadeiroLike()
+    const treeList: TreeDef = {
+      ...base,
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        memberLayout: 'list',
+        rowGap: 40,
+      },
+    }
+    const treeFan: TreeDef = {
+      ...base,
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        memberLayout: 'fan',
+      },
+    }
+    const vList = unwrap(layout.compute(treeList))
+    const vFan = unwrap(layout.compute(treeFan))
+    // Comprobamos sobre un membro coñecido do panadeiro (non a raíz, que
+    // está en (0,0) en ambos modos).
+    const sampleId = 'forno_0'
+    expect(vList.nodes.get(sampleId)).toBeDefined()
+    expect(vFan.nodes.get(sampleId)).toBeDefined()
+    expect(vList.nodes.get(sampleId)).not.toEqual(vFan.nodes.get(sampleId))
+  })
 })
 // ── FIN: tests integración ClusteredRadialLayout ──

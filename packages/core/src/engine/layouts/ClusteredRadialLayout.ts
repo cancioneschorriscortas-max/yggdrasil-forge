@@ -16,6 +16,12 @@ const DEFAULT_ORBIT_RATIO = 0.45
  * As variantes `list`/`cluster` (2b) substituirán esta colocación.
  */
 const DEFAULT_MEMBER_ARC = 2.2
+/**
+ * Separación vertical por defecto entre membros consecutivos en modo
+ * `memberLayout: 'list'`. Pensada para etiquetas lexibles unha sobre
+ * outra (≈ liña + marxe). Sobrescríbese co campo `rowGap` no config.
+ */
+const DEFAULT_ROW_GAP = 64
 
 interface Cluster {
   readonly id: string
@@ -58,6 +64,9 @@ export class ClusteredRadialLayout implements LayoutEngine {
     const groupRadius = cfg.groupRadius
     const orbitRadius = cfg.orbitRadius ?? groupRadius * DEFAULT_ORBIT_RATIO
     const meshType = cfg.meshType ?? 'spokes'
+    const memberLayout = cfg.memberLayout ?? 'fan'
+    const rowGap = cfg.rowGap ?? DEFAULT_ROW_GAP
+    const centerClearance = cfg.centerClearance ?? rowGap
     const center: Position = { x: centerX, y: centerY }
 
     const positions = new Map<string, Position>()
@@ -86,14 +95,30 @@ export class ClusteredRadialLayout implements LayoutEngine {
     //    non-agrupados). Excluímos a raíz; non se asigna a ningún cluster.
     const clusters = this.buildClusters(treeDef, rootId)
 
-    // 5. Coloca cada cluster en radial e os seus membros nun abano placeholder.
+    // 4b. Anti-colisión: en modo 'list', auto-expande effGroupRadius para
+    //     que o fondo de ningunha columna chegue ao centro/coroa. Cada
+    //     columna ocupa `M * rowGap` cara abaixo; precisa que o punto-de-
+    //     grupo estea polo menos a `maxColH + centerClearance` do centro.
+    //     En 'fan' non aplica → effGroupRadius == groupRadius (regresión cero).
+    let effGroupRadius = groupRadius
+    if (memberLayout === 'list') {
+      let maxColH = 0
+      for (const c of clusters) {
+        const h = c.memberIds.length * rowGap
+        if (h > maxColH) maxColH = h
+      }
+      const needed = maxColH + centerClearance
+      if (needed > effGroupRadius) effGroupRadius = needed
+    }
+
+    // 5. Coloca cada cluster en radial e os seus membros segundo memberLayout.
     const G = clusters.length
     if (G > 0) {
       for (const [i, cluster] of clusters.entries()) {
         const theta = startAngle + i * ((2 * Math.PI) / G)
         const groupPoint: Position = {
-          x: centerX + groupRadius * Math.cos(theta),
-          y: centerY + groupRadius * Math.sin(theta),
+          x: centerX + effGroupRadius * Math.cos(theta),
+          y: centerY + effGroupRadius * Math.sin(theta),
         }
         if (meshType === 'spokes') {
           mesh.push({ type: 'line', from: center, to: groupPoint })
@@ -101,14 +126,27 @@ export class ClusteredRadialLayout implements LayoutEngine {
 
         const ids = cluster.memberIds
         const M = ids.length
-        for (const [j, mid] of ids.entries()) {
-          // PLACEHOLDER 2a: abano uniforme cara afóra arredor do punto de grupo.
-          // 2b substitúe esta liña pola variante list/cluster.
-          const phi = M === 1 ? theta : theta + (j - (M - 1) / 2) * (DEFAULT_MEMBER_ARC / (M - 1))
-          positions.set(mid, {
-            x: groupPoint.x + orbitRadius * Math.cos(phi),
-            y: groupPoint.y + orbitRadius * Math.sin(phi),
-          })
+
+        if (memberLayout === 'list') {
+          // Columna vertical estrita cara abaixo desde o punto-de-grupo.
+          // (Conector intra-grupo orgánico = F12, non aquí; 2b emite só
+          // posicións.) `orbitRadius` ignórase neste modo; o eixe é
+          // `rowGap`. A anti-colisión do paso 4b garante que o fondo
+          // non cruza o centro.
+          for (const [j, mid] of ids.entries()) {
+            positions.set(mid, { x: groupPoint.x, y: groupPoint.y + (j + 1) * rowGap })
+          }
+        } else {
+          // 'fan' — base de 2a, intacta. PLACEHOLDER 2a substituíuse
+          // pola elección explícita do modo via config; o cálculo é
+          // idéntico ao do briefing F11.2a.
+          for (const [j, mid] of ids.entries()) {
+            const phi = M === 1 ? theta : theta + (j - (M - 1) / 2) * (DEFAULT_MEMBER_ARC / (M - 1))
+            positions.set(mid, {
+              x: groupPoint.x + orbitRadius * Math.cos(phi),
+              y: groupPoint.y + orbitRadius * Math.sin(phi),
+            })
+          }
         }
       }
     }
