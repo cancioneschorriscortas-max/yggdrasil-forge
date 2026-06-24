@@ -26,7 +26,11 @@ function scaffold(id: string, label: string): Omit<TreeDef, 'nodes' | 'edges' | 
     schemaVersion: SCHEMA_VERSION,
     version: '1.0.0',
     label: { en: label },
-    layout: { type: 'radial' },
+    // `radius` é obrigatorio en RadialLayoutConfig (distancia entre niveis
+    // concéntricos). Mesmo valor en todas as (sub)árbores para coherencia
+    // visual; con árbores pequenas (3-5 nodos), 140px deixa marxe lexible
+    // entre nodos sen amontoarse.
+    layout: { type: 'radial', radius: 140 },
     startingBudget: { resources: { xp: 999 } },
     resources: [{ id: 'xp', label: { en: 'XP' }, refundable: true, refundPercent: 100 }],
   }
