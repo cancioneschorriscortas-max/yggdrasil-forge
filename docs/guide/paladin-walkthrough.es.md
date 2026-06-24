@@ -8,6 +8,15 @@ un sistema de nivel, caminos mutuamente excluyentes, regiones tematizables e ins
 Cada paso explica **por qué va donde va**, y marca **⚠️ trampas** — las reales que nos
 encontramos al construir este ejemplo, no inventadas.
 
+**Qué obtienes:**
+
+- ✅ Árboles de habilidades data-driven — describes el árbol, el motor lo ejecuta
+- ✅ Prerequisitos ricos — AND / OR, tiers, stats, recursos, conteos por scope
+- ✅ Ramas mutuamente excluyentes
+- ✅ Insignias pintadas personalizadas (raster) sobre un lienzo tematizado
+- ✅ Tematización dinámica y tintes por región
+- ✅ Snapshots — guardar y restaurar progreso
+
 > **Principio rector: el motor es *data-driven*.** Tú describes *qué es el árbol* (un
 > `TreeDef`); el motor calcula el estado, valida los desbloqueos, y la capa de React lo
 > dibuja. Así que construimos en ese orden: **primero los datos, luego el render, el
@@ -16,6 +25,8 @@ encontramos al construir este ejemplo, no inventadas.
 ---
 
 ## 1. Qué vamos a construir
+
+![El árbol del Paladín terminado — tres ramas, insignias pintadas, sobre un lienzo con textura](img/paladin-overview.png)
 
 Tres columnas:
 
@@ -34,6 +45,8 @@ Todo ello es un único objeto (`paladinTreeDef`) entregado a un único motor
 Es el corazón. Si esto está bien, lo demás es cableado.
 
 ### 2.1 El esqueleto del `TreeDef`
+
+![Un TreeDef es un único objeto con resources, stats, nodes y edges](img/treedef-anatomy.svg)
 
 ```ts
 import { SCHEMA_VERSION } from '@yggdrasil-forge/common'
@@ -157,6 +170,8 @@ statContributions: [{ statId: 'faith', op: '+', value: 3 }]
 ```
 
 ### 2.5 Exclusiones — la rama prohibida
+
+![Dos caminos convergen en un keystone (AND); el Pacto Oscuro excluye los keystones sagrados](img/paladin-convergence.svg)
 
 `dark-pact` es alcanzable, pero tomarlo prohíbe los keystones sagrados:
 
@@ -456,6 +471,22 @@ la textura va ahí con un velo oscuro ligero para contraste:
 11. **`theme.colors.background` se aplica inline y gana al CSS** — omite la clave para que
     el CSS controle el lienzo.
 12. **Los emojis nativos se desvanecen en fondos oscuros** — pasa a iconos recoloreables.
+
+---
+
+## Resumen
+
+Con este único ejemplo has cubierto toda la superficie del motor:
+
+- **13 nodos** en 3 ramas
+- **11 capacidades de prerequisitos** — `node_unlocked`, `node_maxed`, `nodes_count`, `tier_min`, `stat_min`, `resource_min`, `all`, `any`, `exclusions`, `cost`, `statContributions`
+- **recursos y stats** — una economía que se gasta y un valor derivado
+- **ramas mutuamente excluyentes**
+- **tematización dinámica** con tintes por región
+- **insignias pintadas personalizadas** sobre un lienzo con textura
+
+Ya puedes construir el tuyo: copia `tree-def-paladin.ts`, cambia los nodos, conserva el
+cableado de `<SkillTree>`. Los datos lo dirigen todo.
 
 ---
 

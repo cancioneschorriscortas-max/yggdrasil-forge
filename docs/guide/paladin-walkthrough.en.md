@@ -8,6 +8,15 @@ and AAA painted badges on a textured canvas.
 Each step explains **why it comes where it does**, and flags **⚠️ pitfalls** — the
 real ones we hit while building this example, not invented ones.
 
+**What you get:**
+
+- ✅ Data-driven skill trees — describe the tree, the engine runs it
+- ✅ Rich prerequisites — AND / OR, tiers, stats, resources, scoped counts
+- ✅ Mutually-exclusive branches
+- ✅ Custom painted badges (raster art) on a themed canvas
+- ✅ Dynamic theming and per-region tints
+- ✅ Snapshots — save and restore progress
+
 > **Guiding principle: the engine is data-driven.** You describe *what the tree is*
 > (a `TreeDef`); the engine computes state, validates unlocks, and the React layer
 > renders it. So we build in that order: **data first, rendering second, dressing last.**
@@ -15,6 +24,8 @@ real ones we hit while building this example, not invented ones.
 ---
 
 ## 1. What we're building
+
+![The finished Paladin tree — three branches, painted badges, on a textured canvas](img/paladin-overview.png)
 
 Three columns:
 
@@ -33,6 +44,8 @@ The whole thing is one object (`paladinTreeDef`) handed to one engine
 This is the heart. Get this right and the rest is wiring.
 
 ### 2.1 The `TreeDef` skeleton
+
+![A TreeDef is one object holding resources, stats, nodes and edges](img/treedef-anatomy.svg)
 
 ```ts
 import { SCHEMA_VERSION } from '@yggdrasil-forge/common'
@@ -155,6 +168,8 @@ statContributions: [{ statId: 'faith', op: '+', value: 3 }]
 ```
 
 ### 2.5 Exclusions — the forbidden branch
+
+![Two paths converge into a keystone (AND); the Dark Pact excludes the holy keystones](img/paladin-convergence.svg)
 
 `dark-pact` is reachable, but taking it forbids the holy keystones:
 
@@ -446,6 +461,22 @@ texture goes there with a light dark veil for contrast:
 11. **`theme.colors.background` is applied inline and beats CSS** — omit the key to let
     CSS control the canvas.
 12. **Native emojis wash out on dark backgrounds** — move to recolorable icons.
+
+---
+
+## Summary
+
+With this one example you've covered the whole engine surface:
+
+- **13 nodes** across 3 branches
+- **11 prerequisite capabilities** — `node_unlocked`, `node_maxed`, `nodes_count`, `tier_min`, `stat_min`, `resource_min`, `all`, `any`, `exclusions`, `cost`, `statContributions`
+- **resources and stats** — a spendable economy and a derived value
+- **mutually-exclusive branches**
+- **dynamic theming** with per-region tints
+- **custom painted badges** on a textured canvas
+
+You're ready to build your own: copy `tree-def-paladin.ts`, swap the nodes, keep the
+`<SkillTree>` wiring. The data drives everything.
 
 ---
 

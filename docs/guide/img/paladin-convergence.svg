@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 410" font-family="'Segoe UI',system-ui,-apple-system,sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#cbb06b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="680" height="410" rx="14" fill="#12101a"/>
+
+  <rect x="60" y="70" width="180" height="56" rx="8" fill="#231a1c" stroke="#d8694a" stroke-width="1.5"/>
+  <text x="150" y="97" text-anchor="middle" fill="#f0d9c8" font-size="15" font-weight="600">Muro de Escudos</text>
+  <text x="150" y="115" text-anchor="middle" fill="#c89a86" font-size="12">warrior path</text>
+
+  <rect x="440" y="70" width="180" height="56" rx="8" fill="#1a2230" stroke="#4a90d8" stroke-width="1.5"/>
+  <text x="530" y="97" text-anchor="middle" fill="#cfe2f5" font-size="15" font-weight="600">Mans Sanadoras</text>
+  <text x="530" y="115" text-anchor="middle" fill="#8fb6dd" font-size="12">cleric path</text>
+
+  <line x1="150" y1="126" x2="298" y2="186" stroke="#cbb06b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="530" y1="126" x2="382" y2="186" stroke="#cbb06b" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="250" y="190" width="180" height="56" rx="8" fill="#2a2410" stroke="#e0b020" stroke-width="1.5"/>
+  <text x="340" y="217" text-anchor="middle" fill="#f5e3a8" font-size="15" font-weight="600">Guerreiro Sagrado</text>
+  <text x="340" y="235" text-anchor="middle" fill="#cdb878" font-size="12">needs both paths</text>
+
+  <line x1="340" y1="300" x2="340" y2="250" stroke="#d85a5a" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <text x="352" y="280" text-anchor="start" fill="#e08a8a" font-size="12">excludes</text>
+
+  <rect x="250" y="300" width="180" height="56" rx="8" fill="#221a30" stroke="#9a6cff" stroke-width="1.5"/>
+  <text x="340" y="327" text-anchor="middle" fill="#d8c8f5" font-size="15" font-weight="600">Pacto Escuro</text>
+  <text x="340" y="345" text-anchor="middle" fill="#a890d0" font-size="12">forbids the holy path</text>
+
+  <line x1="60" y1="384" x2="92" y2="384" stroke="#cbb06b" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="100" y="388" fill="#a8a2b8" font-size="12">requires (AND)</text>
+  <line x1="270" y1="384" x2="302" y2="384" stroke="#d85a5a" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <text x="310" y="388" fill="#a8a2b8" font-size="12">mutually exclusive</text>
+</svg>
