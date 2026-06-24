@@ -45,6 +45,21 @@ and competency frameworks.
   (cycles, reachability, branching balance, etc.).
 - 🌐 **i18n-first**: every error message localized in gl / es / en.
 
+## See it in action
+
+The [`react-demo`](./examples/react-demo) example builds **"The Paladin"** — a
+13-node skill tree with three branches, complex prerequisites, mutually-exclusive
+paths, dynamic theming, and custom painted badges:
+
+![The Paladin skill tree](docs/guide/img/paladin-overview.png)
+
+**New here? Start with the walkthrough.** It builds this exact tree step by step —
+data model → rendering → theming → art — explaining the *why* at each step and the
+pitfalls to avoid along the way:
+
+- 📖 **[Walkthrough — build the Paladin (English)](docs/guide/paladin-walkthrough.en.md)**
+- 📖 **[Tutorial — construye El Paladín (Español)](docs/guide/paladin-walkthrough.es.md)**
+
 ## Why Yggdrasil Forge?
 
 If you're building a skill tree, progression system, or branching
@@ -178,6 +193,9 @@ webhooks}` — see each package's README for planned scope.
 
 ## Documentation
 
+- **[Paladin walkthrough](docs/guide/paladin-walkthrough.en.md)**
+  ([Español](docs/guide/paladin-walkthrough.es.md)) — build a real skill
+  tree step by step, with diagrams and gotchas. Best starting point.
 - **[Architecture MASTER document](docs/architecture/MASTER.md)** —
   full design rationale + roadmap.
 - **[Development briefings](docs/briefings/)** — complete
