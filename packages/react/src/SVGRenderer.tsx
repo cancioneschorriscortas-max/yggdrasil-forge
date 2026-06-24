@@ -14,6 +14,13 @@ import { useTheme } from './ThemeProvider.js'
 import { buildAnimationsCSS } from './animations.js'
 import { buildViewBox } from './svg-helpers.js'
 
+// Ambiente de módulo: tipa `process.env.NODE_ENV` sen depender de
+// @types/node. Non crea un global; só satisfai o typecheck. O acceso
+// real é o texto estático que os bundlers (vite/webpack/esbuild)
+// substitúen en build → en prod plégase a constante e o banner
+// elimínase; en dev resólvese a verdadeiro.
+declare const process: { readonly env: { readonly NODE_ENV?: string } }
+
 /**
  * ID estable do marker `<marker>` da frecha (F10.4). Compartido entre
  * `SVGRenderer` (que define o marker en `<defs>`) e `SkillEdge` (que o
@@ -88,12 +95,14 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
   const viewBox = buildViewBox(bounds, padding)
 
   if (error !== undefined) {
-    // DEV vs PROD: o banner é visible só fóra de produción. Acceso a
-    // process.env vía globalThis cast porque @react non depende de
-    // @types/node (browser-first); cando process non existe (browser
-    // sen polyfill) ou NODE_ENV != 'production', considéraso DEV.
-    const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process
-    const isDev = proc !== undefined && proc.env !== undefined && proc.env.NODE_ENV !== 'production'
+    // DEV vs PROD: banner visible só fóra de produción. Usamos o texto
+    // estático `process.env.NODE_ENV` para que os bundlers (vite/webpack/
+    // esbuild) o substitúan en build → en prod plégase a constante e o
+    // banner elimínase; en dev (navegador incluído) resólvese a verdadeiro.
+    // Sen garda `typeof process`: rompería a substitución (deixaría un
+    // `typeof process` runtime que en navegador dá 'undefined' e mataría
+    // o banner en dev). Mesmo patrón que usa React.
+    const isDev = process.env.NODE_ENV !== 'production'
     return (
       <svg
         ref={ref}
