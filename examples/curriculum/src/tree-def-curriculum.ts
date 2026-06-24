@@ -30,7 +30,7 @@ function scaffold(id: string, label: string): Omit<TreeDef, 'nodes' | 'edges' | 
     // concéntricos). Mesmo valor en todas as (sub)árbores para coherencia
     // visual; con árbores pequenas (3-5 nodos), 140px deixa marxe lexible
     // entre nodos sen amontoarse.
-    layout: { type: 'radial', radius: 140 },
+    layout: { type: 'tree' },
     startingBudget: { resources: { xp: 999 } },
     resources: [{ id: 'xp', label: { en: 'XP' }, refundable: true, refundPercent: 100 }],
   }
