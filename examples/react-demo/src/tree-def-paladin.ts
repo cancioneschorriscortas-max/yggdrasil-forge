@@ -79,6 +79,7 @@ export const paladinTreeDef: TreeDef = {
     // ── Columna esquerda: GUERREIRO ──
     {
       id: 'sword-basics',
+      icon: '/badges/sword-basics.webp',
       type: 'notable',
       shape: 'circle',
       maxTier: 3,
@@ -89,6 +90,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'shield-wall',
+      icon: '/badges/shield-wall.webp',
       type: 'notable',
       shape: 'circle',
       maxTier: 2,
@@ -100,6 +102,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'berserker-rage',
+      icon: '/badges/berserker-rage.webp',
       type: 'notable',
       shape: 'circle',
       maxTier: 1,
@@ -111,6 +114,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'war-veteran',
+      icon: '/badges/war-veteran.webp',
       type: 'notable',
       shape: 'circle',
       maxTier: 1,
@@ -133,6 +137,7 @@ export const paladinTreeDef: TreeDef = {
     // ── Columna central: CONVERXENCIA (hexágonos) ──
     {
       id: 'holy-warrior',
+      icon: '/badges/holy-warrior.webp',
       tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
@@ -150,6 +155,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'champion-of-light',
+      icon: '/badges/champion-of-light.webp',
       tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
@@ -167,6 +173,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'valor-aura',
+      icon: '/badges/valor-aura.webp',
       tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
@@ -184,6 +191,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'dark-pact',
+      icon: '/badges/dark-pact.webp',
       tags: ['paladin'],
       type: 'keystone',
       shape: 'hexagon',
@@ -208,6 +216,7 @@ export const paladinTreeDef: TreeDef = {
     // ── Columna dereita: CLÉRIGO ──
     {
       id: 'holy-light',
+      icon: '/badges/holy-light.webp',
       tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
@@ -219,6 +228,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'healing-hands',
+      icon: '/badges/healing-hands.webp',
       tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
@@ -231,6 +241,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'smite',
+      icon: '/badges/smite.webp',
       tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
@@ -243,6 +254,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'divine-shield',
+      icon: '/badges/divine-shield.webp',
       tags: ['cleric'],
       type: 'notable',
       shape: 'circle',
@@ -261,6 +273,7 @@ export const paladinTreeDef: TreeDef = {
     },
     {
       id: 'divine-judgment',
+      icon: '/badges/divine-judgment.webp',
       tags: ['cleric'],
       type: 'notable',
       shape: 'circle',

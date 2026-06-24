@@ -78,6 +78,55 @@ describe('SkillNode icon — resolución (F10.5)', () => {
     const text = container.querySelector('text.yf-skill-node__icon')
     expect(text?.textContent).toBe('not-registered-id-12345')
   })
+
+  // ── F11.3: rutas locais + data: + extensións de imaxe ──
+
+  it('ruta absoluta local (/badges/x.webp) → renderiza <image>', () => {
+    const { container } = renderNode(makeNode('/badges/sword-basics.webp'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img).not.toBeNull()
+    expect(img?.getAttribute('href')).toBe('/badges/sword-basics.webp')
+    expect(container.querySelector('text.yf-skill-node__icon')).toBeNull()
+  })
+
+  it('ruta relativa "./a.png" → renderiza <image>', () => {
+    const { container } = renderNode(makeNode('./a.png'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img?.getAttribute('href')).toBe('./a.png')
+  })
+
+  it('ruta relativa "../b.avif" → renderiza <image>', () => {
+    const { container } = renderNode(makeNode('../b.avif'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img?.getAttribute('href')).toBe('../b.avif')
+  })
+
+  it('data: URL → renderiza <image>', () => {
+    const dataUri = 'data:image/webp;base64,AAAA'
+    const { container } = renderNode(makeNode(dataUri))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img?.getAttribute('href')).toBe(dataUri)
+  })
+
+  it('extensión .webp con esquema https → renderiza <image>', () => {
+    const { container } = renderNode(makeNode('https://x/a.webp'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img?.getAttribute('href')).toBe('https://x/a.webp')
+  })
+
+  it('emoji ⚔️ (non é imaxe nin glyph) → renderiza <text>, NON <image>', () => {
+    const { container } = renderNode(makeNode('⚔️'))
+    const text = container.querySelector('text.yf-skill-node__icon')
+    expect(text?.textContent).toBe('⚔️')
+    expect(container.querySelector('image.yf-skill-node__icon')).toBeNull()
+  })
+
+  it('cadea sen ruta nin extensión ("foo") → renderiza <text>, non <image>', () => {
+    const { container } = renderNode(makeNode('foo'))
+    const text = container.querySelector('text.yf-skill-node__icon')
+    expect(text?.textContent).toBe('foo')
+    expect(container.querySelector('image.yf-skill-node__icon')).toBeNull()
+  })
 })
 
 describe('SkillNode icon — recolor (F10.5)', () => {
