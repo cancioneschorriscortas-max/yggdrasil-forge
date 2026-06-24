@@ -1,0 +1,156 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f5f3ec;
+  color: #1f2933;
+}
+
+/* Layout xeral da app */
+.ly-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.ly-hud {
+  padding: 16px 24px;
+  border-bottom: 1px solid #d7d2c5;
+  background: #faf8f2;
+}
+.ly-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ly-progress-bar {
+  height: 6px;
+  width: 100%;
+  background: #e8e3d5;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.ly-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #5b8c5a 0%, #2c6e8f 100%);
+  transition: width 200ms ease-out;
+}
+.ly-progress-text {
+  font-size: 13px;
+  color: #645c4a;
+  margin: 6px 0 0;
+}
+
+/* Breadcrumb */
+.ly-crumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 24px;
+  font-size: 14px;
+  border-bottom: 1px solid #ece8df;
+}
+.ly-crumb-sep {
+  color: #b4ab97;
+}
+.ly-crumb-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  cursor: pointer;
+  color: #2c6e8f;
+  font-family: inherit;
+}
+.ly-crumb-link:hover {
+  text-decoration: underline;
+}
+.ly-crumb-current {
+  color: #1f2933;
+  font-weight: 600;
+}
+
+/* Barra de selección */
+.ly-select {
+  padding: 12px 24px;
+  background: #f3f0e6;
+  border-bottom: 1px solid #ece8df;
+  font-size: 13.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ly-select-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+.ly-select-conditions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ly-select-conditions li {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.ly-cond-ok {
+  color: #5b8c5a;
+}
+.ly-cond-no {
+  color: #c1492f;
+}
+.ly-open-button {
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  background: #2c6e8f;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ly-open-button:hover {
+  background: #235874;
+}
+
+/* Canvas */
+.ly-canvas {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  background: #faf8f2;
+}
+.ly-canvas-inner {
+  position: absolute;
+  inset: 16px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #ece8df;
+  overflow: hidden;
+}
+
+/* Transición de drill-in (opt-out por reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .ly-canvas-inner {
+    animation: ly-fadein 180ms ease-out;
+  }
+  @keyframes ly-fadein {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}

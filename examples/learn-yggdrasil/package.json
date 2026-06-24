@@ -1,0 +1,28 @@
+{
+  "name": "@yggdrasil-forge-examples/learn-yggdrasil",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Polished nested course (Learn Yggdrasil Forge) demo",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yggdrasil-forge/common": "workspace:*",
+    "@yggdrasil-forge/core": "workspace:*",
+    "@yggdrasil-forge/react": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "^6.0.3"
+  },
+  "engines": { "node": ">=22" }
+}
