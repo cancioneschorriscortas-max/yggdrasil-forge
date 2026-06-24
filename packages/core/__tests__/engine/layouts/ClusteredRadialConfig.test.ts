@@ -187,9 +187,10 @@ describe('parseClusteredRadialConfig', () => {
     expect(unwrap(r).memberLayout).toBe('list')
   })
 
-  it("memberLayout 'cluster' (futuro, aínda non aceptado): err", () => {
+  it("memberLayout 'cluster': ok (F11.2c)", () => {
     const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'cluster' }))
-    expect(isErr(r)).toBe(true)
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).memberLayout).toBe('cluster')
   })
 
   it('memberLayout valor arbitrario: err', () => {
@@ -238,6 +239,40 @@ describe('parseClusteredRadialConfig', () => {
     expect(isOk(r)).toBe(true)
     // E o resultado non contén `centerClearance`.
     expect('centerClearance' in unwrap(r)).toBe(false)
+  })
+
+  // ── F11.2c: clusterArc ──
+
+  it('clusterArc presente e válido: ok', () => {
+    const r = parseClusteredRadialConfig(validConfig({ clusterArc: Math.PI / 2 }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).clusterArc).toBeCloseTo(Math.PI / 2, 6)
+  })
+
+  it('clusterArc = 0: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ clusterArc: 0 }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('clusterArc negativo: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ clusterArc: -1 }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('clusterArc NaN: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ clusterArc: Number.NaN }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('clusterArc non-número: err', () => {
+    const r = parseClusteredRadialConfig(validConfig({ clusterArc: 'wide' as unknown as number }))
+    expect(isErr(r)).toBe(true)
+  })
+
+  it('clusterArc ausente: ok (default aplícase en compute)', () => {
+    const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'cluster' }))
+    expect(isOk(r)).toBe(true)
+    expect(unwrap(r).clusterArc).toBeUndefined()
   })
 })
 // ── FIN: tests de ClusteredRadialConfig ──

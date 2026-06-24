@@ -22,7 +22,7 @@ export type ClusteredMeshType = 'none' | 'spokes'
 
 const VALID_CLUSTERED_MESH_TYPES = new Set<string>(['none', 'spokes'])
 
-const VALID_MEMBER_LAYOUTS = new Set<string>(['fan', 'list'])
+const VALID_MEMBER_LAYOUTS = new Set<string>(['fan', 'list', 'cluster'])
 
 /**
  * Configuración do ClusteredRadialLayout (F11.2a — base común).
@@ -71,22 +71,31 @@ export interface ClusteredRadialConfig extends BaseLayoutConfig {
    * - `'fan'` (default): abano placeholder de 2a (orbitRadius + arco
    *   `DEFAULT_MEMBER_ARC`). Os membros distribúense radialmente cara
    *   afóra desde o punto-de-grupo.
-   * - `'list'`: columna vertical estrita cara abaixo desde o
-   *   punto-de-grupo, con separación `rowGap`. Caso "panadeiro":
-   *   etiquetas lexibles unha sobre outra. O motor auto-expande
-   *   `groupRadius` se necesario para que ningunha columna chegue ao
-   *   centro (anti-colisión).
-   *
-   * O valor `'cluster'` (camareiro orgánico) chegará nunha sub-fase
-   * posterior ampliando esta unión.
+   * - `'list'`: columna vertical irradiando cara afóra desde o
+   *   punto-de-grupo, con separación `rowGap`. Caso "panadeiro".
+   *   Honra `growOutward` (A.1).
+   * - `'cluster'`: estilo "camareiro". A áncora do grupo
+   *   (`GroupDef.anchorNodeId`, ou primeiro membro como fallback)
+   *   colócase no punto-de-grupo (a `groupRadius` do centro); os
+   *   demais membros (satélites) orbitan a `orbitRadius` da áncora,
+   *   en arco `clusterArc` centrado na dirección radial saínte
+   *   (honra `growOutward`).
    */
-  readonly memberLayout?: 'fan' | 'list'
+  readonly memberLayout?: 'fan' | 'list' | 'cluster'
 
   /**
    * Separación vertical entre membros consecutivos en modo `'list'`.
-   * Opcional, `> 0`. Default `64`. Ignorado en modo `'fan'`.
+   * Opcional, `> 0`. Default `64`. Ignorado nos demais modos.
    */
   readonly rowGap?: number
+
+  /**
+   * Arco total (en radiáns) en que se reparten os satélites en modo
+   * `'cluster'`, centrado na dirección radial saínte do centro.
+   * Opcional, `> 0`. Default `PI` (semicírculo cara afóra).
+   * Ignorado nos demais modos.
+   */
+  readonly clusterArc?: number
 }
 
 const DEFAULT_LOCALE: Locale = 'gl'
@@ -194,12 +203,12 @@ export function parseClusteredRadialConfig(
     }
   }
 
-  // memberLayout opcional ∈ {'fan','list'}
+  // memberLayout opcional ∈ {'fan','list','cluster'}
   const memberLayout = config.memberLayout
   if (memberLayout !== undefined) {
     if (typeof memberLayout !== 'string' || !VALID_MEMBER_LAYOUTS.has(memberLayout)) {
       return validationErr(
-        `memberLayout must be one of fan/list; got '${String(memberLayout)}'`,
+        `memberLayout must be one of fan/list/cluster; got '${String(memberLayout)}'`,
         locale,
         { field: 'memberLayout', value: memberLayout },
       )
@@ -217,6 +226,18 @@ export function parseClusteredRadialConfig(
     }
   }
 
+  // clusterArc opcional, debe ser > 0 se presente
+  const clusterArc = config.clusterArc
+  if (clusterArc !== undefined) {
+    if (typeof clusterArc !== 'number' || !Number.isFinite(clusterArc) || clusterArc <= 0) {
+      return validationErr(
+        `clusterArc must be a positive number; got ${String(clusterArc)}`,
+        locale,
+        { field: 'clusterArc', value: clusterArc },
+      )
+    }
+  }
+
   // Constrúe resultado tipado — todos os campos validados.
   // Spread condicional para `exactOptionalPropertyTypes`.
   return ok({
@@ -227,8 +248,11 @@ export function parseClusteredRadialConfig(
     ...(centerY !== undefined ? { centerY } : {}),
     ...(startAngle !== undefined ? { startAngle } : {}),
     ...(meshType !== undefined ? { meshType: meshType as ClusteredMeshType } : {}),
-    ...(memberLayout !== undefined ? { memberLayout: memberLayout as 'fan' | 'list' } : {}),
+    ...(memberLayout !== undefined
+      ? { memberLayout: memberLayout as 'fan' | 'list' | 'cluster' }
+      : {}),
     ...(rowGap !== undefined ? { rowGap } : {}),
+    ...(clusterArc !== undefined ? { clusterArc } : {}),
   })
 }
 // ── FIN: ClusteredRadialConfig tipos + parseClusteredRadialConfig ──

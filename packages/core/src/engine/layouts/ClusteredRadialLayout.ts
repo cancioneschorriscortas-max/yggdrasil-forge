@@ -22,10 +22,24 @@ const DEFAULT_MEMBER_ARC = 2.2
  * outra (≈ liña + marxe). Sobrescríbese co campo `rowGap` no config.
  */
 const DEFAULT_ROW_GAP = 64
+/**
+ * Arco por defecto (en radiáns) en que se reparten os satélites en
+ * modo `memberLayout: 'cluster'`, centrado na dirección radial saínte.
+ * Default π (semicírculo cara afóra). Sobrescríbese co campo
+ * `clusterArc` no config.
+ */
+const DEFAULT_CLUSTER_ARC = Math.PI
 
 interface Cluster {
   readonly id: string
   readonly memberIds: readonly string[]
+  /**
+   * Áncora declarada do grupo orixinal (`GroupDef.anchorNodeId`).
+   * Pode non ser membro válido (por exemplo, id descoñecido); o
+   * motor fai fallback ao primeiro membro. Ausente nos clusters
+   * implícitos `__ungrouped__` e nos grupos sen `anchorNodeId`.
+   */
+  readonly anchorNodeId?: string
 }
 
 /**
@@ -66,6 +80,7 @@ export class ClusteredRadialLayout implements LayoutEngine {
     const meshType = cfg.meshType ?? 'spokes'
     const memberLayout = cfg.memberLayout ?? 'fan'
     const rowGap = cfg.rowGap ?? DEFAULT_ROW_GAP
+    const clusterArc = cfg.clusterArc ?? DEFAULT_CLUSTER_ARC
     const center: Position = { x: centerX, y: centerY }
 
     const positions = new Map<string, Position>()
@@ -125,6 +140,34 @@ export class ClusteredRadialLayout implements LayoutEngine {
               y: groupPoint.y + (j + 1) * rowGap * dir,
             })
           }
+        } else if (memberLayout === 'cluster') {
+          // Estilo "camareiro" (F11.2c): áncora EN groupPoint (o spoke
+          // coroa→grupo cae nela), satélites a `orbitRadius` repartidos
+          // nun arco `clusterArc` centrado na dirección radial saínte
+          // (`theta`) → honra `growOutward`. A áncora resólvese así:
+          // (1) `GroupDef.anchorNodeId` se é membro válido do cluster;
+          // (2) en caso contrario (ausente, descoñecido, ou non-membro),
+          //     fallback ao primeiro membro. Os clusters implícitos
+          //     `__ungrouped__` non teñen `anchorNodeId` declarado.
+          // Os cross-links (a teia camareiro) son `edges` de dato; o
+          // motor só os posiciona en `computeEdges` (mesmo bloque que
+          // os demais modos).
+          if (M > 0) {
+            const declared = cluster.anchorNodeId
+            // `ids[0]` non pode ser undefined porque M > 0 garante length >= 1.
+            const fallback = ids[0] as string
+            const anchorId = declared !== undefined && ids.includes(declared) ? declared : fallback
+            positions.set(anchorId, groupPoint)
+            const sats = ids.filter((id) => id !== anchorId)
+            const S = sats.length
+            for (const [j, sid] of sats.entries()) {
+              const phi = S === 1 ? theta : theta + (j - (S - 1) / 2) * (clusterArc / (S - 1))
+              positions.set(sid, {
+                x: groupPoint.x + orbitRadius * Math.cos(phi),
+                y: groupPoint.y + orbitRadius * Math.sin(phi),
+              })
+            }
+          }
         } else {
           // 'fan' — base de 2a, intacta. PLACEHOLDER 2a substituíuse
           // pola elección explícita do modo via config; o cálculo é
@@ -183,7 +226,11 @@ export class ClusteredRadialLayout implements LayoutEngine {
           assigned.add(n.id)
         }
       }
-      clusters.push({ id: g.id, memberIds: ids })
+      clusters.push({
+        id: g.id,
+        memberIds: ids,
+        ...(g.anchorNodeId !== undefined ? { anchorNodeId: g.anchorNodeId } : {}),
+      })
     }
 
     const ungrouped: string[] = []

@@ -611,5 +611,265 @@ describe('ClusteredRadialLayout', () => {
     expect(vDefault.nodes.get('a')).toEqual(vExplicit.nodes.get('a'))
     expect(vDefault.nodes.get('b')).toEqual(vExplicit.nodes.get('b'))
   })
+
+  // ── F11.2c: memberLayout 'cluster' (estilo camareiro) ──
+
+  it("memberLayout 'cluster' con anchorNodeId designado: áncora en groupPoint", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        orbitRadius: 50,
+        memberLayout: 'cluster',
+        startAngle: 0, // groupPoint en (300, 0)
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('a', 'g1'), n('anchor', 'g1'), n('c', 'g1')],
+      groups: [g('g1', { anchorNodeId: 'anchor' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // A áncora declarada está EXACTAMENTE en groupPoint (300, 0)
+    const anchorPos = v.nodes.get('anchor')
+    expect(anchorPos?.x).toBeCloseTo(300, 6)
+    expect(anchorPos?.y).toBeCloseTo(0, 6)
+  })
+
+  it("memberLayout 'cluster' sen anchorNodeId: fallback ao primeiro membro", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        orbitRadius: 40,
+        memberLayout: 'cluster',
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      // 'a' é o primeiro membro segundo a orde de treeDef.nodes.
+      nodes: [n('r'), n('a', 'g1'), n('b', 'g1')],
+      groups: [g('g1')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    const fallbackAnchor = v.nodes.get('a')
+    expect(fallbackAnchor?.x).toBeCloseTo(200, 6)
+    expect(fallbackAnchor?.y).toBeCloseTo(0, 6)
+  })
+
+  it("memberLayout 'cluster' con anchorNodeId inválido: fallback ao primeiro membro", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        orbitRadius: 40,
+        memberLayout: 'cluster',
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('a', 'g1'), n('b', 'g1')],
+      // 'ghost' non é membro de g1 → fallback a 'a' (primeiro membro).
+      groups: [g('g1', { anchorNodeId: 'ghost' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    expect(v.nodes.get('a')?.x).toBeCloseTo(200, 6)
+    expect(v.nodes.get('a')?.y).toBeCloseTo(0, 6)
+    // 'ghost' non existe nas posicións
+    expect(v.nodes.has('ghost')).toBe(false)
+  })
+
+  it("memberLayout 'cluster' satélites growOutward: dist > dist(áncora)", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        orbitRadius: 80,
+        memberLayout: 'cluster',
+        startAngle: 0, // groupPoint en (300, 0)
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('anchor', 'g1'), n('s1', 'g1'), n('s2', 'g1'), n('s3', 'g1')],
+      groups: [g('g1', { anchorNodeId: 'anchor' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // Áncora en (300, 0): dist = 300.
+    // Satélites: con orbitRadius 80 e arco PI centrado en θ=0, os satélites
+    // van ter compoñente x positivo (cara afóra), polo que dist >= 300.
+    const distAnchor = Math.hypot(v.nodes.get('anchor')?.x ?? 0, v.nodes.get('anchor')?.y ?? 0)
+    for (const sid of ['s1', 's2', 's3']) {
+      const p = v.nodes.get(sid)
+      expect(p).toBeDefined()
+      const d = Math.hypot(p?.x ?? 0, p?.y ?? 0)
+      expect(d).toBeGreaterThanOrEqual(distAnchor)
+    }
+  })
+
+  it("memberLayout 'cluster' satélite único: phi = theta (mesma dirección saínte)", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        orbitRadius: 50,
+        memberLayout: 'cluster',
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('anchor', 'g1'), n('s1', 'g1')],
+      groups: [g('g1', { anchorNodeId: 'anchor' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // S=1 → phi=theta=0 → satélite en (200+50, 0) = (250, 0).
+    const s = v.nodes.get('s1')
+    expect(s?.x).toBeCloseTo(250, 6)
+    expect(s?.y).toBeCloseTo(0, 6)
+  })
+
+  it("memberLayout 'cluster' grupo de 1 só membro: só áncora, sen satélites", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'cluster',
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('only', 'g1')],
+      groups: [g('g1', { anchorNodeId: 'only' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // 1 raíz + 1 áncora = 2 posicións
+    expect(v.nodes.size).toBe(2)
+    expect(v.nodes.get('only')?.x).toBeCloseTo(200, 6)
+    expect(v.nodes.get('only')?.y).toBeCloseTo(0, 6)
+  })
+
+  it("memberLayout 'cluster' clusterArc custom: arco máis pechado", () => {
+    const layout = new ClusteredRadialLayout()
+    // clusterArc = PI/4 (45°) → satélites moi pegados á dirección saínte.
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        orbitRadius: 50,
+        memberLayout: 'cluster',
+        clusterArc: Math.PI / 4,
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('anchor', 'g1'), n('s1', 'g1'), n('s2', 'g1'), n('s3', 'g1')],
+      groups: [g('g1', { anchorNodeId: 'anchor' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // Os tres satélites con dist a (200, 0) ≈ orbitRadius e ángulos
+    // próximos a 0 (saínte). Polo tanto: x cerca de groupPoint.x +
+    // orbitRadius·cos(small) ≈ 250.
+    const xs = ['s1', 's2', 's3'].map((id) => v.nodes.get(id)?.x ?? 0)
+    for (const x of xs) {
+      expect(x).toBeGreaterThan(240) // todos próximos a 250
+    }
+  })
+
+  it("memberLayout 'cluster' grupo no eixe Y- (arriba): satélites cara fóra", () => {
+    const layout = new ClusteredRadialLayout()
+    // theta = -PI/2 → groupPoint en (0, -200). A dirección saínte é cara
+    // arriba; satélites teñen y aínda máis negativo (máis lonxe do centro).
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        orbitRadius: 50,
+        memberLayout: 'cluster',
+        startAngle: -Math.PI / 2,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('anchor', 'g1'), n('s1', 'g1')],
+      groups: [g('g1', { anchorNodeId: 'anchor' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    const anchor = v.nodes.get('anchor')
+    const s1 = v.nodes.get('s1')
+    expect(anchor?.y).toBeCloseTo(-200, 6)
+    // Satélite máis arriba (y máis negativo) que a áncora.
+    expect(s1?.y).toBeLessThan(anchor?.y ?? 0)
+  })
+
+  it("memberLayout 'cluster' cross-links de DATO posiciónanse", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'cluster',
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('anchor', 'g1'), n('s1', 'g1')],
+      edges: [e('e1', 'anchor', 's1')], // edge de dato intra-grupo
+      groups: [g('g1', { anchorNodeId: 'anchor' })],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    const path = v.edges.get('e1')
+    expect(path).toBeDefined()
+    expect(path?.points[0]).toEqual(v.nodes.get('anchor'))
+    expect(path?.points[1]).toEqual(v.nodes.get('s1'))
+  })
+
+  it("memberLayout 'cluster' sen edges (panadeiro-like): edges baleiro pero posicións ok", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'cluster',
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('a', 'g1'), n('b', 'g1')],
+      groups: [g('g1')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    expect(v.edges.size).toBe(0)
+    expect(v.nodes.get('a')).toBeDefined()
+    expect(v.nodes.get('b')).toBeDefined()
+  })
+
+  it("memberLayout 'cluster' grupo sen membros: non lanza, sen posicións engadidas", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'cluster',
+      },
+      rootNodeId: 'r',
+      // g1 declárase pero non ten ningún membro asignado.
+      nodes: [n('r'), n('a', 'g2')],
+      groups: [g('g1'), g('g2')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // Raíz + 'a' (en g2); g1 sen áncora porque sen membros.
+    expect(v.nodes.size).toBe(2)
+    expect(v.nodes.get('a')).toBeDefined()
+  })
+
+  it("memberLayout 'cluster' cluster implícito __ungrouped__: primeiro membro como áncora", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'cluster',
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      // Sen `groups`: todos os non-raíz caen no implícito __ungrouped__.
+      nodes: [n('r'), n('a'), n('b')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // O primeiro non-raíz ('a') é a áncora do cluster implícito.
+    expect(v.nodes.get('a')?.x).toBeCloseTo(200, 6)
+    expect(v.nodes.get('a')?.y).toBeCloseTo(0, 6)
+  })
 })
 // ── FIN: tests de ClusteredRadialLayout ──

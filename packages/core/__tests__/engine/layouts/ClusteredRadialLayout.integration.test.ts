@@ -188,5 +188,64 @@ describe('ClusteredRadialLayout — integración', () => {
     expect(vFan.nodes.get(sampleId)).toBeDefined()
     expect(vList.nodes.get(sampleId)).not.toEqual(vFan.nodes.get(sampleId))
   })
+
+  // ── F11.2c: integración panadeiro con memberLayout: 'cluster' ──
+
+  it("panadeiro con memberLayout 'cluster': áncora por grupo (primeiro membro) en groupPoint", () => {
+    const layout = new ClusteredRadialLayout()
+    const base = makePanadeiroLike()
+    const treeCluster: TreeDef = {
+      ...base,
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        orbitRadius: 80,
+        memberLayout: 'cluster',
+      },
+    }
+    const v = unwrap(layout.compute(treeCluster))
+    // Sen anchorNodeId en ningún grupo → cada grupo usa o primeiro membro
+    // como áncora. Para 'forno', o primeiro membro é 'forno_0'.
+    const anchorForno = v.nodes.get('forno_0')
+    expect(anchorForno).toBeDefined()
+    // Para cada áncora, dist ao centro ≈ groupRadius (300).
+    const dist = Math.hypot(anchorForno?.x ?? 0, anchorForno?.y ?? 0)
+    expect(dist).toBeCloseTo(300, 1)
+    // E os satélites do mesmo grupo están a maior distancia (growOutward).
+    const sat1 = v.nodes.get('forno_1')
+    expect(sat1).toBeDefined()
+    const distSat = Math.hypot(sat1?.x ?? 0, sat1?.y ?? 0)
+    expect(distSat).toBeGreaterThanOrEqual(dist)
+  })
+
+  it("panadeiro 'cluster' vs 'list': mesmos datos, posicións distintas", () => {
+    const layout = new ClusteredRadialLayout()
+    const base = makePanadeiroLike()
+    const treeCluster: TreeDef = {
+      ...base,
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        memberLayout: 'cluster',
+      },
+    }
+    const treeList: TreeDef = {
+      ...base,
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 300,
+        memberLayout: 'list',
+        rowGap: 40,
+      },
+    }
+    const vCluster = unwrap(layout.compute(treeCluster))
+    const vList = unwrap(layout.compute(treeList))
+    // Datos referenciais conservados
+    expect(treeCluster.nodes).toBe(base.nodes)
+    expect(treeList.nodes).toBe(base.nodes)
+    // Sample microskill ten posición distinta entre cluster e list.
+    const sample = 'forno_1'
+    expect(vCluster.nodes.get(sample)).not.toEqual(vList.nodes.get(sample))
+  })
 })
 // ── FIN: tests integración ClusteredRadialLayout ──

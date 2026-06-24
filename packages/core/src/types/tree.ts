@@ -21,6 +21,18 @@ export interface GroupDef {
   /** IDs de nodos explícitos no grupo (alternativa a node.group). */
   readonly nodeIds?: readonly string[]
   readonly position?: Position
+  /**
+   * Designa un membro EXISTENTE do grupo como áncora (estilo cluster).
+   *
+   * Usado polo motor `clustered-radial` con `memberLayout: 'cluster'`:
+   * a áncora colócase no punto-de-grupo (a `groupRadius` do centro), de
+   * xeito que o spoke coroa→grupo remate nela; os demais membros
+   * orbitan arredor da áncora a `orbitRadius`. Se o id non é membro do
+   * grupo, o motor fai fallback ao primeiro membro.
+   *
+   * Ignorado polos demais motores e por `'fan'`/`'list'`.
+   */
+  readonly anchorNodeId?: string
 }
 
 /**
