@@ -81,6 +81,40 @@ importers:
         specifier: ^4.1.5
         version: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(@vitest/ui@4.1.9)(jsdom@25.0.1)(vite@6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0))
 
+  examples/curriculum:
+    dependencies:
+      '@yggdrasil-forge/common':
+        specifier: workspace:*
+        version: link:../../packages/common
+      '@yggdrasil-forge/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@yggdrasil-forge/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 4.7.0(vite@6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.3
+        version: 6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
   examples/node-basics:
     dependencies:
       '@yggdrasil-forge/common':
