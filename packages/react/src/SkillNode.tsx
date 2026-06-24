@@ -169,6 +169,13 @@ export function SkillNode({
   // Tamaño do icono SVG: proporcional ao raio. Mantén o oco do emoji
   // anterior (radius=26 daba ~26px de glyph), e escala ao redor diso.
   const iconSize = radius * 1.0
+  // F11.3b: badges raster (rutas/URIs de imaxe) renderízanse a un tamaño
+  // maior ca os glyphs vector. Os badges deséñanse verticais ou cadrados
+  // (~1:1 a 0.77:1); a imaxe preserva proporción co `preserveAspectRatio`
+  // do `<image>`. O estado do nodo amósase co anel, polo que o badge non
+  // debe tapalo de todo — de aí o `1.8` e non `2.0` (deixa ~10% de marxe
+  // ao bordo). Glyphs vector seguen a `iconSize` (sen cambio).
+  const imageSize = radius * 1.8
 
   const shapeStyle: CSSProperties = {
     fill,
@@ -343,10 +350,11 @@ export function SkillNode({
         <image
           className="yf-skill-node__icon"
           href={icon}
-          x={-iconSize / 2}
-          y={-iconSize / 2}
-          width={iconSize}
-          height={iconSize}
+          x={-imageSize / 2}
+          y={-imageSize / 2}
+          width={imageSize}
+          height={imageSize}
+          preserveAspectRatio="xMidYMid meet"
         />
       )}
       {iconDef === undefined && !iconIsUrl && icon !== undefined && (

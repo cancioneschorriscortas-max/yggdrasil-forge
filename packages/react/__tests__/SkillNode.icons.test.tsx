@@ -138,4 +138,52 @@ describe('SkillNode icon — recolor (F10.5)', () => {
     expect(styleAttr).toMatch(/color:\s*(?:#222222|rgb\(34,\s*34,\s*34\))/)
   })
 })
+
+// ── F11.3b: imageSize ≠ iconSize ──
+
+describe('SkillNode icon — tamaño separado para badges raster (F11.3b)', () => {
+  // makeNode usa `type: 'small'` → radius = 16 (DEFAULT_RADIUS_BY_TYPE.small)
+  // → iconSize = radius * 1.0 = 16; imageSize = radius * 1.8 = 28.8
+  const RADIUS = 16
+  const EXPECTED_IMAGE_SIZE = RADIUS * 1.8
+  const EXPECTED_ICON_SIZE = RADIUS * 1.0
+
+  it('<image> renderiza a imageSize = radius * 1.8', () => {
+    const { container } = renderNode(makeNode('/badges/sword-basics.webp'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img).not.toBeNull()
+    expect(Number(img?.getAttribute('width'))).toBeCloseTo(EXPECTED_IMAGE_SIZE, 6)
+    expect(Number(img?.getAttribute('height'))).toBeCloseTo(EXPECTED_IMAGE_SIZE, 6)
+    // Centrado: x e y == -imageSize/2
+    expect(Number(img?.getAttribute('x'))).toBeCloseTo(-EXPECTED_IMAGE_SIZE / 2, 6)
+    expect(Number(img?.getAttribute('y'))).toBeCloseTo(-EXPECTED_IMAGE_SIZE / 2, 6)
+  })
+
+  it('<image> declara preserveAspectRatio="xMidYMid meet" para badges non-cadrados', () => {
+    const { container } = renderNode(makeNode('/badges/sword-basics.webp'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img?.getAttribute('preserveAspectRatio')).toBe('xMidYMid meet')
+  })
+
+  it('IconGlyph (glyph vector) mantén tamaño iconSize = radius * 1.0 (regresión)', () => {
+    const { container } = renderNode(makeNode('test-svg-icon'))
+    const iconSvg = container.querySelector('svg.yf-skill-node__icon')
+    expect(iconSvg).not.toBeNull()
+    // IconGlyph renderiza un <svg> con width/height == size.
+    expect(Number(iconSvg?.getAttribute('width'))).toBeCloseTo(EXPECTED_ICON_SIZE, 6)
+    expect(Number(iconSvg?.getAttribute('height'))).toBeCloseTo(EXPECTED_ICON_SIZE, 6)
+    // Confirmamos que IMAGE_SIZE > ICON_SIZE para garantir que NON pasou
+    // a usar o tamaño da imaxe (regresión cero).
+    expect(EXPECTED_IMAGE_SIZE).toBeGreaterThan(EXPECTED_ICON_SIZE)
+  })
+
+  it('emoji (fallback <text>) sen cambios de tamaño (intacto)', () => {
+    const { container } = renderNode(makeNode('⚔️'))
+    const text = container.querySelector('text.yf-skill-node__icon')
+    expect(text).not.toBeNull()
+    // Non comprobamos size exacto do text (depende do fontSize do CSS);
+    // só que segue caendo á rama text e non a <image>.
+    expect(container.querySelector('image.yf-skill-node__icon')).toBeNull()
+  })
+})
 // ── FIN: tests SkillNode icon ──
