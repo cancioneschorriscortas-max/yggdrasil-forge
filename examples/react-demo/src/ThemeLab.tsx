@@ -67,7 +67,7 @@ export const presetDarkClean: ThemeLabValues = {
   nodeFillLocked: '#363c4d', // escuro apagado (corpo "off")
   nodeFillUnlockable: '#1d3b4a', // tinte cián suave
   nodeFillUnlocked: '#1f3d2a', // tinte verde suave
-  nodeFillMaxed: '#fde68a ', // tinte morado suave
+  nodeFillMaxed: '#fde68a', // tinte amarelo suave
   nodeFillInProgress: '#4a3617', // tinte ámbar suave
 }
 
