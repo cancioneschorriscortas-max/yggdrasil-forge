@@ -357,21 +357,19 @@ describe('ClusteredRadialLayout', () => {
     expect(v1.nodes.size).toBeGreaterThan(0)
   })
 
-  // ── F11.2b: memberLayout: 'list' (columna vertical) ──
+  // ── F11.2b / 2b-bis: memberLayout: 'list' (columna vertical growOutward) ──
 
-  it("memberLayout 'list': membros nunha columna vertical baixo o groupPoint", () => {
+  it("memberLayout 'list' grupo 'no eixe X' (lado): dir = +1 (abaixo)", () => {
     const layout = new ClusteredRadialLayout()
-    // 1 grupo en θ=startAngle, 3 membros, rowGap=50.
-    // groupRadius dabondo para que ningunha anti-colisión dispare:
-    // maxColH = 3*50 = 150; centerClearance = 50 (= rowGap default).
-    // needed = 200 < groupRadius=300 → effGroupRadius == groupRadius.
+    // 1 grupo en θ=0, groupPoint=(300, 0). centerY=0, polo que
+    // groupPoint.y === centerY → dir = +1 (cara abaixo por defecto).
     const treeDef = makeTreeDef({
       layout: {
         type: 'clustered-radial',
         groupRadius: 300,
         memberLayout: 'list',
         rowGap: 50,
-        startAngle: 0, // groupPoint en (300, 0)
+        startAngle: 0,
       },
       rootNodeId: 'r',
       nodes: [n('r'), n('a', 'g1'), n('b', 'g1'), n('c', 'g1')],
@@ -381,10 +379,7 @@ describe('ClusteredRadialLayout', () => {
     const pa = v.nodes.get('a')
     const pb = v.nodes.get('b')
     const pc = v.nodes.get('c')
-    expect(pa).toBeDefined()
-    expect(pb).toBeDefined()
-    expect(pc).toBeDefined()
-    // Mesmo x (= groupPoint.x = 300), ys consecutivos (50, 100, 150)
+    // Mesmo x (= groupPoint.x = 300), ys crecentes (50, 100, 150)
     expect(pa?.x).toBeCloseTo(300, 6)
     expect(pb?.x).toBeCloseTo(300, 6)
     expect(pc?.x).toBeCloseTo(300, 6)
@@ -393,60 +388,136 @@ describe('ClusteredRadialLayout', () => {
     expect(pc?.y).toBeCloseTo(150, 6)
   })
 
-  it("memberLayout 'list' anti-colisión: groupRadius pequeno autoexpande", () => {
+  it("memberLayout 'list' growOutward: grupo 'arriba' → cara arriba (dir = -1)", () => {
     const layout = new ClusteredRadialLayout()
-    // 6 membros con rowGap=64 → maxColH = 384. groupRadius solicitado = 10.
-    // centerClearance default = 64. needed = 384 + 64 = 448 → effGroupRadius
-    // ascende a 448. Comprobamos que ningún membro caia preto/cruce o centro.
+    // groupRadius pequeno + columna alta: en 2b expandíase effGroupRadius;
+    // en 2b-bis non, porque growOutward elimina o motivo. Comprobamos
+    // que ningún membro se achega ao centro (todos teñen y < groupPoint.y).
     const treeDef = makeTreeDef({
       layout: {
         type: 'clustered-radial',
-        groupRadius: 10,
+        groupRadius: 100,
         memberLayout: 'list',
-        rowGap: 64,
-        startAngle: -Math.PI / 2, // grupo "arriba" → groupPoint con y < 0
+        rowGap: 40,
+        startAngle: -Math.PI / 2, // arriba → groupPoint.y ≈ -100
       },
       rootNodeId: 'r',
-      nodes: [
-        n('r'),
-        n('m1', 'g1'),
-        n('m2', 'g1'),
-        n('m3', 'g1'),
-        n('m4', 'g1'),
-        n('m5', 'g1'),
-        n('m6', 'g1'),
-      ],
+      nodes: [n('r'), n('m1', 'g1'), n('m2', 'g1'), n('m3', 'g1')],
       groups: [g('g1')],
     })
     const v = unwrap(layout.compute(treeDef))
-    // groupPoint.y ≈ -448 (effGroupRadius * sin(-π/2)). O fondo da columna
-    // está en groupPoint.y + 6*64 = -448 + 384 = -64. Aínda con `y` negativa,
-    // é dicir sen cruzar o centro. Comprobámolo:
-    const m6 = v.nodes.get('m6')
-    expect(m6).toBeDefined()
-    expect(m6?.y).toBeLessThan(0) // fondo da columna NON cruza o centro (y=0)
+    const m1 = v.nodes.get('m1')
+    const m2 = v.nodes.get('m2')
+    const m3 = v.nodes.get('m3')
+    // groupPoint.y ≈ -100. Cara arriba: y vai aínda máis negativo.
+    // m1 = -100 + 1*40*(-1) = -140, m2 = -180, m3 = -220
+    expect(m1?.y).toBeCloseTo(-140, 6)
+    expect(m2?.y).toBeCloseTo(-180, 6)
+    expect(m3?.y).toBeCloseTo(-220, 6)
+    // Ningún membro se achega ao centro máis ca o groupPoint:
+    // |m_k.y| > |groupPoint.y| para todos k.
+    expect(Math.abs(m1?.y ?? 0)).toBeGreaterThan(100)
+    expect(Math.abs(m3?.y ?? 0)).toBeGreaterThan(100)
   })
 
-  it("memberLayout 'list' anti-colisión: groupRadius grande non se reduce", () => {
+  it("memberLayout 'list' growOutward: grupo 'abaixo' → cara abaixo (dir = +1)", () => {
     const layout = new ClusteredRadialLayout()
-    // groupRadius solicitado = 1000, maxColH pequeno → mantén groupRadius.
     const treeDef = makeTreeDef({
       layout: {
         type: 'clustered-radial',
-        groupRadius: 1000,
+        groupRadius: 100,
         memberLayout: 'list',
-        rowGap: 50,
+        rowGap: 40,
+        startAngle: Math.PI / 2, // abaixo → groupPoint.y ≈ +100
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('m1', 'g1'), n('m2', 'g1'), n('m3', 'g1')],
+      groups: [g('g1')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    const m1 = v.nodes.get('m1')
+    const m3 = v.nodes.get('m3')
+    expect(m1?.y).toBeCloseTo(140, 6)
+    expect(m3?.y).toBeCloseTo(220, 6)
+    // Afastándose monotónicamente
+    expect((m3?.y ?? 0) > (m1?.y ?? 0)).toBe(true)
+  })
+
+  it("memberLayout 'list' growOutward: ningún membro se achega ao centro", () => {
+    const layout = new ClusteredRadialLayout()
+    // 4 grupos en cardinais (E, N, W, S) — comprobamos que para cada
+    // membro, a distancia ao centro >= distancia do seu groupPoint.
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'list',
+        rowGap: 30,
         startAngle: 0,
       },
       rootNodeId: 'r',
-      nodes: [n('r'), n('a', 'g1')],
+      nodes: [n('r'), n('a', 'g1'), n('b', 'g2'), n('c', 'g3'), n('d', 'g4')],
+      groups: [g('g1'), g('g2'), g('g3'), g('g4')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    // Para cada membro, |pos - center| >= |groupPoint - center|.
+    // Como o groupPoint está a groupRadius=200 do centro, e a columna
+    // estende cara afóra, todos os membros están en y máis afastado.
+    for (const [_, id] of [
+      [0, 'a'],
+      [1, 'b'],
+      [2, 'c'],
+      [3, 'd'],
+    ] as const) {
+      const pos = v.nodes.get(id)
+      expect(pos).toBeDefined()
+      const dist = Math.hypot(pos?.x ?? 0, pos?.y ?? 0)
+      // O groupPoint do grupo correspondente está a 200. Cada membro
+      // engade rowGap cara afóra, polo que dist >= 200 (cara abaixo
+      // sumando o componente y; mira a maior compoñente).
+      expect(dist).toBeGreaterThanOrEqual(200)
+    }
+  })
+
+  it("memberLayout 'list': columna segue vertical (mesmo x)", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'list',
+        rowGap: 30,
+        startAngle: -Math.PI / 2,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('a', 'g1'), n('b', 'g1'), n('c', 'g1')],
       groups: [g('g1')],
     })
     const v = unwrap(layout.compute(treeDef))
-    const a = v.nodes.get('a')
-    // groupPoint en (1000, 0); membro a en (1000, 50)
-    expect(a?.x).toBeCloseTo(1000, 6)
-    expect(a?.y).toBeCloseTo(50, 6)
+    const xs = new Set([v.nodes.get('a')?.x, v.nodes.get('b')?.x, v.nodes.get('c')?.x])
+    expect(xs.size).toBe(1) // todos os membros mesmo x
+  })
+
+  it("memberLayout 'list': paso entre membros consecutivos == rowGap", () => {
+    const layout = new ClusteredRadialLayout()
+    const treeDef = makeTreeDef({
+      layout: {
+        type: 'clustered-radial',
+        groupRadius: 200,
+        memberLayout: 'list',
+        rowGap: 37, // valor non-trivial
+        startAngle: 0,
+      },
+      rootNodeId: 'r',
+      nodes: [n('r'), n('a', 'g1'), n('b', 'g1'), n('c', 'g1')],
+      groups: [g('g1')],
+    })
+    const v = unwrap(layout.compute(treeDef))
+    const ya = v.nodes.get('a')?.y ?? 0
+    const yb = v.nodes.get('b')?.y ?? 0
+    const yc = v.nodes.get('c')?.y ?? 0
+    expect(Math.abs(yb - ya)).toBeCloseTo(37, 6)
+    expect(Math.abs(yc - yb)).toBeCloseTo(37, 6)
   })
 
   it("memberLayout 'list' con N grupos: cada columna na súa posición radial", () => {

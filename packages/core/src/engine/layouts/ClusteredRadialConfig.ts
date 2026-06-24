@@ -87,14 +87,6 @@ export interface ClusteredRadialConfig extends BaseLayoutConfig {
    * Opcional, `> 0`. Default `64`. Ignorado en modo `'fan'`.
    */
   readonly rowGap?: number
-
-  /**
-   * Marxe mínima entre o fondo dunha columna `'list'` e o centro do
-   * layout. Opcional, `>= 0`. Default = `rowGap`. Ignorado en `'fan'`.
-   * Úsase no cálculo anti-colisión que pode auto-expandir
-   * `groupRadius` cara unha distancia efectiva maior.
-   */
-  readonly centerClearance?: number
 }
 
 const DEFAULT_LOCALE: Locale = 'gl'
@@ -225,22 +217,6 @@ export function parseClusteredRadialConfig(
     }
   }
 
-  // centerClearance opcional, debe ser >= 0 se presente
-  const centerClearance = config.centerClearance
-  if (centerClearance !== undefined) {
-    if (
-      typeof centerClearance !== 'number' ||
-      !Number.isFinite(centerClearance) ||
-      centerClearance < 0
-    ) {
-      return validationErr(
-        `centerClearance must be a non-negative number; got ${String(centerClearance)}`,
-        locale,
-        { field: 'centerClearance', value: centerClearance },
-      )
-    }
-  }
-
   // Constrúe resultado tipado — todos os campos validados.
   // Spread condicional para `exactOptionalPropertyTypes`.
   return ok({
@@ -253,7 +229,6 @@ export function parseClusteredRadialConfig(
     ...(meshType !== undefined ? { meshType: meshType as ClusteredMeshType } : {}),
     ...(memberLayout !== undefined ? { memberLayout: memberLayout as 'fan' | 'list' } : {}),
     ...(rowGap !== undefined ? { rowGap } : {}),
-    ...(centerClearance !== undefined ? { centerClearance } : {}),
   })
 }
 // ── FIN: ClusteredRadialConfig tipos + parseClusteredRadialConfig ──

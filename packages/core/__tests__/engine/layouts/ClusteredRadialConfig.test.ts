@@ -172,7 +172,8 @@ describe('parseClusteredRadialConfig', () => {
     expect(isErr(r)).toBe(true)
   })
 
-  // ── F11.2b: memberLayout / rowGap / centerClearance ──
+  // ── F11.2b / 2b-bis: memberLayout / rowGap ──
+  // (centerClearance eliminado en 2b-bis ao honrar growOutward)
 
   it("memberLayout 'fan': ok", () => {
     const r = parseClusteredRadialConfig(validConfig({ memberLayout: 'fan' }))
@@ -227,33 +228,16 @@ describe('parseClusteredRadialConfig', () => {
     expect(isErr(r)).toBe(true)
   })
 
-  it('centerClearance = 0: ok (permítese)', () => {
-    const r = parseClusteredRadialConfig(validConfig({ centerClearance: 0 }))
+  it('centerClearance no longer aceptado (eliminado en F11.2b-bis): err se presente', () => {
+    // Sanity: tras eliminar `centerClearance`, pasarllo ao parser cae no
+    // catch-all do BaseLayoutConfig (campos descoñecidos ignóranse en
+    // exactOptionalPropertyTypes, polo que devolve ok pero sen o campo).
+    const r = parseClusteredRadialConfig(validConfig({ centerClearance: 50 as unknown as number }))
+    // Comportamento: o parser non rexeita campos descoñecidos (a
+    // ClusteredRadialConfig é base-loose), simplemente ignóraos.
     expect(isOk(r)).toBe(true)
-    expect(unwrap(r).centerClearance).toBe(0)
-  })
-
-  it('centerClearance presente positivo: ok', () => {
-    const r = parseClusteredRadialConfig(validConfig({ centerClearance: 50 }))
-    expect(isOk(r)).toBe(true)
-    expect(unwrap(r).centerClearance).toBe(50)
-  })
-
-  it('centerClearance negativo: err', () => {
-    const r = parseClusteredRadialConfig(validConfig({ centerClearance: -5 }))
-    expect(isErr(r)).toBe(true)
-  })
-
-  it('centerClearance NaN: err', () => {
-    const r = parseClusteredRadialConfig(validConfig({ centerClearance: Number.NaN }))
-    expect(isErr(r)).toBe(true)
-  })
-
-  it('centerClearance non-número: err', () => {
-    const r = parseClusteredRadialConfig(
-      validConfig({ centerClearance: null as unknown as number }),
-    )
-    expect(isErr(r)).toBe(true)
+    // E o resultado non contén `centerClearance`.
+    expect('centerClearance' in unwrap(r)).toBe(false)
   })
 })
 // ── FIN: tests de ClusteredRadialConfig ──

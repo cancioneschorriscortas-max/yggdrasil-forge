@@ -66,7 +66,6 @@ export class ClusteredRadialLayout implements LayoutEngine {
     const meshType = cfg.meshType ?? 'spokes'
     const memberLayout = cfg.memberLayout ?? 'fan'
     const rowGap = cfg.rowGap ?? DEFAULT_ROW_GAP
-    const centerClearance = cfg.centerClearance ?? rowGap
     const center: Position = { x: centerX, y: centerY }
 
     const positions = new Map<string, Position>()
@@ -95,30 +94,14 @@ export class ClusteredRadialLayout implements LayoutEngine {
     //    non-agrupados). Excluímos a raíz; non se asigna a ningún cluster.
     const clusters = this.buildClusters(treeDef, rootId)
 
-    // 4b. Anti-colisión: en modo 'list', auto-expande effGroupRadius para
-    //     que o fondo de ningunha columna chegue ao centro/coroa. Cada
-    //     columna ocupa `M * rowGap` cara abaixo; precisa que o punto-de-
-    //     grupo estea polo menos a `maxColH + centerClearance` do centro.
-    //     En 'fan' non aplica → effGroupRadius == groupRadius (regresión cero).
-    let effGroupRadius = groupRadius
-    if (memberLayout === 'list') {
-      let maxColH = 0
-      for (const c of clusters) {
-        const h = c.memberIds.length * rowGap
-        if (h > maxColH) maxColH = h
-      }
-      const needed = maxColH + centerClearance
-      if (needed > effGroupRadius) effGroupRadius = needed
-    }
-
     // 5. Coloca cada cluster en radial e os seus membros segundo memberLayout.
     const G = clusters.length
     if (G > 0) {
       for (const [i, cluster] of clusters.entries()) {
         const theta = startAngle + i * ((2 * Math.PI) / G)
         const groupPoint: Position = {
-          x: centerX + effGroupRadius * Math.cos(theta),
-          y: centerY + effGroupRadius * Math.sin(theta),
+          x: centerX + groupRadius * Math.cos(theta),
+          y: centerY + groupRadius * Math.sin(theta),
         }
         if (meshType === 'spokes') {
           mesh.push({ type: 'line', from: center, to: groupPoint })
@@ -128,13 +111,19 @@ export class ClusteredRadialLayout implements LayoutEngine {
         const M = ids.length
 
         if (memberLayout === 'list') {
-          // Columna vertical estrita cara abaixo desde o punto-de-grupo.
-          // (Conector intra-grupo orgánico = F12, non aquí; 2b emite só
-          // posicións.) `orbitRadius` ignórase neste modo; o eixe é
-          // `rowGap`. A anti-colisión do paso 4b garante que o fondo
-          // non cruza o centro.
+          // Columna vertical irradiando cara AFÓRA desde o punto-de-grupo
+          // (invariante `growOutward` do contrato de auto-layout, A.1):
+          // grupo por riba do centro → membros crecen cara arriba (dir=-1);
+          // grupo no centro ou por baixo → cara abaixo (dir=+1). Iso garante
+          // que ningún membro se achega ao centro máis ca o seu groupPoint.
+          // (Conector intra-grupo orgánico → F12, non aquí; 2b-bis emite só
+          // posicións. `orbitRadius` ignórase neste modo; o eixe é `rowGap`.)
+          const dir = groupPoint.y < centerY ? -1 : 1
           for (const [j, mid] of ids.entries()) {
-            positions.set(mid, { x: groupPoint.x, y: groupPoint.y + (j + 1) * rowGap })
+            positions.set(mid, {
+              x: groupPoint.x,
+              y: groupPoint.y + (j + 1) * rowGap * dir,
+            })
           }
         } else {
           // 'fan' — base de 2a, intacta. PLACEHOLDER 2a substituíuse
