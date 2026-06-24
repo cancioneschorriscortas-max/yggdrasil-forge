@@ -200,6 +200,19 @@ export function SkillNode({
     ...typographyStyle,
   }
 
+  // F11.x: truncado opt-in da etiqueta. Activo só se theme.sizes.maxLabelChars
+  // é un número > 0 e a etiqueta o excede. Cando trunca, mostramos `N…` no
+  // <text> visible e engadimos un <title> co texto completo (tooltip nativo
+  // ao hover). O `aria-label` resólvese desde `formatAriaLabel(node, state)`
+  // → `resolveLabel(node)` (texto completo), e iso non se toca.
+  const fullLabel = resolveLabel(node)
+  const maxLabelChars = theme?.sizes.maxLabelChars
+  const labelTruncated =
+    typeof maxLabelChars === 'number' && maxLabelChars > 0 && fullLabel.length > maxLabelChars
+  const displayLabel = labelTruncated
+    ? `${fullLabel.slice(0, maxLabelChars).trimEnd()}…`
+    : fullLabel
+
   const handleClick =
     onClick !== undefined ? (_e: MouseEvent<SVGGElement>) => onClick(node.id) : undefined
 
@@ -344,6 +357,7 @@ export function SkillNode({
         onPointerCancel: handlePointerEnd,
       })}
     >
+      {labelTruncated && <title>{fullLabel}</title>}
       {overlay}
       {renderNodeShape(shape, radius, shapeStyle)}
       {iconDef !== undefined && (
@@ -376,7 +390,7 @@ export function SkillNode({
         </text>
       )}
       <text className="yf-skill-node__label" textAnchor="middle" y={labelY} style={labelStyle}>
-        {resolveLabel(node)}
+        {displayLabel}
       </text>
       {progress !== undefined && (
         <text

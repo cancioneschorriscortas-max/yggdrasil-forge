@@ -178,5 +178,14 @@ export interface ThemeSizes {
    * fallback `3`. Engadido en F10.3.fix.
    */
   readonly ringWidth?: number
+
+  /**
+   * Opt-in (estilo "BDO"): máximo de caracteres a mostrar na etiqueta do
+   * nodo. Cando se define (> 0) e a etiqueta supera ese largo, trúncase a
+   * N + "…" e engádese un `<title>` SVG co texto completo (tooltip ao
+   * hover). O `aria-label` conserva o texto completo. Por defecto
+   * `undefined` = sen truncado (comportamento actual).
+   */
+  readonly maxLabelChars?: number
 }
 // ── FIN: Theme types ──
