@@ -93,7 +93,12 @@ export function App(): JSX.Element {
   const builtTheme: Theme = useMemo(
     () => ({
       colors: {
-        background: themeVals.canvas,
+        // F11.3d: `background` omitido a propósito (NON `undefined` — bloqueado por
+        // exactOptionalPropertyTypes). Iso evita que SVGRenderer pinte un fondo inline
+        // no <svg>, e deixa que o CSS de `.canvas-zone > svg.yf-skill-tree` controle
+        // o fondo (textura `/bg/fondo.png`). O control "Fondo do lenzo" do Theme Lab
+        // (themeVals.canvas) fica como variable inactiva nesta fase; volverá ser
+        // theme-aware cando se introduza unha CSS var por preset (multi-tema, futuro).
         text: themeVals.text,
         nodeLocked: themeVals.nodeLocked,
         nodeUnlockable: themeVals.nodeUnlockable,

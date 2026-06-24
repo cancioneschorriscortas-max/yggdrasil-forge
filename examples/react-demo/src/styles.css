@@ -262,7 +262,13 @@ body::before {
   width: 100%;
   height: 100%;
   display: block;
-  background: rgba(10, 8, 16, 0.6);
+  /* F11.3d: fondo do lenzo. Aplicado no CSS porque o `<svg>` element non
+     renderiza fiablemente `background: url(...)` cando se establece como
+     inline-style desde React (replaced element). Aquí no stylesheet
+     funciona universal. O veo escuro 0.35 dá contraste aos badges e
+     dourado sen tapar a textura. */
+  background: linear-gradient(rgba(10, 8, 16, 0.35), rgba(10, 8, 16, 0.35)), url("/bg/fondo.png")
+    center / cover no-repeat;
   border-radius: 10px;
 }
 
