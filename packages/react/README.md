@@ -127,6 +127,49 @@ const myTheme: Theme = {
 }
 ```
 
+## Labels
+
+Node labels render at their full text by default. When a tree is dense and
+labels would overlap, there are two patterns — pick the one that fits your
+UI. The library gives you the mechanism; you choose the policy. Neither is
+forced.
+
+### Dense: truncate with a tooltip
+
+Set `sizes.maxLabelChars` on your theme. Labels longer than that are cut to
+`N` characters plus an ellipsis (`…`), and the node gets an SVG `<title>`
+with the full text — a native tooltip on hover. The `aria-label` always
+keeps the full text, so screen readers (and any detail panel you build)
+lose nothing.
+
+```tsx
+import { ThemeProvider, minimal, type Theme } from '@yggdrasil-forge/react'
+
+const dense: Theme = {
+  ...minimal,
+  sizes: { ...minimal.sizes, maxLabelChars: 12 },
+}
+
+<ThemeProvider theme={dense}>
+  <SkillTree engine={engine} />
+</ThemeProvider>
+```
+
+This mirrors how dense skill grids in games show short labels and reveal
+the full name on hover. On touch devices, where there is no hover, the full
+text is still in the `aria-label` and reachable through whatever detail UI
+you build on `onNodeClick` or `onNodeLongPress`.
+
+`maxLabelChars` counts UTF-16 code units, which is approximate for emoji and
+wide (CJK) glyphs. Setting it to `0`, a negative number, or leaving it
+undefined disables truncation (the default).
+
+### Spacious: give labels room
+
+Keep full labels and make space in the layout instead — increase
+`nodeSpacing` / `levelSpacing` on tree layouts, or place nodes with explicit
+`custom` positions. This favors legibility over density.
+
 ## Notes
 
 - Components use SVG; no Canvas or WebGL is required.
