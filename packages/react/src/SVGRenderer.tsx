@@ -30,6 +30,8 @@ export interface SVGRendererProps {
   readonly padding?: number
   readonly layoutType?: string
   readonly error?: string
+  /** Mensaxe detallada do erro (só se mostra en DEV). */
+  readonly errorMessage?: string
   readonly ariaLabel?: string
   readonly children?: ReactNode
   /**
@@ -71,6 +73,7 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
     padding = 16,
     layoutType,
     error,
+    errorMessage,
     ariaLabel,
     children,
     transform,
@@ -85,16 +88,70 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
   const viewBox = buildViewBox(bounds, padding)
 
   if (error !== undefined) {
+    // DEV vs PROD: o banner é visible só fóra de produción. Acceso a
+    // process.env vía globalThis cast porque @react non depende de
+    // @types/node (browser-first); cando process non existe (browser
+    // sen polyfill) ou NODE_ENV != 'production', considéraso DEV.
+    const proc = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process
+    const isDev = proc !== undefined && proc.env !== undefined && proc.env.NODE_ENV !== 'production'
     return (
       <svg
         ref={ref}
         className="yf-skill-tree yf-skill-tree--error"
         data-error={error}
         style={{ display: 'block', width: '100%', height: '100%' }}
-        viewBox={viewBox}
+        viewBox={isDev ? '0 0 320 120' : viewBox}
         role="img"
-        aria-label={ariaLabel ?? 'Skill tree (layout error)'}
-      />
+        aria-label={
+          ariaLabel ?? (isDev ? `Skill tree (layout error: ${error})` : 'Skill tree (layout error)')
+        }
+      >
+        {isDev ? (
+          <g>
+            <rect x="0" y="0" width="320" height="120" fill="#fdeaea" />
+            <text
+              x="160"
+              y="48"
+              textAnchor="middle"
+              style={{
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: 13,
+                fontWeight: 600,
+                fill: '#a3261f',
+              }}
+            >
+              Layout error: {error}
+            </text>
+            {errorMessage !== undefined ? (
+              <text
+                x="160"
+                y="72"
+                textAnchor="middle"
+                style={{
+                  fontFamily: 'system-ui, sans-serif',
+                  fontSize: 11,
+                  fill: '#a3261f',
+                }}
+              >
+                {errorMessage}
+              </text>
+            ) : null}
+            <text
+              x="160"
+              y="98"
+              textAnchor="middle"
+              style={{
+                fontFamily: 'system-ui, sans-serif',
+                fontSize: 10,
+                fill: '#a3261f',
+                opacity: 0.7,
+              }}
+            >
+              (visible in dev only)
+            </text>
+          </g>
+        ) : null}
+      </svg>
     )
   }
 

@@ -217,7 +217,13 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
 
   // Caso de erro: delegar en SVGRenderer co modo erro.
   if (!layoutResult.ok) {
-    return <SVGRenderer padding={padding} error={layoutResult.error.code} />
+    return (
+      <SVGRenderer
+        padding={padding}
+        error={layoutResult.error.code}
+        errorMessage={layoutResult.error.message}
+      />
+    )
   }
 
   // F10.4: aplicar curve (opcional). buildPaths é puro — recibe o

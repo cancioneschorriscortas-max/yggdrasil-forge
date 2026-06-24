@@ -29,7 +29,7 @@ describe('SVGRenderer', () => {
     expect(svg.getAttribute('viewBox')).toBe('0 0 0 0')
   })
 
-  it('error definido produce svg con class yf-skill-tree--error + data-error + cero children', () => {
+  it('error definido produce svg con class yf-skill-tree--error + data-error; en DEV (env de test) aria-label inclúe o código', () => {
     const { container } = render(
       <SVGRenderer error="YGG_E018">
         <circle cx="0" cy="0" r="5" />
@@ -38,8 +38,11 @@ describe('SVGRenderer', () => {
     const svg = q(container, 'svg')
     expect(svg.getAttribute('class')).toContain('yf-skill-tree--error')
     expect(svg.getAttribute('data-error')).toBe('YGG_E018')
-    expect(svg.getAttribute('aria-label')).toBe('Skill tree (layout error)')
-    // Children non se renderizan en modo erro
+    // DEV (env de test, NODE_ENV !== 'production'): aria-label inclúe o código
+    // para axudar a depurar. En PROD volve á mensaxe xenérica (ver test dedicado).
+    expect(svg.getAttribute('aria-label')).toBe('Skill tree (layout error: YGG_E018)')
+    // Children pasados como props NON se renderizan en modo erro (a única
+    // saída interior é o banner DEV con <g><rect><text/></g>).
     expect(container.querySelector('circle')).toBeNull()
   })
 
