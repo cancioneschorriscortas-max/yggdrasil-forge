@@ -1,6 +1,6 @@
 // ── INICIO: tests SkillNode icon resolution (F10.5) ──
 import { render } from '@testing-library/react'
-import type { NodeDef } from '@yggdrasil-forge/core'
+import type { NodeDef, NodeInstance, NodeState } from '@yggdrasil-forge/core'
 import { describe, expect, it } from 'vitest'
 import { SkillNode } from '../src/SkillNode.js'
 import { ThemeProvider } from '../src/ThemeProvider.js'
@@ -26,6 +26,18 @@ function renderNode(node: NodeDef) {
     <ThemeProvider theme={minimal}>
       <svg role="img" aria-label="t">
         <SkillNode node={node} instance={undefined} position={{ x: 0, y: 0 }} />
+      </svg>
+    </ThemeProvider>,
+  )
+}
+
+/** F11.3c: render con state explícito (vía instance). */
+function renderNodeWithState(node: NodeDef, state: NodeState) {
+  const instance: NodeInstance = { id: node.id, state, currentTier: 0 }
+  return render(
+    <ThemeProvider theme={minimal}>
+      <svg role="img" aria-label="t">
+        <SkillNode node={node} instance={instance} position={{ x: 0, y: 0 }} />
       </svg>
     </ThemeProvider>,
   )
@@ -184,6 +196,65 @@ describe('SkillNode icon — tamaño separado para badges raster (F11.3b)', () =
     // Non comprobamos size exacto do text (depende do fontSize do CSS);
     // só que segue caendo á rama text e non a <image>.
     expect(container.querySelector('image.yf-skill-node__icon')).toBeNull()
+  })
+})
+
+// ── F11.3c: atenuación do badge en estado locked ──
+
+describe('SkillNode icon — locked dim (F11.3c)', () => {
+  it("nodo 'locked' con badge raster → <image> ten filter de atenuación", () => {
+    const { container } = renderNodeWithState(makeNode('/badges/sword-basics.webp'), 'locked')
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img).not.toBeNull()
+    const styleAttr = img?.getAttribute('style') ?? ''
+    expect(styleAttr).toMatch(/grayscale\(1\)/)
+    expect(styleAttr).toMatch(/brightness\(0\.5\)/)
+  })
+
+  it("nodo 'unlockable' con badge → SEN filter (badge vívido)", () => {
+    const { container } = renderNodeWithState(makeNode('/badges/sword-basics.webp'), 'unlockable')
+    const img = container.querySelector('image.yf-skill-node__icon')
+    expect(img).not.toBeNull()
+    const styleAttr = img?.getAttribute('style') ?? ''
+    expect(styleAttr).not.toMatch(/grayscale/)
+  })
+
+  it("nodo 'unlocked' con badge → SEN filter", () => {
+    const { container } = renderNodeWithState(makeNode('/badges/sword-basics.webp'), 'unlocked')
+    const img = container.querySelector('image.yf-skill-node__icon')
+    const styleAttr = img?.getAttribute('style') ?? ''
+    expect(styleAttr).not.toMatch(/grayscale/)
+  })
+
+  it("nodo 'maxed' con badge → SEN filter", () => {
+    const { container } = renderNodeWithState(makeNode('/badges/sword-basics.webp'), 'maxed')
+    const img = container.querySelector('image.yf-skill-node__icon')
+    const styleAttr = img?.getAttribute('style') ?? ''
+    expect(styleAttr).not.toMatch(/grayscale/)
+  })
+
+  it("nodo 'in_progress' con badge → SEN filter", () => {
+    const { container } = renderNodeWithState(makeNode('/badges/sword-basics.webp'), 'in_progress')
+    const img = container.querySelector('image.yf-skill-node__icon')
+    const styleAttr = img?.getAttribute('style') ?? ''
+    expect(styleAttr).not.toMatch(/grayscale/)
+  })
+
+  it("glyph en nodo 'locked' → IconGlyph sen filter (regresión)", () => {
+    const { container } = renderNodeWithState(makeNode('test-svg-icon'), 'locked')
+    const iconSvg = container.querySelector('svg.yf-skill-node__icon')
+    expect(iconSvg).not.toBeNull()
+    // O glyph nunca debe levar o filter de grayscale (só afecta a <image>).
+    const styleAttr = iconSvg?.getAttribute('style') ?? ''
+    expect(styleAttr).not.toMatch(/grayscale/)
+  })
+
+  it("emoji en nodo 'locked' → <text> sen filter (regresión)", () => {
+    const { container } = renderNodeWithState(makeNode('⚔️'), 'locked')
+    const text = container.querySelector('text.yf-skill-node__icon')
+    expect(text).not.toBeNull()
+    const styleAttr = text?.getAttribute('style') ?? ''
+    expect(styleAttr).not.toMatch(/grayscale/)
   })
 })
 // ── FIN: tests SkillNode icon ──

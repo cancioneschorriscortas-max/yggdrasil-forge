@@ -176,6 +176,13 @@ export function SkillNode({
   // debe tapalo de todo — de aí o `1.8` e non `2.0` (deixa ~10% de marxe
   // ao bordo). Glyphs vector seguen a `iconSize` (sen cambio).
   const imageSize = radius * 1.8
+  // F11.3c: nodos locked → badge raster atenuado (grayscale + escurecido) para
+  // que o estado salte á vista cos badges grandes e vívidos. Só afecta á imaxe;
+  // o anel conserva a cor de estado, e glyph/<text> tampouco se tocan. O union
+  // NodeState ('locked'|'unlockable'|'in_progress'|'unlocked'|'maxed'|'disabled'
+  // |'expired') non inclúe 'incompatible' — esa categoría calcúlase fóra (no
+  // exemplo) por exclusións; só atenuamos cando o `instance.state` é 'locked'.
+  const dimBadge = state === 'locked'
 
   const shapeStyle: CSSProperties = {
     fill,
@@ -355,6 +362,7 @@ export function SkillNode({
           width={imageSize}
           height={imageSize}
           preserveAspectRatio="xMidYMid meet"
+          {...(dimBadge ? { style: { filter: 'grayscale(1) brightness(0.5)' } } : {})}
         />
       )}
       {iconDef === undefined && !iconIsUrl && icon !== undefined && (

@@ -3,7 +3,10 @@ import type { Theme } from '@yggdrasil-forge/react'
 /**
  * Tema demo neutro/claro para F10.3 (estilo plano-adaptativo).
  *
- * - Background: transparent (o canvas controla o fondo vía styles.css).
+ * - Background: textura `/bg/fondo.png` cun veo escuro lixeiro para
+ *   contraste do dourado (F11.3c). O tema é o lugar correcto:
+ *   SVGRenderer aplica `colors.background` inline no <svg>, e o inline
+ *   manda sobre calquera regra CSS no `.canvas-zone`.
  * - Text: dark slate (lexible sobre fill claro).
  * - Anel por estado (modelo plano sen glow):
  *   - locked: slate medio (visible pero "morto")
@@ -19,7 +22,8 @@ import type { Theme } from '@yggdrasil-forge/react'
  */
 export const dragonborn: Theme = {
   colors: {
-    background: 'transparent',
+    background:
+      "linear-gradient(rgba(10, 8, 16, 0.35), rgba(10, 8, 16, 0.35)), url('/bg/fondo.png') center / cover no-repeat",
     text: '#2a2730',
     nodeLocked: '#9ca3af',
     nodeUnlockable: '#f59e0b',
