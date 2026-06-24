@@ -17,8 +17,12 @@ function edge(source: string, target: string): EdgeDef {
 }
 
 /**
- * Andamio común a toda (sub)árbore. `startingBudget` fai os unlocks
- * gratuítos (as leccións non teñen custo): demo de puro clic-para-completar.
+ * Andamio común a toda (sub)árbore.
+ * - `startingBudget` fai os unlocks gratuítos (clic-para-completar).
+ * - As sub-árbores usan layout `tree` (top-down). O espazado é xeneroso
+ *   porque o motor coloca nodos pero NON mide o ancho das etiquetas
+ *   (minLabelSpacing aínda non está no solver); con pouco espazo, as
+ *   etiquetas de nodos irmáns solápanse.
  */
 function scaffold(id: string, label: string): Omit<TreeDef, 'nodes' | 'edges' | 'subtrees'> {
   return {
@@ -26,11 +30,7 @@ function scaffold(id: string, label: string): Omit<TreeDef, 'nodes' | 'edges' | 
     schemaVersion: SCHEMA_VERSION,
     version: '1.0.0',
     label: { en: label },
-    // `radius` é obrigatorio en RadialLayoutConfig (distancia entre niveis
-    // concéntricos). Mesmo valor en todas as (sub)árbores para coherencia
-    // visual; con árbores pequenas (3-5 nodos), 140px deixa marxe lexible
-    // entre nodos sen amontoarse.
-    layout: { type: 'tree' },
+    layout: { type: 'tree', nodeSpacing: 180, levelSpacing: 150 },
     startingBudget: { resources: { xp: 999 } },
     resources: [{ id: 'xp', label: { en: 'XP' }, refundable: true, refundPercent: 100 }],
   }
@@ -104,20 +104,35 @@ const web: TreeDef = {
 }
 
 // ── Nivel 0: o curso ────────────────────────────────────────────────
+// Layout `custom`: o curso é un DAG con converxencia (Capstone ten dous
+// pais: Algorithms + Web). O layout `tree` apilaría Capstone no mesmo
+// nivel ca Algorithms; con `custom` colocámolo a man nun diamante limpo,
+// con espazo dabondo para que as etiquetas non se solapen.
 export const curriculumDef: TreeDef = {
   ...scaffold('programming-101', 'Programming 101'),
+  layout: { type: 'custom' },
   nodes: [
     {
       id: 'mod-fundamentals',
       type: 'subtree_anchor',
       label: { en: 'Fundamentals' },
       subtreeId: 'fundamentals',
+      position: { x: 300, y: 40 },
     },
     {
       id: 'mod-data-structures',
       type: 'subtree_anchor',
       label: { en: 'Data Structures' },
       subtreeId: 'data-structures',
+      position: { x: 150, y: 200 },
+      prerequisites: { type: 'subtree_completion', subtreeId: 'fundamentals', percent: 100 },
+    },
+    {
+      id: 'mod-web',
+      type: 'subtree_anchor',
+      label: { en: 'Web' },
+      subtreeId: 'web',
+      position: { x: 450, y: 200 },
       prerequisites: { type: 'subtree_completion', subtreeId: 'fundamentals', percent: 100 },
     },
     {
@@ -125,19 +140,14 @@ export const curriculumDef: TreeDef = {
       type: 'subtree_anchor',
       label: { en: 'Algorithms' },
       subtreeId: 'algorithms',
+      position: { x: 150, y: 380 },
       prerequisites: { type: 'subtree_completion', subtreeId: 'data-structures', percent: 100 },
-    },
-    {
-      id: 'mod-web',
-      type: 'subtree_anchor',
-      label: { en: 'Web' },
-      subtreeId: 'web',
-      prerequisites: { type: 'subtree_completion', subtreeId: 'fundamentals', percent: 100 },
     },
     {
       id: 'capstone',
       type: 'keystone',
       label: { en: 'Capstone project' },
+      position: { x: 300, y: 540 },
       prerequisites: {
         type: 'all',
         conditions: [
