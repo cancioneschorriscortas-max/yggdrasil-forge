@@ -131,8 +131,13 @@ export function App(): JSX.Element {
         return
       }
       setSelectedNodeId(id)
-      // Lección ou anchor aínda bloqueado: intentar unlock (fire-and-forget).
-      if (st === 'unlockable') void current.engine.unlock(id)
+      // Lección ou anchor aínda non aberto: intentar unlock (fire-and-forget).
+      // canUnlock decide internamente; o estado inicial é 'locked' (non
+      // 'unlockable') aínda que non haxa prerequisites pendentes, polo que
+      // limitar a `st === 'unlockable'` impediría o primeiro unlock.
+      if (st !== 'unlocked' && st !== 'maxed') {
+        void current.engine.unlock(id)
+      }
     },
     [current.engine, openSubtree],
   )
