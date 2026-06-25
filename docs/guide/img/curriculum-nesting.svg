@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 430" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M2 2 L8 5 L2 8" fill="none" stroke="#2c6e8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="820" height="430" rx="14" fill="#faf8f2"/>
+  <text x="28" y="34" font-size="14" font-weight="700" fill="#1f2933">Course: Programming 101 · custom layout</text>
+  <text x="452" y="34" font-size="14" font-weight="700" fill="#1f2933">Data Structures · opened (a subtree)</text>
+  <line x1="410" y1="52" x2="410" y2="400" stroke="#e0d8c8" stroke-width="1" stroke-dasharray="2 4"/>
+
+  <!-- Panel A: parent diamond -->
+  <g stroke="#b8b2a4" stroke-width="1.5" fill="none">
+    <path d="M195 94 L120 150"/>
+    <path d="M205 94 L295 150"/>
+    <path d="M110 186 L110 250"/>
+    <path d="M125 284 L185 342"/>
+    <path d="M290 186 L235 342"/>
+  </g>
+  <g font-size="10" fill="#9a6b3f" font-weight="600">
+    <text x="132" y="128">100%</text>
+    <text x="256" y="128">100%</text>
+    <text x="116" y="222">100%</text>
+    <text x="206" y="322">all ✓</text>
+  </g>
+  <rect x="140" y="62" width="120" height="32" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="200" y="82" font-size="12" text-anchor="middle" fill="#1f2933">Fundamentals</text>
+  <rect x="50" y="152" width="120" height="32" rx="8" fill="#e8f0f3" stroke="#2c6e8f" stroke-width="1.6"/>
+  <text x="110" y="172" font-size="12" text-anchor="middle" fill="#1f2933" font-weight="600">Data Structures</text>
+  <rect x="240" y="152" width="120" height="32" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="300" y="172" font-size="12" text-anchor="middle" fill="#1f2933">Web</text>
+  <rect x="50" y="252" width="120" height="32" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="110" y="272" font-size="12" text-anchor="middle" fill="#1f2933">Algorithms</text>
+  <rect x="140" y="344" width="120" height="32" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="200" y="364" font-size="12" text-anchor="middle" fill="#1f2933">Capstone project</text>
+
+  <!-- enter arrow (arcs above Web) -->
+  <path d="M172 158 C 280 104, 360 100, 428 116" fill="none" stroke="#2c6e8f" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+  <text x="250" y="96" font-size="10" fill="#2c6e8f" font-style="italic">enterSubtree('data-structures')</text>
+
+  <!-- Panel B: DS contents -->
+  <g stroke="#b8b2a4" stroke-width="1.5" fill="none">
+    <path d="M500 92 L500 110"/>
+    <path d="M500 142 L500 160"/>
+    <path d="M500 192 L500 212"/>
+  </g>
+  <rect x="435" y="62" width="130" height="30" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="500" y="81" font-size="12" text-anchor="middle" fill="#1f2933">Arrays</text>
+  <rect x="435" y="112" width="130" height="30" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="500" y="131" font-size="12" text-anchor="middle" fill="#1f2933">Maps</text>
+  <rect x="435" y="162" width="130" height="30" rx="8" fill="#e8f0f3" stroke="#2c6e8f" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <text x="500" y="181" font-size="12" text-anchor="middle" fill="#1f2933" font-weight="600">Trees (nested) ↳</text>
+  <rect x="435" y="212" width="130" height="30" rx="8" fill="#ffffff" stroke="#7a7468" stroke-width="1.2"/>
+  <text x="500" y="231" font-size="11" text-anchor="middle" fill="#1f2933">DS capstone</text>
+  <text x="500" y="258" font-size="9.5" text-anchor="middle" fill="#9a6b3f">gate: Trees 100%</text>
+
+  <!-- level-2 box -->
+  <path d="M565 177 L598 177" stroke="#2c6e8f" stroke-width="1.6" stroke-dasharray="5 4" fill="none" marker-end="url(#ah)"/>
+  <rect x="600" y="150" width="196" height="56" rx="10" fill="#f3ece0" stroke="#9a6b3f" stroke-width="1.2"/>
+  <text x="698" y="171" font-size="10.5" text-anchor="middle" fill="#9a6b3f" font-weight="700">trees · subtree (level 2)</text>
+  <text x="698" y="190" font-size="10.5" text-anchor="middle" fill="#1f2933">Binary tree → BST → Traversal</text>
+
+  <text x="28" y="416" font-size="10.5" fill="#7a7468">Same TreeEngine API at every depth · gates use subtree_completion (0–100)</text>
+</svg>
