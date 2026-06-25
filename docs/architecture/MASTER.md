@@ -4505,3 +4505,89 @@ para árboles típicas (centos de nodos máximo).
 en ambos lados (`A.exclusions=['B']` E `B.exclusions=['A']`), o
 `getEffectiveExclusions` deduplica e o comportamento mantén. O fix non
 require migración de datos.
+
+### A.6.31 — `maxLabelChars`: a librería dá o mecanismo, o consumidor a política
+
+**Contexto.** En árbores densas (moitos nodos, pouco espazo) as etiquetas
+longas solápanse. Pero forzar truncado para todos rompería os casos amplos
+(marketing, poucos nodos), onde a etiqueta enteira é desexable.
+
+**Decisión.** Token **opt-in** `theme.sizes.maxLabelChars?: number` (default
+`undefined` = apagado). Cando se define (`> 0`) e a etiqueta supera ese largo,
+o `SkillNode`:
+
+1. mostra `displayLabel = fullLabel.slice(0, N).trimEnd() + '…'`;
+2. engade un `<title>{fullLabel}</title>` (tooltip nativo ao hover) **só
+   cando trunca**;
+3. conserva o texto **completo** no `aria-label` (vía `formatAriaLabel`).
+
+Con token apagado a saída é **byte-idéntica** á previa.
+
+**Principio.** A **librería dá o mecanismo** (truncado opcional + acceso ao
+texto completo ao interactuar); o **consumidor elixe a política** (denso vs
+amplo). Documentado en `packages/react/README.md`, sección "Labels".
+Verificado en `packages/react/src/theme-types.ts` (token) e
+`packages/react/src/SkillNode.tsx` (truncado + `<title>` + aria-label).
+
+### A.6.32 — Drill-in / aniñamento é **consumidor-side**; o motor non cambia
+
+**Contexto.** Navegar entre subárbores aniñadas (un curso cuxos módulos son
+árbores, un RPG con sub-árbores) parecía requirir soporte de navegación no
+renderer.
+
+**Feito.** `enterSubtree(subtreeId): Result<TreeEngine>` devolve un **engine
+fillo** que se renderiza co **mesmo `<SkillTree>`**. Unha **pila de engines +
+breadcrumb** (lado consumidor) dan toda a navegación. O motor **non precisa
+cambios** para un drill-in pulido. APIs públicas que o sustentan:
+
+- `explainUnlock(id): Result<UnlockExplanation{satisfied, conditions[]}>` —
+  alimenta o "por que está bloqueado".
+- Progreso por subárbore = `getSnapshot().subtreeStates[id]` (conta
+  `unlocked`/`maxed`) ÷ `getTreeDef().subtrees[id].nodes.length`.
+- `getSubtreeEngine(id)` é `null` **antes** de entrar; `enterSubtree`
+  sincroniza `parent.state.subtreeStates[subtreeId]` automaticamente.
+
+**Mensaxe de adopción.** Drill-in **100% sobre API pública, cero cambios en
+`@core`/`@react`**. Demostrado en `examples/learn-yggdrasil`. Verificado en
+`packages/core/src/engine/TreeEngine.ts` (`getSubtreeEngine`, `enterSubtree`,
+`explainUnlock`).
+
+### A.6.33 — "tests ≠ fluxo": o estado inicial é `'locked'`, non `'unlockable'`
+
+**Contexto.** Continúa o patrón de A.6.9 (radius: *typecheck ≠ render*). Aquí
+a fenda é distinta: *tests verdes ≠ fluxo correcto*.
+
+**Feito.** Un nodo **nunca tocado** dá `getNodeState() === null` → o estado
+inicial resólvese como `'locked'`, **non** `'unlockable'`. Condicionar o
+`unlock` a `st === 'unlockable'` **rompe o primeiro clic** — e aínda así pasa
+typecheck e **todos** os tests, porque os tests non simulaban o fluxo de UI
+dende cero. Guard correcto: `st !== 'unlocked' && st !== 'maxed'`.
+
+**Estándar adoptado.** Toda briefing que cree ou toque un exemplo inclúe unha
+**sonda de fluxo runnable** (3–5 chamadas que simulan a interacción real da
+UI, con asertos no estado intermedio), e a verificación post-aterraxe
+**córrea de verdade** (non só typecheck/test). Verificado en
+`examples/learn-yggdrasil/src/App.tsx` (guard + comentario explicativo do
+porqué `'unlockable'` fallaba).
+
+### A.6.34 — Erro de layout visible en DEV + "tests ≠ bundle"
+
+**Contexto.** Cando `computeLayout` falla, antes só quedaba un SVG baleiro
+silencioso — imposible de diagnosticar a simple vista.
+
+**Decisión.** En **DEV**, `SkillTree`/`SVGRenderer` renderizan un banner co
+código + mensaxe do erro (prop opcional `SVGRenderer.errorMessage`). En
+**produción**, saída idéntica á previa (svg baleiro, silencioso).
+
+**Lección crítica (tests ≠ bundle).** A detección DEV debe usar o **texto
+estático** `process.env.NODE_ENV !== 'production'` (que os bundlers
+substitúen en build) + `declare const process` ambiente de módulo (sen
+`@types/node`). **NON** `globalThis.process` dinámico: os bundlers non o
+substitúen e é `undefined` no navegador → o banner non aparecería en dev e o
+código viaxaría no bundle de prod. Tampouco garda `typeof process` (rompería
+en vite). Para **código gated por entorno**, a verificación correcta é o
+**bundle real en prod E dev** (`NODE_ENV=production` e `NODE_ENV=development`
++ `vite build`, grep do `dist`), **non** os tests — estes corren en Node,
+onde `process` sempre existe. Verificado en `packages/react/src/SVGRenderer.tsx`
+(`declare const process`, `isDev` estático, prop `errorMessage`).
+Relaciónase con A.6.21 (substitución/tree-shaking estática no bundle).
