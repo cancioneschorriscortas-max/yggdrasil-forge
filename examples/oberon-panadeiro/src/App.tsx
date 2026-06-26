@@ -56,7 +56,11 @@ function buildThemeFromVals(themeVals: ThemeLabValues): Theme {
       nodeInProgress: themeVals.nodeInProgress,
       nodeStroke: themeVals.nodeLocked,
       edge: themeVals.edge,
-      mesh: 'rgba(148, 163, 184, 0.08)',
+      // V3 cambio 4: spokes visibles. O default copiado do react-demo era
+      // `rgba(148, 163, 184, 0.08)` (8% sobre fondo escuro = case invisible).
+      // Ligamos o mesh á cor de Edges → o input "Edges" do ThemeLab controla
+      // tamén a opacidade efectiva dos spokes do clustered-radial.
+      mesh: themeVals.edge,
       nodeFill: themeVals.fill,
       nodeFillLocked: themeVals.nodeFillLocked,
       nodeFillUnlockable: themeVals.nodeFillUnlockable,
@@ -80,12 +84,18 @@ function buildThemeFromVals(themeVals: ThemeLabValues): Theme {
 }
 
 export function App(): JSX.Element {
+  // V3 cambio C: toggle en vivo de memberLayout. Reconstrúese a def
+  // (e o engine) ao mudar. Os 3 (fan/list/cluster) están implementados
+  // en ClusteredRadialLayout. Reinicianse desbloqueos (esperable: o
+  // exemplo compara FORMAS, non garda progreso).
+  const [memberLayout, setMemberLayout] = useState<'fan' | 'list' | 'cluster'>('fan')
+
   const def = useMemo(() => {
     const base = importGaiaProfession(panadeiro as unknown as GaiaProfession, {
       layout: {
         type: 'clustered-radial',
         groupRadius: 320,
-        memberLayout: 'list',
+        memberLayout,
         meshType: 'spokes',
       },
     })
@@ -96,7 +106,7 @@ export function App(): JSX.Element {
       return tagged.type === 'root' ? { ...tagged, size: 52 } : tagged
     })
     return { ...base, nodes }
-  }, [])
+  }, [memberLayout])
 
   const engine = useMemo(() => new TreeEngine(def), [def])
 
@@ -128,9 +138,14 @@ export function App(): JSX.Element {
 
   const onNodeClick = useCallback(
     (id: string) => {
-      // Guard A.6.33: un nodo nunca tocado dá 'locked', non 'unlockable'.
+      // V3 cambio A: o motor SI sobe tiers cando `state === 'unlocked'` se
+      // `maxTier > 1`; o guard previo (`unlocked || maxed`) bloqueaba o
+      // segundo `unlock` e quedaba en tier 1. Agora só evitamos chamar
+      // cando xa estamos en `maxed` (cap absoluto). A guard A.6.33 contra
+      // o estado inicial `locked` segue cuberta (todo o que non é `maxed`
+      // chama unlock; o motor decide internamente con canUnlock).
       const st = engine.getNodeState(id)?.state ?? 'locked'
-      if (st !== 'unlocked' && st !== 'maxed') void engine.unlock(id)
+      if (st !== 'maxed') void engine.unlock(id)
     },
     [engine],
   )
@@ -141,7 +156,27 @@ export function App(): JSX.Element {
 
   return (
     <div className="ob-shell">
-      <div className="ob-canvas">
+      <div
+        className="ob-canvas"
+        // V3 cambio B: fondo do lenzo vivo. `buildThemeFromVals` segue OMITINDO
+        // `colors.background` (pauta F11.3d intacta). En vez de pintar inline no
+        // <svg>, expoñemos `themeVals.canvas` como CSS variable e styles.css
+        // úsaa como background do contedor.
+        style={{ ['--ob-canvas-bg' as string]: themeVals.canvas }}
+      >
+        <div className="ob-toolbar">
+          <label>
+            Forma intra-cluster:{' '}
+            <select
+              value={memberLayout}
+              onChange={(e) => setMemberLayout(e.target.value as 'fan' | 'list' | 'cluster')}
+            >
+              <option value="fan">fan</option>
+              <option value="list">list</option>
+              <option value="cluster">cluster</option>
+            </select>
+          </label>
+        </div>
         <ThemeProvider theme={builtTheme}>
           <SkillTree
             engine={engine}

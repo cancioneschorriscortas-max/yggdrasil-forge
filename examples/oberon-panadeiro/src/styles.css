@@ -15,6 +15,22 @@ body,
 .ob-canvas {
   flex: 1;
   min-width: 0;
+  position: relative;
+  background: var(--ob-canvas-bg, #1c1712);
+}
+.ob-toolbar {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 5;
+  color: #e8dcc4;
+  font: 13px / 1.4 system-ui, sans-serif;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.ob-toolbar select {
+  margin-left: 4px;
 }
 .ob-themelab {
   width: 340px;
