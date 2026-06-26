@@ -1,0 +1,202 @@
+/* ── shell ────────────────────────────────────────────────────── */
+:root,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+.ob-shell {
+  height: 100vh;
+  display: flex;
+  background: #1c1712;
+  color: #e6d5a8;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.ob-canvas {
+  flex: 1;
+  min-width: 0;
+}
+.ob-themelab {
+  width: 340px;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 16px;
+  border-left: 1px solid rgba(218, 165, 32, 0.15);
+  background: linear-gradient(180deg, rgba(28, 23, 18, 0.9) 0%, rgba(22, 18, 14, 0.95) 100%);
+  box-sizing: border-box;
+}
+
+/* ── Theme Lab (copiado de examples/react-demo/src/styles.css) ──── */
+
+.theme-lab .panel-title {
+  margin-bottom: 12px;
+}
+
+.theme-lab-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.theme-lab-presets {
+  display: flex;
+  gap: 8px;
+}
+
+.rune-button {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(60, 45, 25, 0.9) 0%, rgba(40, 30, 18, 0.9) 100%);
+  color: #e6d5a8;
+  border: 1px solid rgba(218, 165, 32, 0.5);
+  border-radius: 6px;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(218, 165, 32, 0.15);
+}
+
+.rune-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, rgba(80, 60, 30, 0.95) 0%, rgba(55, 40, 22, 0.95) 100%);
+  border-color: rgba(218, 165, 32, 0.8);
+  box-shadow: inset 0 1px 0 rgba(218, 165, 32, 0.25), 0 0 12px rgba(218, 165, 32, 0.2);
+}
+
+.rune-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.rune-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.rune-button:last-child {
+  margin-bottom: 0;
+}
+
+.rune-button-small {
+  flex: 1;
+  font-size: 0.85em;
+  padding: 6px 10px;
+}
+
+.theme-lab-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(218, 165, 32, 0.15);
+  padding-top: 10px;
+}
+
+.theme-lab-row {
+  display: grid;
+  grid-template-columns: 1fr 32px 72px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85em;
+}
+
+.theme-lab-label {
+  color: rgba(230, 213, 168, 0.85);
+}
+
+.theme-lab-color {
+  width: 32px;
+  height: 24px;
+  border: 1px solid rgba(218, 165, 32, 0.3);
+  border-radius: 4px;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.theme-lab-range {
+  width: 100%;
+  accent-color: #daa520;
+}
+
+.theme-lab-hex {
+  font-size: 0.78em;
+  color: rgba(218, 165, 32, 0.75);
+  text-align: right;
+  font-family: "Courier New", monospace;
+}
+
+.theme-lab-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid rgba(218, 165, 32, 0.15);
+  padding-top: 10px;
+}
+
+.theme-lab-status {
+  font-size: 0.85em;
+  color: rgba(111, 207, 151, 0.95);
+}
+
+.theme-lab-note {
+  font-size: 0.78em;
+  color: rgba(230, 213, 168, 0.6);
+  line-height: 1.4;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(218, 165, 32, 0.15);
+}
+
+.theme-lab-note strong {
+  color: rgba(230, 213, 168, 0.9);
+}
+
+.theme-lab-region-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid rgba(212, 160, 23, 0.18);
+  border-radius: 8px;
+  background: rgba(212, 160, 23, 0.04);
+}
+
+.theme-lab-subtitle {
+  margin: 0;
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rune-gold, #d4a017);
+  opacity: 0.85;
+}
+
+.theme-lab-select {
+  background: rgba(15, 17, 25, 0.6);
+  color: inherit;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+/* Panel-title inside theme-lab modal */
+.theme-lab .panel-title,
+.panel-title {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.2);
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #daa520;
+  text-transform: uppercase;
+}
