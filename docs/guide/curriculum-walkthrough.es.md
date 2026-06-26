@@ -1,51 +1,173 @@
-# Tutorial del curriculum — composición con subárboles anidados
+# Tutorial del curriculum — componiendo subárboles anidados
 
-> **Destacados**
-> - Un curso modelado como **subárboles anidados** — totalmente dirigido por datos.
-> - Las puertas de los módulos usan **`subtree_completion`** (un porcentaje de un subárbol).
-> - **Dos niveles de anidamiento**: un subárbol dentro de un subárbol.
-> - **UI deliberadamente sencilla** — este ejemplo vende *composición*, no decoración. Para el hermano pulido, ver el [tutorial de Learn Yggdrasil Forge](./learn-yggdrasil-walkthrough.es.md).
+> Modela un curso multinivel como **datos puros**: anclas más un registro `subtrees` recursivo, con puertas según lo completo que esté cada módulo. Este es el hermano *mínimo* — aísla la **composición**. Para la cáscara de consumidor pulida (HUD, por-qué-bloqueado, UI de drill-in), ver la [guía de Learn Yggdrasil Forge](./learn-yggdrasil-walkthrough.es.md).
+> Cada fragmento de abajo es código real de `examples/curriculum`.
 
 ![Programming 101 en marcha](./img/curriculum-overview.png)
-<!-- captura: poner aquí una captura del ejemplo curriculum en marcha -->
 
-## Qué muestra este ejemplo
+## El modelo mental
 
-`examples/curriculum` es **Programming 101**: un curso cuyos módulos son árboles de habilidades independientes, compuestos bajo un único padre. Muestra cómo Yggdrasil Forge expresa un currículo (o un árbol tecnológico, o cualquier progresión por capas) como datos puros — sin código de motor a medida.
+```
+TreeDef padre
+   │  un nodo con type: 'subtree_anchor' + subtreeId
+   ▼
+subtree_anchor ──apunta a──► TreeDef hijo     registrado bajo parent.subtrees
+   │  el hijo puede llevar subtree_anchors también…
+   ▼
+…recursivamente, a cualquier profundidad
+```
 
-## La forma: un curso como subárboles anidados
+Un curso no es una estructura especial — es un `TreeDef` cuyos nodos apuntan a *otros* `TreeDef`. El motor trata cada profundidad de forma idéntica; las puertas entre módulos son solo un porcentaje de lo completo que está un subárbol.
 
-El árbol padre (`programming-101`, layout `custom`) tiene cinco nodos: cuatro **anclas de módulo** y un capstone. Cada ancla apunta a su propio `TreeDef` mediante `subtreeId`, y esos defs viven en el registro `subtrees` del padre. Uno de ellos — Data Structures — anida otro subárbol (`trees`), dando **dos niveles** de composición.
+## 1. Un módulo es solo un TreeDef
+
+Tres helpers mantienen los datos legibles (cópialos):
+
+```ts
+import { SCHEMA_VERSION } from '@yggdrasil-forge/common'
+import type { EdgeDef, NodeDef, TreeDef } from '@yggdrasil-forge/core'
+
+const lesson = (id: string, label: string, needs?: string): NodeDef =>
+  needs === undefined
+    ? { id, type: 'small', label: { en: label } }
+    : { id, type: 'small', label: { en: label }, prerequisites: { type: 'node_unlocked', nodeId: needs } }
+
+const edge = (source: string, target: string): EdgeDef =>
+  ({ id: `${source}__${target}`, source, target, type: 'dependency' })
+
+const scaffold = (id: string, label: string): Omit<TreeDef, 'nodes' | 'edges' | 'subtrees'> => ({
+  id, schemaVersion: SCHEMA_VERSION, version: '1.0.0', label: { en: label },
+  layout: { type: 'tree', nodeSpacing: 180, levelSpacing: 150 },
+  startingBudget: { resources: { xp: 999 } },            // los desbloqueos son gratis → clic-para-completar
+  resources: [{ id: 'xp', label: { en: 'XP' }, refundable: true, refundPercent: 100 }],
+})
+```
+
+Un módulo es entonces un árbol normal de lecciones:
+
+```ts
+const fundamentals: TreeDef = {
+  ...scaffold('fundamentals', 'Fundamentals'),
+  nodes: [
+    lesson('variables', 'Variables'),
+    lesson('control-flow', 'Control flow', 'variables'),    // necesita variables
+    lesson('functions', 'Functions', 'control-flow'),
+  ],
+  edges: [edge('variables', 'control-flow'), edge('control-flow', 'functions')],
+}
+```
+
+## 2. Componer: anclas + un registro `subtrees`
+
+Para meter un módulo *dentro* de otro árbol, añade un nodo con `type: 'subtree_anchor'` y un `subtreeId`, y registra el hijo bajo `subtrees`:
+
+```ts
+const trees: TreeDef = {                                   // un módulo de nivel 2
+  ...scaffold('trees', 'Trees'),
+  nodes: [lesson('binary-tree', 'Binary tree'), lesson('bst', 'Binary search tree', 'binary-tree')],
+  edges: [edge('binary-tree', 'bst')],
+}
+
+const dataStructures: TreeDef = {
+  ...scaffold('data-structures', 'Data Structures'),
+  nodes: [
+    lesson('arrays', 'Arrays'),
+    lesson('maps', 'Maps', 'arrays'),
+    { id: 'trees-anchor', type: 'subtree_anchor', label: { en: 'Trees (nested)' },
+      subtreeId: 'trees', prerequisites: { type: 'node_unlocked', nodeId: 'arrays' } },
+  ],
+  edges: [edge('arrays', 'maps'), edge('arrays', 'trees-anchor')],
+  subtrees: { trees },     // ← `trees` es a su vez un TreeDef completo → dos niveles de anidamiento
+}
+```
+
+Como un subárbol es *a su vez* un `TreeDef`, puede llevar sus propios `subtrees` — el anidamiento es recursivo, sin caso especial a ninguna profundidad.
 
 ![Estructura anidada](./img/curriculum-nesting.svg)
 
-Un `subtree_anchor` es solo un nodo que lleva un `subtreeId`; el subárbol al que apunta es un `TreeDef` completo, así que puede tener sus propios subárboles, de forma recursiva. Nada de esto es un caso especial — es el mismo modelo de datos a cualquier profundidad.
+## 3. Puertas entre módulos: `subtree_completion`
 
-## Puertas: `subtree_completion`
+Los módulos se desbloquean según lo completo que esté un subárbol prerrequisito. `subtree_completion` es un porcentaje (0–100): nodos desbloqueados ÷ total × 100. Tres patrones de cableado cubren la mayoría de los cursos:
 
-Los módulos se desbloquean según lo completo que esté un subárbol prerrequisito. `subtree_completion` es un porcentaje (0–100): nodos desbloqueados ÷ total × 100. Programming 101 conecta tres formas de dependencia:
+```ts
+// CADENA — Data Structures se abre cuando Fundamentals está del todo terminado
+prerequisites: { type: 'subtree_completion', subtreeId: 'fundamentals', percent: 100 }
 
-- **Cadena** — Fundamentals → Data Structures → Algorithms (cada uno necesita el anterior al 100%).
-- **Paralelo** — Fundamentals también desbloquea Web.
-- **Convergencia** — el Capstone necesita **todos** (Algorithms y Web al 100%) — una regla `all`.
+// PARALELO — Web depende del mismo Fundamentals: una rama hermana, no una secuela
+prerequisites: { type: 'subtree_completion', subtreeId: 'fundamentals', percent: 100 }
 
-Los prerrequisitos controlan el *desbloqueo*; no son invariantes continuos, así que bajar el progreso más tarde no vuelve a bloquear lo ya desbloqueado.
+// CONVERGENCIA — el Capstone necesita AMBAS ramas finales a la vez
+prerequisites: { type: 'all', conditions: [
+  { type: 'subtree_completion', subtreeId: 'algorithms', percent: 100 },
+  { type: 'subtree_completion', subtreeId: 'web',        percent: 100 },
+]}
+```
 
-## Drill-in
+Este curso usa el **100%** (todas las lecciones obligatorias). Bájalo a `80` y un módulo se abre antes de agotar su prerrequisito — esa es la decisión que toma el curso de [Learn Yggdrasil Forge](./learn-yggdrasil-walkthrough.es.md).
 
-Abrir un módulo entra en su subárbol: `engine.enterSubtree(subtreeId)` devuelve un **`TreeEngine` hijo**, que se renderiza con el mismo componente `<SkillTree>`. El ejemplo mantiene una pila de motores más una miga de pan para subir. Esta es la forma *mínima* del drill-in; el ejemplo Learn Yggdrasil Forge construye una cáscara más rica — progreso, "por qué bloqueado", un botón Abrir explícito — sobre las mismas llamadas.
+> Los prerrequisitos controlan solo el *desbloqueo* — no son invariantes continuos. Bajar el progreso de un subárbol más tarde no vuelve a bloquear un módulo ya abierto.
 
-## Sencillo a propósito
+## 4. La raíz: montar el curso
 
-Los nodos aquí son sobrios: sin insignias, niveles ni iconos. Ese es el objetivo — el ejemplo aísla **composición y puertas** para que se lean con facilidad. El estilo y la decoración son una preocupación aparte (un tema más UI de consumidor), mostrada en el hermano pulido.
+La raíz es un `TreeDef` como cualquier otro. Usa `layout: { type: 'custom' }` porque el curso es un DAG con una convergencia (el Capstone tiene dos padres), así que los nodos se colocan a mano en un diamante limpio:
 
-## Ejecutarlo
+```ts
+export const curriculumDef: TreeDef = {
+  ...scaffold('programming-101', 'Programming 101'),
+  layout: { type: 'custom' },
+  nodes: [
+    { id: 'mod-fundamentals', type: 'subtree_anchor', label: { en: 'Fundamentals' },
+      subtreeId: 'fundamentals', position: { x: 300, y: 40 } },
+    { id: 'mod-data-structures', type: 'subtree_anchor', label: { en: 'Data Structures' },
+      subtreeId: 'data-structures', position: { x: 150, y: 200 },
+      prerequisites: { type: 'subtree_completion', subtreeId: 'fundamentals', percent: 100 } },
+    // …mod-web (paralelo) y mod-algorithms (tras data-structures)…
+    { id: 'capstone', type: 'keystone', label: { en: 'Capstone project' }, position: { x: 300, y: 540 },
+      prerequisites: { type: 'all', conditions: [
+        { type: 'subtree_completion', subtreeId: 'algorithms', percent: 100 },
+        { type: 'subtree_completion', subtreeId: 'web',        percent: 100 },
+      ] } },
+  ],
+  edges: [
+    edge('mod-fundamentals', 'mod-data-structures'), edge('mod-fundamentals', 'mod-web'),
+    edge('mod-data-structures', 'mod-algorithms'),
+    edge('mod-algorithms', 'capstone'), edge('mod-web', 'capstone'),
+  ],
+  subtrees: { fundamentals, 'data-structures': dataStructures, algorithms, web },
+}
+```
+
+> **Gotcha — dale aire a los layouts `tree`.** El solver coloca los nodos pero aún no mide el ancho de las etiquetas, así que hermanos con poco espacio solapan su texto. El `scaffold` de arriba usa `nodeSpacing`/`levelSpacing` generosos a propósito; la raíz usa `custom` con `position`s a mano por lo mismo.
+
+## 5. Renderizarlo, y entrar
+
+Renderizar un árbol compuesto no se diferencia de cualquier otro — crea un motor, pásalo a un `<SkillTree>`:
+
+```ts
+import { TreeEngine } from '@yggdrasil-forge/core'
+
+const engine = new TreeEngine(curriculumDef)
+// <SkillTree engine={engine} onNodeClick={id => engine.unlock(id)} />
+```
+
+Abrir un módulo entra en su subárbol. `enterSubtree` devuelve el hijo como un **nuevo `TreeEngine`** que renderizas con el **mismo `<SkillTree>`**:
+
+```ts
+const res = engine.enterSubtree('fundamentals')   // → Result<TreeEngine>
+if (res.ok) {
+  // renderiza res.value con el mismo <SkillTree>; mantén una pila para subir
+}
+```
+
+Ese es el drill-in mínimo. La [guía de Learn Yggdrasil Forge](./learn-yggdrasil-walkthrough.es.md) construye la versión pulida sobre estas mismas llamadas — una miga de pan, progreso por módulo y un panel de "¿por qué está bloqueado?".
+
+## 6. Ejecutarlo
 
 ```bash
 pnpm install
 pnpm --filter @yggdrasil-forge-examples/curriculum dev
 ```
 
-## Resumen
+## En una línea
 
-Un currículo multinivel es solo *datos*: anclas más `subtreeId` más un registro `subtrees` recursivo, con puertas `subtree_completion`. El motor trata cada profundidad de forma idéntica, y un `<SkillTree>` simple renderiza cada nivel — sin cambios en el renderizador.
+Un curso multinivel es solo *datos*: anclas + `subtreeId` + un registro `subtrees` recursivo, con puertas `subtree_completion`. El motor trata cada profundidad de forma idéntica, y un `<SkillTree>` renderiza cada nivel — sin código de motor a medida, sin caso especial para el anidamiento.
