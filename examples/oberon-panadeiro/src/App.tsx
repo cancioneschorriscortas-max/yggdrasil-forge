@@ -89,6 +89,11 @@ export function App(): JSX.Element {
   // en ClusteredRadialLayout. Reinicianse desbloqueos (esperable: o
   // exemplo compara FORMAS, non garda progreso).
   const [memberLayout, setMemberLayout] = useState<'fan' | 'list' | 'cluster'>('fan')
+  // V4 cambio 1: toggle de cor por cluster. node.color gaña sobre nodeFill<State>
+  // (A.6.17), polo que activar isto perde a distinción locked/unlocked → é o
+  // experimento de "pertenza por cor" (cor = grupo). Default ON para velo
+  // de primeiras. Apágao para recuperar a cor por estado.
+  const [colorByCluster, setColorByCluster] = useState(true)
 
   const def = useMemo(() => {
     const base = importGaiaProfession(panadeiro as unknown as GaiaProfession, {
@@ -96,17 +101,30 @@ export function App(): JSX.Element {
         type: 'clustered-radial',
         groupRadius: 320,
         memberLayout,
-        meshType: 'spokes',
+        // V4 cambio 2: sen liñas. O abano + a posición xa "fan" estrela; os
+        // spokes sumaban ruído sen comunicar pertenza. Recuperar con 'spokes'
+        // se algunha vez se queren outra vez.
+        meshType: 'none',
       },
     })
     // (1) tags = [group] para que as `regions` seleccionen por tag.
-    // (2) root-coroa: size 52 para diferencialo visualmente do resto.
+    // (2) V4: cando colorByCluster está ON, asignamos node.color = cor do grupo.
+    //     A.6.17: node.color gaña sobre nodeFill<State>; co toggle ON todos os
+    //     nodos do mesmo cluster son da mesma cor (perdemos a distinción de
+    //     estado: é o experimento de pertenza). Spread sempre para non mutar
+    //     o nodo orixinal. exactOptionalPropertyTypes: engadimos `color` só
+    //     cando hai valor, nunca `color: undefined`.
+    // (3) root-coroa: size 52 para diferencialo visualmente do resto.
     const nodes = base.nodes.map((n) => {
-      const tagged = n.group !== undefined ? { ...n, tags: [...(n.tags ?? []), n.group] } : n
-      return tagged.type === 'root' ? { ...tagged, size: 52 } : tagged
+      let m = n.group !== undefined ? { ...n, tags: [...(n.tags ?? []), n.group] } : { ...n }
+      if (colorByCluster && n.group !== undefined && GROUP_COLORS[n.group] !== undefined) {
+        m = { ...m, color: GROUP_COLORS[n.group] }
+      }
+      if (m.type === 'root') m = { ...m, size: 52 }
+      return m
     })
     return { ...base, nodes }
-  }, [memberLayout])
+  }, [memberLayout, colorByCluster])
 
   const engine = useMemo(() => new TreeEngine(def), [def])
 
@@ -175,6 +193,14 @@ export function App(): JSX.Element {
               <option value="list">list</option>
               <option value="cluster">cluster</option>
             </select>
+          </label>
+          <label style={{ marginLeft: 12 }}>
+            <input
+              type="checkbox"
+              checked={colorByCluster}
+              onChange={(e) => setColorByCluster(e.target.checked)}
+            />{' '}
+            cor por cluster
           </label>
         </div>
         <ThemeProvider theme={builtTheme}>
