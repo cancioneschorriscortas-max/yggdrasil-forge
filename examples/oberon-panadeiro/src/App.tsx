@@ -101,22 +101,71 @@ export function App(): JSX.Element {
   // (-PI/2): voltear = 180° respecto a iso = +PI/2.
   const [topology, setTopology] = useState<Topology>('chain')
   const [flip, setFlip] = useState(false)
+  // V6 (constellation): selector de layout + mandos do fío radial.
+  // Cando `layoutKind === 'constellation'`, o motor usa o novo
+  // ConstellationLayout (@core). `memberLayout` deixa de aplicar e o
+  // selector correspondente queda oculto. `compensateShortCluster`
+  // só ten sentido con equal-span: sobe `node.size` dos membros do
+  // cluster máis pequeno (3 nodos no panadeiro: Materia Prima) para
+  // que "pesen" visualmente coma os fíos de 4. Só afecta tamaño, nunca
+  // posición.
+  const [layoutKind, setLayoutKind] = useState<'clustered-radial' | 'constellation'>(
+    'clustered-radial',
+  )
+  const [innerRadius, setInnerRadius] = useState(90)
+  const [outerRadius, setOuterRadius] = useState(320)
+  const [lengthMode, setLengthMode] = useState<'equal-span' | 'fixed-step'>('equal-span')
+  const [compensateShortCluster, setCompensateShortCluster] = useState(false)
 
   const def = useMemo(() => {
+    const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
+    const layoutConfig =
+      layoutKind === 'constellation'
+        ? ({
+            type: 'constellation' as const,
+            shape: 'line' as const,
+            innerRadius,
+            outerRadius,
+            lengthMode,
+            startAngle,
+          } as const)
+        : ({
+            type: 'clustered-radial' as const,
+            groupRadius: 320,
+            memberLayout,
+            // V4 cambio 2: sen liñas. O abano + a posición xa "fan" estrela; os
+            // spokes sumaban ruído sen comunicar pertenza. Recuperar con 'spokes'
+            // se algunha vez se queren outra vez.
+            meshType: 'none' as const,
+            // V5: voltear o anel. Default do core é -PI/2 ("arriba"), o que se
+            // ve en v4. Manteno como base; flip suma π (= +PI/2, "abaixo").
+            startAngle,
+          } as const)
     const base = importGaiaProfession(panadeiro as unknown as GaiaProfession, {
-      layout: {
-        type: 'clustered-radial',
-        groupRadius: 320,
-        memberLayout,
-        // V4 cambio 2: sen liñas. O abano + a posición xa "fan" estrela; os
-        // spokes sumaban ruído sen comunicar pertenza. Recuperar con 'spokes'
-        // se algunha vez se queren outra vez.
-        meshType: 'none',
-        // V5: voltear o anel. Default do core é -PI/2 ("arriba"), o que se
-        // ve en v4. Manteno como base; flip suma π (= +PI/2, "abaixo").
-        startAngle: flip ? Math.PI / 2 : -Math.PI / 2,
-      },
+      layout: layoutConfig,
     })
+
+    // V6: tamaño compensado dos membros do cluster máis pequeno (idea
+    // de Agarfal). Só aplica con constellation + equal-span + toggle ON.
+    // Atopamos o tamaño mínimo entre clusters declarados e marcamos os
+    // seus membros para subilos en `node.size`.
+    const shouldCompensate =
+      compensateShortCluster && layoutKind === 'constellation' && lengthMode === 'equal-span'
+    let smallestGroupId: string | undefined
+    if (shouldCompensate) {
+      const counts = new Map<string, number>()
+      for (const nd of base.nodes) {
+        if (nd.group !== undefined) counts.set(nd.group, (counts.get(nd.group) ?? 0) + 1)
+      }
+      let min = Number.POSITIVE_INFINITY
+      for (const [gid, c] of counts) {
+        if (c < min) {
+          min = c
+          smallestGroupId = gid
+        }
+      }
+    }
+
     // (1) tags = [group] para que as `regions` seleccionen por tag.
     // (2) V4: cando colorByCluster está ON, asignamos node.color = cor do grupo.
     //     A.6.17: node.color gaña sobre nodeFill<State>; co toggle ON todos os
@@ -125,12 +174,16 @@ export function App(): JSX.Element {
     //     o nodo orixinal. exactOptionalPropertyTypes: engadimos `color` só
     //     cando hai valor, nunca `color: undefined`.
     // (3) root-coroa: size 52 para diferencialo visualmente do resto.
+    // (4) V6: compensar nodo curto (só size).
     const nodes = base.nodes.map((n) => {
       let m = n.group !== undefined ? { ...n, tags: [...(n.tags ?? []), n.group] } : { ...n }
       if (colorByCluster && n.group !== undefined && GROUP_COLORS[n.group] !== undefined) {
         m = { ...m, color: GROUP_COLORS[n.group] }
       }
       if (m.type === 'root') m = { ...m, size: 52 }
+      if (smallestGroupId !== undefined && n.group === smallestGroupId && m.type !== 'root') {
+        m = { ...m, size: 36 }
+      }
       return m
     })
     // V5: arestas derivadas consumidor-side (o fixture trae conectadas:[]).
@@ -140,7 +193,17 @@ export function App(): JSX.Element {
     // por seguridade futura.
     const derived = deriveEdges({ ...base, nodes }, topology)
     return { ...base, nodes, edges: [...base.edges, ...derived] }
-  }, [memberLayout, colorByCluster, topology, flip])
+  }, [
+    memberLayout,
+    colorByCluster,
+    topology,
+    flip,
+    layoutKind,
+    innerRadius,
+    outerRadius,
+    lengthMode,
+    compensateShortCluster,
+  ])
 
   const engine = useMemo(() => new TreeEngine(def), [def])
 
@@ -200,16 +263,77 @@ export function App(): JSX.Element {
       >
         <div className="ob-toolbar">
           <label>
-            Forma intra-cluster:{' '}
+            Layout:{' '}
             <select
-              value={memberLayout}
-              onChange={(e) => setMemberLayout(e.target.value as 'fan' | 'list' | 'cluster')}
+              value={layoutKind}
+              onChange={(e) =>
+                setLayoutKind(e.target.value as 'clustered-radial' | 'constellation')
+              }
             >
-              <option value="fan">fan</option>
-              <option value="list">list</option>
-              <option value="cluster">cluster</option>
+              <option value="clustered-radial">clustered-radial</option>
+              <option value="constellation">constellation</option>
             </select>
           </label>
+          {layoutKind === 'clustered-radial' && (
+            <label style={{ marginLeft: 12 }}>
+              Forma intra-cluster:{' '}
+              <select
+                value={memberLayout}
+                onChange={(e) => setMemberLayout(e.target.value as 'fan' | 'list' | 'cluster')}
+              >
+                <option value="fan">fan</option>
+                <option value="list">list</option>
+                <option value="cluster">cluster</option>
+              </select>
+            </label>
+          )}
+          {layoutKind === 'constellation' && (
+            <>
+              <label style={{ marginLeft: 12 }}>
+                inner:{' '}
+                <input
+                  type="range"
+                  min={40}
+                  max={200}
+                  step={5}
+                  value={innerRadius}
+                  onChange={(e) => setInnerRadius(Number(e.target.value))}
+                />{' '}
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{innerRadius}</span>
+              </label>
+              <label style={{ marginLeft: 12 }}>
+                outer:{' '}
+                <input
+                  type="range"
+                  min={200}
+                  max={420}
+                  step={5}
+                  value={outerRadius}
+                  onChange={(e) => setOuterRadius(Number(e.target.value))}
+                />{' '}
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{outerRadius}</span>
+              </label>
+              <label style={{ marginLeft: 12 }}>
+                lengthMode:{' '}
+                <select
+                  value={lengthMode}
+                  onChange={(e) => setLengthMode(e.target.value as 'equal-span' | 'fixed-step')}
+                >
+                  <option value="equal-span">equal-span</option>
+                  <option value="fixed-step">fixed-step</option>
+                </select>
+              </label>
+              <label style={{ marginLeft: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={compensateShortCluster}
+                  onChange={(e) => setCompensateShortCluster(e.target.checked)}
+                  disabled={lengthMode !== 'equal-span'}
+                />{' '}
+                compensar nodo curto
+              </label>
+            </>
+          )}
           <label style={{ marginLeft: 12 }}>
             <input
               type="checkbox"

@@ -105,6 +105,13 @@ export type {
   ClusteredMeshType,
 } from './layouts/ClusteredRadialConfig.js'
 export { parseClusteredRadialConfig } from './layouts/ClusteredRadialConfig.js'
+export { ConstellationLayout } from './layouts/ConstellationLayout.js'
+export type {
+  ConstellationConfig,
+  ConstellationShape,
+  ConstellationLengthMode,
+} from './layouts/ConstellationConfig.js'
+export { parseConstellationConfig } from './layouts/ConstellationConfig.js'
 export type { CustomLayoutConfig } from './layouts/CustomLayoutConfig.js'
 export { parseCustomConfig } from './layouts/CustomLayoutConfig.js'
 export type { CurveStyle, PathBuilderOptions } from './layouts/PathBuilder.js'

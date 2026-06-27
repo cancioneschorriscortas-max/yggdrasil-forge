@@ -1,12 +1,14 @@
 // ── INICIO: createDefaultLayoutRegistry ──
 // Helper interno para construír un LayoutEngineRegistry default cos
-// 4 layouts dispoñibles en core (Identity, Radial, Tree, ClusteredRadial).
+// layouts dispoñibles en core (Identity, Radial, Tree, ClusteredRadial,
+// Constellation).
 //
 // NON exportado publicamente en 7.2. Pode promocionarse a export
 // público en sub-fases futuras se require.
 
 import {
   ClusteredRadialLayout,
+  ConstellationLayout,
   IdentityLayout,
   LayoutEngineRegistry,
   RadialLayout,
@@ -23,5 +25,6 @@ export function createDefaultLayoutRegistry(): LayoutEngineRegistry {
     .register(new RadialLayout())
     .register(new TreeLayout())
     .register(new ClusteredRadialLayout())
+    .register(new ConstellationLayout())
 }
 // ── FIN: createDefaultLayoutRegistry ──
