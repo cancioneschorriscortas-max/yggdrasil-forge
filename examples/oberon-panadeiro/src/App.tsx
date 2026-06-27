@@ -15,6 +15,7 @@ import { SkillTree, type Theme, ThemeProvider } from '@yggdrasil-forge/react'
 import type { JSX } from 'react'
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
+import { type Topology, deriveEdges } from './deriveEdges.js'
 import panadeiro from './panadeiro.fixture.json'
 
 // Cor de partida por cluster. Agarfal afínaa en vivo no ThemeLab
@@ -94,6 +95,12 @@ export function App(): JSX.Element {
   // experimento de "pertenza por cor" (cor = grupo). Default ON para velo
   // de primeiras. Apágao para recuperar a cor por estado.
   const [colorByCluster, setColorByCluster] = useState(true)
+  // V5: topoloxía conmutable (deriva edges visuais consumidor-side) +
+  // voltear (xira o anel via startAngle). chain = constelación/Skyrim
+  // (default para arrancar). flip respecta o "arriba" base do v4
+  // (-PI/2): voltear = 180° respecto a iso = +PI/2.
+  const [topology, setTopology] = useState<Topology>('chain')
+  const [flip, setFlip] = useState(false)
 
   const def = useMemo(() => {
     const base = importGaiaProfession(panadeiro as unknown as GaiaProfession, {
@@ -105,6 +112,9 @@ export function App(): JSX.Element {
         // spokes sumaban ruído sen comunicar pertenza. Recuperar con 'spokes'
         // se algunha vez se queren outra vez.
         meshType: 'none',
+        // V5: voltear o anel. Default do core é -PI/2 ("arriba"), o que se
+        // ve en v4. Manteno como base; flip suma π (= +PI/2, "abaixo").
+        startAngle: flip ? Math.PI / 2 : -Math.PI / 2,
       },
     })
     // (1) tags = [group] para que as `regions` seleccionen por tag.
@@ -123,8 +133,14 @@ export function App(): JSX.Element {
       if (m.type === 'root') m = { ...m, size: 52 }
       return m
     })
-    return { ...base, nodes }
-  }, [memberLayout, colorByCluster])
+    // V5: arestas derivadas consumidor-side (o fixture trae conectadas:[]).
+    // type:'path' → debúxanse pero NON crean gates (canUnlock intacto).
+    // Lóxica en `./deriveEdges` para que a sonda a importe e probe o
+    // código real, non unha copia. Concat con `base.edges` (que vén baleiro)
+    // por seguridade futura.
+    const derived = deriveEdges({ ...base, nodes }, topology)
+    return { ...base, nodes, edges: [...base.edges, ...derived] }
+  }, [memberLayout, colorByCluster, topology, flip])
 
   const engine = useMemo(() => new TreeEngine(def), [def])
 
@@ -201,6 +217,19 @@ export function App(): JSX.Element {
               onChange={(e) => setColorByCluster(e.target.checked)}
             />{' '}
             cor por cluster
+          </label>
+          <label style={{ marginLeft: 12 }}>
+            topoloxía:{' '}
+            <select value={topology} onChange={(e) => setTopology(e.target.value as Topology)}>
+              <option value="none">ningunha</option>
+              <option value="star">estrela</option>
+              <option value="hub">hub</option>
+              <option value="chain">fío</option>
+            </select>
+          </label>
+          <label style={{ marginLeft: 12 }}>
+            <input type="checkbox" checked={flip} onChange={(e) => setFlip(e.target.checked)} />{' '}
+            voltear
           </label>
         </div>
         <ThemeProvider theme={builtTheme}>
