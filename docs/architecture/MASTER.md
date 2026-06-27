@@ -4625,3 +4625,22 @@ tier** (`r1.ok`, `r2.ok`, `r3.ok` con mensaxe de erro no aserto).
 recursos e `importGaiaProfession` non os engade; descartouse orzamento/recurso
 por inspección **antes** de tocar código. Verificado en
 `examples/oberon-panadeiro` (guard `st !== 'maxed'`) e na sonda de `@importers`.
+
+### A.6.36 — Valores visuais numéricos: as static gates non os validan
+
+**Contexto.** No briefing v4 do `oberon-panadeiro`, o `radial-gradient` levaba alphas
+`0.12 → 0.04` que, sobre o fondo escuro real (`#11131a`), eran **invisibles** (~3–4
+unidades de luminosidade). Typecheck/lint/test/build pasaron igual; o erro só apareceu
+cando Agarfal aplicou e **mirou** (segunda vez que o "ollo de Agarfal" caza algo que pasou
+todas as gates estáticas — a primeira foi a asimetría de exclusións pre-A.6.30).
+
+**Lección.** Alphas, opacidades, tamaños relativos e calquera magnitude que dependa do
+**contexto cromático ambiente** NON se validan con gates estáticas: dependen do fondo/tema
+real.
+
+**Estándar adoptado.** Cando un briefing introduza valores numéricos visuais, o Director
+debe: (a) **previsualizalos renderizados sobre o fondo real** antes de baixalos ao papel
+(principio "monta o contido antes do briefing"); ou (b) indicar **sobre que fondo se
+calcularon**; ou (c) marcalos como **"valores de partida — calibrar en vivo"** para que o
+Executor non os trate como definitivos. Liga con A.6.9 ("typecheck ≠ render"), A.6.34
+("tests ≠ bundle") e A.6.30 (ollo de Agarfal sobre gates verdes).
