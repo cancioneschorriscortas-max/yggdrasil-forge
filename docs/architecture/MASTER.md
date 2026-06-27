@@ -19,6 +19,13 @@ Este é o **documento mestre** do proxecto Yggdrasil Forge. Establece todas as d
 
 Todas as decisións aquí están **xa tomadas**. Non hai opcións pendentes. Os executores non deben preguntar "X ou Y?" — todo está aquí.
 
+**Documentos compañeiros** (visión e referencia; non son canon de execución):
+- `TEORIA_relacions-e-layout.md` — a teoría do **Progression Graph** (Lente → Semántica →
+  Transformación → Grafo → Layout → Render; explicabilidade; disciplina anti-second-system).
+  Documento guía **conxelado**: revísase só contra casos reais.
+- `../research/REFERENCIAS_render-organico.md` — técnicas de render orgánico (edge bundling,
+  hull, conectores) con fontes.
+
 ---
 
 ## ÍNDICE
@@ -4561,7 +4568,9 @@ a fenda é distinta: *tests verdes ≠ fluxo correcto*.
 inicial resólvese como `'locked'`, **non** `'unlockable'`. Condicionar o
 `unlock` a `st === 'unlockable'` **rompe o primeiro clic** — e aínda así pasa
 typecheck e **todos** os tests, porque os tests non simulaban o fluxo de UI
-dende cero. Guard correcto: `st !== 'unlocked' && st !== 'maxed'`.
+dende cero. Guard correcto **para nodos dun só tier**:
+`st !== 'unlocked' && st !== 'maxed'` (para **multi-tier** este guard atasca a
+subida de tier; usar `st !== 'maxed'` — ver A.6.35).
 
 **Estándar adoptado.** Toda briefing que cree ou toque un exemplo inclúe unha
 **sonda de fluxo runnable** (3–5 chamadas que simulan a interacción real da
@@ -4591,3 +4600,28 @@ en vite). Para **código gated por entorno**, a verificación correcta é o
 onde `process` sempre existe. Verificado en `packages/react/src/SVGRenderer.tsx`
 (`declare const process`, `isDev` estático, prop `errorMessage`).
 Relaciónase con A.6.21 (substitución/tree-shaking estática no bundle).
+
+### A.6.35 — Multi-tier rompe o guard e a sonda de A.6.33 (spike `oberon-panadeiro`)
+
+**Contexto.** Refina A.6.33. Aquel guard e a súa sonda foron pensados para nodos
+**dun só tier**; o exemplo `oberon-panadeiro` (microskills con `maxTier: 3`)
+destapou que ambos fallan en multi-tier.
+
+**Feito (guard).** Nun nodo multi-tier, tras o tier 1 o estado é `'unlocked'`
+(non `'maxed'`), así que `st !== 'unlocked'` **bloquea** a subida a tier 2/3 — o
+nodo queda atascado en `1/N`. O motor **si** permite subir: en `TreeEngine`,
+`'maxed'` bloquea sempre, pero `'unlocked'` **con `maxTier` definido** admite
+reintentos de tier. Guard universal correcto: **`st !== 'maxed'`** (deixa subir
+mentres non estea ao máximo; segue bloqueando o re-clic dos dun-só-tier, que xa
+están `'maxed'`).
+
+**Feito (sonda).** A sonda de A.6.33 validaba a **forma** do layout pero **non**
+que un `unlock` completase os tiers → o bug pasou desapercibido. **Estándar
+reforzado:** para exemplos *punta-de-lanza* con nodos multi-tier, a sonda
+runnable simula **`unlock` ×N** nun microskill representativo e **aserta cada
+tier** (`r1.ok`, `r2.ok`, `r3.ok` con mensaxe de erro no aserto).
+
+**Causa orixe (non era custo).** A fixture do panadeiro non ten `cost` nin
+recursos e `importGaiaProfession` non os engade; descartouse orzamento/recurso
+por inspección **antes** de tocar código. Verificado en
+`examples/oberon-panadeiro` (guard `st !== 'maxed'`) e na sonda de `@importers`.
