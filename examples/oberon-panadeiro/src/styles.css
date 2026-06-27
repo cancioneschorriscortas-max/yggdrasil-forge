@@ -18,11 +18,14 @@ body,
   position: relative;
   /* V4 cambio 3: degradado radial = "pozo de gravidade" do root no centro,
      esvaecéndose cara á cor base (--ob-canvas-bg, controlada polo ThemeLab
-     de v3). Substitúe o fondo plano. */
+     de v3). Substitúe o fondo plano.
+     V4.1: alpha calibrada — 0.12/0.04 eran invisibles sobre #11131a
+     (delta de ~3-4 unidades de luminosidade, indistinguible). Subimos a
+     0.32/0.10 para que o brillo central comunique sen ser estridente. */
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(201, 154, 43, 0.12) 0%,
-    rgba(201, 154, 43, 0.04) 32%,
+    rgba(201, 154, 43, 0.32) 0%,
+    rgba(201, 154, 43, 0.1) 32%,
     var(--ob-canvas-bg, #1c1712) 66%
   );
 }
