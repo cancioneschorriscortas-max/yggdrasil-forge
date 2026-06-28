@@ -4675,3 +4675,40 @@ estaba acoplado a SVG (`SVGSVGElement`), e houbo que reaxustar; a verificación 
 sinatura **precede** á recomendación de reuso. Verificado en
 `examples/oberon-panadeiro/src/ClusterCards.tsx` (pan/zoom engadido post-aterraxe).
 Liga con A.6.36 e co protocolo Director→Executor.
+
+### A.6.38 — `modify_stat` declárase no tipo `Effect` pero NON está implementado en runtime
+
+**Contexto.** A fixture cyberware (briefing de exemplo `cyberware-ripperdoc`)
+usaba `effects: [{ type: 'modify_stat', ... }]` nos seus nodos. O tipo `Effect`
+de `@core` inclúe `modify_stat` na unión discriminada, polo que **typecheck pasa
+limpamente**. Pero ao executar `engine.unlock(id)` o motor devolve `YGG_E017`
+("o tipo de efecto `modify_stat` non está soportado nesta versión") e fai
+**rollback completo** da transacción → **cada instalación rebentaba** mesmo
+tendo recursos abondos.
+
+**Lección.** O tipo `Effect` declara variantes que o aplicador de efectos do
+runtime aínda **non implementa**. Para **deltas de stat pasivos** (o caso
+clásico dun "+15 % crítico" que aporta unha peza de cyberware), o mecanismo
+correcto é **`NodeDef.statContributions`** (`{ statId, op, value }`, agregado
+polo `StatComputer`), **non** `effects`. `effects` está reservado para
+operacións transaccionais (grant/consume de resources, lock_one_tier, etc.) que
+se aplican no momento do unlock.
+
+**Outra instancia de "typecheck ≠ fluxo"** (A.6.31/A.6.32): a fixture
+type-checkeaba como árbore válida, pero **fallaba ao executala**. Cazado porque
+o Director engadiu unha **sonda runnable** que fai `unlock` real (non só
+typecheck) antes de pasar a fixture ao Executor.
+
+**Corolario operativo.** `canUnlock(id)` devolve `Result<UnlockCheck>`:
+- `.ok` significa "a comprobación correu sen erro técnico".
+- O **veredicto real é `.value.allowed`** (o `.value.reason` explica por que
+  non, se falso).
+
+Lelo mal (asumir que `.ok === true` significa "desbloqueable") dá falsos
+positivos. Mismo patrón ca outros `Result<T>` do motor.
+
+**Banco para Arquitecto.** Decisión pendente sobre `Effect.modify_stat`:
+implementalo no runtime (mantén o tipo) ou **eliminalo da unión** (rompe o tipo
+público, pero deixa de mentir). A segunda é máis honesta; cambio breaking en
+`@core`. Mentres non se resolva, manter este aviso visible.
+
