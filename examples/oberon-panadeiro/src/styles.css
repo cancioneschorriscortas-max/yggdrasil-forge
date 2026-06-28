@@ -479,21 +479,27 @@ body,
 }
 
 /* ── Vista 'tarxetas' (ClusterCards) ──
-   O .ob-cards é o contedor a pantalla completa do lenzo. Coroa
-   centrada en 50/50; cada .ob-card posiciónase con `position:absolute`
-   e `transform: translate(-50%, -50%)` para que left/top sexan o
-   centro da tarxeta. As posicións concretas viven en CARD_POSITIONS
-   en ClusterCards.tsx — editar alí para mover. */
+   .ob-cards é o contedor a pantalla completa do lenzo (recibe wheel +
+   drag para pan/zoom). .ob-cards__viewport é o subcontedor cuxo
+   transform (translate + scale) move TODO o contido. Coroa e cards
+   van con position:absolute dentro do viewport, en porcentaxes do
+   viewport (que coinciden inicialmente coas do .ob-cards porque
+   o viewport ten inset:0). */
 .ob-cards {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  overflow: hidden;
+  /* `cursor` aplícase inline (grab/grabbing segundo isDragging) */
+}
+.ob-cards__viewport {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
 }
 .ob-cards__crown,
 .ob-card {
   position: absolute;
   transform: translate(-50%, -50%);
-  pointer-events: auto;
 }
 .ob-cards__crown {
   display: flex;
