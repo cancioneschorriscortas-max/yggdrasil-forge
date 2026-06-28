@@ -1,0 +1,437 @@
+/* ── INICIO: cyberware-ripperdoc styles ── */
+/* Imports xa cargan augmented-ui no main.tsx. Aquí: layout + chrome
+   + glow. Cero acoplamento ao Theme do motor (que segue inline). */
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #06121a;
+  color: #c8dde0;
+  font-family: "Share Tech Mono", monospace;
+  letter-spacing: 0.05em;
+  overflow: hidden;
+}
+* {
+  box-sizing: border-box;
+}
+
+/* ── Shell layout ── */
+.cyber-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+}
+.cyber-shell::before {
+  /* Scanlines sutilísimas. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0) 2px,
+    rgba(26, 208, 224, 0.018) 2px,
+    rgba(26, 208, 224, 0.018) 3px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+.cyber-body {
+  display: grid;
+  grid-template-columns: 250px 1fr 380px;
+  gap: 16px;
+  padding: 12px 16px 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── HUD ── */
+.cyber-hud {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  background: linear-gradient(180deg, #0a1b25 0%, #06121a 100%);
+  --aug-border-bg: #1ad0e0;
+  --aug-border-all: 1px;
+  --aug-bl: 24px;
+  --aug-br: 24px;
+}
+.cyber-hud__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cyber-hud__brand-icon {
+  font-size: 28px;
+  color: #1ad0e0;
+  text-shadow: 0 0 8px #1ad0e0;
+}
+.cyber-hud__brand-title {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #f0a830;
+  letter-spacing: 0.15em;
+}
+.cyber-hud__brand-sub {
+  font-size: 10px;
+  color: #7c8294;
+  letter-spacing: 0.2em;
+}
+.cyber-hud__nav {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+.cyber-hud__tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: #7c8294;
+  letter-spacing: 0.18em;
+  border-bottom: 2px solid transparent;
+}
+.cyber-hud__tab--active {
+  color: #1ad0e0;
+  border-bottom-color: #f0a830;
+}
+.cyber-hud__tab-index {
+  opacity: 0.5;
+  font-size: 9px;
+}
+.cyber-hud__resources {
+  display: flex;
+  gap: 24px;
+}
+.cyber-hud__resource {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 8px;
+}
+.cyber-hud__resource-icon {
+  grid-row: 1 / 3;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+}
+.cyber-hud__resource-value {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #c8dde0;
+}
+.cyber-hud__resource-label {
+  font-size: 9px;
+  color: #7c8294;
+  letter-spacing: 0.2em;
+}
+
+/* ── Systems column ── */
+.cyber-systems {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.cyber-system {
+  --system-color: #1ad0e0;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(10, 22, 32, 0.7);
+  --aug-border-bg: rgba(26, 208, 224, 0.4);
+  --aug-border-all: 1px;
+  --aug-tl: 8px;
+  --aug-tr: 8px;
+  --aug-br: 8px;
+  --aug-bl: 8px;
+}
+.cyber-system--active {
+  --aug-border-bg: var(--system-color);
+  background: rgba(26, 208, 224, 0.08);
+  box-shadow: inset 0 0 16px rgba(26, 208, 224, 0.15);
+}
+.cyber-system__icon {
+  font-size: 24px;
+  color: var(--system-color);
+  text-shadow: 0 0 6px var(--system-color);
+}
+.cyber-system__label {
+  font-size: 10px;
+  color: #c8dde0;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.cyber-system__count {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  color: var(--system-color);
+  margin-top: 2px;
+}
+
+/* ── Canvas ── */
+.cyber-canvas {
+  position: relative;
+  min-width: 0;
+  background: radial-gradient(ellipse at center, #0a1b25 0%, #06121a 70%, #02080c 100%);
+}
+.cyber-canvas__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url("/scene-placeholder.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  filter: brightness(0.7) saturate(0.9);
+  pointer-events: none;
+}
+.cyber-canvas::after {
+  /* Vignette. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.7) 100%);
+  pointer-events: none;
+}
+/* SkillTree glow consumer-side (A.6.36 — valor de partida, calibrar). */
+.cyber-canvas .yf-skill-node {
+  filter: drop-shadow(0 0 3px currentColor);
+}
+.cyber-canvas .yf-skill-edge {
+  filter: drop-shadow(0 0 2px rgba(26, 208, 224, 0.6));
+}
+.cyber-canvas__capacity {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: auto;
+}
+
+/* ── Capacity bar ── */
+.cyber-cap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  font-size: 11px;
+}
+.cyber-cap__title {
+  color: #7c8294;
+  letter-spacing: 0.25em;
+}
+.cyber-cap__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cyber-cap__count {
+  font-family: "Orbitron", sans-serif;
+  font-size: 16px;
+  color: #1ad0e0;
+}
+.cyber-cap__count--danger {
+  color: #f0a830;
+  text-shadow: 0 0 6px #f0a830;
+}
+.cyber-cap__cells {
+  display: flex;
+  gap: 2px;
+}
+.cyber-cap__cell {
+  width: 14px;
+  height: 10px;
+  background: rgba(26, 208, 224, 0.1);
+  border: 1px solid rgba(26, 208, 224, 0.3);
+}
+.cyber-cap__cell--lit {
+  background: #1ad0e0;
+  box-shadow: 0 0 6px #1ad0e0;
+}
+.cyber-cap__warn {
+  color: #f0a830;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  margin-top: 4px;
+}
+
+/* ── Inspector ── */
+.cyber-inspector {
+  position: relative;
+  padding: 24px 22px;
+  background: rgba(10, 22, 32, 0.92);
+  --aug-border-bg: #1ad0e0;
+  --aug-border-all: 1px;
+  --aug-tl: 16px;
+  --aug-tr: 16px;
+  --aug-br: 16px;
+  --aug-bl: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.cyber-inspector__close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #7c8294;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.cyber-inspector__close:hover {
+  color: #c8dde0;
+}
+.cyber-inspector__category {
+  font-size: 10px;
+  color: #1ad0e0;
+  letter-spacing: 0.25em;
+}
+.cyber-inspector__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cyber-inspector__title {
+  margin: 0;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  color: #f0a830;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px rgba(240, 168, 48, 0.4);
+}
+.cyber-inspector__mk {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  padding: 4px 8px;
+  color: #f0a830;
+  border: 1px solid #f0a830;
+  letter-spacing: 0.1em;
+}
+.cyber-inspector__description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #c8dde0;
+  opacity: 0.85;
+}
+.cyber-inspector__stats {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cyber-inspector__stat {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: baseline;
+  gap: 10px;
+}
+.cyber-inspector__stat-value {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  color: #2dd4d4;
+  text-align: right;
+}
+.cyber-inspector__stat-label {
+  font-size: 11px;
+  color: #c8dde0;
+  letter-spacing: 0.1em;
+}
+.cyber-inspector__exclusions {
+  font-size: 10px;
+  color: #e0686a;
+  background: rgba(224, 104, 106, 0.08);
+  padding: 8px 10px;
+  border-left: 3px solid #e0686a;
+  letter-spacing: 0.12em;
+}
+.cyber-inspector__flavor {
+  margin: 0;
+  font-style: italic;
+  font-size: 11px;
+  color: #c8dde0;
+  opacity: 0.6;
+  padding-left: 10px;
+  border-left: 2px solid rgba(26, 208, 224, 0.3);
+}
+.cyber-inspector__cost {
+  margin-top: auto;
+}
+.cyber-inspector__cost-title {
+  font-size: 10px;
+  color: #7c8294;
+  letter-spacing: 0.2em;
+}
+.cyber-inspector__cost-line {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+  align-items: baseline;
+}
+.cyber-inspector__cost-value {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #c8dde0;
+}
+.cyber-inspector__install {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.15em;
+  padding: 14px;
+  background: linear-gradient(180deg, #f0a830 0%, #c08020 100%);
+  color: #06121a;
+  border: none;
+  cursor: pointer;
+  --aug-border-bg: #f0a830;
+  --aug-border-all: 2px;
+  --aug-tl: 14px;
+  --aug-tr: 14px;
+  --aug-br: 14px;
+  --aug-bl: 14px;
+}
+.cyber-inspector__install:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffc850 0%, #f0a830 100%);
+}
+.cyber-inspector__install:disabled {
+  background: rgba(86, 96, 117, 0.3);
+  color: #7c8294;
+  cursor: not-allowed;
+  --aug-border-bg: #566075;
+}
+.cyber-inspector__maxed {
+  margin-top: auto;
+  padding: 14px;
+  text-align: center;
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  color: #1ad0e0;
+  border: 1px solid #1ad0e0;
+  letter-spacing: 0.15em;
+}
+/* ── FIN: cyberware-ripperdoc styles ── */

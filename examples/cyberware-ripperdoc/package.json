@@ -1,0 +1,31 @@
+{
+  "name": "@yggdrasil-forge-examples/cyberware-ripperdoc",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Cyberware ripperdoc showcase (action-RPG: cost + exclusions + costPerTier + resource_min)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yggdrasil-forge/common": "workspace:*",
+    "@yggdrasil-forge/core": "workspace:*",
+    "@yggdrasil-forge/react": "workspace:*",
+    "augmented-ui": "^2.0.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

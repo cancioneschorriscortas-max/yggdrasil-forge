@@ -115,6 +115,43 @@ importers:
         specifier: ^6.0.3
         version: 6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
 
+  examples/cyberware-ripperdoc:
+    dependencies:
+      '@yggdrasil-forge/common':
+        specifier: workspace:*
+        version: link:../../packages/common
+      '@yggdrasil-forge/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@yggdrasil-forge/react':
+        specifier: workspace:*
+        version: link:../../packages/react
+      augmented-ui:
+        specifier: ^2.0.0
+        version: 2.0.0
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 4.7.0(vite@6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.3
+        version: 6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
   examples/learn-yggdrasil:
     dependencies:
       '@yggdrasil-forge/common':
@@ -1796,6 +1833,9 @@ packages:
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+
+  augmented-ui@2.0.0:
+    resolution: {integrity: sha512-5hp6zqzNwn7mhhdgZq5kOqzK5el642ubKJNR++5Desou9RnMuxQ0MtCzxAu/dkoXn8wmQoqzwagGmVY4La7NjA==}
 
   axe-core@3.5.6:
     resolution: {integrity: sha512-LEUDjgmdJoA3LqklSTwKYqkjcZ4HKc4ddIYGSAiSkr46NTjzg2L9RNB+lekO9P7Dlpa87+hBtzc2Fzn/+GUWMQ==}
@@ -3962,6 +4002,8 @@ snapshots:
       js-tokens: 10.0.0
 
   asynckit@0.4.0: {}
+
+  augmented-ui@2.0.0: {}
 
   axe-core@3.5.6: {}
 
