@@ -301,6 +301,7 @@ const curveStyleSchema = z.enum([
   'diagonal-horizontal',
   'radial',
   'orthogonal',
+  'octilinear',
 ])
 
 const edgeStyleSchema = z.object({

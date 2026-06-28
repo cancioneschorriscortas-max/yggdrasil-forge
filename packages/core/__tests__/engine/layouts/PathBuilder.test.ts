@@ -133,6 +133,77 @@ describe('buildPaths', () => {
     expect(ep?.kind).toBe('polyline')
   })
 
+  // octilinear (briefing 1)
+  it("'octilinear' dominante-H (100,40): [(0,0),(60,0),(100,40)]", () => {
+    const lr = buildPaths(makeLR([['e1', { x: 0, y: 0 }, { x: 100, y: 40 }]]), 'octilinear')
+    const ep = lr.edges.get('e1')
+    expect(ep?.kind).toBe('polyline')
+    expect(ep?.points).toEqual([
+      { x: 0, y: 0 },
+      { x: 60, y: 0 },
+      { x: 100, y: 40 },
+    ])
+  })
+
+  it("'octilinear' dominante-V (40,100): [(0,0),(0,60),(40,100)]", () => {
+    const lr = buildPaths(makeLR([['e1', { x: 0, y: 0 }, { x: 40, y: 100 }]]), 'octilinear')
+    const ep = lr.edges.get('e1')
+    expect(ep?.kind).toBe('polyline')
+    expect(ep?.points).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 60 },
+      { x: 40, y: 100 },
+    ])
+  })
+
+  it("'octilinear' aliñado H (100,0): degenera a 2 puntos [source,target]", () => {
+    const lr = buildPaths(makeLR([['e1', { x: 0, y: 0 }, { x: 100, y: 0 }]]), 'octilinear')
+    const ep = lr.edges.get('e1')
+    expect(ep?.points).toEqual([
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+    ])
+  })
+
+  it("'octilinear' aliñado V (0,100): degenera a 2 puntos [source,target]", () => {
+    const lr = buildPaths(makeLR([['e1', { x: 0, y: 0 }, { x: 0, y: 100 }]]), 'octilinear')
+    const ep = lr.edges.get('e1')
+    expect(ep?.points).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 100 },
+    ])
+  })
+
+  it("'octilinear': todos os segmentos teñen pendente múltiplo de 45° (0, ±1, ∞)", () => {
+    const cases: Array<[number, number]> = [
+      [100, 40],
+      [40, 100],
+      [-100, 40],
+      [40, -100],
+      [-100, -40],
+      [-40, -100],
+      [50, 50],
+    ]
+    for (const [dx, dy] of cases) {
+      const lr = buildPaths(makeLR([['e1', { x: 0, y: 0 }, { x: dx, y: dy }]]), 'octilinear')
+      const points = lr.edges.get('e1')?.points ?? []
+      for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1] as { x: number; y: number }
+        const b = points[i] as { x: number; y: number }
+        const sdx = b.x - a.x
+        const sdy = b.y - a.y
+        // Pendente válida: 0 (horizontal), ∞ (vertical) ou ±1 (45°).
+        const isHorizontal = Math.abs(sdy) < 1e-6
+        const isVertical = Math.abs(sdx) < 1e-6
+        const is45 = Math.abs(Math.abs(sdx) - Math.abs(sdy)) < 1e-6
+        expect(
+          isHorizontal || isVertical || is45,
+          `dx=${dx} dy=${dy} segmento (${a.x},${a.y})→(${b.x},${b.y}) non é 0/∞/±1`,
+        ).toBe(true)
+      }
+    }
+  })
+
   // inmutabilidade
   it('input layoutResult non modificado', () => {
     const input = makeLR([...EDGE])

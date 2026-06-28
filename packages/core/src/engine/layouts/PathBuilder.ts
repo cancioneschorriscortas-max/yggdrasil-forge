@@ -15,6 +15,10 @@ import type { EdgePath, LayoutResult } from './LayoutResult.js'
  * - `'radial'`: cubic Bézier en coordenadas polares (control points
  *   no medio do segmento). Ideal para RadialLayout.
  * - `'orthogonal'`: polyline (L-shape ou S-shape). Patrón "Manhattan".
+ * - `'octilinear'`: polyline cun tramo recto (H ou V) e un tramo a 45°.
+ *   Look PCB / metro / Deus Ex. Bo para posicións fixas con
+ *   conexións locais (IdentityLayout en exemplos cyber). Degenera a
+ *   recta se as posicións están aliñadas en H ou V.
  */
 export type CurveStyle =
   | 'straight'
@@ -22,6 +26,7 @@ export type CurveStyle =
   | 'diagonal-horizontal'
   | 'radial'
   | 'orthogonal'
+  | 'octilinear'
 
 /**
  * Opcións para PathBuilder.
@@ -157,6 +162,28 @@ function buildPath(
         points: [source, corner, corner2, target],
         kind: 'polyline',
       }
+    }
+    case 'octilinear': {
+      // Octilinear: un tramo recto (H ou V, dominante) + un tramo a
+      // 45°. Look PCB / Deus Ex. Degenera a recta se aliñado en H/V.
+      //
+      // Algoritmo: o tramo recto vai polo eixe dominante (o de maior
+      // |delta|) ata deixar só |Δ menor| pendente; logo péchase a 45°
+      // (porque os deltas restantes son iguais en valor absoluto).
+      const EPS = 1e-6
+      const dx = target.x - source.x
+      const dy = target.y - source.y
+      if (Math.abs(dx) < EPS || Math.abs(dy) < EPS) {
+        // Aliñado en H ou V → liña recta sen recodo.
+        return { points: [source, target], kind: 'polyline' }
+      }
+      const sx = Math.sign(dx)
+      const sy = Math.sign(dy)
+      const mid: Position =
+        Math.abs(dx) >= Math.abs(dy)
+          ? { x: target.x - sx * Math.abs(dy), y: source.y } // dominante-H: recto H, logo 45°
+          : { x: source.x, y: target.y - sy * Math.abs(dx) } // dominante-V: recto V, logo 45°
+      return { points: [source, mid, target], kind: 'polyline' }
     }
   }
 }
