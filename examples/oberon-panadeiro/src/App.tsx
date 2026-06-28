@@ -11,12 +11,19 @@
 
 import { TreeEngine } from '@yggdrasil-forge/core'
 import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/importers'
-import { SkillTree, type Theme, ThemeProvider } from '@yggdrasil-forge/react'
+import { SkillTree, type Theme, ThemeProvider, registerIcons } from '@yggdrasil-forge/react'
 import type { JSX } from 'react'
 import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
+import { BAKER_ICONS, BAKER_NODE_ICONS } from './bakerIcons.js'
 import { type Topology, deriveEdges } from './deriveEdges.js'
 import panadeiro from './panadeiro.fixture.json'
+
+// Iconas recoloreables do panadeiro (Opción A: cor uniforme do tema).
+// Top-level: execútase unha vez ao cargar o módulo. registerIcons é
+// idempotente (rexistro global singleton); React strict-mode non o
+// duplica porque non está nun render nin nun efecto.
+registerIcons(BAKER_ICONS)
 
 // Cor de partida por cluster. Agarfal afínaa en vivo no ThemeLab
 // (capa 2: selector de rexión + cor da rexión).
@@ -116,6 +123,9 @@ export function App(): JSX.Element {
   const [outerRadius, setOuterRadius] = useState(320)
   const [lengthMode, setLengthMode] = useState<'equal-span' | 'fixed-step'>('equal-span')
   const [compensateShortCluster, setCompensateShortCluster] = useState(false)
+  // Iconas SVG recoloreables (Opción A). Default ON; apágase para
+  // comparar A/B contra o emoji nativo do fixture en vivo.
+  const [useIcons, setUseIcons] = useState(true)
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -175,6 +185,9 @@ export function App(): JSX.Element {
     //     cando hai valor, nunca `color: undefined`.
     // (3) root-coroa: size 52 para diferencialo visualmente do resto.
     // (4) V6: compensar nodo curto (só size).
+    // (5) Capa 1A: substituír o emoji nativo (que o importador puxo en
+    //     node.icon desde fixture.icono) pola icona SVG recoloreable
+    //     rexistrada. Só microskills do mapa. Toggle useIcons permite A/B.
     const nodes = base.nodes.map((n) => {
       let m = n.group !== undefined ? { ...n, tags: [...(n.tags ?? []), n.group] } : { ...n }
       if (colorByCluster && n.group !== undefined && GROUP_COLORS[n.group] !== undefined) {
@@ -184,6 +197,8 @@ export function App(): JSX.Element {
       if (smallestGroupId !== undefined && n.group === smallestGroupId && m.type !== 'root') {
         m = { ...m, size: 36 }
       }
+      const slug = BAKER_NODE_ICONS[n.id]
+      if (useIcons && slug !== undefined) m = { ...m, icon: slug }
       return m
     })
     // V5: arestas derivadas consumidor-side (o fixture trae conectadas:[]).
@@ -203,6 +218,7 @@ export function App(): JSX.Element {
     outerRadius,
     lengthMode,
     compensateShortCluster,
+    useIcons,
   ])
 
   const engine = useMemo(() => new TreeEngine(def), [def])
@@ -341,6 +357,14 @@ export function App(): JSX.Element {
               onChange={(e) => setColorByCluster(e.target.checked)}
             />{' '}
             cor por cluster
+          </label>
+          <label style={{ marginLeft: 12 }}>
+            <input
+              type="checkbox"
+              checked={useIcons}
+              onChange={(e) => setUseIcons(e.target.checked)}
+            />{' '}
+            iconas
           </label>
           <label style={{ marginLeft: 12 }}>
             topoloxía:{' '}
