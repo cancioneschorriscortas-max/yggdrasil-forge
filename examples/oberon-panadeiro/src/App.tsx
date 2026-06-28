@@ -126,6 +126,12 @@ export function App(): JSX.Element {
   // Iconas SVG recoloreables (Opción A). Default ON; apágase para
   // comparar A/B contra o emoji nativo do fixture en vivo.
   const [useIcons, setUseIcons] = useState(true)
+  // V6.1: selector de fondo do lenzo (4 modos). Default = pozo
+  // (mantén o aspecto post-v4.1). Plano/estrelas seguen reaccionando
+  // ao ThemeLab via --ob-canvas-bg.
+  const [backgroundMode, setBackgroundMode] = useState<
+    'gravity-well' | 'plain' | 'stars' | 'transparent'
+  >('gravity-well')
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -270,7 +276,7 @@ export function App(): JSX.Element {
   return (
     <div className="ob-shell">
       <div
-        className="ob-canvas"
+        className={`ob-canvas ob-canvas--bg-${backgroundMode}`}
         // V3 cambio B: fondo do lenzo vivo. `buildThemeFromVals` segue OMITINDO
         // `colors.background` (pauta F11.3d intacta). En vez de pintar inline no
         // <svg>, expoñemos `themeVals.canvas` como CSS variable e styles.css
@@ -378,6 +384,22 @@ export function App(): JSX.Element {
           <label style={{ marginLeft: 12 }}>
             <input type="checkbox" checked={flip} onChange={(e) => setFlip(e.target.checked)} />{' '}
             voltear
+          </label>
+          <label style={{ marginLeft: 12 }}>
+            fondo:{' '}
+            <select
+              value={backgroundMode}
+              onChange={(e) =>
+                setBackgroundMode(
+                  e.target.value as 'gravity-well' | 'plain' | 'stars' | 'transparent',
+                )
+              }
+            >
+              <option value="gravity-well">pozo</option>
+              <option value="plain">plano</option>
+              <option value="stars">estrelas</option>
+              <option value="transparent">sen</option>
+            </select>
           </label>
         </div>
         <ThemeProvider theme={builtTheme}>

@@ -16,18 +16,48 @@ body,
   flex: 1;
   min-width: 0;
   position: relative;
-  /* V4 cambio 3: degradado radial = "pozo de gravidade" do root no centro,
-     esvaecéndose cara á cor base (--ob-canvas-bg, controlada polo ThemeLab
-     de v3). Substitúe o fondo plano.
-     V4.1: alpha calibrada — 0.12/0.04 eran invisibles sobre #11131a
-     (delta de ~3-4 unidades de luminosidade, indistinguible). Subimos a
-     0.32/0.10 para que o brillo central comunique sen ser estridente. */
+}
+
+/* ── V6.1: selector de fondo (4 modos) ──
+   Cada modo aplícase como modificador BEM-style. `--ob-canvas-bg` segue
+   afinándose en vivo polo ThemeLab nos modos que o usan (plano + pozo +
+   estrelas). Default no exemplo: pozo (mantén o aspecto v4.1). */
+
+/* Pozo de gravidade (v4.1 calibrado). */
+.ob-canvas--bg-gravity-well {
   background: radial-gradient(
     circle at 50% 50%,
     rgba(201, 154, 43, 0.32) 0%,
     rgba(201, 154, 43, 0.1) 32%,
     var(--ob-canvas-bg, #1c1712) 66%
   );
+}
+
+/* Cor sólida do tema. */
+.ob-canvas--bg-plain {
+  background: var(--ob-canvas-bg, #1c1712);
+}
+
+/* Estrelas tenues — patrón repetible (cero ficheiros). Encaixa coa
+   metáfora "constelación" sen competir co render. */
+.ob-canvas--bg-stars {
+  background-color: var(--ob-canvas-bg, #1c1712);
+  background-image: radial-gradient(
+      1.5px 1.5px at 25% 22%,
+      rgba(255, 248, 220, 0.45),
+      transparent 50%
+    ), radial-gradient(1px 1px at 75% 38%, rgba(255, 248, 220, 0.3), transparent 50%),
+    radial-gradient(1px 1px at 18% 68%, rgba(255, 248, 220, 0.35), transparent 50%),
+    radial-gradient(1.5px 1.5px at 62% 82%, rgba(255, 248, 220, 0.4), transparent 50%),
+    radial-gradient(1px 1px at 50% 8%, rgba(255, 248, 220, 0.3), transparent 50%),
+    radial-gradient(1px 1px at 92% 60%, rgba(255, 248, 220, 0.32), transparent 50%);
+  background-size: 220px 220px;
+  background-repeat: repeat;
+}
+
+/* Lenzo transparente (vése o <body>). */
+.ob-canvas--bg-transparent {
+  background: transparent;
 }
 .ob-toolbar {
   position: absolute;
