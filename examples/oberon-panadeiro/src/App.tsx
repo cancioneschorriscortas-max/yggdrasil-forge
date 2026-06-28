@@ -151,6 +151,11 @@ export function App(): JSX.Element {
   // `paint-order: stroke`. 'sombra' = drop-shadow suave. 'nada' = sen
   // base. CSS puro: non altera o tree nin require entrar no useMemo.
   const [labelBacking, setLabelBacking] = useState<'nada' | 'halo' | 'sombra'>('halo')
+  // Forma do tinte das regions (Capa 2). 'blob' = hull-blob orgánico
+  // (default, encaixa co fondo escena). 'caixa' = rect bbox (legado).
+  // 'nada' = ocultar regions (cero render). Só afecta render de
+  // regions; non entra en useMemo do tree.
+  const [regionShape, setRegionShape] = useState<'blob' | 'caixa' | 'nada'>('blob')
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -473,6 +478,17 @@ export function App(): JSX.Element {
               <option value="sombra">sombra</option>
             </select>
           </label>
+          <label style={{ marginLeft: 12 }}>
+            regions:{' '}
+            <select
+              value={regionShape}
+              onChange={(e) => setRegionShape(e.target.value as 'blob' | 'caixa' | 'nada')}
+            >
+              <option value="blob">blob</option>
+              <option value="caixa">caixa</option>
+              <option value="nada">nada</option>
+            </select>
+          </label>
         </div>
         <ThemeProvider theme={builtTheme}>
           <SkillTree
@@ -480,7 +496,8 @@ export function App(): JSX.Element {
             onNodeClick={onNodeClick}
             {...(selectedNodeId !== undefined ? { selectedNodeId } : {})}
             onNodeTierIncrease={handleIncreaseTier}
-            regions={regions}
+            {...(regionShape !== 'nada' ? { regions } : {})}
+            regionShape={regionShape === 'blob' ? 'hull' : 'box'}
             curve="radial"
             locale="gl"
           />

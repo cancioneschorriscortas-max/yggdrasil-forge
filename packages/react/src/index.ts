@@ -12,7 +12,8 @@ export const VERSION = '0.0.0'
 // O core SkillTree (sen wrapper) está dispoñible vía /headless.
 export { SkillTreeWithDefaultTheme as SkillTree } from './SkillTreeWithDefaultTheme.js'
 export type { SkillTreeHandle, SkillTreeProps } from './SkillTree.js'
-export type { RegionSpec } from './SkillRegions.js'
+export type { RegionShape, RegionSpec } from './SkillRegions.js'
+export { computeRegionHullPath } from './SkillRegions.js'
 export type { ViewportState } from './hooks/useViewport.js'
 
 // Compoñentes individuais (cero diferenza fronte a /headless).

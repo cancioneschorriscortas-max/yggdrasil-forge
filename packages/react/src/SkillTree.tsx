@@ -18,7 +18,7 @@ import { SVGRenderer } from './SVGRenderer.js'
 import { SkillEdge, edgeStateFor } from './SkillEdge.js'
 import { SkillNode } from './SkillNode.js'
 import { SkillNodeControls } from './SkillNodeControls.js'
-import { type RegionSpec, SkillRegions } from './SkillRegions.js'
+import { type RegionShape, type RegionSpec, SkillRegions } from './SkillRegions.js'
 import { createDefaultLayoutRegistry } from './createDefaultLayoutRegistry.js'
 import { shortenEdgeAtTarget } from './edgeGeometry.js'
 import { type ViewportState, useViewport } from './hooks/useViewport.js'
@@ -148,6 +148,15 @@ export interface SkillTreeProps {
    * Sen `regions` (ou array baleiro) → cero render extra (regresión cero).
    */
   readonly regions?: readonly RegionSpec[]
+
+  /**
+   * Forma do tinte das `regions`. `'box'` (default) = rect bbox redondeado
+   * (comportamento legado). `'hull'` = blob orgánico (Catmull-Rom pechado
+   * sobre o convex hull). Ignórase se non hai `regions`.
+   *
+   * Regresión cero sobre consumidores existentes (default `'box'`).
+   */
+  readonly regionShape?: RegionShape
 }
 
 export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function SkillTree(
@@ -171,6 +180,7 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     onNodeTierDecrease,
     canIncrease,
     regions,
+    regionShape = 'box',
   },
   ref,
 ) {
@@ -261,7 +271,12 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     >
       <MeshOverlay {...(mesh !== undefined && { mesh })} />
       {regions !== undefined && regions.length > 0 && (
-        <SkillRegions regions={regions} nodePositions={nodePositions} nodes={treeDef.nodes} />
+        <SkillRegions
+          regions={regions}
+          nodePositions={nodePositions}
+          nodes={treeDef.nodes}
+          regionShape={regionShape}
+        />
       )}
       <g className="yf-skill-edges">
         {[...edgePaths.entries()].map(([edgeId, path]) => {
