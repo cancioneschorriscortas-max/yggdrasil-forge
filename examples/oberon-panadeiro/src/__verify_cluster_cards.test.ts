@@ -11,9 +11,9 @@
 
 import { TreeEngine } from '@yggdrasil-forge/core'
 import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/importers'
+import { rowBadge, rowState } from '@yggdrasil-forge/react'
 import { describe, expect, it } from 'vitest'
 import { BAKER_ICONS, BAKER_NODE_ICONS } from './bakerIcons.js'
-import { rowBadge, rowState } from './cardLogic.js'
 import panadeiro from './panadeiro.fixture.json'
 
 describe('ClusterCards — datos e lóxica de fila', () => {

@@ -1,21 +1,18 @@
-// ── INICIO: cardLogic (lóxica pura das filas de ClusterCards) ──
-//
-// Igual patrón que `detailLogic.ts` (F12) e `deriveEdges.ts` (v5):
-// función pura, sen React, importada tanto pola vista como pola
-// sonda para que se proba o código REAL.
+// ── INICIO: cluster/logic (lóxica pura do ClusterCardsView) ──
+// Promovido desde examples/oberon-panadeiro/src/cardLogic.ts.
+// Cero React: usable desde tests + consumers custom.
 
 export type RowState = 'done' | 'actual' | 'locked'
 
 /**
  * Estado resumido dunha fila a partir do tier actual/máximo.
  *
- * Convención (similar a `tierRowsFor` pero por nodo enteiro):
  *   - `done`: o nodo está no máximo (`currentTier >= maxTier > 0`).
  *   - `actual`: hai progreso (`currentTier > 0`) pero non máximo.
  *   - `locked`: ningún progreso (`currentTier === 0`).
  *
  * `maxTier === 0` (raro) trátase como `locked` se ct=0 ou `actual` se
- * ct>0; nunca como `done` (a regra evita falsos positivos).
+ * ct>0; nunca como `done` (evita falsos positivos no caso degenerado).
  */
 export function rowState(currentTier: number, maxTier: number): RowState {
   if (maxTier > 0 && currentTier >= maxTier) return 'done'
@@ -31,4 +28,4 @@ export function rowState(currentTier: number, maxTier: number): RowState {
 export function rowBadge(currentTier: number, maxTier: number): string {
   return currentTier >= maxTier && maxTier > 0 ? '✓' : `${currentTier}/${maxTier}`
 }
-// ── FIN: cardLogic ──
+// ── FIN: cluster/logic ──

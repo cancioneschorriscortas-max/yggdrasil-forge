@@ -12,6 +12,10 @@
 import { TreeEngine } from '@yggdrasil-forge/core'
 import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/importers'
 import {
+  ClusterCardsView,
+  type ClusterGroup,
+  type InspectorStrings,
+  NodeInspector,
   SkillTree,
   type Theme,
   ThemeProvider,
@@ -20,8 +24,6 @@ import {
 } from '@yggdrasil-forge/react'
 import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
-import { type CardGroup, ClusterCards } from './ClusterCards.js'
-import { DetailPanel } from './DetailPanel.js'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { BAKER_ICONS, BAKER_NODE_ICONS } from './bakerIcons.js'
 import { type Topology, deriveEdges } from './deriveEdges.js'
@@ -41,6 +43,41 @@ const GROUP_COLORS: Record<string, string> = {
   panadeiro_sabor_creatividade: '#c4577f',
   panadeiro_resistencia_oficio: '#5e9a5b',
   panadeiro_materia_prima: '#3f9a9a',
+}
+
+/**
+ * Posicións das tarxetas para a profesión panadeiro (datos do
+ * consumidor, non da librería). Patrón "pétalas arredor da coroa".
+ * Cambiar valores aquí = mover a tarxeta correspondente. Outros
+ * consumers (GAIA con outras profesións) inxectan o seu propio mapa,
+ * ou omiten `positions` para usar o anel automático do compoñente.
+ */
+const CARD_POSITIONS: Record<string, { readonly left: string; readonly top: string }> = {
+  panadeiro_forno_masas: { left: '50%', top: '12%' },
+  panadeiro_tempos_fermentacion: { left: '82%', top: '38%' },
+  panadeiro_sabor_creatividade: { left: '70%', top: '82%' },
+  panadeiro_resistencia_oficio: { left: '30%', top: '82%' },
+  panadeiro_materia_prima: { left: '18%', top: '38%' },
+}
+
+/**
+ * Strings galegas do NodeInspector (override sobre os defaults en
+ * inglés do compoñente). Á parte: o exemplo é galego puro; en GAIA
+ * pasarían inglés (default) ou outro idioma.
+ */
+const GALEGO_STRINGS: Partial<InspectorStrings> = {
+  levels: 'NIVEIS',
+  keyAction: 'ACCIÓN CLAVE',
+  completed: 'COMPLETADO',
+  current: 'ACTUAL',
+  locked: 'BLOQUEADO',
+  levelWord: 'NIVEL',
+  ofWord: 'DE',
+  maxedSuffix: 'MÁXIMO',
+  increase: 'Subir nivel',
+  maxed: 'Habilidade no máximo',
+  blocked: 'Bloqueado',
+  close: 'Pechar',
 }
 
 /** Resolve `LocalizedString | string` a string preferindo gl > es > en. */
@@ -327,7 +364,7 @@ export function App(): JSX.Element {
   // polo que as filas reflicten o tier actual sen necesidade de useMemo
   // nin deps reactivas. Resolución de label/icona/tier centralizada
   // aquí; ClusterCards é presentacional puro.
-  const cardGroups: CardGroup[] = (def.groups ?? []).map((g) => ({
+  const cardGroups: ClusterGroup[] = (def.groups ?? []).map((g) => ({
     id: g.id,
     label: loc(g.label),
     color: regionColors[g.id] ?? GROUP_COLORS[g.id] ?? '#999999',
@@ -559,8 +596,9 @@ export function App(): JSX.Element {
               locale="gl"
             />
           ) : (
-            <ClusterCards
+            <ClusterCardsView
               groups={cardGroups}
+              positions={CARD_POSITIONS}
               crownLabel="Panadeiro/a"
               crownIcon={getIcon('crown')}
               {...(selectedNodeId !== undefined ? { selectedNodeId } : {})}
@@ -571,12 +609,14 @@ export function App(): JSX.Element {
       </div>
       <aside className="ob-themelab theme-lab">
         {selectedNode !== null ? (
-          <DetailPanel
+          <NodeInspector
             node={selectedNode}
             currentTier={selectedTier}
             canIncrease={canIncrease}
             onIncreaseTier={handleIncreaseTier}
             onClose={() => setSelectedNodeId(undefined)}
+            locale="gl"
+            strings={GALEGO_STRINGS}
           />
         ) : (
           <ThemeLab

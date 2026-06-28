@@ -67,4 +67,31 @@ export { BUILTIN_ICONS } from './icons/registry.js'
 //   import { registerIcons, NORSE_ICONS } from '@yggdrasil-forge/react'
 //   registerIcons(NORSE_ICONS)
 export { NORSE_ICONS } from './icons/norse.js'
+
+// F10.6: vistas alternativas + inspector (promovidas desde
+// examples/oberon-panadeiro tras ser pedidas por GAIA como segundo
+// consumidor real).
+//
+//   - ClusterCardsView: vista "tarxetas-lista" (cada cluster como
+//     card con título + filas icona/label/badge). Pan/zoom local.
+//   - NodeInspector: panel lateral co detalle dun nodo (níveis +
+//     acción clave + vídeo opcional + botón subir nivel). i18n vía
+//     locale + strings override.
+//
+// Lóxica pura tamén exportada para consumers que constrúan as súas
+// propias vistas sobre estas regras.
+export { ClusterCardsView } from './cluster/ClusterCardsView.js'
+export type {
+  CardPositions,
+  ClusterCardsViewProps,
+  ClusterGroup,
+  ClusterMember,
+} from './cluster/ClusterCardsView.js'
+export { rowBadge, rowState } from './cluster/logic.js'
+export type { RowState } from './cluster/logic.js'
+
+export { NodeInspector } from './inspector/NodeInspector.js'
+export type { InspectorStrings, NodeInspectorProps } from './inspector/NodeInspector.js'
+export { badgeKind, badgeText, tierRowsFor } from './inspector/logic.js'
+export type { TierRow, TierState } from './inspector/logic.js'
 // ── FIN: @yggdrasil-forge/react ──

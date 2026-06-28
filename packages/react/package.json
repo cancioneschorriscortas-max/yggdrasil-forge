@@ -43,6 +43,7 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
+    "@yggdrasil-forge/common": "workspace:*",
     "@yggdrasil-forge/core": "workspace:*"
   },
   "peerDependencies": {

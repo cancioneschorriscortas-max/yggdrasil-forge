@@ -1,0 +1,418 @@
+'use client'
+// ── INICIO: ClusterCardsView (promovido desde ClusterCards do exemplo) ──
+//
+// Vista "tarxetas-lista": cada cluster como card (título + filas
+// icona/label/badge), forma fixa independente do número de membros.
+// Patrón GAIA. Autocontido en pan/zoom (matemática igual á do SkillTree
+// pero local: useViewport está acoplado a SVG — banco para refactor
+// futuro DOM-agnóstico).
+//
+// **Cero acoplamento ao exemplo**: autoestilado con inline styles +
+// classNames `yf-cluster-*` para override. Posicións inxectadas vía
+// `positions`; se faltan, fallback a anel automático.
+//
+// Lóxica pura en `./logic.ts` (importada por sondas).
+
+import type { CSSProperties, JSX, MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTheme } from '../ThemeProvider.js'
+import type { IconDef, IconPath } from '../icons/registry.js'
+import { rowBadge, rowState } from './logic.js'
+
+export interface ClusterMember {
+  readonly id: string
+  readonly label: string
+  readonly icon?: IconDef
+  readonly currentTier: number
+  readonly maxTier: number
+}
+
+export interface ClusterGroup {
+  readonly id: string
+  readonly label: string
+  /** Cor de acento (título da tarxeta + icona de fila). Dato do consumidor. */
+  readonly color: string
+  readonly members: readonly ClusterMember[]
+}
+
+/** Mapa groupId → posición CSS (`left`/`top` en `%`, `px`, etc.). */
+export type CardPositions = Record<string, { readonly left: string; readonly top: string }>
+
+export interface ClusterCardsViewProps {
+  readonly groups: readonly ClusterGroup[]
+  /**
+   * Mapa de posicións por groupId. Para os grupos sen entrada, dispónse
+   * automaticamente nun anel de raio fixo (`autoRadiusPercent`% do
+   * lenzo) ao redor do centro. Sen `positions`, todos van ao anel.
+   */
+  readonly positions?: CardPositions
+  /** % do tamaño do contedor para o raio do anel automático. Default 36. */
+  readonly autoRadiusPercent?: number
+  readonly crownLabel?: string
+  readonly crownIcon?: IconDef
+  readonly selectedNodeId?: string
+  readonly onRowClick: (id: string) => void
+  /** Límite inferior do zoom. Default 0.4. */
+  readonly minZoom?: number
+  /** Límite superior do zoom. Default 3.0. */
+  readonly maxZoom?: number
+}
+
+// ── Pan/zoom local ──
+// useViewport (do mesmo paquete) está acoplado a SVGSVGElement; aquí o
+// contedor é HTML. Replicamos a matemática esencial (zoomToward sobre
+// punto do cursor) localmente. Refactor futuro: useViewport DOM-agnóstico.
+
+const DEFAULT_MIN_ZOOM = 0.4
+const DEFAULT_MAX_ZOOM = 3.0
+const WHEEL_FACTOR_IN = 1.1
+const WHEEL_FACTOR_OUT = 1 / 1.1
+
+function zoomTowardCursor(
+  state: { panX: number; panY: number; zoom: number },
+  factor: number,
+  cursorX: number,
+  cursorY: number,
+  minZoom: number,
+  maxZoom: number,
+): { panX: number; panY: number; zoom: number } {
+  const newZoom = Math.max(minZoom, Math.min(maxZoom, state.zoom * factor))
+  if (newZoom === state.zoom) return state
+  const localX = (cursorX - state.panX) / state.zoom
+  const localY = (cursorY - state.panY) / state.zoom
+  return {
+    panX: cursorX - newZoom * localX,
+    panY: cursorY - newZoom * localY,
+    zoom: newZoom,
+  }
+}
+
+// ── InlineIcon ──
+// Render dun IconDef como SVG root (uso fora dun `<svg>` envolvente).
+// Banco para deduplicar con IconGlyph (que se aniña en `<g>`).
+function InlineIcon({ def, size }: { def: IconDef; size: number }): JSX.Element {
+  const viewBox = def.viewBox ?? '0 0 24 24'
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={viewBox}
+      aria-hidden="true"
+      focusable="false"
+      role="img"
+    >
+      <title>icon</title>
+      {def.paths.map((p: IconPath, i: number) => {
+        const mode = p.mode ?? 'fill'
+        if (mode === 'stroke') {
+          return (
+            <path
+              key={`p-${String(i)}`}
+              d={p.d}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )
+        }
+        return <path key={`p-${String(i)}`} d={p.d} fill="currentColor" />
+      })}
+    </svg>
+  )
+}
+
+/**
+ * Posición CSS para un grupo: usa `positions[groupId]` se existe; senón,
+ * dispón os grupos restantes nun anel automático ao redor do centro.
+ */
+function resolvePosition(
+  groupId: string,
+  groups: readonly ClusterGroup[],
+  positions: CardPositions | undefined,
+  autoRadiusPercent: number,
+): { left: string; top: string } {
+  if (positions?.[groupId] !== undefined) return positions[groupId]
+  // Anel automático: índice entre os grupos SEN posición explícita.
+  const groupsWithoutPos = groups.filter((g) => positions?.[g.id] === undefined)
+  const idx = groupsWithoutPos.findIndex((g) => g.id === groupId)
+  const total = groupsWithoutPos.length
+  // Empezar arriba (-π/2) e ir en sentido horario.
+  const angle = -Math.PI / 2 + (2 * Math.PI * idx) / Math.max(1, total)
+  const cx = 50
+  const cy = 50
+  const x = cx + autoRadiusPercent * Math.cos(angle)
+  const y = cy + autoRadiusPercent * Math.sin(angle)
+  return { left: `${x}%`, top: `${y}%` }
+}
+
+export function ClusterCardsView({
+  groups,
+  positions,
+  autoRadiusPercent = 36,
+  crownLabel,
+  crownIcon,
+  selectedNodeId,
+  onRowClick,
+  minZoom = DEFAULT_MIN_ZOOM,
+  maxZoom = DEFAULT_MAX_ZOOM,
+}: ClusterCardsViewProps): JSX.Element {
+  const theme = useTheme()
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [isDragging, setIsDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const dragStartRef = useRef<{
+    clientX: number
+    clientY: number
+    initialPanX: number
+    initialPanY: number
+  } | null>(null)
+
+  // Wheel listener non-pasivo (preventDefault require non-pasivo).
+  useEffect(() => {
+    const el = containerRef.current
+    if (el === null) return undefined
+    const onWheel = (e: WheelEvent): void => {
+      e.preventDefault()
+      const rect = el.getBoundingClientRect()
+      const cursorX = e.clientX - rect.left
+      const cursorY = e.clientY - rect.top
+      const factor = e.deltaY < 0 ? WHEEL_FACTOR_IN : WHEEL_FACTOR_OUT
+      setZoom((prevZoom) => {
+        setPan((prevPan) => {
+          const next = zoomTowardCursor(
+            { panX: prevPan.x, panY: prevPan.y, zoom: prevZoom },
+            factor,
+            cursorX,
+            cursorY,
+            minZoom,
+            maxZoom,
+          )
+          return { x: next.panX, y: next.panY }
+        })
+        return Math.max(minZoom, Math.min(maxZoom, prevZoom * factor))
+      })
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => {
+      el.removeEventListener('wheel', onWheel)
+    }
+  }, [minZoom, maxZoom])
+
+  const onMouseDown = (e: ReactMouseEvent<HTMLDivElement>): void => {
+    dragStartRef.current = {
+      clientX: e.clientX,
+      clientY: e.clientY,
+      initialPanX: pan.x,
+      initialPanY: pan.y,
+    }
+    setIsDragging(true)
+  }
+  const onMouseMove = (e: ReactMouseEvent<HTMLDivElement>): void => {
+    const d = dragStartRef.current
+    if (d === null) return
+    setPan({
+      x: d.initialPanX + (e.clientX - d.clientX),
+      y: d.initialPanY + (e.clientY - d.clientY),
+    })
+  }
+  const endDrag = (): void => {
+    dragStartRef.current = null
+    setIsDragging(false)
+  }
+
+  const containerStyle: CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    overflow: 'hidden',
+    cursor: isDragging ? 'grabbing' : 'grab',
+  }
+  const viewportStyle: CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    transformOrigin: '0 0',
+    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+  }
+  const textColor = theme?.colors.text ?? '#e8dcc4'
+
+  const rowStateColor: Record<'done' | 'actual' | 'locked', string> = {
+    done: theme?.colors.nodeMaxed ?? '#5fc89a',
+    actual: theme?.colors.nodeUnlockable ?? '#f0b056',
+    locked: theme?.colors.nodeLocked ?? '#7c8294',
+  }
+
+  return (
+    <div
+      className="yf-cluster-cards"
+      ref={containerRef}
+      style={containerStyle}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={endDrag}
+      onMouseLeave={endDrag}
+    >
+      <div className="yf-cluster-cards__viewport" style={viewportStyle}>
+        {(crownIcon !== undefined || crownLabel !== undefined) && (
+          <div
+            className="yf-cluster-crown"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 8,
+              color: '#d6c89a',
+            }}
+          >
+            <div
+              className="yf-cluster-crown__glyph"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'rgba(217, 138, 43, 0.18)',
+                border: '2px solid #d98a2b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#f0b056',
+                boxShadow: '0 0 24px rgba(217, 138, 43, 0.35), inset 0 0 12px rgba(0, 0, 0, 0.4)',
+              }}
+            >
+              {crownIcon !== undefined ? <InlineIcon def={crownIcon} size={42} /> : <span>·</span>}
+            </div>
+            {crownLabel !== undefined && (
+              <div
+                className="yf-cluster-crown__label"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.9)',
+                }}
+              >
+                {crownLabel}
+              </div>
+            )}
+          </div>
+        )}
+        {groups.map((g) => {
+          const position = resolvePosition(g.id, groups, positions, autoRadiusPercent)
+          const cardStyle: CSSProperties = {
+            position: 'absolute',
+            left: position.left,
+            top: position.top,
+            transform: 'translate(-50%, -50%)',
+            minWidth: 220,
+            maxWidth: 280,
+            background: 'rgba(17, 19, 26, 0.92)',
+            borderRadius: 8,
+            overflow: 'hidden',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.55)',
+            font: '13px / 1.4 system-ui, sans-serif',
+            color: textColor,
+          }
+          return (
+            <div key={g.id} className="yf-cluster-card" style={cardStyle}>
+              <div
+                className="yf-cluster-card__title"
+                style={{
+                  padding: '8px 14px',
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  fontSize: 11,
+                  color: '#11131a',
+                  background: g.color,
+                }}
+              >
+                {g.label}
+              </div>
+              <ul
+                className="yf-cluster-card__rows"
+                style={{ listStyle: 'none', margin: 0, padding: '4px 0' }}
+              >
+                {g.members.map((m) => {
+                  const state = rowState(m.currentTier, m.maxTier)
+                  const badge = rowBadge(m.currentTier, m.maxTier)
+                  const isSelected = m.id === selectedNodeId
+                  return (
+                    <li
+                      key={m.id}
+                      className={`yf-cluster-row yf-cluster-row--${state}${isSelected ? ' yf-cluster-row--selected' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className="yf-cluster-row__button"
+                        onClick={() => onRowClick(m.id)}
+                        style={{
+                          width: '100%',
+                          display: 'grid',
+                          gridTemplateColumns: '24px 1fr auto',
+                          alignItems: 'center',
+                          gap: 10,
+                          padding: '7px 14px',
+                          background: isSelected ? 'rgba(217, 138, 43, 0.12)' : 'transparent',
+                          border: 'none',
+                          borderLeft: `3px solid ${isSelected ? '#d98a2b' : 'transparent'}`,
+                          color: 'inherit',
+                          font: 'inherit',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          opacity: state === 'locked' ? 0.85 : 1,
+                        }}
+                      >
+                        <span
+                          className="yf-cluster-row__icon"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: g.color,
+                          }}
+                        >
+                          {m.icon !== undefined ? <InlineIcon def={m.icon} size={20} /> : null}
+                        </span>
+                        <span
+                          className="yf-cluster-row__label"
+                          style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            opacity: state === 'locked' ? 0.6 : 1,
+                          }}
+                        >
+                          {m.label}
+                        </span>
+                        <span
+                          className="yf-cluster-row__badge"
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            minWidth: 24,
+                            textAlign: 'right',
+                            color: rowStateColor[state],
+                          }}
+                        >
+                          {badge}
+                        </span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+// ── FIN: ClusterCardsView ──

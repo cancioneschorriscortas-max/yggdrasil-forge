@@ -479,6 +479,9 @@ importers:
 
   packages/react:
     dependencies:
+      '@yggdrasil-forge/common':
+        specifier: workspace:*
+        version: link:../common
       '@yggdrasil-forge/core':
         specifier: workspace:*
         version: link:../core

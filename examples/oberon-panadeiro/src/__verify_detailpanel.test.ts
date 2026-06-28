@@ -12,8 +12,8 @@
 
 import { TreeEngine } from '@yggdrasil-forge/core'
 import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/importers'
+import { badgeText, tierRowsFor } from '@yggdrasil-forge/react'
 import { describe, expect, it } from 'vitest'
-import { badgeText, tierRowsFor } from './detailLogic.js'
 import panadeiro from './panadeiro.fixture.json'
 
 describe('F12 DetailPanel — fluxo de selección/tier', () => {
