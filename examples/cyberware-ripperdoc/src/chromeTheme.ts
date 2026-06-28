@@ -22,6 +22,13 @@ export const chromeTheme: Theme = {
     edgeActive: '#2dd4d4',
     mesh: '#1ad0e0',
     selected: '#f0a830',
+    // Fill do corpo dos nodos (por defecto turquesa escuro; por estado).
+    nodeFill: '#0f2530',
+    nodeFillLocked: '#1a2230',
+    nodeFillUnlockable: '#0f2530',
+    nodeFillUnlocked: '#0f3540',
+    nodeFillMaxed: '#0f4550',
+    nodeFillInProgress: '#0f3540',
   },
   sizes: {
     strokeWidth: 1.5,

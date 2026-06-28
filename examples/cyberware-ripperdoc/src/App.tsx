@@ -8,8 +8,8 @@
 import type { TreeEngine } from '@yggdrasil-forge/core'
 import { TreeEngine as TreeEngineCtor } from '@yggdrasil-forge/core'
 import { SkillTree, ThemeProvider } from '@yggdrasil-forge/react'
-import type { JSX } from 'react'
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import type { CSSProperties, JSX } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { CapacityBar } from './CapacityBar.js'
 import { CyberHUD } from './CyberHUD.js'
 import { CyberInspector } from './CyberInspector.js'
@@ -21,6 +21,15 @@ export function App(): JSX.Element {
   const def = useMemo(() => cyberwareTree, [])
   const engine: TreeEngine = useMemo(() => new TreeEngineCtor(def), [def])
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined)
+  // Fondo personalizado (concept-art final de Agarfal). URL blob: creada
+  // con URL.createObjectURL; o useEffect cleanup revoga a anterior ao
+  // cambiar/desmontar para evitar memory leak. null = placeholder.
+  const [customBgUrl, setCustomBgUrl] = useState<string | null>(null)
+  useEffect(() => {
+    return () => {
+      if (customBgUrl !== null) URL.revokeObjectURL(customBgUrl)
+    }
+  }, [customBgUrl])
 
   // Re-render reactivo ao cambio de estado do engine (unlock, etc.).
   useSyncExternalStore(
@@ -50,7 +59,27 @@ export function App(): JSX.Element {
       <div className="cyber-body">
         <SystemsColumn engine={engine} def={def} selectedGroupId={selectedGroupId} />
         <main className="cyber-canvas">
-          <div className="cyber-canvas__bg" aria-hidden="true" />
+          <div
+            className="cyber-canvas__bg"
+            aria-hidden="true"
+            style={
+              customBgUrl !== null
+                ? ({ '--cyber-bg': `url(${customBgUrl})` } as CSSProperties)
+                : undefined
+            }
+          />
+          <label className="cyber-canvas__bg-picker" title="Cargar imaxe de fondo">
+            <span aria-hidden="true">⬚</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file === undefined) return
+                setCustomBgUrl(URL.createObjectURL(file))
+              }}
+            />
+          </label>
           <ThemeProvider theme={chromeTheme}>
             <SkillTree
               engine={engine}

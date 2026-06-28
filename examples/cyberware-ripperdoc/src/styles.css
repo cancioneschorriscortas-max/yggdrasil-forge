@@ -191,13 +191,41 @@ body,
 .cyber-canvas__bg {
   position: absolute;
   inset: 0;
-  background-image: url("/scene-placeholder.png");
+  background-image: var(--cyber-bg, url("/scene-placeholder.png"));
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0.5;
   filter: brightness(0.7) saturate(0.9);
   pointer-events: none;
+}
+/* Picker de imaxe de fondo (canto superior dereito do canvas). */
+.cyber-canvas__bg-picker {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: #1ad0e0;
+  background: rgba(10, 22, 32, 0.85);
+  border: 1px solid rgba(26, 208, 224, 0.4);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.cyber-canvas__bg-picker:hover {
+  border-color: #f0a830;
+  color: #f0a830;
+}
+.cyber-canvas__bg-picker input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 .cyber-canvas::after {
   /* Vignette. */
@@ -237,13 +265,18 @@ body,
 }
 .cyber-cap__row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 12px;
+  white-space: nowrap;
 }
 .cyber-cap__count {
+  display: inline-block;
   font-family: "Orbitron", sans-serif;
   font-size: 16px;
   color: #1ad0e0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .cyber-cap__count--danger {
   color: #f0a830;
