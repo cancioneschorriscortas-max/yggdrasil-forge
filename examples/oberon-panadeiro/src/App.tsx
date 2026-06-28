@@ -14,6 +14,7 @@ import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/impo
 import { SkillTree, type Theme, ThemeProvider, registerIcons } from '@yggdrasil-forge/react'
 import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { DetailPanel } from './DetailPanel.js'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { BAKER_ICONS, BAKER_NODE_ICONS } from './bakerIcons.js'
 import { type Topology, deriveEdges } from './deriveEdges.js'
@@ -142,6 +143,9 @@ export function App(): JSX.Element {
       if (customImageUrl !== null) URL.revokeObjectURL(customImageUrl)
     }
   }, [customImageUrl])
+  // F12: nodo seleccionado. Cando hai un, o DetailPanel substitúe ao
+  // ThemeLab no aside dereito. O botón "×" do panel límpao.
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined)
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -245,6 +249,32 @@ export function App(): JSX.Element {
     () => engine.getServerSnapshot(),
   )
 
+  // F12: derivar nodo + tier + canIncrease para o DetailPanel. Estes
+  // recálculanse en cada render (cheaper que useMemo cunha dep coma
+  // engine.getSnapshot que xa dispara o re-render). canIncrease
+  // restrínxese ademáis a currentTier < maxTier para que o botón non
+  // se ofreza cando está no máximo.
+  const selectedNode =
+    selectedNodeId !== undefined ? (def.nodes.find((n) => n.id === selectedNodeId) ?? null) : null
+  const selectedTier =
+    selectedNodeId !== undefined ? (engine.getNodeState(selectedNodeId)?.currentTier ?? 0) : 0
+  const canIncrease =
+    selectedNode !== null &&
+    selectedTier < (selectedNode.maxTier ?? 1) &&
+    engine.canUnlock(selectedNode.id).ok === true
+
+  // engine.unlock é async e devolve Result; ignoramos o valor porque o
+  // re-render xa vén do useSyncExternalStore. Capturamos rejection en
+  // catch para non deixar promesas sen tratar (lint).
+  const handleIncreaseTier = useCallback(
+    (id: string) => {
+      void engine.unlock(id).catch(() => {
+        /* erro de unlock; o snapshot non cambia, panel queda igual */
+      })
+    },
+    [engine],
+  )
+
   // O ThemeLab do react-demo ten `regionColors` como prop SEPARADA
   // (non dentro de ThemeLabValues). Polo tanto mantemos dous estados:
   // o tema xeral e as cores por rexión.
@@ -265,19 +295,14 @@ export function App(): JSX.Element {
     [def, regionColors],
   )
 
-  const onNodeClick = useCallback(
-    (id: string) => {
-      // V3 cambio A: o motor SI sobe tiers cando `state === 'unlocked'` se
-      // `maxTier > 1`; o guard previo (`unlocked || maxed`) bloqueaba o
-      // segundo `unlock` e quedaba en tier 1. Agora só evitamos chamar
-      // cando xa estamos en `maxed` (cap absoluto). A guard A.6.33 contra
-      // o estado inicial `locked` segue cuberta (todo o que non é `maxed`
-      // chama unlock; o motor decide internamente con canUnlock).
-      const st = engine.getNodeState(id)?.state ?? 'locked'
-      if (st !== 'maxed') void engine.unlock(id)
-    },
-    [engine],
-  )
+  // F12: click selecciona o nodo (abre DetailPanel). O unlock pasa
+  // polo botón "Subir nivel" do panel ou polo botón flotante que
+  // SkillTree renderiza cando hai selección + onNodeTierIncrease.
+  // Antes (v3.A) o click sobia tier directamente; cambiamos a UX para
+  // que coincida coa pantalla GAIA real (selección + acción explícita).
+  const onNodeClick = useCallback((id: string) => {
+    setSelectedNodeId(id)
+  }, [])
 
   const onRegionColorChange = useCallback((id: string, color: string) => {
     setRegionColors((prev) => ({ ...prev, [id]: color }))
@@ -437,6 +462,8 @@ export function App(): JSX.Element {
           <SkillTree
             engine={engine}
             onNodeClick={onNodeClick}
+            {...(selectedNodeId !== undefined ? { selectedNodeId } : {})}
+            onNodeTierIncrease={handleIncreaseTier}
             regions={regions}
             curve="radial"
             locale="gl"
@@ -444,15 +471,25 @@ export function App(): JSX.Element {
         </ThemeProvider>
       </div>
       <aside className="ob-themelab theme-lab">
-        <ThemeLab
-          value={themeVals}
-          onChange={setThemeVals}
-          regions={regions.map((r) => ({ id: r.id, label: r.label }))}
-          regionColors={regionColors}
-          {...(activeRegion !== undefined ? { activeRegion } : {})}
-          onActiveRegionChange={setActiveRegion}
-          onRegionColorChange={onRegionColorChange}
-        />
+        {selectedNode !== null ? (
+          <DetailPanel
+            node={selectedNode}
+            currentTier={selectedTier}
+            canIncrease={canIncrease}
+            onIncreaseTier={handleIncreaseTier}
+            onClose={() => setSelectedNodeId(undefined)}
+          />
+        ) : (
+          <ThemeLab
+            value={themeVals}
+            onChange={setThemeVals}
+            regions={regions.map((r) => ({ id: r.id, label: r.label }))}
+            regionColors={regionColors}
+            {...(activeRegion !== undefined ? { activeRegion } : {})}
+            onActiveRegionChange={setActiveRegion}
+            onRegionColorChange={onRegionColorChange}
+          />
+        )}
       </aside>
     </div>
   )
