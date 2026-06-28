@@ -4644,3 +4644,34 @@ debe: (a) **previsualizalos renderizados sobre o fondo real** antes de baixalos 
 calcularon**; ou (c) marcalos como **"valores de partida — calibrar en vivo"** para que o
 Executor non os trate como definitivos. Liga con A.6.9 ("typecheck ≠ render"), A.6.34
 ("tests ≠ bundle") e A.6.30 (ollo de Agarfal sobre gates verdes).
+
+**Adenda (gama no canto de número).** Cando un valor visual non se poida calibrar
+contra unha mostra real no momento do briefing, é preferible dar unha **gama**
+(p.ex. `α ∈ [0.2, 0.5]`, "subir en vivo") máis a expectativa descritiva ("debe
+verse cálido pero non agresivo") que un número exacto que aparente ser definitivo.
+
+### A.6.37 — Paridade de interaccións en renders alternativos
+
+**Contexto.** O briefing das `ClusterCards` (vista 'tarxetas' do `oberon-panadeiro`
+— render alternativo da mesma graph, *same graph, different render*) especificou a
+**selección** (premer fila → DetailPanel) pero **non enumerou** o **pan/zoom** que a
+vista 'grafo' (`SkillTree`) xa tiña. A vista nova aterrou sen pan/zoom; engadiuse
+nun commit aparte (`0c933e0`). As gates estáticas e a sonda de fluxo pasaron igual:
+probaban a **lóxica** (rowState, integridade dos datos), non a **paridade de
+interaccións**.
+
+**Lección.** "Same graph, different render" **NON** implica "same interactions".
+Cando un briefing pide un render alternativo dunha vista **xa interactiva**, as
+interaccións existentes **non se herdan**: hai que **enumeralas explicitamente** como
+requisitos da vista nova. É a contraparte de A.6.36 (que cobre valores **visuais**)
+no eido das **interaccións** — outra clase de cousa que as static gates non validan.
+
+**Estándar adoptado.** Todo briefing que cree unha vista/render alternativo dunha
+vista interactiva inclúe unha **lista de interaccións a preservar** (pan, zoom,
+selección, hover, foco/teclado, atallos), e a verificación visual confírmaas **unha a
+unha**. Corolario (regra do Executor): **comprobar a sinatura dunha peza antes de
+recomendar reusala** — nesta sesión recomendouse reusar `useViewport` sen ver que
+estaba acoplado a SVG (`SVGSVGElement`), e houbo que reaxustar; a verificación de
+sinatura **precede** á recomendación de reuso. Verificado en
+`examples/oberon-panadeiro/src/ClusterCards.tsx` (pan/zoom engadido post-aterraxe).
+Liga con A.6.36 e co protocolo Director→Executor.
