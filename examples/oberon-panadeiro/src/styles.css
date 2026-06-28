@@ -38,21 +38,22 @@ body,
   background: var(--ob-canvas-bg, #1c1712);
 }
 
-/* Estrelas tenues — patrón repetible (cero ficheiros). Encaixa coa
-   metáfora "constelación" sen competir co render. */
-.ob-canvas--bg-stars {
+/* Estrelas (modo experimental v6.1) retirado en v6.2: os alphas que
+   metín eran invisibles na práctica (mesma trampa que A.6.36 — valores
+   visuais numéricos precisan crosscheck en fondo real). Substituído
+   polo modo 'custom': o consumidor sobe a súa propia imaxe na UI
+   (file input) e véxase ao instante. */
+
+/* Imaxe personalizada cargada pola UI. A URL vén dunha CSS variable
+   inline `--ob-canvas-image` (via URL.createObjectURL). Cando non hai
+   imaxe seleccionada, `var(..., none)` cae a `none` → vése só o
+   background-color do tema. */
+.ob-canvas--bg-custom {
   background-color: var(--ob-canvas-bg, #1c1712);
-  background-image: radial-gradient(
-      1.5px 1.5px at 25% 22%,
-      rgba(255, 248, 220, 0.45),
-      transparent 50%
-    ), radial-gradient(1px 1px at 75% 38%, rgba(255, 248, 220, 0.3), transparent 50%),
-    radial-gradient(1px 1px at 18% 68%, rgba(255, 248, 220, 0.35), transparent 50%),
-    radial-gradient(1.5px 1.5px at 62% 82%, rgba(255, 248, 220, 0.4), transparent 50%),
-    radial-gradient(1px 1px at 50% 8%, rgba(255, 248, 220, 0.3), transparent 50%),
-    radial-gradient(1px 1px at 92% 60%, rgba(255, 248, 220, 0.32), transparent 50%);
-  background-size: 220px 220px;
-  background-repeat: repeat;
+  background-image: var(--ob-canvas-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* Lenzo transparente (vése o <body>). */

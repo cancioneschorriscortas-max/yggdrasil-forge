@@ -13,7 +13,7 @@ import { TreeEngine } from '@yggdrasil-forge/core'
 import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/importers'
 import { SkillTree, type Theme, ThemeProvider, registerIcons } from '@yggdrasil-forge/react'
 import type { JSX } from 'react'
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { BAKER_ICONS, BAKER_NODE_ICONS } from './bakerIcons.js'
 import { type Topology, deriveEdges } from './deriveEdges.js'
@@ -126,12 +126,22 @@ export function App(): JSX.Element {
   // Iconas SVG recoloreables (Opción A). Default ON; apágase para
   // comparar A/B contra o emoji nativo do fixture en vivo.
   const [useIcons, setUseIcons] = useState(true)
-  // V6.1: selector de fondo do lenzo (4 modos). Default = pozo
-  // (mantén o aspecto post-v4.1). Plano/estrelas seguen reaccionando
-  // ao ThemeLab via --ob-canvas-bg.
+  // V6.1: selector de fondo do lenzo. Default = pozo (mantén o aspecto
+  // post-v4.1). Plano/custom seguen reaccionando ao ThemeLab via
+  // --ob-canvas-bg. V6.2: 'stars' retirado por invisibilidade (A.6.36);
+  // substituído por 'custom' (imaxe subida pola UI; non persiste entre
+  // recargas).
   const [backgroundMode, setBackgroundMode] = useState<
-    'gravity-well' | 'plain' | 'stars' | 'transparent'
+    'gravity-well' | 'plain' | 'custom' | 'transparent'
   >('gravity-well')
+  // URL local (blob:) creada con URL.createObjectURL. Limpada con
+  // URL.revokeObjectURL ao cambiar/desmontar para evitar memory leak.
+  const [customImageUrl, setCustomImageUrl] = useState<string | null>(null)
+  useEffect(() => {
+    return () => {
+      if (customImageUrl !== null) URL.revokeObjectURL(customImageUrl)
+    }
+  }, [customImageUrl])
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -281,7 +291,12 @@ export function App(): JSX.Element {
         // `colors.background` (pauta F11.3d intacta). En vez de pintar inline no
         // <svg>, expoñemos `themeVals.canvas` como CSS variable e styles.css
         // úsaa como background do contedor.
-        style={{ ['--ob-canvas-bg' as string]: themeVals.canvas }}
+        style={{
+          ['--ob-canvas-bg' as string]: themeVals.canvas,
+          ...(backgroundMode === 'custom' && customImageUrl !== null
+            ? { ['--ob-canvas-image' as string]: `url(${customImageUrl})` }
+            : {}),
+        }}
       >
         <div className="ob-toolbar">
           <label>
@@ -391,16 +406,32 @@ export function App(): JSX.Element {
               value={backgroundMode}
               onChange={(e) =>
                 setBackgroundMode(
-                  e.target.value as 'gravity-well' | 'plain' | 'stars' | 'transparent',
+                  e.target.value as 'gravity-well' | 'plain' | 'custom' | 'transparent',
                 )
               }
             >
               <option value="gravity-well">pozo</option>
               <option value="plain">plano</option>
-              <option value="stars">estrelas</option>
+              <option value="custom">personalizada</option>
               <option value="transparent">sen</option>
             </select>
           </label>
+          {backgroundMode === 'custom' && (
+            <label style={{ marginLeft: 8 }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file === undefined) return
+                  // setCustomImageUrl(newUrl) → useEffect cleanup revoga
+                  // a URL anterior antes de aplicar a nova. Cero leak.
+                  setCustomImageUrl(URL.createObjectURL(file))
+                }}
+                style={{ fontSize: 11, maxWidth: 160 }}
+              />
+            </label>
+          )}
         </div>
         <ThemeProvider theme={builtTheme}>
           <SkillTree
