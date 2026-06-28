@@ -146,6 +146,11 @@ export function App(): JSX.Element {
   // F12: nodo seleccionado. Cando hai un, o DetailPanel substitúe ao
   // ThemeLab no aside dereito. O botón "×" do panel límpao.
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined)
+  // Backing de etiquetas para lexibilidade sobre fondo escena (modo
+  // `custom`). 'halo' (default) = stroke escuro pegado ás letras vía
+  // `paint-order: stroke`. 'sombra' = drop-shadow suave. 'nada' = sen
+  // base. CSS puro: non altera o tree nin require entrar no useMemo.
+  const [labelBacking, setLabelBacking] = useState<'nada' | 'halo' | 'sombra'>('halo')
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -311,7 +316,7 @@ export function App(): JSX.Element {
   return (
     <div className="ob-shell">
       <div
-        className={`ob-canvas ob-canvas--bg-${backgroundMode}`}
+        className={`ob-canvas ob-canvas--bg-${backgroundMode} ob-canvas--labels-${labelBacking}`}
         // V3 cambio B: fondo do lenzo vivo. `buildThemeFromVals` segue OMITINDO
         // `colors.background` (pauta F11.3d intacta). En vez de pintar inline no
         // <svg>, expoñemos `themeVals.canvas` como CSS variable e styles.css
@@ -457,6 +462,17 @@ export function App(): JSX.Element {
               />
             </label>
           )}
+          <label style={{ marginLeft: 12 }}>
+            etiquetas:{' '}
+            <select
+              value={labelBacking}
+              onChange={(e) => setLabelBacking(e.target.value as 'nada' | 'halo' | 'sombra')}
+            >
+              <option value="nada">nada</option>
+              <option value="halo">halo</option>
+              <option value="sombra">sombra</option>
+            </select>
+          </label>
         </div>
         <ThemeProvider theme={builtTheme}>
           <SkillTree

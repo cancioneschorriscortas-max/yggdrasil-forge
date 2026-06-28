@@ -448,3 +448,32 @@ body,
   color: #888;
   cursor: not-allowed;
 }
+
+/* ── Backing de etiquetas (lexibilidade sobre fondo imaxe) ──
+   Aplícase ao .ob-canvas como modificador. 'nada' = sen regra
+   (ausencia de clase efectiva). 'halo' = contorno escuro pegado
+   (paint-order: stroke, técnica de mapas; lese sobre lume e escuro).
+   'sombra' = resplandor escuro suave (drop-shadow).
+   paint-order/filter non están no style inline do label (que só
+   pon fill/fontSize/tipografía), polo que non hai conflito. */
+.ob-canvas--labels-halo .yf-skill-node__label {
+  paint-order: stroke;
+  stroke: rgba(6, 6, 8, 0.9);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.ob-canvas--labels-sombra .yf-skill-node__label {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 3px rgba(0, 0, 0, 0.7));
+}
+
+/* Secundario: etiquetas de cluster (region labels). Trazo máis leve
+   porque son faint a propósito. */
+.ob-canvas--labels-halo .yf-skill-regions text {
+  paint-order: stroke;
+  stroke: rgba(6, 6, 8, 0.85);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+.ob-canvas--labels-sombra .yf-skill-regions text {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+}
