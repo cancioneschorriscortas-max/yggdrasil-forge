@@ -1,5 +1,24 @@
 # @yggdrasil-forge/plugins
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [af88cf8]
+- Updated dependencies [c275965]
+- Updated dependencies [997e783]
+- Updated dependencies [77864f5]
+- Updated dependencies [b149ee9]
+- Updated dependencies [3164597]
+- Updated dependencies [10a995b]
+- Updated dependencies [169049f]
+- Updated dependencies [942cff7]
+- Updated dependencies [8523a05]
+- Updated dependencies [582bd89]
+- Updated dependencies [0a8900d]
+  - @yggdrasil-forge/core@0.4.0
+  - @yggdrasil-forge/common@0.4.0
+
 ## 0.1.2
 
 ### Patch Changes

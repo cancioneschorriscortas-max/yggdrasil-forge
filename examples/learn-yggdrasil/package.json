@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge-examples/learn-yggdrasil",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Polished nested course (Learn Yggdrasil Forge) demo",
   "type": "module",
@@ -24,5 +24,7 @@
     "typescript": "catalog:",
     "vite": "^6.0.3"
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }

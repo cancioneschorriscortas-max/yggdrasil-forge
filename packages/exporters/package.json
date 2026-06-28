@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/exporters",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Image and document exporters for Yggdrasil Forge",
   "license": "MIT",
   "author": "Agarfal",

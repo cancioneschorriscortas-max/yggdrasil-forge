@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/importers",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Format importers (Mermaid, Cytoscape, GraphML, CSV) for Yggdrasil Forge",
   "license": "MIT",
   "author": "Agarfal",

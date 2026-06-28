@@ -1,5 +1,11 @@
 # @yggdrasil-forge/common
 
+## 0.4.0
+
+### Minor Changes
+
+- 169049f: feat(core): TreeEngine.grantResource(id, amount) — runtime resource adjustment (clamped, enables level systems)
+
 ## 0.1.0
 
 ### Minor Changes
@@ -43,7 +49,7 @@
   **Public behavior changes**:
 
   - `engine.getProgress(nodeId)` now returns the dynamically-computed value for nodes with `progressSource.type === 'computed'`. Always clamped to `[0, 100]`. The value is **not** persisted to `NodeInstance.progress`; it recomputes on each call.
-  - `engine.setProgress(nodeId, percent)` on a `computed` node now returns `err` with the new error code `INVALID_PROGRESS_OPERATION` (YGG_E022). Previously returned `PROGRESS_SOURCE_UNSUPPORTED` (YGG_E020) along with the other unsupported sources; now `computed` is distinguished because it is a node that _could_ have a progress value but it derives, not is set.
+  - `engine.setProgress(nodeId, percent)` on a `computed` node now returns `err` with the new error code `INVALID_PROGRESS_OPERATION` (YGG*E022). Previously returned `PROGRESS_SOURCE_UNSUPPORTED` (YGG_E020) along with the other unsupported sources; now `computed` is distinguished because it is a node that \_could* have a progress value but it derives, not is set.
   - `engine.getReachedMilestones(nodeId)` automatically works for computed nodes because it internally calls `getProgress`.
 
   **`@yggdrasil-forge/common`** ships one new error code with localized messages in gl/es/en:

@@ -1,5 +1,130 @@
 # @yggdrasil-forge/react
 
+## 0.4.0
+
+### Minor Changes
+
+- af88cf8: feat(core): constellation layout — radial threaded strands (`shape: 'line'`)
+
+  New `LayoutEngine` in `@yggdrasil-forge/core`: `ConstellationLayout`. Each
+  cluster becomes a radial strand growing from the crown (root) outward: members
+  thread along the strand from `innerRadius` to `outerRadius`. Fills the radial
+  space — kills the "dead ring" that `clustered-radial` leaves in `list` mode
+  (grow-outward invariant).
+
+  Configuration knobs:
+
+  - `shape: 'line'` — only value implemented in v1 (`curve`/`spiral` future,
+    parser rejects them today).
+  - `innerRadius` (default 90) and `outerRadius` (default 320).
+  - `lengthMode: 'equal-span' | 'fixed-step'`:
+    - `equal-span` (default) — every strand spans the full `[innerRadius,
+outerRadius]` regardless of member count; clusters with fewer members have
+      more spacing.
+    - `fixed-step` — constant radial step across all strands; shorter clusters
+      finish before reaching `outerRadius`.
+  - `startAngle` (default `-π/2`) to rotate the whole constellation.
+
+  This layout only positions; the visible strands come from `treeDef.edges`
+  (`type: 'path'`) so they don't introduce unlock gates. Cluster building shares
+  a new helper module (`ClusterBuilder`) used additively — `ClusteredRadialLayout`
+  remains untouched, no regression in the core test suite.
+
+  Registered in `@yggdrasil-forge/react`'s default layout registry.
+
+- a7765c0: fix(react): ThemeContext cross-bundle singleton (Symbol.for) so /index + /headless share one context; re-export ThemeProvider/Theme from /headless (F10.3.fix-2)
+- d9751dd: refactor(react): theme node/edge/mesh via inline style from useTheme (not scoped <style> CSS vars); add ThemeColors.nodeFill + ThemeSizes.ringWidth (F10.3.fix)
+- fbf9b06: feat(react): flat orb node — shape with neutral fill + state-colored ring (no glow), icon inside, label below; radius-aware padding (F10.3)
+- c275965: feat(react): SkillEdge v2 — edge-state coloring + directed arrowheads + ThemeColors.edgeActive + SkillTree.curve prop (F10.4)
+- 40acddc: feat(react): SVG icon registry (Symbol.for singleton) + builtin starter set + recolorable icons with emoji/URL fallback (F10.5)
+- 95e5aac: feat(react): NORSE_ICONS iconset (26 icons, opt-in via registerIcons) (F10.5b)
+- 5d06ab1: feat(react): viewport — pan, wheel-zoom-to-cursor, fit-to-bounds + imperative handle (F10.6)
+- 86a2ecf: feat(react): node selection overlay + hover affordance + cursor + focus ring + onNodeHover; ThemeColors.selected (F10.7)
+- d4ab8fe: feat(react): extended theme — typography + background + surface applied by renderer; removes demo CSS font/bg hacks (F10.8)
+- 77864f5: feat(core+react): novo motor de layout `clustered-radial` (base común, F11.2a). Coloca a raíz no centro da árbore, os grupos repartidos en radial uniforme arredor dela, e os membros de cada grupo nun abano placeholder cara afóra. Xera mesh `spokes` centro→grupo por defecto (esqueleto da estrela cando non hai edges semánticos). Rexístrase no default registry de `@react`. Esta é a BASE común para F11.2b (memberLayout: list/cluster) e F11.2c (anchorNodeId real); 2a non implementa esas variantes.
+- 279194d: feat(react): `node.icon` admite rutas/recursos de imaxe locais (F11.3). A detección `iconIsUrl` no `SkillNode` amplíase para que rutas absolutas (`/badges/x.webp`), relativas (`./a.png`, `../b.avif`), `data:` URIs e calquera cadea que remate en extensión de imaxe (`webp`/`avif`/`png`/`jpg`/`jpeg`/`gif`/`svg`) se renderice como `<image>` SVG en vez de caer ao fallback `<text>`. Os ids de glyph rexistrados seguen resolvéndose como `IconGlyph` (regresión cero). Os `http(s)://`/`//` seguen funcionando como antes.
+- cba98b4: feat(react): badges raster a `imageSize=radius*1.8`, glyphs intactos (F11.3b). En `SkillNode`, as imaxes raster (rutas, `data:` URIs, ou cadeas con extensión de imaxe) renderízanse agora con `width`/`height` == `radius * 1.8` en vez de `radius * 1.0`, e con `preserveAspectRatio="xMidYMid meet"` explícito. Os `IconGlyph` (glyphs vector rexistrados) seguen co tamaño `iconSize = radius * 1.0` sen cambio: regresión cero no panadeiro, camareiro e calquera árbore que use glyphs. Pensado para que os badges AAA do Paladín enchan o círculo do nodo sen tapar o anel de estado.
+- c727198: feat(react): atenúa badge de nodos `locked` (F11.3c). En `SkillNode`, os badges raster (rutas, `data:` URIs, ou cadeas con extensión de imaxe) renderízanse con `filter: grayscale(1) brightness(0.5)` cando o estado do nodo é `'locked'`. Pensado para que cos badges grandes e vívidos (F11.3b) o estado de bloqueado salte á vista. **Só afecta á imaxe** — o anel conserva a súa cor de estado, e `IconGlyph` (glyphs vector) e o fallback `<text>` (emoji) **non se tocan**. Outros estados (`unlockable`, `in_progress`, `unlocked`, `maxed`, `disabled`, `expired`) renderizan o badge vívido.
+- 2a8da28: feat(react): per-state node fill + in-progress visual for partial tiers + NodeDef.color override
+- 67bb611: feat(react): region tints (per-tag bounding box) behind the tree + Theme Lab as right column with region selector
+- 43153e4: feat(react): visible tier badge + per-node tier +/- controls (interactive builder)
+- 6113f40: Layout errors are now visible in development: when `computeLayout` fails,
+  `SkillTree`/`SVGRenderer` render the error code and message on the canvas
+  instead of a blank SVG. Production output is unchanged (silent). Adds an
+  optional `errorMessage` prop to `SVGRenderer`.
+- b2e6861: Add opt-in `theme.sizes.maxLabelChars`: truncates long node labels with an
+  ellipsis and adds a hover `<title>` with the full text (preserved in
+  `aria-label`). Default off — no change to existing behavior.
+- 5225e14: feat(react): promote `ClusterCardsView` and `NodeInspector` from example
+
+  GAIA, the second real consumer, asked to adopt the tarxetas-lista view
+  plus the per-node inspector that lived inside the oberon-panadeiro
+  example. Since GAIA is JS-only (CRA), copying `.tsx` was not an option;
+  promoting to the published package was the clean path.
+
+  New public API on `@yggdrasil-forge/react`:
+
+  - `ClusterCardsView` — a list-of-cards view of any tree, with local
+    pan/zoom (drag + wheel, identical UX to `SkillTree` but on HTML).
+    Positions are optional: when missing for a group id, an automatic
+    ring around the center is used so the component works on any
+    profession without a hardcoded map.
+  - `NodeInspector` — side panel with the node detail (header, badge,
+    description, levels with state, key action, increase-tier button,
+    optional video). i18n via `locale` (default `'en'`) and `strings`
+    partial override. Video render injectable via `renderVideo` prop so
+    consumers can plug their own media player.
+  - Pure logic helpers `rowState`, `rowBadge` (cluster) and `tierRowsFor`,
+    `badgeKind`, `badgeText` (inspector), plus the matching state types
+    `RowState`, `TierState`, `TierRow`. Useful for consumers that build
+    their own variants on top of the same rules.
+
+  Both components are self-styled with inline styles (matching the
+  package convention) and expose stable `yf-cluster-*` / `yf-node-inspector-*`
+  class names for consumer override. No CSS file to import. Zero
+  sideEffects.
+
+  The oberon-panadeiro example now consumes the promoted components and
+  deletes its local copies; it acts as the first real test of the API.
+
+- 918eafa: feat(react): `SkillRegions` accepts `regionShape: 'box' | 'hull'`
+
+  New optional prop on `SkillTree` (forwarded to `SkillRegions`) selects the
+  shape of region tints:
+
+  - `'box'` (default) — current behaviour: rounded `<rect>` around the
+    region's bounding box.
+  - `'hull'` — organic blob (`<path>`) that follows the actual shape of the
+    region's nodes. Built from a sampled convex hull (Monotone Chain on
+    `K=10` perimeter points per node) smoothed by a closed Catmull-Rom
+    spline. Useful on image backgrounds where rectangles overlap between
+    fan clusters and wash out over warm areas.
+
+  The public helper `computeRegionHullPath(tag, nodes, positions, padding)`
+  is exported for consumers that want to render the path themselves.
+
+  Zero regressions: default is `'box'`; existing consumers see no change.
+  The legacy `SkillRegions.test.tsx` keeps passing untouched as the
+  regression guard.
+
+### Patch Changes
+
+- 42227ef: fix(react): o `<svg>` do skill-tree enche o seu contedor por defecto (display:block, width:100%, height:100%). Antes renderizaba ao tamaño intrínseco do viewBox, producindo unha "banda morta" en contedores dimensionados a non ser que o consumidor engadise CSS extra. O fix é aditivo e sobreescribíbel polo tema (background) e por estilos do consumidor.
+- Updated dependencies [af88cf8]
+- Updated dependencies [c275965]
+- Updated dependencies [997e783]
+- Updated dependencies [77864f5]
+- Updated dependencies [b149ee9]
+- Updated dependencies [3164597]
+- Updated dependencies [10a995b]
+- Updated dependencies [169049f]
+- Updated dependencies [942cff7]
+- Updated dependencies [8523a05]
+- Updated dependencies [582bd89]
+- Updated dependencies [0a8900d]
+  - @yggdrasil-forge/core@0.4.0
+  - @yggdrasil-forge/common@0.4.0
+
 ## 0.3.0
 
 ### Patch Changes

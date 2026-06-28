@@ -1,5 +1,12 @@
 # @yggdrasil-forge/storage
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [169049f]
+  - @yggdrasil-forge/common@0.4.0
+
 ## 0.1.0
 
 ### Minor Changes

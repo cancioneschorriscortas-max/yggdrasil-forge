@@ -1,5 +1,54 @@
 # @yggdrasil-forge/core
 
+## 0.4.0
+
+### Minor Changes
+
+- af88cf8: feat(core): constellation layout — radial threaded strands (`shape: 'line'`)
+
+  New `LayoutEngine` in `@yggdrasil-forge/core`: `ConstellationLayout`. Each
+  cluster becomes a radial strand growing from the crown (root) outward: members
+  thread along the strand from `innerRadius` to `outerRadius`. Fills the radial
+  space — kills the "dead ring" that `clustered-radial` leaves in `list` mode
+  (grow-outward invariant).
+
+  Configuration knobs:
+
+  - `shape: 'line'` — only value implemented in v1 (`curve`/`spiral` future,
+    parser rejects them today).
+  - `innerRadius` (default 90) and `outerRadius` (default 320).
+  - `lengthMode: 'equal-span' | 'fixed-step'`:
+    - `equal-span` (default) — every strand spans the full `[innerRadius,
+outerRadius]` regardless of member count; clusters with fewer members have
+      more spacing.
+    - `fixed-step` — constant radial step across all strands; shorter clusters
+      finish before reaching `outerRadius`.
+  - `startAngle` (default `-π/2`) to rotate the whole constellation.
+
+  This layout only positions; the visible strands come from `treeDef.edges`
+  (`type: 'path'`) so they don't introduce unlock gates. Cluster building shares
+  a new helper module (`ClusterBuilder`) used additively — `ClusteredRadialLayout`
+  remains untouched, no regression in the core test suite.
+
+  Registered in `@yggdrasil-forge/react`'s default layout registry.
+
+- c275965: feat(core): EdgeStyle.directed for arrowheads (F10.4)
+- 997e783: feat(core): LayoutConfig.curve + EdgeStyle.routing applied by computeLayout (edge geometry in the data contract) (F10.4b)
+- 77864f5: feat(core+react): novo motor de layout `clustered-radial` (base común, F11.2a). Coloca a raíz no centro da árbore, os grupos repartidos en radial uniforme arredor dela, e os membros de cada grupo nun abano placeholder cara afóra. Xera mesh `spokes` centro→grupo por defecto (esqueleto da estrela cando non hai edges semánticos). Rexístrase no default registry de `@react`. Esta é a BASE común para F11.2b (memberLayout: list/cluster) e F11.2c (anchorNodeId real); 2a non implementa esas variantes.
+- b149ee9: feat(core): `clustered-radial` `list` honra `growOutward`; elimina `effGroupRadius` (F11.2b-bis). En modo `memberLayout: 'list'`, a columna agora **irradia cara afóra** desde o punto-de-grupo (grupo por riba do centro → cara arriba; grupo por baixo ou no eixe → cara abaixo). É a primeira aplicación dun invariante explícito do contrato de auto-layout (A.1 `growOutward`), e fai obsoleto o anti-colisión `effGroupRadius`/`centerClearance` introducido en F11.2b. O campo `centerClearance` elimínase do `ClusteredRadialConfig`. `'fan'` (default) idéntico. `'cluster'` segue diferido.
+- 3164597: feat(core): `clustered-radial` memberLayout `'list'` (F11.2b). Engade a `ClusteredRadialConfig` o campo opcional `memberLayout: 'fan' | 'list'` (default `'fan'`, equivalente ao comportamento de F11.2a). En modo `'list'`, os membros de cada grupo cólganse nunha columna vertical cara abaixo desde o punto-de-grupo, con separación configurable via `rowGap` (default 64). Inclúe anti-colisión automática que auto-expande `groupRadius` se algunha columna chegaría ao centro (controlable con `centerClearance`, default `= rowGap`). Modo `'cluster'` (orgánico) diferido a sub-fase posterior. Conector intra-grupo (vide curva) diferido a F12 (renderer).
+- 10a995b: feat(core): `clustered-radial` `memberLayout: 'cluster'` + `GroupDef.anchorNodeId` (F11.2c). Terceiro modo intra-grupo do motor clustered-radial, estilo "camareiro": a áncora do grupo colócase no punto-de-grupo (a `groupRadius` do centro, onde remata o spoke coroa→grupo) e os demais membros (satélites) orbitan a `orbitRadius` da áncora nun arco `clusterArc` centrado na dirección radial saínte (honra `growOutward`). A áncora resólvese leendo `GroupDef.anchorNodeId` se é membro válido do grupo, ou fallback ao primeiro membro. Engade o campo opcional `anchorNodeId?: string` a `GroupDef` (cambio aditivo) e amplía a unión `memberLayout` con `'cluster'`. Os cross-links intra-grupo son edges de dato (posiciónaos `computeEdges`); o motor non emite mesh intra-grupo. `'fan'`/`'list'` idénticos.
+- 169049f: feat(core): TreeEngine.grantResource(id, amount) — runtime resource adjustment (clamped, enables level systems)
+- 942cff7: feat(core): TreeEngine.lockOneTier(nodeId) — decrement one tier and refund its cost (interactive builder enabler)
+- 8523a05: fix(core): exclusions are now symmetric (check inverse relation); add getEffectiveExclusions
+- 0a8900d: feat(core): TreeEngine.explainUnlock(nodeId) exposing per-condition UnlockExplanation (showcase enabler)
+
+### Patch Changes
+
+- 582bd89: fix(core): stat_min reads live stats from StatComputer (computedStats was a dead cache)
+- Updated dependencies [169049f]
+  - @yggdrasil-forge/common@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

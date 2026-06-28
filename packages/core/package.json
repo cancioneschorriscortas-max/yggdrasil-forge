@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "The core engine of Yggdrasil Forge — a comprehensive skill tree engine for the web",
   "license": "MIT",
   "author": "Agarfal",
