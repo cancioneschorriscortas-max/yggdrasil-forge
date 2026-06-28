@@ -167,7 +167,7 @@ export function App(): JSX.Element {
   // comportamento previo sen sorpresas). 'tarxetas' = vista "lista
   // con iconas" (ClusterCards), patrón GAIA Oberón. As dúas conviven;
   // o usuario alterna en vivo. Cero estado de engine afectado.
-  const [view, setView] = useState<'grafo' | 'tarxetas'>('grafo')
+  const [view, setView] = useState<'grafo' | 'tarxetas'>('tarxetas')
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
