@@ -161,6 +161,16 @@ export const BAKER_ICONS: Record<string, IconDef> = {
       },
     ],
   },
+  // Coroa: usada no root (Panadeiro/a) e na vista 'tarxetas' como
+  // glifo central. Validada: cabe en viewBox 0 0 24 24.
+  crown: {
+    paths: [
+      {
+        d: 'M3 9L6 19H18L21 9L15 13L12 7L9 13L3 9ZM2 7A1 1 0 1 1 4 7A1 1 0 1 1 2 7ZM11 5A1 1 0 1 1 13 5A1 1 0 1 1 11 5ZM20 7A1 1 0 1 1 22 7A1 1 0 1 1 20 7Z',
+        mode: 'stroke',
+      },
+    ],
+  },
 }
 
 /**

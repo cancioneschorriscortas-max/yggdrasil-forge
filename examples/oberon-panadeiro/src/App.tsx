@@ -11,9 +11,16 @@
 
 import { TreeEngine } from '@yggdrasil-forge/core'
 import { type GaiaProfession, importGaiaProfession } from '@yggdrasil-forge/importers'
-import { SkillTree, type Theme, ThemeProvider, registerIcons } from '@yggdrasil-forge/react'
+import {
+  SkillTree,
+  type Theme,
+  ThemeProvider,
+  getIcon,
+  registerIcons,
+} from '@yggdrasil-forge/react'
 import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { type CardGroup, ClusterCards } from './ClusterCards.js'
 import { DetailPanel } from './DetailPanel.js'
 import { ThemeLab, type ThemeLabValues, presetDarkClean } from './ThemeLab.js'
 import { BAKER_ICONS, BAKER_NODE_ICONS } from './bakerIcons.js'
@@ -156,6 +163,11 @@ export function App(): JSX.Element {
   // 'nada' = ocultar regions (cero render). Só afecta render de
   // regions; non entra en useMemo do tree.
   const [regionShape, setRegionShape] = useState<'blob' | 'caixa' | 'nada'>('blob')
+  // Vista do exemplo: 'grafo' = render espacial co SkillTree (default,
+  // comportamento previo sen sorpresas). 'tarxetas' = vista "lista
+  // con iconas" (ClusterCards), patrón GAIA Oberón. As dúas conviven;
+  // o usuario alterna en vivo. Cero estado de engine afectado.
+  const [view, setView] = useState<'grafo' | 'tarxetas'>('grafo')
 
   const def = useMemo(() => {
     const startAngle = flip ? Math.PI / 2 : -Math.PI / 2
@@ -223,7 +235,7 @@ export function App(): JSX.Element {
       if (colorByCluster && n.group !== undefined && GROUP_COLORS[n.group] !== undefined) {
         m = { ...m, color: GROUP_COLORS[n.group] }
       }
-      if (m.type === 'root') m = { ...m, size: 52 }
+      if (m.type === 'root') m = { ...m, size: 52, icon: 'crown' }
       if (smallestGroupId !== undefined && n.group === smallestGroupId && m.type !== 'root') {
         m = { ...m, size: 36 }
       }
@@ -253,6 +265,10 @@ export function App(): JSX.Element {
 
   const engine = useMemo(() => new TreeEngine(def), [def])
 
+  // Subscrición ao engine: dispara re-render do compoñente cando o
+  // estado cambia (subir tier, etc.). Non capturamos o snapshot porque
+  // os cálculos derivados (cardGroups, canIncrease) chaman a getNodeState
+  // directamente no render — xa con valor actualizado polo re-render.
   useSyncExternalStore(
     useCallback((cb: () => void) => engine.subscribe(cb), [engine]),
     () => engine.getSnapshot(),
@@ -305,6 +321,31 @@ export function App(): JSX.Element {
     [def, regionColors],
   )
 
+  // cardGroups: datos preparados para a vista 'tarxetas'. Calcúlase en
+  // cada render (5 grupos × ~4 nodos = trivial). O componente xa se
+  // re-renderiza cando o snapshot do engine cambia (subscrición arriba),
+  // polo que as filas reflicten o tier actual sen necesidade de useMemo
+  // nin deps reactivas. Resolución de label/icona/tier centralizada
+  // aquí; ClusterCards é presentacional puro.
+  const cardGroups: CardGroup[] = (def.groups ?? []).map((g) => ({
+    id: g.id,
+    label: loc(g.label),
+    color: regionColors[g.id] ?? GROUP_COLORS[g.id] ?? '#999999',
+    members: def.nodes
+      .filter((n) => n.group === g.id)
+      .map((n) => {
+        const slug = BAKER_NODE_ICONS[n.id]
+        const icon = slug !== undefined ? BAKER_ICONS[slug] : undefined
+        return {
+          id: n.id,
+          label: loc(n.label),
+          icon,
+          currentTier: engine.getNodeState(n.id)?.currentTier ?? 0,
+          maxTier: n.maxTier ?? 1,
+        }
+      }),
+  }))
+
   // F12: click selecciona o nodo (abre DetailPanel). O unlock pasa
   // polo botón "Subir nivel" do panel ou polo botón flotante que
   // SkillTree renderiza cando hai selección + onNodeTierIncrease.
@@ -335,106 +376,117 @@ export function App(): JSX.Element {
       >
         <div className="ob-toolbar">
           <label>
-            Layout:{' '}
-            <select
-              value={layoutKind}
-              onChange={(e) =>
-                setLayoutKind(e.target.value as 'clustered-radial' | 'constellation')
-              }
-            >
-              <option value="clustered-radial">clustered-radial</option>
-              <option value="constellation">constellation</option>
+            vista:{' '}
+            <select value={view} onChange={(e) => setView(e.target.value as 'grafo' | 'tarxetas')}>
+              <option value="grafo">grafo</option>
+              <option value="tarxetas">tarxetas</option>
             </select>
           </label>
-          {layoutKind === 'clustered-radial' && (
-            <label style={{ marginLeft: 12 }}>
-              Forma intra-cluster:{' '}
-              <select
-                value={memberLayout}
-                onChange={(e) => setMemberLayout(e.target.value as 'fan' | 'list' | 'cluster')}
-              >
-                <option value="fan">fan</option>
-                <option value="list">list</option>
-                <option value="cluster">cluster</option>
-              </select>
-            </label>
-          )}
-          {layoutKind === 'constellation' && (
+          {view === 'grafo' && (
             <>
               <label style={{ marginLeft: 12 }}>
-                inner:{' '}
-                <input
-                  type="range"
-                  min={40}
-                  max={200}
-                  step={5}
-                  value={innerRadius}
-                  onChange={(e) => setInnerRadius(Number(e.target.value))}
-                />{' '}
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{innerRadius}</span>
-              </label>
-              <label style={{ marginLeft: 12 }}>
-                outer:{' '}
-                <input
-                  type="range"
-                  min={200}
-                  max={420}
-                  step={5}
-                  value={outerRadius}
-                  onChange={(e) => setOuterRadius(Number(e.target.value))}
-                />{' '}
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{outerRadius}</span>
-              </label>
-              <label style={{ marginLeft: 12 }}>
-                lengthMode:{' '}
+                Layout:{' '}
                 <select
-                  value={lengthMode}
-                  onChange={(e) => setLengthMode(e.target.value as 'equal-span' | 'fixed-step')}
+                  value={layoutKind}
+                  onChange={(e) =>
+                    setLayoutKind(e.target.value as 'clustered-radial' | 'constellation')
+                  }
                 >
-                  <option value="equal-span">equal-span</option>
-                  <option value="fixed-step">fixed-step</option>
+                  <option value="clustered-radial">clustered-radial</option>
+                  <option value="constellation">constellation</option>
                 </select>
+              </label>
+              {layoutKind === 'clustered-radial' && (
+                <label style={{ marginLeft: 12 }}>
+                  Forma intra-cluster:{' '}
+                  <select
+                    value={memberLayout}
+                    onChange={(e) => setMemberLayout(e.target.value as 'fan' | 'list' | 'cluster')}
+                  >
+                    <option value="fan">fan</option>
+                    <option value="list">list</option>
+                    <option value="cluster">cluster</option>
+                  </select>
+                </label>
+              )}
+              {layoutKind === 'constellation' && (
+                <>
+                  <label style={{ marginLeft: 12 }}>
+                    inner:{' '}
+                    <input
+                      type="range"
+                      min={40}
+                      max={200}
+                      step={5}
+                      value={innerRadius}
+                      onChange={(e) => setInnerRadius(Number(e.target.value))}
+                    />{' '}
+                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>{innerRadius}</span>
+                  </label>
+                  <label style={{ marginLeft: 12 }}>
+                    outer:{' '}
+                    <input
+                      type="range"
+                      min={200}
+                      max={420}
+                      step={5}
+                      value={outerRadius}
+                      onChange={(e) => setOuterRadius(Number(e.target.value))}
+                    />{' '}
+                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>{outerRadius}</span>
+                  </label>
+                  <label style={{ marginLeft: 12 }}>
+                    lengthMode:{' '}
+                    <select
+                      value={lengthMode}
+                      onChange={(e) => setLengthMode(e.target.value as 'equal-span' | 'fixed-step')}
+                    >
+                      <option value="equal-span">equal-span</option>
+                      <option value="fixed-step">fixed-step</option>
+                    </select>
+                  </label>
+                  <label style={{ marginLeft: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={compensateShortCluster}
+                      onChange={(e) => setCompensateShortCluster(e.target.checked)}
+                      disabled={lengthMode !== 'equal-span'}
+                    />{' '}
+                    compensar nodo curto
+                  </label>
+                </>
+              )}
+              <label style={{ marginLeft: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={colorByCluster}
+                  onChange={(e) => setColorByCluster(e.target.checked)}
+                />{' '}
+                cor por cluster
               </label>
               <label style={{ marginLeft: 12 }}>
                 <input
                   type="checkbox"
-                  checked={compensateShortCluster}
-                  onChange={(e) => setCompensateShortCluster(e.target.checked)}
-                  disabled={lengthMode !== 'equal-span'}
+                  checked={useIcons}
+                  onChange={(e) => setUseIcons(e.target.checked)}
                 />{' '}
-                compensar nodo curto
+                iconas
+              </label>
+              <label style={{ marginLeft: 12 }}>
+                topoloxía:{' '}
+                <select value={topology} onChange={(e) => setTopology(e.target.value as Topology)}>
+                  <option value="none">ningunha</option>
+                  <option value="star">estrela</option>
+                  <option value="hub">hub</option>
+                  <option value="chain">fío</option>
+                </select>
+              </label>
+              <label style={{ marginLeft: 12 }}>
+                <input type="checkbox" checked={flip} onChange={(e) => setFlip(e.target.checked)} />{' '}
+                voltear
               </label>
             </>
           )}
-          <label style={{ marginLeft: 12 }}>
-            <input
-              type="checkbox"
-              checked={colorByCluster}
-              onChange={(e) => setColorByCluster(e.target.checked)}
-            />{' '}
-            cor por cluster
-          </label>
-          <label style={{ marginLeft: 12 }}>
-            <input
-              type="checkbox"
-              checked={useIcons}
-              onChange={(e) => setUseIcons(e.target.checked)}
-            />{' '}
-            iconas
-          </label>
-          <label style={{ marginLeft: 12 }}>
-            topoloxía:{' '}
-            <select value={topology} onChange={(e) => setTopology(e.target.value as Topology)}>
-              <option value="none">ningunha</option>
-              <option value="star">estrela</option>
-              <option value="hub">hub</option>
-              <option value="chain">fío</option>
-            </select>
-          </label>
-          <label style={{ marginLeft: 12 }}>
-            <input type="checkbox" checked={flip} onChange={(e) => setFlip(e.target.checked)} />{' '}
-            voltear
-          </label>
           <label style={{ marginLeft: 12 }}>
             fondo:{' '}
             <select
@@ -467,40 +519,54 @@ export function App(): JSX.Element {
               />
             </label>
           )}
-          <label style={{ marginLeft: 12 }}>
-            etiquetas:{' '}
-            <select
-              value={labelBacking}
-              onChange={(e) => setLabelBacking(e.target.value as 'nada' | 'halo' | 'sombra')}
-            >
-              <option value="nada">nada</option>
-              <option value="halo">halo</option>
-              <option value="sombra">sombra</option>
-            </select>
-          </label>
-          <label style={{ marginLeft: 12 }}>
-            regions:{' '}
-            <select
-              value={regionShape}
-              onChange={(e) => setRegionShape(e.target.value as 'blob' | 'caixa' | 'nada')}
-            >
-              <option value="blob">blob</option>
-              <option value="caixa">caixa</option>
-              <option value="nada">nada</option>
-            </select>
-          </label>
+          {view === 'grafo' && (
+            <>
+              <label style={{ marginLeft: 12 }}>
+                etiquetas:{' '}
+                <select
+                  value={labelBacking}
+                  onChange={(e) => setLabelBacking(e.target.value as 'nada' | 'halo' | 'sombra')}
+                >
+                  <option value="nada">nada</option>
+                  <option value="halo">halo</option>
+                  <option value="sombra">sombra</option>
+                </select>
+              </label>
+              <label style={{ marginLeft: 12 }}>
+                regions:{' '}
+                <select
+                  value={regionShape}
+                  onChange={(e) => setRegionShape(e.target.value as 'blob' | 'caixa' | 'nada')}
+                >
+                  <option value="blob">blob</option>
+                  <option value="caixa">caixa</option>
+                  <option value="nada">nada</option>
+                </select>
+              </label>
+            </>
+          )}
         </div>
         <ThemeProvider theme={builtTheme}>
-          <SkillTree
-            engine={engine}
-            onNodeClick={onNodeClick}
-            {...(selectedNodeId !== undefined ? { selectedNodeId } : {})}
-            onNodeTierIncrease={handleIncreaseTier}
-            {...(regionShape !== 'nada' ? { regions } : {})}
-            regionShape={regionShape === 'blob' ? 'hull' : 'box'}
-            curve="radial"
-            locale="gl"
-          />
+          {view === 'grafo' ? (
+            <SkillTree
+              engine={engine}
+              onNodeClick={onNodeClick}
+              {...(selectedNodeId !== undefined ? { selectedNodeId } : {})}
+              onNodeTierIncrease={handleIncreaseTier}
+              {...(regionShape !== 'nada' ? { regions } : {})}
+              regionShape={regionShape === 'blob' ? 'hull' : 'box'}
+              curve="radial"
+              locale="gl"
+            />
+          ) : (
+            <ClusterCards
+              groups={cardGroups}
+              crownLabel="Panadeiro/a"
+              crownIcon={getIcon('crown')}
+              {...(selectedNodeId !== undefined ? { selectedNodeId } : {})}
+              onRowClick={onNodeClick}
+            />
+          )}
         </ThemeProvider>
       </div>
       <aside className="ob-themelab theme-lab">

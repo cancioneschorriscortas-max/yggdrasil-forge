@@ -477,3 +477,116 @@ body,
 .ob-canvas--labels-sombra .yf-skill-regions text {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
 }
+
+/* ── Vista 'tarxetas' (ClusterCards) ──
+   O .ob-cards é o contedor a pantalla completa do lenzo. Coroa
+   centrada en 50/50; cada .ob-card posiciónase con `position:absolute`
+   e `transform: translate(-50%, -50%)` para que left/top sexan o
+   centro da tarxeta. As posicións concretas viven en CARD_POSITIONS
+   en ClusterCards.tsx — editar alí para mover. */
+.ob-cards {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ob-cards__crown,
+.ob-card {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+.ob-cards__crown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #d6c89a;
+}
+.ob-cards__crown-glyph {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(217, 138, 43, 0.18);
+  border: 2px solid #d98a2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0b056;
+  box-shadow: 0 0 24px rgba(217, 138, 43, 0.35), inset 0 0 12px rgba(0, 0, 0, 0.4);
+}
+.ob-cards__crown-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+.ob-card {
+  min-width: 220px;
+  max-width: 280px;
+  background: rgba(17, 19, 26, 0.92);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+  font: 13px / 1.4 system-ui, sans-serif;
+  color: #e8dcc4;
+}
+.ob-card__title {
+  padding: 8px 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: #11131a;
+  /* `background` está inline (cor do grupo) */
+}
+.ob-card__rows {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+}
+.ob-card__row {
+  padding: 0;
+}
+.ob-card__row-button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ob-card__row-button:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.ob-card__row--selected .ob-card__row-button {
+  background: rgba(217, 138, 43, 0.12);
+  border-left-color: #d98a2b;
+}
+.ob-card__row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ob-card__row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ob-card__row-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-width: 24px;
+  text-align: right;
+}
+.ob-card__row--locked .ob-card__row-label {
+  opacity: 0.6;
+}
