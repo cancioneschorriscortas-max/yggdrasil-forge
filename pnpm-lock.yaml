@@ -21,6 +21,9 @@ catalogs:
     '@vitest/coverage-v8':
       specifier: ^4.1.0
       version: 4.1.9
+    dockview-react:
+      specifier: ^6.6.1
+      version: 6.6.1
     fake-indexeddb:
       specifier: ^6.2.5
       version: 6.2.5
@@ -129,6 +132,43 @@ importers:
       augmented-ui:
         specifier: ^2.0.0
         version: 2.0.0
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
+    devDependencies:
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 4.7.0(vite@6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.3
+        version: 6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0)
+
+  examples/editor:
+    dependencies:
+      '@yggdrasil-forge/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@yggdrasil-forge/editor-core':
+        specifier: workspace:*
+        version: link:../../packages/editor-core
+      '@yggdrasil-forge/editor-react':
+        specifier: workspace:*
+        version: link:../../packages/editor-react
+      dockview-react:
+        specifier: 'catalog:'
+        version: 6.6.1(react@19.2.7)
       react:
         specifier: 'catalog:'
         version: 19.2.7
@@ -397,6 +437,49 @@ importers:
         specifier: ^10.1.1
         version: 10.2.0
     devDependencies:
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@22.19.21)(@vitest/coverage-v8@4.1.9)(@vitest/ui@4.1.9)(jsdom@25.0.1)(vite@6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0))
+
+  packages/editor-react:
+    dependencies:
+      '@yggdrasil-forge/editor-core':
+        specifier: workspace:*
+        version: link:../editor-core
+      '@yggdrasil-forge/react':
+        specifier: workspace:*
+        version: link:../react
+      dockview-react:
+        specifier: 'catalog:'
+        version: 6.6.1(react@19.2.7)
+    devDependencies:
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 4.7.0(vite@6.4.3(@types/node@22.19.21)(tsx@4.22.4)(yaml@2.9.0))
+      jsdom:
+        specifier: 'catalog:'
+        version: 25.0.1
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0)
@@ -2003,6 +2086,17 @@ packages:
   dir-glob@3.0.1:
     resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
     engines: {node: '>=8'}
+
+  dockview-core@6.6.1:
+    resolution: {integrity: sha512-WuNoO2wl3rGI8MaTuvmfgViek4WafHLD9Kf//Hw69g8TgAHSpAWr6RW15kU6U9vwtQxIi/YBxQNcIA5RzQ46Fw==}
+
+  dockview-react@6.6.1:
+    resolution: {integrity: sha512-zF/CQzAxjA2mlSTnDt2rbBe49uG33mvg1DPitNCPrIhhDulyiiBG1A1pRyjVx4MJbVh1xx5gAYbNRwu+mCR7CQ==}
+
+  dockview@6.6.1:
+    resolution: {integrity: sha512-vBnxWVk0f665z1Zyx598l/BMUjHD3SK5V4XorxpYGjaSREM8lLc8O6ylgKTtw+ZnCOMYOhcwov9x0ubfFazvMw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
@@ -4142,6 +4236,19 @@ snapshots:
   dir-glob@3.0.1:
     dependencies:
       path-type: 4.0.0
+
+  dockview-core@6.6.1: {}
+
+  dockview-react@6.6.1(react@19.2.7):
+    dependencies:
+      dockview: 6.6.1(react@19.2.7)
+    transitivePeerDependencies:
+      - react
+
+  dockview@6.6.1(react@19.2.7):
+    dependencies:
+      dockview-core: 6.6.1
+      react: 19.2.7
 
   dom-accessibility-api@0.5.16: {}
 

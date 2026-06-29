@@ -19,6 +19,7 @@ catalog:
   jsdom: ^25.0.0
   '@testing-library/react': ^16.0.0
   '@vitejs/plugin-react': ^4.3.0
+  dockview-react: ^6.6.1
 
 # Build scripts aprobados (pnpm 11 require aprobación explícita).
 allowBuilds:

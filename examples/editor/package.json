@@ -1,0 +1,31 @@
+{
+  "name": "@yggdrasil-forge-examples/editor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runnable Vite app to showcase @yggdrasil-forge/editor-react (7.5a shell)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yggdrasil-forge/core": "workspace:*",
+    "@yggdrasil-forge/editor-core": "workspace:*",
+    "@yggdrasil-forge/editor-react": "workspace:*",
+    "dockview-react": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

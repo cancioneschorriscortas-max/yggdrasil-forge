@@ -1,0 +1,171 @@
+/* ── INICIO: shell.css — layout do EditorShell ── */
+
+.editor-shell {
+  /* Mode-aware accent: cambia o --editor-accent ao tope segundo modo. */
+  --editor-accent: var(--editor-accent-authoring);
+  --editor-accent-soft: var(--editor-accent-authoring-soft);
+
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  background: var(--editor-bg-shell);
+  color: var(--editor-text-primary);
+  font-family: var(--editor-font-ui);
+  font-size: var(--editor-font-size-md);
+  overflow: hidden;
+}
+
+.editor-shell[data-mode="preview"] {
+  --editor-accent: var(--editor-accent-preview);
+  --editor-accent-soft: var(--editor-accent-preview-soft);
+}
+
+/* ── Barra superior ── */
+.editor-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px;
+  height: 36px;
+  background: var(--editor-bg-panel);
+  border-bottom: var(--editor-border-width) solid var(--editor-border-default);
+}
+
+.editor-topbar__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.editor-topbar__brand-name {
+  font-size: var(--editor-font-size-md);
+}
+.editor-topbar__brand-tag {
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+  font-family: var(--editor-font-mono);
+}
+
+.editor-topbar__section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editor-topbar__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--editor-border-default);
+}
+
+.editor-topbar__spacer {
+  flex: 1;
+}
+
+.editor-button {
+  background: transparent;
+  border: var(--editor-border-width) solid transparent;
+  color: var(--editor-text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--editor-radius-md);
+  font-family: inherit;
+  font-size: var(--editor-font-size-sm);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.editor-button:hover:not(:disabled) {
+  background: var(--editor-bg-hover);
+  color: var(--editor-text-primary);
+}
+.editor-button:disabled {
+  color: var(--editor-text-muted);
+  cursor: not-allowed;
+}
+.editor-button--active {
+  background: var(--editor-accent-soft);
+  color: var(--editor-accent);
+  border-color: var(--editor-accent);
+}
+
+.editor-button--mode {
+  font-weight: 500;
+}
+
+/* ── Zona central (dockview) ── */
+.editor-workspace {
+  position: relative;
+  background: var(--editor-bg-canvas);
+  overflow: hidden;
+}
+
+/* ── Barra de estado ── */
+.editor-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px;
+  height: 22px;
+  background: var(--editor-bg-panel);
+  border-top: var(--editor-border-width) solid var(--editor-border-default);
+  font-size: var(--editor-font-size-xs);
+  font-family: var(--editor-font-mono);
+  color: var(--editor-text-secondary);
+}
+.editor-statusbar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.editor-statusbar__divider {
+  width: 1px;
+  height: 12px;
+  background: var(--editor-border-default);
+}
+.editor-statusbar__mode {
+  color: var(--editor-accent);
+  font-weight: 500;
+}
+
+/* ── Paneis ── */
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--editor-bg-panel);
+  color: var(--editor-text-primary);
+  font-size: var(--editor-font-size-sm);
+}
+.editor-panel__body {
+  padding: 12px;
+  overflow: auto;
+  flex: 1;
+}
+.editor-panel__placeholder {
+  color: var(--editor-text-muted);
+  font-style: italic;
+  font-size: var(--editor-font-size-sm);
+  padding: 24px 12px;
+  text-align: center;
+}
+.editor-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.editor-panel__list li {
+  padding: 4px 8px;
+  border-radius: var(--editor-radius-sm);
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-xs);
+  cursor: pointer;
+}
+.editor-panel__list li:hover {
+  background: var(--editor-bg-hover);
+}
+
+/* ── Sobre-escribimos dockview con noso chrome ── */
+.editor-workspace .dv-dockview {
+  background: var(--editor-bg-canvas);
+}
+/* ── FIN: shell.css ── */
