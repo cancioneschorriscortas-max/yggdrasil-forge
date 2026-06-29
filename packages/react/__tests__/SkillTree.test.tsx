@@ -265,4 +265,66 @@ describe('SkillTree — integración con MeshOverlay', () => {
     vi.useRealTimers()
   })
 })
+
+// ── Bloque coordinateBounds + backgroundImage ──
+
+describe('SkillTree — coordinateBounds (espazo de coordenadas fixo)', () => {
+  it('coordinateBounds + padding=0 produce viewBox EXACTAMENTE igual ao box', () => {
+    const engine = makeTreeEngine()
+    const { container } = render(
+      <SkillTree
+        engine={engine}
+        coordinateBounds={{ minX: 0, minY: 0, maxX: 1000, maxY: 1000 }}
+        padding={0}
+        fitOnMount={false}
+      />,
+    )
+    const svg = q(container, 'svg')
+    expect(svg.getAttribute('viewBox')).toBe('0 0 1000 1000')
+  })
+
+  it('coordinateBounds + padding=20 produce viewBox inflado polo padding (sen maxRadius)', () => {
+    const engine = makeTreeEngine()
+    const { container } = render(
+      <SkillTree
+        engine={engine}
+        coordinateBounds={{ minX: 0, minY: 0, maxX: 1402, maxY: 1122 }}
+        padding={20}
+        fitOnMount={false}
+      />,
+    )
+    const svg = q(container, 'svg')
+    // viewBox = "minX-padding minY-padding (maxX-minX+2*padding) (maxY-minY+2*padding)"
+    expect(svg.getAttribute('viewBox')).toBe('-20 -20 1442 1162')
+  })
+
+  it('sen coordinateBounds: comportamento legacy intacto (viewBox derivado dos nodos)', () => {
+    const engine = makeTreeEngine()
+    const { container } = render(<SkillTree engine={engine} />)
+    const svg = q(container, 'svg')
+    const vb = svg.getAttribute('viewBox')
+    // Legacy: bounds dos nodos + effectivePadding (= padding 16 + maxRadius + 28).
+    // Os nodos están en (0,0) e (100,0) por default do layout custom.
+    expect(vb).toBeTruthy()
+    expect(vb).not.toBe('0 0 1000 1000') // confirmar que non é o do coordinateBounds
+  })
+
+  it('backgroundImage: renderiza <image> co box dos bounds', () => {
+    const engine = makeTreeEngine()
+    const { container } = render(
+      <SkillTree
+        engine={engine}
+        coordinateBounds={{ minX: 0, minY: 0, maxX: 1402, maxY: 1122 }}
+        padding={0}
+        fitOnMount={false}
+        backgroundImage="data:image/png;base64,iVBORw0KGgo="
+      />,
+    )
+    const img = container.querySelector('.yf-skill-tree__background')
+    expect(img).not.toBeNull()
+    expect(img?.getAttribute('href')).toBe('data:image/png;base64,iVBORw0KGgo=')
+    expect(img?.getAttribute('width')).toBe('1402')
+    expect(img?.getAttribute('height')).toBe('1122')
+  })
+})
 // ── FIN: tests SkillTree + SkillNode + SkillEdge ──

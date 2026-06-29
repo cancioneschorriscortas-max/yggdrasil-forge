@@ -188,17 +188,6 @@ body,
   min-width: 0;
   background: radial-gradient(ellipse at center, #0a1b25 0%, #06121a 70%, #02080c 100%);
 }
-.cyber-canvas__bg {
-  position: absolute;
-  inset: 0;
-  background-image: var(--cyber-bg, url("/scene-placeholder.png"));
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.5;
-  filter: brightness(0.7) saturate(0.9);
-  pointer-events: none;
-}
 /* Picker de imaxe de fondo (canto superior dereito do canvas). */
 .cyber-canvas__bg-picker {
   position: absolute;
@@ -235,12 +224,31 @@ body,
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.7) 100%);
   pointer-events: none;
 }
-/* SkillTree glow consumer-side (A.6.36 — valor de partida, calibrar). */
+/* Imaxe de fondo dentro do SVG (renderizada por @react). Atenuada
+   para non competir cos nodos e con saturación reducida (look
+   holográfico). */
+.cyber-canvas .yf-skill-tree__background {
+  opacity: 0.5;
+  filter: brightness(0.65) saturate(0.85);
+}
+/* Halo escuro detrás de cada nodo para garantir contraste sobre
+   calquera zona da imaxe (A.6.36: o turquesa dos nodos perdíase
+   sobre o corpo turquesa). Combina cun drop-shadow turquesa lixeiro
+   para conservar o look cyberpunk. */
 .cyber-canvas .yf-skill-node {
-  filter: drop-shadow(0 0 3px currentColor);
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 0 3px currentColor);
 }
 .cyber-canvas .yf-skill-edge {
   filter: drop-shadow(0 0 2px rgba(26, 208, 224, 0.6));
+}
+/* Labels: stroke escuro debaixo do fill para lexibilidade sobre
+   calquera fondo (paint-order garante orde correcta). */
+.cyber-canvas .yf-skill-tree text {
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.85);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 .cyber-canvas__capacity {
   position: absolute;

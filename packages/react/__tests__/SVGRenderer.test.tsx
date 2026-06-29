@@ -29,6 +29,38 @@ describe('SVGRenderer', () => {
     expect(svg.getAttribute('viewBox')).toBe('0 0 0 0')
   })
 
+  it('backgroundImage: renderiza <image> co box dos bounds dentro do grupo pan/zoom', () => {
+    const { container } = render(
+      <SVGRenderer
+        bounds={{ minX: 0, minY: 0, maxX: 1402, maxY: 1122 }}
+        padding={0}
+        backgroundImage="data:image/png;base64,iVBORw0KGgo="
+      />,
+    )
+    const img = container.querySelector('.yf-skill-tree__background')
+    expect(img).not.toBeNull()
+    expect(img?.getAttribute('href')).toBe('data:image/png;base64,iVBORw0KGgo=')
+    expect(img?.getAttribute('x')).toBe('0')
+    expect(img?.getAttribute('y')).toBe('0')
+    expect(img?.getAttribute('width')).toBe('1402')
+    expect(img?.getAttribute('height')).toBe('1122')
+    expect(img?.getAttribute('preserveAspectRatio')).toBe('xMidYMid meet')
+  })
+
+  it('backgroundImage non se renderiza cando non se pasa', () => {
+    const { container } = render(
+      <SVGRenderer bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100 }} />,
+    )
+    expect(container.querySelector('.yf-skill-tree__background')).toBeNull()
+  })
+
+  it('backgroundImage sen bounds: non se renderiza (require box)', () => {
+    const { container } = render(
+      <SVGRenderer backgroundImage="data:image/png;base64,iVBORw0KGgo=" />,
+    )
+    expect(container.querySelector('.yf-skill-tree__background')).toBeNull()
+  })
+
   it('error definido produce svg con class yf-skill-tree--error + data-error; en DEV (env de test) aria-label inclúe o código', () => {
     const { container } = render(
       <SVGRenderer error="YGG_E018">

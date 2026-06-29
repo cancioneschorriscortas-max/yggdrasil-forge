@@ -6,6 +6,7 @@
 // internamente via computeLayout. Headless: cero estilos hardcoded.
 
 import {
+  type Bounds,
   type CurveStyle,
   type LayoutEngineRegistry,
   type TreeEngine,
@@ -100,6 +101,39 @@ export interface SkillTreeProps {
   readonly onNodeHover?: (nodeId: string | null) => void
 
   /**
+   * Fixa o espazo de coordenadas do SVG en lugar de derivalo dos
+   * nodos. Cando se pasa, o `viewBox` é EXACTAMENTE este box (+
+   * `padding`, default 0), sen a inflación de `maxRadius + 28` que
+   * o auto-fit aplica por defecto.
+   *
+   * Útil cando o consumidor quere mapear posicións 1:1 á pantalla
+   * (p.ex. para aliñar cunha imaxe de fondo): o nodo en `(x, y)` da
+   * fixture cae no punto `(x, y)` do viewBox. **Recoméndase**
+   * combinar con `fitOnMount={false}` (o viewBox xa enquadra todo,
+   * o viewport arranca en identidade) e con `padding={0}` (o consumidor
+   * elixe o seu propio padding visual).
+   *
+   * Sen esta prop: comportamento legacy (bounds derivados dos nodos,
+   * inflados para acomodar o radio máximo).
+   */
+  readonly coordinateBounds?: Bounds
+
+  /**
+   * URL dunha imaxe a renderizar como fondo do canvas SVG, **dentro**
+   * do grupo de pan/zoom (escala e desprázase cos nodos). A imaxe
+   * ocupa o box dos `bounds` co `preserveAspectRatio="xMidYMid meet"`
+   * (letterbox proporcional).
+   *
+   * Patrón habitual: combinar con `coordinateBounds` igual ao box da
+   * imaxe, así o aliñamento nodo↔imaxe é determinista.
+   *
+   * Sen esta prop: cero fondo (transparente). Os consumidores poden
+   * seguir usando background CSS do canto pai se prefiren a vía vella,
+   * pero sufrirán o desfase con pan/zoom.
+   */
+  readonly backgroundImage?: string
+
+  /**
    * Mostrar o badge `currentTier/maxTier` nos nodos (Interactivo
    * Capa B). Pásase tal cal a cada `SkillNode`. Default = só nodos
    * multi-tier; `true` fórzao en todos, `false` apágao en todos.
@@ -181,6 +215,8 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     canIncrease,
     regions,
     regionShape = 'box',
+    coordinateBounds,
+    backgroundImage,
   },
   ref,
 ) {
@@ -201,9 +237,15 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
   // ao useViewport cando layoutResult non é ok, e o hook xa guarda).
   // Tódolos hooks (useRef, useViewport, useImperativeHandle) chamáns
   // ANTES do return condicional para non violar a regra dos hooks.
-  const okBounds = layoutResult.ok ? layoutResult.value.bounds : undefined
+  //
+  // Cando o consumidor fixa o espazo de coordenadas con
+  // `coordinateBounds`, usamos ese box tal cal + padding directo (sen
+  // a inflación `maxRadius + 28` do auto-fit). Iso fai o mapeo nodo →
+  // pantalla determinista (útil para aliñar cunha imaxe de fondo).
+  const layoutBounds = layoutResult.ok ? layoutResult.value.bounds : undefined
+  const okBounds = coordinateBounds ?? layoutBounds
   const maxRadius = treeDef.nodes.reduce((m, n) => Math.max(m, resolveRadius(n)), 0)
-  const effectivePadding = padding + maxRadius + 28
+  const effectivePadding = coordinateBounds !== undefined ? padding : padding + maxRadius + 28
 
   const svgRef = useRef<SVGSVGElement>(null)
   const viewport = useViewport(svgRef, okBounds, effectivePadding, {
@@ -261,10 +303,11 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
   return (
     <SVGRenderer
       ref={svgRef}
-      bounds={bounds}
+      bounds={coordinateBounds ?? bounds}
       padding={effectivePadding}
       layoutType={layoutResult.value.layoutType}
       transform={viewport.transform}
+      {...(backgroundImage !== undefined && { backgroundImage })}
       onPointerDown={viewport.onPointerDown}
       onPointerMove={viewport.onPointerMove}
       onPointerUp={viewport.onPointerUp}

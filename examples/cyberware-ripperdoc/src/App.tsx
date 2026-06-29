@@ -8,7 +8,7 @@
 import type { TreeEngine } from '@yggdrasil-forge/core'
 import { TreeEngine as TreeEngineCtor } from '@yggdrasil-forge/core'
 import { SkillTree, ThemeProvider } from '@yggdrasil-forge/react'
-import type { CSSProperties, JSX } from 'react'
+import type { JSX } from 'react'
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { CapacityBar } from './CapacityBar.js'
 import { CyberHUD } from './CyberHUD.js'
@@ -59,15 +59,6 @@ export function App(): JSX.Element {
       <div className="cyber-body">
         <SystemsColumn engine={engine} def={def} selectedGroupId={selectedGroupId} />
         <main className="cyber-canvas">
-          <div
-            className="cyber-canvas__bg"
-            aria-hidden="true"
-            style={
-              customBgUrl !== null
-                ? ({ '--cyber-bg': `url(${customBgUrl})` } as CSSProperties)
-                : undefined
-            }
-          />
           <label className="cyber-canvas__bg-picker" title="Cargar imaxe de fondo">
             <span aria-hidden="true">⬚</span>
             <input
@@ -87,6 +78,10 @@ export function App(): JSX.Element {
               {...(selectedId !== undefined ? { selectedNodeId: selectedId } : {})}
               curve="octilinear"
               locale="en"
+              coordinateBounds={{ minX: 0, minY: 0, maxX: 1402, maxY: 1122 }}
+              padding={0}
+              fitOnMount={false}
+              backgroundImage={customBgUrl ?? '/scene-placeholder.png'}
             />
           </ThemeProvider>
           <div className="cyber-canvas__capacity">

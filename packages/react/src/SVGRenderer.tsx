@@ -51,6 +51,13 @@ export interface SVGRendererProps {
   readonly onPointerDown?: (e: ReactPointerEvent<SVGSVGElement>) => void
   readonly onPointerMove?: (e: ReactPointerEvent<SVGSVGElement>) => void
   readonly onPointerUp?: (e: ReactPointerEvent<SVGSVGElement>) => void
+  /**
+   * URL de imaxe a renderizar como fondo do canvas, **dentro** do grupo
+   * de pan/zoom (escala e desprázase cos nodos). Ocupa o box dos
+   * `bounds` con `preserveAspectRatio="xMidYMid meet"`. Cero efecto se
+   * non se pasa.
+   */
+  readonly backgroundImage?: string
 }
 
 /**
@@ -87,6 +94,7 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
     onPointerDown,
     onPointerMove,
     onPointerUp,
+    backgroundImage,
   },
   ref,
 ): JSX.Element {
@@ -243,6 +251,21 @@ export const SVGRenderer = forwardRef<SVGSVGElement, SVGRendererProps>(function 
           markers non escalen co contido (decisión: markers manteñen
           tamaño constante percibido, máis predecible). */}
       <g {...(transform !== undefined && { transform })}>
+        {/* F12.bg: imaxe de fondo opcional dentro do grupo pan/zoom.
+            Ocupa o box dos bounds; con preserveAspectRatio meet,
+            letterboxea proporcionalmente. Vai ANTES do surface e
+            children para quedar debaixo de todo. */}
+        {backgroundImage !== undefined && bounds !== undefined && (
+          <image
+            className="yf-skill-tree__background"
+            href={backgroundImage}
+            x={bounds.minX}
+            y={bounds.minY}
+            width={bounds.maxX - bounds.minX}
+            height={bounds.maxY - bounds.minY}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        )}
         {/* F10.8: surface = «tarxeta» opcional debaixo de todo o
             contido. Dentro do <g transform> a tarxeta acompaña a
             árbore (parte do contido). O panel composible completo
