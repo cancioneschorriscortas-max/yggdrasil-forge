@@ -60,11 +60,7 @@ export function deserializeDocument(jsonText: string): Result<EditorDocument> {
   } catch (e) {
     const cause = e instanceof Error ? e : new Error(String(e))
     return err(
-      new YggdrasilError(
-        ErrorCode.INVALID_TREE_DEF,
-        `invalid JSON: ${cause.message}`,
-        { cause },
-      ),
+      new YggdrasilError(ErrorCode.INVALID_TREE_DEF, `invalid JSON: ${cause.message}`, { cause }),
     )
   }
 

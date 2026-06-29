@@ -17,7 +17,7 @@ export default defineConfig({
   splitting: false,
   minify: false,
   target: 'es2022',
-  external: ['@yggdrasil-forge/common', '@yggdrasil-forge/core'],
+  external: ['@yggdrasil-forge/common', '@yggdrasil-forge/core', 'immer'],
   tsconfig: 'tsconfig.json',
 })
 // ── FIN: tsup config ──

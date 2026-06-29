@@ -387,9 +387,15 @@ importers:
 
   packages/editor-core:
     dependencies:
+      '@yggdrasil-forge/common':
+        specifier: workspace:*
+        version: link:../common
       '@yggdrasil-forge/core':
         specifier: workspace:*
         version: link:../core
+      immer:
+        specifier: ^10.1.1
+        version: 10.2.0
     devDependencies:
       tsup:
         specifier: 'catalog:'
