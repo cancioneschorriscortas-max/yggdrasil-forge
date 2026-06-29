@@ -15,7 +15,15 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@yggdrasil-forge/common": ["../../packages/common/src/index.ts"],
+      "@yggdrasil-forge/core": ["../../packages/core/src/index.ts"],
+      "@yggdrasil-forge/react": ["../../packages/react/src/index.ts"],
+      "@yggdrasil-forge/editor-core": ["../../packages/editor-core/src/index.ts"],
+      "@yggdrasil-forge/editor-react": ["../../packages/editor-react/src/index.ts"]
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
