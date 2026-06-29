@@ -107,7 +107,7 @@ export const cyberwareTree: TreeDef = {
       icon: 'crown',
       color: '#1ad0e0',
       group: 'nervous_system',
-      position: { x: 600, y: 344 },
+      position: { x: 700, y: 475 },
       maxTier: 1,
     },
 
@@ -120,7 +120,7 @@ export const cyberwareTree: TreeDef = {
       description: { en: 'A quickhacking platform wired into your cortex.' },
       content: { flavor: { en: 'The deck is the difference between a netrunner and a corpse.' } },
       group: 'frontal_cortex',
-      position: { x: 360, y: 98 },
+      position: { x: 610, y: 180 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 18000 },
@@ -137,7 +137,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'RAM Upgrade' },
       description: { en: 'Extra memory for holding more quickhacks in buffer.' },
       group: 'frontal_cortex',
-      position: { x: 228, y: 148 },
+      position: { x: 548, y: 212 },
       maxTier: 3,
       costPerTier: [
         [
@@ -170,7 +170,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Icebreaker' },
       description: { en: 'Daemon that shreds enemy ICE before it can trace you.' },
       group: 'frontal_cortex',
-      position: { x: 360, y: 197 },
+      position: { x: 598, y: 258 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 28000 },
@@ -196,7 +196,7 @@ export const cyberwareTree: TreeDef = {
       description: { en: 'Smart eyes with target tagging and threat overlay.' },
       content: { flavor: { en: 'You never look at the world the same way again.' } },
       group: 'ocular_system',
-      position: { x: 792, y: 78 },
+      position: { x: 792, y: 180 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 12000 },
@@ -213,7 +213,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Threat Detector' },
       description: { en: 'Highlights hostiles through walls within range.' },
       group: 'ocular_system',
-      position: { x: 924, y: 156 },
+      position: { x: 854, y: 214 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 7000 },
@@ -229,7 +229,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Trajectory Analysis' },
       description: { en: 'Predicts bullet paths; ricochets become trivial.' },
       group: 'ocular_system',
-      position: { x: 936, y: 246 },
+      position: { x: 828, y: 266 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 22000 },
@@ -254,7 +254,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Synaptic Accelerator' },
       description: { en: 'Boosts nerve conduction. Gateway to combat operating systems.' },
       group: 'nervous_system',
-      position: { x: 600, y: 213 },
+      position: { x: 700, y: 318 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 14000 },
@@ -274,7 +274,7 @@ export const cyberwareTree: TreeDef = {
       },
       content: { flavor: { en: 'Time is a luxury. The Sandy makes you rich.' } },
       group: 'nervous_system',
-      position: { x: 744, y: 164 },
+      position: { x: 648, y: 372 },
       maxTier: 3,
       costPerTier: [
         [
@@ -319,7 +319,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Kerenzikov' },
       description: { en: 'Reflex booster that slows time while aiming during a dodge.' },
       group: 'nervous_system',
-      position: { x: 840, y: 246 },
+      position: { x: 772, y: 360 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 18000 },
@@ -342,7 +342,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Biomonitor' },
       description: { en: 'Auto-injects a heal when health drops critically.' },
       group: 'circulatory_system',
-      position: { x: 408, y: 279 },
+      position: { x: 602, y: 430 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 6000 },
@@ -359,7 +359,7 @@ export const cyberwareTree: TreeDef = {
       description: { en: 'On death, instantly restores full health. Once per fight.' },
       content: { flavor: { en: 'Death is just a hardware fault now.' } },
       group: 'circulatory_system',
-      position: { x: 288, y: 328 },
+      position: { x: 540, y: 498 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 32000 },
@@ -384,7 +384,7 @@ export const cyberwareTree: TreeDef = {
         en: 'Combat stim OS: boosts damage, armor and slows perceived time under fire.',
       },
       group: 'circulatory_system',
-      position: { x: 480, y: 377 },
+      position: { x: 652, y: 540 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 20000 },
@@ -407,7 +407,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Bioconductor' },
       description: { en: 'Regulates implant heat; reduces cyberware cooldowns.' },
       group: 'integumentary_system',
-      position: { x: 384, y: 426 },
+      position: { x: 560, y: 612 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 9000 },
@@ -423,7 +423,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Optical Camo' },
       description: { en: 'Bends light around you. Brief active invisibility.' },
       group: 'integumentary_system',
-      position: { x: 300, y: 476 },
+      position: { x: 508, y: 682 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 26000 },
@@ -448,7 +448,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Subdermal Armor' },
       description: { en: 'Woven plating beneath the skin.' },
       group: 'skeletal_system',
-      position: { x: 600, y: 459 },
+      position: { x: 700, y: 592 },
       maxTier: 3,
       costPerTier: [
         [
@@ -481,7 +481,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Reinforced Skeleton' },
       description: { en: 'Titanium-laced bones. More health, no fall damage.' },
       group: 'skeletal_system',
-      position: { x: 600, y: 558 },
+      position: { x: 700, y: 712 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 16000 },
@@ -502,7 +502,7 @@ export const cyberwareTree: TreeDef = {
       description: { en: 'Full skeletal replacement. Carry capacity and melee force soar.' },
       content: { flavor: { en: 'You are more machine than meat now. Good.' } },
       group: 'skeletal_system',
-      position: { x: 600, y: 656 },
+      position: { x: 700, y: 832 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 45000 },
@@ -530,7 +530,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Gorilla Arms' },
       description: { en: 'Hydraulic fists. Rip doors off hinges and people in half.' },
       group: 'muscular_system',
-      position: { x: 960, y: 361 },
+      position: { x: 872, y: 430 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 19000 },
@@ -549,7 +549,7 @@ export const cyberwareTree: TreeDef = {
       description: { en: 'Dermal-sheathed blades that extend from the forearm.' },
       content: { flavor: { en: 'Elegant. Lethal. Always with you.' } },
       group: 'muscular_system',
-      position: { x: 864, y: 410 },
+      position: { x: 926, y: 520 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 20000 },
@@ -570,7 +570,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Monowire' },
       description: { en: 'A monomolecular whip that doubles as a hacking conduit.' },
       group: 'muscular_system',
-      position: { x: 936, y: 459 },
+      position: { x: 906, y: 612 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 21000 },
