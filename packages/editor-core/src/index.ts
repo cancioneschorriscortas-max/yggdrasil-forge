@@ -19,7 +19,7 @@ export type { DocumentAdapter } from './document/DocumentAdapter.js'
 export { JsonDocumentAdapter, toJson } from './document/JsonDocumentAdapter.js'
 export { deserializeDocument, serializeDocument } from './document/serialize.js'
 
-// Sesión (efímera)
+// Sesión (efímera, estendida con selection+fsm+activeOperation en 7.3)
 export { type EditorSession, createSession } from './session/EditorSession.js'
 
 // Pipeline de edición (7.2)
@@ -49,4 +49,31 @@ export {
   type EditorEngineOptions,
   type TransactionContext,
 } from './EditorEngine.js'
+
+// Interacción (7.3): Selection + FSM + Operation + Tool + Controller
+export {
+  type SelectionEngine,
+  type SelectionRef,
+  createSelectionEngine,
+} from './selection/Selection.js'
+export type {
+  InputEvent,
+  Modifiers,
+  Rect,
+} from './interaction/InputEvent.js'
+export {
+  type InteractionMachine,
+  type InteractionState,
+  createInteractionMachine,
+} from './interaction/InteractionMachine.js'
+export type { Operation, OperationPreview } from './operation/Operation.js'
+export { createMoveOperation } from './operation/MoveOperation.js'
+export type { Tool, ToolContext } from './tool/Tool.js'
+export { type ToolRegistry, createToolRegistry } from './tool/ToolRegistry.js'
+export { createSelectTool } from './tool/tools/SelectTool.js'
+export { createMoveTool } from './tool/tools/MoveTool.js'
+export {
+  InteractionController,
+  type InteractionControllerOptions,
+} from './interaction/InteractionController.js'
 // ── FIN: barrel ──

@@ -1,29 +1,48 @@
 // ── INICIO: EditorSession ──
 // Contedor efímero de estado de edición. **Morre ao pechar o documento.**
 //
-// En 7.1 só ten os dous slots permanentes: `document` (fonte de
-// verdade) e `dirty` (cambios non gardados). Os subsistemas con vida
-// propia (Selection 7.3, History 7.2, Clipboard 7.x, InteractionState
-// FSM 7.3) van **nos seus servizos**, non aquí. Esta é unha lección
-// do Domain Model: a Session é un **shell**, non un mega-objecto.
+// 7.1 abriu o shell con document + dirty. 7.3 enche os slots
+// efímeros que faltaban: selection (SelectionEngine), interaction
+// (InteractionMachine), activeOperation. Todos viven aquí porque
+// son **efímeros** (Domain Model) — non tocan documento nin history.
+//
+// History segue na clase EditorEngine (non na Session). Razón: a
+// history persiste snapshots inmutables; pertence ao motor de edición.
+// Clipboard (v1.x) virá aquí cando exista.
 
 import type { EditorDocument } from '../document/EditorDocument.js'
+import {
+  type InteractionMachine,
+  createInteractionMachine,
+} from '../interaction/InteractionMachine.js'
+import type { Operation } from '../operation/Operation.js'
+import { type SelectionEngine, createSelectionEngine } from '../selection/Selection.js'
 
 export interface EditorSession {
-  /** Documento aberto: a fonte de verdade en memoria. */
   document: EditorDocument
-  /** Cambios sen gardar desde a última carga/save. */
   dirty: boolean
-  // Slots reservados (NON implementar en 7.1):
-  //   selection (7.3) · history (7.2) · clipboard (7.x) · interactionState (7.3)
+  /** Selección efímera (7.3). */
+  selection: SelectionEngine
+  /** FSM de interacción (7.3). */
+  interaction: InteractionMachine
+  /** Operation viva (null cando non hai drag/manipulación en curso). */
+  activeOperation: Operation | null
+  // Slots reservados (NON implementar aínda):
+  //   history (vive no EditorEngine, non aquí) · clipboard (v1.x)
 }
 
 /**
  * Crea unha sesión coa documento inicialmente limpo (sin cambios
- * pendentes). O `dirty` virá-se a `true` cando o pipeline de comandos
- * (7.2) modifique o documento.
+ * pendentes). Os subsistemas efímeros (selection, fsm) instánciase
+ * frescos por sesión.
  */
 export function createSession(document: EditorDocument): EditorSession {
-  return { document, dirty: false }
+  return {
+    document,
+    dirty: false,
+    selection: createSelectionEngine(),
+    interaction: createInteractionMachine(),
+    activeOperation: null,
+  }
 }
 // ── FIN: EditorSession ──
