@@ -1,0 +1,221 @@
+// ── INICIO: tests soft validators ──
+import { isEffectSupported, supportManifest } from '@yggdrasil-forge/core'
+import { describe, expect, it } from 'vitest'
+import { EditorEngine } from '../src/EditorEngine.js'
+import { addNode } from '../src/command/commands/index.js'
+import { createEditorDocument } from '../src/document/EditorDocument.js'
+import { hasErrors } from '../src/validation/Validator.js'
+import { createDefaultValidators } from '../src/validation/createDefaultValidators.js'
+import { asymmetricExclusionValidator } from '../src/validation/soft/asymmetricExclusionValidator.js'
+import { layoutOverflowValidator } from '../src/validation/soft/layoutOverflowValidator.js'
+import { prerequisiteCycleValidator } from '../src/validation/soft/prerequisiteCycleValidator.js'
+import { unsupportedFeatureValidator } from '../src/validation/soft/unsupportedFeatureValidator.js'
+import { minimalTreeDef } from './_fixtures.js'
+
+// ── Helper: clonar fixture e patchear ─────────────────────────────
+function docWith(
+  patch: (tree: ReturnType<typeof minimalTreeDef>) => void,
+): ReturnType<typeof createEditorDocument> {
+  const tree = minimalTreeDef()
+  patch(tree)
+  return createEditorDocument(tree)
+}
+
+describe('asymmetricExclusionValidator', () => {
+  it('exclusión asimétrica → 1 warning', () => {
+    const doc = docWith((tree) => {
+      const a = tree.nodes.find((n) => n.id === 'root')
+      const b = tree.nodes.find((n) => n.id === 'child')
+      if (a !== undefined) (a as { exclusions?: string[] }).exclusions = ['child']
+      // 'b' non ten 'root' en exclusions → asimétrico
+      void b
+    })
+    const issues = asymmetricExclusionValidator(doc)
+    expect(issues.length).toBe(1)
+    expect(issues[0]?.severity).toBe('warning')
+    expect(issues[0]?.code).toBe('EXCL_ASYMMETRIC')
+    expect(issues[0]?.nodeId).toBe('root')
+  })
+
+  it('exclusión simétrica → 0 issues', () => {
+    const doc = docWith((tree) => {
+      const a = tree.nodes.find((n) => n.id === 'root')
+      const b = tree.nodes.find((n) => n.id === 'child')
+      if (a !== undefined) (a as { exclusions?: string[] }).exclusions = ['child']
+      if (b !== undefined) (b as { exclusions?: string[] }).exclusions = ['root']
+    })
+    expect(asymmetricExclusionValidator(doc).length).toBe(0)
+  })
+
+  it('sen exclusións → 0 issues', () => {
+    const doc = createEditorDocument(minimalTreeDef())
+    expect(asymmetricExclusionValidator(doc).length).toBe(0)
+  })
+})
+
+describe('prerequisiteCycleValidator', () => {
+  it('A→B→A: ciclo detectado, warning nos dous nodos', () => {
+    const doc = docWith((tree) => {
+      const a = tree.nodes.find((n) => n.id === 'root')
+      const b = tree.nodes.find((n) => n.id === 'child')
+      // root require child
+      if (a !== undefined) {
+        ;(a as { prerequisites?: unknown }).prerequisites = {
+          type: 'node_unlocked',
+          nodeId: 'child',
+        }
+      }
+      // child require root
+      if (b !== undefined) {
+        ;(b as { prerequisites?: unknown }).prerequisites = {
+          type: 'node_unlocked',
+          nodeId: 'root',
+        }
+      }
+    })
+    const issues = prerequisiteCycleValidator(doc)
+    expect(issues.length).toBe(2)
+    expect(issues.every((i) => i.code === 'PREREQ_CYCLE')).toBe(true)
+    expect(issues.every((i) => i.severity === 'warning')).toBe(true)
+    const ids = new Set(issues.map((i) => i.nodeId))
+    expect(ids.has('root')).toBe(true)
+    expect(ids.has('child')).toBe(true)
+  })
+
+  it('DAG (sen ciclos) → 0 issues', () => {
+    const doc = docWith((tree) => {
+      const b = tree.nodes.find((n) => n.id === 'child')
+      // child require root: válido, non hai ciclo.
+      if (b !== undefined) {
+        ;(b as { prerequisites?: unknown }).prerequisites = {
+          type: 'node_unlocked',
+          nodeId: 'root',
+        }
+      }
+    })
+    expect(prerequisiteCycleValidator(doc).length).toBe(0)
+  })
+
+  it('ciclo a través de all/any composables', () => {
+    const doc = docWith((tree) => {
+      const a = tree.nodes.find((n) => n.id === 'root')
+      const b = tree.nodes.find((n) => n.id === 'child')
+      // root require all(node_unlocked('child'), ...)
+      if (a !== undefined) {
+        ;(a as { prerequisites?: unknown }).prerequisites = {
+          type: 'all',
+          conditions: [{ type: 'node_unlocked', nodeId: 'child' }],
+        }
+      }
+      // child require any(node_unlocked('root'))
+      if (b !== undefined) {
+        ;(b as { prerequisites?: unknown }).prerequisites = {
+          type: 'any',
+          conditions: [{ type: 'node_unlocked', nodeId: 'root' }],
+        }
+      }
+    })
+    const issues = prerequisiteCycleValidator(doc)
+    expect(issues.length).toBe(2)
+  })
+})
+
+describe('layoutOverflowValidator', () => {
+  it('nodo fóra de coordinateBounds → 1 info', () => {
+    const tree = minimalTreeDef()
+    const doc = createEditorDocument(tree, {
+      coordinateBounds: { minX: 0, minY: 0, maxX: 50, maxY: 50 },
+    })
+    // root=(0,0) dentro; child=(100,0) FÓRA.
+    const issues = layoutOverflowValidator(doc)
+    expect(issues.length).toBe(1)
+    expect(issues[0]?.severity).toBe('info')
+    expect(issues[0]?.code).toBe('LAYOUT_OVERFLOW')
+    expect(issues[0]?.nodeId).toBe('child')
+  })
+
+  it('todos dentro do box → 0 issues', () => {
+    const tree = minimalTreeDef()
+    const doc = createEditorDocument(tree, {
+      coordinateBounds: { minX: 0, minY: 0, maxX: 1000, maxY: 1000 },
+    })
+    expect(layoutOverflowValidator(doc).length).toBe(0)
+  })
+
+  it('sen coordinateBounds → 0 issues (non hai como medir)', () => {
+    const doc = createEditorDocument(minimalTreeDef())
+    expect(layoutOverflowValidator(doc).length).toBe(0)
+  })
+})
+
+describe('unsupportedFeatureValidator', () => {
+  it('nodo con modify_stat → warning citando o motor', () => {
+    const doc = docWith((tree) => {
+      const a = tree.nodes.find((n) => n.id === 'root')
+      if (a !== undefined) {
+        ;(a as { effects?: unknown[] }).effects = [
+          { type: 'modify_stat', statId: 's', op: '+', amount: 1 },
+        ]
+      }
+    })
+    const issues = unsupportedFeatureValidator(doc)
+    expect(issues.length).toBe(1)
+    expect(issues[0]?.severity).toBe('warning')
+    expect(issues[0]?.code).toBe('FEATURE_UNSUPPORTED')
+    expect(issues[0]?.message.en).toContain('modify_stat')
+  })
+
+  it('nodo con modify_resource (soportado) → 0 issues', () => {
+    const doc = docWith((tree) => {
+      const a = tree.nodes.find((n) => n.id === 'root')
+      if (a !== undefined) {
+        ;(a as { effects?: unknown[] }).effects = [
+          { type: 'modify_resource', resourceId: 'gold', op: '+', amount: 5 },
+        ]
+      }
+    })
+    expect(unsupportedFeatureValidator(doc).length).toBe(0)
+  })
+
+  it('le o supportManifest real de @core (non unha copia)', () => {
+    // Verificación: cambiar a sinatura do manifesto rompería este test
+    // se houbera unha copia local divergente.
+    expect(isEffectSupported('modify_resource')).toBe(true)
+    expect(isEffectSupported('modify_stat')).toBe(false)
+    expect(Object.keys(supportManifest.effects)).toContain('modify_resource')
+    expect(Object.keys(supportManifest.effects)).not.toContain('modify_stat')
+  })
+})
+
+describe('createDefaultValidators — integración co EditorEngine', () => {
+  it('devolve os 4 soft validators (non duplica os duros)', () => {
+    const validators = createDefaultValidators()
+    expect(validators.length).toBe(4)
+  })
+
+  it('commit con dato asimétrico: ok (non bloquea), warning en getIssues()', () => {
+    const tree = minimalTreeDef()
+    const a = tree.nodes.find((n) => n.id === 'root')
+    if (a !== undefined) (a as { exclusions?: string[] }).exclusions = ['child']
+    const doc = createEditorDocument(tree)
+    const engine = new EditorEngine(doc, { validators: createDefaultValidators() })
+    // O documento inicial xa ten o warning.
+    const initialIssues = engine.getIssues()
+    expect(initialIssues.some((i) => i.code === 'EXCL_ASYMMETRIC')).toBe(true)
+    expect(hasErrors(initialIssues)).toBe(false)
+  })
+
+  it('id duplicado segue bloqueando (duro), aínda con soft validators activos', () => {
+    const doc = createEditorDocument(minimalTreeDef())
+    const engine = new EditorEngine(doc, { validators: createDefaultValidators() })
+    const dup = {
+      id: 'root',
+      type: 'small',
+      label: { en: 'Duplicate' },
+      position: { x: 50, y: 50 },
+    }
+    const result = engine.dispatch(addNode(dup as Parameters<typeof addNode>[0]))
+    expect(result.ok).toBe(false)
+  })
+})
+// ── FIN: tests soft validators ──

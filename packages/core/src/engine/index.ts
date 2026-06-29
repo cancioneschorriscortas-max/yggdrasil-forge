@@ -144,4 +144,21 @@ export type {
   PermissionAction,
   PermissionChecker,
 } from './TreeRegistry.js'
+
+// Support manifest (7.4) — contrato machine-readable do que o motor implementa.
+export {
+  SUPPORTED_CONDITION_TYPES,
+  SUPPORTED_EFFECT_TYPES,
+  UNSUPPORTED_EFFECT_TYPES,
+  type SupportEntry,
+  type SupportManifest,
+  type SupportedConditionType,
+  type SupportedEffectType,
+  type UnsupportedEffectType,
+  describeSupport,
+  isConditionSupported,
+  isEffectSupported,
+  isEffectUnsupported,
+  supportManifest,
+} from './supportManifest.js'
 // ── FIN: engine public API ──

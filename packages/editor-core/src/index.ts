@@ -42,6 +42,12 @@ export {
 export { structuralValidator } from './validation/structuralValidator.js'
 export { uniqueIdsValidator } from './validation/uniqueIdsValidator.js'
 export { referentialIntegrityValidator } from './validation/referentialIntegrityValidator.js'
+// Soft validators (7.4): non-bloqueantes (warning/info).
+export { asymmetricExclusionValidator } from './validation/soft/asymmetricExclusionValidator.js'
+export { layoutOverflowValidator } from './validation/soft/layoutOverflowValidator.js'
+export { prerequisiteCycleValidator } from './validation/soft/prerequisiteCycleValidator.js'
+export { unsupportedFeatureValidator } from './validation/soft/unsupportedFeatureValidator.js'
+export { createDefaultValidators } from './validation/createDefaultValidators.js'
 export { History, type HistoryOptions } from './history/History.js'
 export {
   EditorEngine,

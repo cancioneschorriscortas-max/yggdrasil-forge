@@ -38,6 +38,7 @@ import type {
   UnlockResolver,
   UnlockResolverContext,
 } from './UnlockResolver.js'
+import { UNSUPPORTED_EFFECT_TYPES } from './supportManifest.js'
 
 // ── Constantes ──
 
@@ -132,7 +133,7 @@ function makeError(
  * (i.e. queda para 2.2 ou fase 8).
  */
 function isUnsupportedType(type: Effect['type']): boolean {
-  return type === 'modify_stat' || type === 'plugin'
+  return (UNSUPPORTED_EFFECT_TYPES as readonly string[]).includes(type)
 }
 
 /**
