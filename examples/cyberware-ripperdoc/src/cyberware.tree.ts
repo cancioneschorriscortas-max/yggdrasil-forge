@@ -196,7 +196,7 @@ export const cyberwareTree: TreeDef = {
       description: { en: 'Smart eyes with target tagging and threat overlay.' },
       content: { flavor: { en: 'You never look at the world the same way again.' } },
       group: 'ocular_system',
-      position: { x: 792, y: 107 },
+      position: { x: 792, y: 78 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 12000 },
@@ -229,7 +229,7 @@ export const cyberwareTree: TreeDef = {
       label: { en: 'Trajectory Analysis' },
       description: { en: 'Predicts bullet paths; ricochets become trivial.' },
       group: 'ocular_system',
-      position: { x: 840, y: 205 },
+      position: { x: 936, y: 246 },
       maxTier: 1,
       cost: [
         { resourceId: 'eurodollars', amount: 22000 },
