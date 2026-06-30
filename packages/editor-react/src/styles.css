@@ -405,3 +405,188 @@
   color: var(--editor-text-muted);
   font-style: italic;
 }
+
+/* ── Sub-editores estruturados (7.5c-ii) ── */
+.editor-inspector-struct {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editor-inspector-struct__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.editor-inspector-struct__row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 6px;
+  background: var(--editor-bg-elevated);
+  border-radius: var(--editor-radius-sm);
+  border: 1px solid var(--editor-border);
+  font-size: var(--editor-font-size-xs);
+}
+.editor-inspector-struct__row--effect {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 6px 6px;
+  gap: 4px;
+  position: relative;
+}
+.editor-inspector-struct__effect-type {
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.editor-inspector-struct__effect-params {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.editor-inspector-struct__item-id {
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-sm);
+  flex: 1;
+  color: var(--editor-text-primary);
+}
+.editor-inspector-struct__sel {
+  flex: 1;
+  min-width: 80px;
+}
+.editor-inspector-struct__num {
+  width: 70px;
+}
+.editor-inspector-struct__text {
+  flex: 1;
+  min-width: 80px;
+}
+.editor-inspector-struct__remove {
+  background: transparent;
+  border: 1px solid var(--editor-border);
+  color: var(--editor-text-secondary);
+  border-radius: var(--editor-radius-sm);
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+.editor-inspector-struct__row--effect .editor-inspector-struct__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+.editor-inspector-struct__remove:hover {
+  border-color: var(--editor-accent);
+  color: var(--editor-accent);
+}
+.editor-inspector-struct__add select {
+  width: 100%;
+}
+.editor-inspector-struct__nested-hint {
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-muted);
+  font-style: italic;
+}
+.editor-inspector-struct__check-inline {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+}
+
+/* ── ProblemsPanel real (7.5c-ii) ── */
+.editor-problems {
+  height: 100%;
+  overflow-y: auto;
+  padding: 8px;
+}
+.editor-problems--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.editor-problems__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.editor-problems__row {
+  background: var(--editor-bg-elevated);
+  border-left: 3px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+}
+.editor-problems__row--warning {
+  border-left-color: #f5a623;
+}
+.editor-problems__row--error {
+  border-left-color: #f24c4c;
+}
+.editor-problems__row--info {
+  border-left-color: var(--editor-accent);
+}
+.editor-problems__btn {
+  display: flex;
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 6px 8px;
+  color: var(--editor-text-primary);
+  cursor: pointer;
+  align-items: baseline;
+  gap: 8px;
+  font-family: inherit;
+  font-size: var(--editor-font-size-sm);
+}
+.editor-problems__btn:hover:not(:disabled) {
+  background: var(--editor-bg-selected);
+}
+.editor-problems__btn:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+.editor-problems__sev {
+  text-transform: uppercase;
+  font-size: var(--editor-font-size-xs);
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.editor-problems__sev--warning {
+  color: #f5a623;
+}
+.editor-problems__sev--error {
+  color: #f24c4c;
+}
+.editor-problems__sev--info {
+  color: var(--editor-accent);
+}
+.editor-problems__msg {
+  flex: 1;
+}
+.editor-problems__ref {
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+}
+.editor-problems__code {
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-muted);
+}

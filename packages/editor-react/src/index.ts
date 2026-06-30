@@ -24,7 +24,7 @@ export {
 // Paneis (placeholder en 7.5a — vanse substituíndo).
 export { OutlinerPanel, type OutlinerPanelProps } from './panels/OutlinerPanel.js'
 export { InspectorPanel } from './inspector/InspectorPanel.js'
-export { ProblemsPanel } from './panels/PlaceholderPanels.js'
+export { ProblemsPanel } from './panels/ProblemsPanel.js'
 
 // Canvas (7.5b-i): render do documento + pan/zoom + selección por clic.
 export { EditorCanvas, type EditorCanvasProps } from './canvas/EditorCanvas.js'

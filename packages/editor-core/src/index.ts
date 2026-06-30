@@ -89,6 +89,12 @@ export {
   NODE_TYPE_OPTIONS,
   NODE_SHAPE_OPTIONS,
 } from './property/nodePropertyRegistry.js'
+// ── Gate manifesto ↔ descriptor (7.5c-ii) ──
+export {
+  authorableEffectTypes,
+  authorablePlainEffectTypes,
+  isPlainAuthorableEffectType,
+} from './property/authorableEffectTypes.js'
 // LocalizedString re-exportada para consumidores (editor-react) que non
 // teñen @common como dep directa.
 export type { LocalizedString } from '@yggdrasil-forge/common'

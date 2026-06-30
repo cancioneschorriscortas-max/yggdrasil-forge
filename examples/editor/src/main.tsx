@@ -13,7 +13,11 @@
 // de bienvenida ou un cargador de exemplos. Mentres tanto, panadeiro
 // é o exemplo por defecto para o desenvolvedor ver a UI funcionando.
 
-import { EditorEngine, createEditorDocument } from '@yggdrasil-forge/editor-core'
+import {
+  EditorEngine,
+  createDefaultValidators,
+  createEditorDocument,
+} from '@yggdrasil-forge/editor-core'
 import { EditorShell } from '@yggdrasil-forge/editor-react'
 import 'dockview-react/dist/styles/dockview.css'
 import '@yggdrasil-forge/editor-react/styles.css'
@@ -26,7 +30,13 @@ import { panadeiroTree } from './fixtures/panadeiro.js'
 const doc = createEditorDocument(panadeiroTree, {
   coordinateBounds: { minX: -50, minY: -50, maxX: 300, maxY: 300 },
 })
-const engine = new EditorEngine(doc)
+// ★ 7.5c-ii: rexistrar os soft validators para que o ProblemsPanel
+// reciba warnings (asymmetricExclusion, prerequisiteCycle,
+// layoutOverflow, unsupportedFeature). Os duros (structural,
+// uniqueIds, referentialIntegrity) xa están incluídos polo engine.
+const engine = new EditorEngine(doc, {
+  validators: createDefaultValidators(),
+})
 
 const container = document.getElementById('root')
 if (container === null) throw new Error('#root not found')

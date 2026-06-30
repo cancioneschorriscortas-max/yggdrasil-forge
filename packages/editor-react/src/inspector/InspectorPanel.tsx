@@ -16,7 +16,7 @@
 // nos text/number/color (evita 1-command-por-tecla), commit inmediato
 // nos enum/boolean (cambios discretos).
 
-import type { NodeDef } from '@yggdrasil-forge/core'
+import type { NodeDef, Resource } from '@yggdrasil-forge/core'
 import {
   type EditorEngine,
   type PropertyDescriptor,
@@ -24,12 +24,12 @@ import {
   nodePropertyRegistry,
 } from '@yggdrasil-forge/editor-core'
 import { type JSX, useCallback, useRef, useSyncExternalStore } from 'react'
+import { StructuredEditor } from './structured/StructuredEditor.js'
 import { CheckboxWidget } from './widgets/CheckboxWidget.js'
 import { ColorWidget } from './widgets/ColorWidget.js'
 import { EnumWidget } from './widgets/EnumWidget.js'
 import { LocalizedTextWidget } from './widgets/LocalizedTextWidget.js'
 import { NumberWidget } from './widgets/NumberWidget.js'
-import { StructuredSummaryWidget } from './widgets/StructuredSummaryWidget.js'
 import { TextWidget } from './widgets/TextWidget.js'
 
 export interface InspectorPanelProps {
@@ -151,7 +151,9 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
       {Array.from(byGroup.entries()).map(([group, descriptors]) => (
         <section key={group} className="editor-inspector__group">
           <h3 className="editor-inspector__group-title">{GROUP_LABELS[group]}</h3>
-          {descriptors.map((d) => renderField(d, node, commitField))}
+          {descriptors.map((d) =>
+            renderField(d, node, doc.tree.nodes, doc.tree.resources, commitField),
+          )}
         </section>
       ))}
     </div>
@@ -161,10 +163,16 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
 /**
  * Renderiza unha fila <label, widget> para un descriptor. Despacha por
  * `type.kind`.
+ *
+ * Recibe `allNodes` e `resources` para os sub-editores estruturados
+ * (briefing 7.5c-ii: `resourceId` enum desde `doc.tree.resources`;
+ * `exclusions` picker desde os outros nodos).
  */
 function renderField(
   d: PropertyDescriptor,
   node: NodeDef,
+  allNodes: readonly NodeDef[],
+  resources: readonly Resource[] | undefined,
   commit: (d: PropertyDescriptor, value: unknown) => void,
 ): JSX.Element {
   const widgetId = `inspector-${d.key}`
@@ -241,7 +249,16 @@ function renderField(
       )
       break
     case 'structured':
-      widget = <StructuredSummaryWidget of={d.type.of} value={value} />
+      widget = (
+        <StructuredEditor
+          typeInfo={d.type}
+          value={value}
+          currentNode={node}
+          allNodes={allNodes}
+          resources={resources}
+          onCommit={(next) => commit(d, next)}
+        />
+      )
       break
     default: {
       // Exhaustividade: se PropertyType medra sin actualizar este switch,

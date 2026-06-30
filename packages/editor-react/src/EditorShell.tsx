@@ -22,7 +22,7 @@ import { EditorCanvas } from './canvas/EditorCanvas.js'
 import { InspectorPanel } from './inspector/InspectorPanel.js'
 import { OutlinerPanel } from './panels/OutlinerPanel.js'
 import { type PanelDef, PanelHost } from './panels/PanelHost.js'
-import { ProblemsPanel } from './panels/PlaceholderPanels.js'
+import { ProblemsPanel } from './panels/ProblemsPanel.js'
 import { StatusBar } from './shell/StatusBar.js'
 import { TopBar } from './shell/TopBar.js'
 import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
@@ -59,7 +59,7 @@ export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellPr
       {
         id: 'problems',
         title: 'Problems',
-        component: ProblemsPanel,
+        component: () => <ProblemsPanel engine={engine} />,
         defaultLocation: 'bottom',
       },
     ],
