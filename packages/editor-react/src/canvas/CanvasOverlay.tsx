@@ -5,14 +5,22 @@
 //   2. Ghosts dos nodos durante un drag (Operation.preview().nodePositions).
 //   3. Rect do marquee (en screen-space directo).
 //
-// `pointer-events: none` para que os clics atravesen ao SkillTree
-// (excepto cando se queren bloquear no contedor pai, que xestiona o
-// pipeline).
+// **★ Coas leccións de Agarfal en 7.5b-ii**:
+//
+//   - O CTM vén do `<g>` interno do SkillTree (que ten o transform
+//     pan/zoom), non do `<svg>` raíz. Iso garante que as posicións
+//     aliñan EXACTAMENTE co render.
+//   - **Aneis e ghosts escalan co zoom**: o radio multiplícase polo
+//     factor de escala do CTM. Sin isto, ao facer zoom os aneis
+//     quedan do mesmo tamaño que pixels mentres os nodos se fan
+//     grandes/pequenos — "pescas o anel por separado do nodo".
+//
+// `pointer-events: none` para que os clics atravesen ao SkillTree.
 
 import type { Position } from '@yggdrasil-forge/core'
 import type { SelectionRef } from '@yggdrasil-forge/editor-core'
 import type { JSX } from 'react'
-import { docToScreen } from './internals/screenDocCTM.js'
+import { docToScreen, getCtmScale } from './internals/screenDocCTM.js'
 
 /**
  * Rectángulo en coordenadas de pantalla (relativo ao contedor do canvas).
@@ -25,8 +33,11 @@ export interface OverlayRectPx {
 }
 
 export interface CanvasOverlayProps {
-  /** SVG do SkillTree (fonte do CTM). null mentres non está montado. */
-  readonly svg: SVGSVGElement | null
+  /**
+   * Elemento co transform pan/zoom (fonte do CTM). null mentres non
+   * está montado.
+   */
+  readonly ctmEl: SVGGraphicsElement | null
   /** Bounding rect do contedor (para converter screen → relative pixels). */
   readonly containerRect: DOMRect | null
   /** Refs seleccionadas (todas, multi-selección). */
@@ -47,13 +58,17 @@ export interface CanvasOverlayProps {
   readonly viewportVersion: number
 }
 
-/** Radio do anel de selección en pixels. */
-const RING_RADIUS_PX = 22
-/** Radio dos ghosts en pixels. */
-const GHOST_RADIUS_PX = 18
+/**
+ * Radio do anel en doc-space (antes de aplicar a escala do CTM). Ese
+ * valor escalado dá o radio en pixels pantalla. 22 doc-units coincide
+ * aproximadamente cun nodo "small" (radio ~20) con un pequeno halo.
+ */
+const RING_RADIUS_DOC = 22
+/** Radio dos ghosts en doc-space. */
+const GHOST_RADIUS_DOC = 18
 
 export function CanvasOverlay({
-  svg,
+  ctmEl,
   containerRect,
   selectedRefs,
   nodePositions,
@@ -61,21 +76,22 @@ export function CanvasOverlay({
   marqueeRect,
   viewportVersion,
 }: CanvasOverlayProps): JSX.Element | null {
-  // Re-medida do CTM cando muda o viewport ou se monta o SVG.
-  // O CTM cámbiao internamente o SkillTree; cada vez que cambia
-  // viewportVersion (incrementado por onViewportChange), este componente
-  // re-renderiza por defecto vía prop change → docToScreen recalcúlase
-  // automaticamente. Non hai que tickear nada.
-  // (viewportVersion utilízase implícitamente como dep visual — biome
-  // pode marcar como unused, pero o seu cambio dispara re-render).
+  // viewportVersion utilízase implícitamente como dep visual: o seu
+  // cambio propaga re-render → docToScreen recalcúlase coa nova matriz.
   void viewportVersion
 
-  if (svg === null || containerRect === null) return null
+  if (ctmEl === null || containerRect === null) return null
+
+  // **Escala** do CTM actual. Aneis e ghosts deben crecer/decrecer co
+  // zoom igual que os nodos (que están dentro do mesmo transform).
+  const scale = getCtmScale(ctmEl)
+  const ringRadius = RING_RADIUS_DOC * scale
+  const ghostRadius = GHOST_RADIUS_DOC * scale
 
   /** Converte un punto doc-space a screen-space RELATIVO ao contedor. */
   function project(doc: Position): { x: number; y: number } | null {
-    if (svg === null || containerRect === null) return null
-    const screen = docToScreen(svg, doc)
+    if (ctmEl === null || containerRect === null) return null
+    const screen = docToScreen(ctmEl, doc)
     if (screen === null) return null
     return { x: screen.x - containerRect.left, y: screen.y - containerRect.top }
   }
@@ -113,34 +129,34 @@ export function CanvasOverlay({
         pointerEvents: 'none',
       }}
     >
-      {/* Aneis de selección (azul/accent). */}
+      {/* Aneis de selección (azul/accent), escalados co CTM. */}
       {rings.map((r) => (
         <circle
           key={`ring-${r.id}`}
           cx={r.x}
           cy={r.y}
-          r={RING_RADIUS_PX}
+          r={ringRadius}
           fill="none"
           stroke="var(--editor-accent)"
-          strokeWidth="2"
-          opacity="0.9"
+          strokeWidth={2}
+          opacity={0.9}
         />
       ))}
-      {/* Ghosts (semitransparentes; cor accent suave). */}
+      {/* Ghosts (semitransparentes; escalados co CTM). */}
       {ghostMarkers.map((g) => (
         <circle
           key={`ghost-${g.id}`}
           cx={g.x}
           cy={g.y}
-          r={GHOST_RADIUS_PX}
+          r={ghostRadius}
           fill="var(--editor-accent-soft)"
           stroke="var(--editor-accent)"
-          strokeWidth="1.5"
+          strokeWidth={1.5}
           strokeDasharray="3 3"
-          opacity="0.75"
+          opacity={0.75}
         />
       ))}
-      {/* Marquee rect (selección por área). */}
+      {/* Marquee rect (selección por área) — en screen-space directo. */}
       {marqueeRect !== undefined && (
         <rect
           x={marqueeRect.x}
@@ -149,7 +165,7 @@ export function CanvasOverlay({
           height={marqueeRect.height}
           fill="var(--editor-accent-soft)"
           stroke="var(--editor-accent)"
-          strokeWidth="1"
+          strokeWidth={1}
           strokeDasharray="4 2"
         />
       )}

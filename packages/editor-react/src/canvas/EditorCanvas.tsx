@@ -58,7 +58,7 @@ import {
   modifiersOf,
   rectBetween,
 } from './internals/pointerState.js'
-import { findCanvasSvg, screenToDoc } from './internals/screenDocCTM.js'
+import { docToScreen, findCanvasCtmElement, screenToDoc } from './internals/screenDocCTM.js'
 
 export interface EditorCanvasProps {
   readonly editorEngine: EditorEngine
@@ -108,29 +108,30 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [viewportVersion, setViewportVersion] = useState(0)
 
-  // O CTM do <svg> do SkillTree é a fonte de verdade screen↔doc.
-  // Almacenamos a referencia ao SVG (achada despois do montaxe).
+  // O CTM do `<g>` co transform pan/zoom (dentro do <svg> do SkillTree)
+  // é a fonte de verdade screen↔doc. ★ Importante: NON o <svg> raíz —
+  // ese non inclúe o transform. Ver screenDocCTM.ts para a cicatriz.
   //
-  // **Robustez**: o primeiro paint pode non ter o <svg> aínda (o
-  // SkillTree fai cálculos de layout antes de pintar o SVG). Usamos
-  // MutationObserver no contedor para captar o SVG cando apareza, e
-  // así evitamos un primeiro frame con svgEl=null (que nesgaba aneis
+  // **Robustez**: o primeiro paint pode non ter o `<g>` aínda (o
+  // SkillTree fai cálculos de layout antes de pintar). Usamos
+  // MutationObserver no contedor para captar o `<g>` cando apareza, e
+  // así evitamos un primeiro frame con ctmEl=null (que nesgaba aneis
   // ata o segundo render).
-  const [svgEl, setSvgEl] = useState<SVGSVGElement | null>(null)
+  const [ctmEl, setCtmEl] = useState<SVGGraphicsElement | null>(null)
   useEffect(() => {
     if (containerRef.current === null) return
     const el = containerRef.current
-    // 1. Comprobación inmediata (caso normal: <svg> xa montado).
-    const initial = findCanvasSvg(el)
+    // 1. Comprobación inmediata (caso normal: <svg><g/> xa montado).
+    const initial = findCanvasCtmElement(el)
     if (initial !== null) {
-      setSvgEl(initial)
+      setCtmEl(initial)
       return
     }
     // 2. Se non está, observa o subtree ata que apareza.
     const mo = new MutationObserver(() => {
-      const found = findCanvasSvg(el)
+      const found = findCanvasCtmElement(el)
       if (found !== null) {
-        setSvgEl(found)
+        setCtmEl(found)
         mo.disconnect()
       }
     })
@@ -205,9 +206,9 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
   // ── Pointer handlers (en fase de captura sobre o contedor) ──
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
-      if (svgEl === null) return
+      if (ctmEl === null) return
       const screen = { x: e.clientX, y: e.clientY }
-      const docPoint = screenToDoc(svgEl, screen)
+      const docPoint = screenToDoc(ctmEl, screen)
       if (docPoint === null) return
       const mods = modifiersOf(e)
       const hit = hitTestNode(docPoint, doc.tree)
@@ -254,12 +255,12 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       editorEngine.getSession().selection.clear()
       // NON stopPropagation: deixa que o SkillTree inicie pan.
     },
-    [svgEl, doc, containerRect, editorEngine],
+    [ctmEl, doc, containerRect, editorEngine],
   )
 
   const handlePointerMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
-      if (svgEl === null) return
+      if (ctmEl === null) return
       const state = pointerStateRef.current
 
       if (state.kind === 'pressed-node') {
@@ -276,7 +277,7 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
         // Crea MoveOperation: captura posicións iniciais dos seleccionados.
         const op = createMoveOperation(editorEngine.getDocument(), selection, state.startDoc)
         // Aplica xa o primeiro update (delta = current - start).
-        const docPoint = screenToDoc(svgEl, { x: e.clientX, y: e.clientY })
+        const docPoint = screenToDoc(ctmEl, { x: e.clientX, y: e.clientY })
         if (docPoint !== null) {
           op.update(docPoint, {
             ...(state.modifiers.shift && { shift: true }),
@@ -293,7 +294,7 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       }
 
       if (state.kind === 'dragging') {
-        const docPoint = screenToDoc(svgEl, { x: e.clientX, y: e.clientY })
+        const docPoint = screenToDoc(ctmEl, { x: e.clientX, y: e.clientY })
         if (docPoint === null) return
         state.operation.update(docPoint, {})
         const ghosts = state.operation.preview().nodePositions
@@ -302,12 +303,11 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       }
 
       if (state.kind === 'marquee') {
-        const docPoint = screenToDoc(svgEl, { x: e.clientX, y: e.clientY })
+        const docPoint = screenToDoc(ctmEl, { x: e.clientX, y: e.clientY })
         if (docPoint === null) return
         pointerStateRef.current = { ...state, currentDoc: docPoint }
         // Actualizar rect screen-space para o overlay.
         if (containerRect !== null) {
-          const x0 = state.startDoc
           // Convertir os dous extremos doc → screen para o rect visible.
           // Pero é máis simple e exacto pintar usando screen-space directos
           // (clientX/Y respecto a containerRect) co startScreen rexistrado.
@@ -315,14 +315,9 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
           // (Para precisión absoluta usaríamos os clientX/Y orixinais; iso
           // é mellor, así que cambiamos a forma de gardar o marquee.)
           const startScreen = (() => {
-            // Re-proxecta startDoc usando o CTM actual.
-            const pt = svgEl.createSVGPoint()
-            pt.x = x0.x
-            pt.y = x0.y
-            const ctm = svgEl.getScreenCTM()
-            if (ctm === null) return null
-            const s = pt.matrixTransform(ctm)
-            return { x: s.x - containerRect.left, y: s.y - containerRect.top }
+            const sp = docToScreen(ctmEl, state.startDoc)
+            if (sp === null) return null
+            return { x: sp.x - containerRect.left, y: sp.y - containerRect.top }
           })()
           if (startScreen === null) return
           const cur = {
@@ -340,7 +335,7 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       }
       // idle: sin operación, sin marquee → nada que facer.
     },
-    [svgEl, editorEngine, containerRect],
+    [ctmEl, editorEngine, containerRect],
   )
 
   const handlePointerUp = useCallback(
@@ -433,7 +428,7 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
         {...(coordinateBounds !== undefined && { coordinateBounds })}
       />
       <CanvasOverlay
-        svg={svgEl}
+        ctmEl={ctmEl}
         containerRect={containerRect}
         selectedRefs={selectedRefs}
         nodePositions={nodePositions}
