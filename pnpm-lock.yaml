@@ -449,6 +449,9 @@ importers:
 
   packages/editor-react:
     dependencies:
+      '@yggdrasil-forge/core':
+        specifier: workspace:*
+        version: link:../core
       '@yggdrasil-forge/editor-core':
         specifier: workspace:*
         version: link:../editor-core

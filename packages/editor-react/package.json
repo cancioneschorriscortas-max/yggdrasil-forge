@@ -29,6 +29,7 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
+    "@yggdrasil-forge/core": "workspace:*",
     "@yggdrasil-forge/editor-core": "workspace:*",
     "@yggdrasil-forge/react": "workspace:*",
     "dockview-react": "catalog:"

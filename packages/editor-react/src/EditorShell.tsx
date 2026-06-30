@@ -4,8 +4,8 @@
 //   ┌──────────────────────────────────────────────────────────────┐
 //   │ TopBar (brand · layouts · undo/redo · zoom · mode toggle)   │
 //   ├──────────────┬──────────────────────────┬──────────────────┤
-//   │ Outliner     │ Canvas (placeholder)     │ Inspector        │
-//   │ (left)       │ (center)                 │ (right)          │
+//   │ Outliner     │ Canvas (SkillTree real)  │ Inspector        │
+//   │ (left)       │ (center, 7.5b-i)         │ (right)          │
 //   │              ├──────────────────────────┤                  │
 //   │              │ Problems (bottom)        │                  │
 //   └──────────────┴──────────────────────────┴──────────────────┘
@@ -18,9 +18,10 @@
 
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useMemo } from 'react'
+import { EditorCanvas } from './canvas/EditorCanvas.js'
 import { OutlinerPanel } from './panels/OutlinerPanel.js'
 import { type PanelDef, PanelHost } from './panels/PanelHost.js'
-import { CanvasPanel, InspectorPanel, ProblemsPanel } from './panels/PlaceholderPanels.js'
+import { InspectorPanel, ProblemsPanel } from './panels/PlaceholderPanels.js'
 import { StatusBar } from './shell/StatusBar.js'
 import { TopBar } from './shell/TopBar.js'
 import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
@@ -45,13 +46,13 @@ export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellPr
       {
         id: 'canvas',
         title: 'Canvas',
-        component: CanvasPanel,
+        component: () => <EditorCanvas editorEngine={engine} />,
         defaultLocation: 'center',
       },
       {
         id: 'inspector',
         title: 'Inspector',
-        component: InspectorPanel,
+        component: () => <InspectorPanel engine={engine} />,
         defaultLocation: 'right',
       },
       {

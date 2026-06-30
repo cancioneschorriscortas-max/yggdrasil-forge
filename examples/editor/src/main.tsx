@@ -1,49 +1,31 @@
 // ── INICIO: examples/editor/main.tsx ──
-// App runnable que monta o EditorShell co estado inicial neutro
-// (documento baleiro). O editor é universal — non se "tematiza" por
-// proxecto editado e non arranca cun contido específico.
+// App runnable que monta o EditorShell coa fixture panadeiro cargada
+// como DATO (non como engine baked-in). Iso é o que pide o briefing
+// 7.5b-i: o canvas aparece pintando un documento real, para que se
+// poida verificar o render + pan/zoom + selección por clic.
 //
-// **Estado inicial**: documento baleiro etiquetado "Untitled". O
-// Outliner mostra "empty document"; a StatusBar amosa 0 nodos / 0
-// arestas. Cando exista un menú "File → New / Open example..."
-// (decisión de Arquitecto, fora do scope de 7.5a), substituirase
-// esta inicialización por unha pantalla de bienvenida ou similar.
+// **Principio A.6**: o editor é unha ferramenta sobre dato, non
+// contén dato. O paquete @yggdrasil-forge/editor-react non importa
+// fixture ningún; é a APP a que decide que documento abrir.
 //
-// **Smoke test visual**: para debugar un cambio na UI cun documento
-// que conteña contido (Outliner con nodos, etc.), importa unha
-// fixture e substitúe `emptyTree()`:
-//
-//   import { panadeiroTree } from './fixtures/panadeiro.js'
-//   const doc = createEditorDocument(panadeiroTree, { ... })
+// **Cando exista un menú File → Open example** (decisión de
+// Arquitecto), esta inicialización substituirase por unha pantalla
+// de bienvenida ou un cargador de exemplos. Mentres tanto, panadeiro
+// é o exemplo por defecto para o desenvolvedor ver a UI funcionando.
 
-import type { TreeDef } from '@yggdrasil-forge/core'
 import { EditorEngine, createEditorDocument } from '@yggdrasil-forge/editor-core'
 import { EditorShell } from '@yggdrasil-forge/editor-react'
 import 'dockview-react/dist/styles/dockview.css'
 import '@yggdrasil-forge/editor-react/styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { panadeiroTree } from './fixtures/panadeiro.js'
 
-/**
- * Constrúe un TreeDef mínimo válido (cero nodos, cero arestas).
- * `schemaVersion`/`version`/`label`/`groups`/`nodes`/`edges`/`layout`
- * son os campos requiridos polo schema; con todo a estructura é
- * estructuralmente válida e o validador estrutural pasa.
- */
-function emptyTree(): TreeDef {
-  return {
-    id: 'untitled',
-    schemaVersion: '1.0.0',
-    version: '0.1.0',
-    label: { en: 'Untitled', gl: 'Sen título' },
-    groups: [],
-    nodes: [],
-    edges: [],
-    layout: { type: 'custom' },
-  } as TreeDef
-}
-
-const doc = createEditorDocument(emptyTree())
+// Carga panadeiro como dato + coordinateBounds para que a status bar
+// amose "World W×H" e o SkillTree fit-on-mount encadre ben.
+const doc = createEditorDocument(panadeiroTree, {
+  coordinateBounds: { minX: -50, minY: -50, maxX: 300, maxY: 300 },
+})
 const engine = new EditorEngine(doc)
 
 const container = document.getElementById('root')
