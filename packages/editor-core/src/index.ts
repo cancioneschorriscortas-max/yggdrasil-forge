@@ -82,4 +82,14 @@ export {
   InteractionController,
   type InteractionControllerOptions,
 } from './interaction/InteractionController.js'
+// ── Property Registry (7.5c-i) ──
+export type { PropertyDescriptor, PropertyType } from './property/PropertyDescriptor.js'
+export {
+  nodePropertyRegistry,
+  NODE_TYPE_OPTIONS,
+  NODE_SHAPE_OPTIONS,
+} from './property/nodePropertyRegistry.js'
+// LocalizedString re-exportada para consumidores (editor-react) que non
+// teñen @common como dep directa.
+export type { LocalizedString } from '@yggdrasil-forge/common'
 // ── FIN: barrel ──

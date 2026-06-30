@@ -19,9 +19,10 @@
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useMemo } from 'react'
 import { EditorCanvas } from './canvas/EditorCanvas.js'
+import { InspectorPanel } from './inspector/InspectorPanel.js'
 import { OutlinerPanel } from './panels/OutlinerPanel.js'
 import { type PanelDef, PanelHost } from './panels/PanelHost.js'
-import { InspectorPanel, ProblemsPanel } from './panels/PlaceholderPanels.js'
+import { ProblemsPanel } from './panels/PlaceholderPanels.js'
 import { StatusBar } from './shell/StatusBar.js'
 import { TopBar } from './shell/TopBar.js'
 import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
@@ -52,7 +53,7 @@ export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellPr
       {
         id: 'inspector',
         title: 'Inspector',
-        component: () => <InspectorPanel engine={engine} />,
+        component: () => <InspectorPanel editorEngine={engine} />,
         defaultLocation: 'right',
       },
       {
