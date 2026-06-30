@@ -110,29 +110,60 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
 
   // O CTM do <svg> do SkillTree é a fonte de verdade screen↔doc.
   // Almacenamos a referencia ao SVG (achada despois do montaxe).
+  //
+  // **Robustez**: o primeiro paint pode non ter o <svg> aínda (o
+  // SkillTree fai cálculos de layout antes de pintar o SVG). Usamos
+  // MutationObserver no contedor para captar o SVG cando apareza, e
+  // así evitamos un primeiro frame con svgEl=null (que nesgaba aneis
+  // ata o segundo render).
   const [svgEl, setSvgEl] = useState<SVGSVGElement | null>(null)
-  // Bótalle 1 chequeo tras montar; logo só re-mira se containerRef cambia
-  // de ref (o que non pasa porque é useRef). Cero deps adicionais para
-  // evitar bucle: doc cambia tras un commit, pero o <svg> NON cambia
-  // (o SkillTree non se desmonta — só re-renderiza dentro).
   useEffect(() => {
-    const svg = findCanvasSvg(containerRef.current)
-    setSvgEl((prev) => (prev === svg ? prev : svg))
+    if (containerRef.current === null) return
+    const el = containerRef.current
+    // 1. Comprobación inmediata (caso normal: <svg> xa montado).
+    const initial = findCanvasSvg(el)
+    if (initial !== null) {
+      setSvgEl(initial)
+      return
+    }
+    // 2. Se non está, observa o subtree ata que apareza.
+    const mo = new MutationObserver(() => {
+      const found = findCanvasSvg(el)
+      if (found !== null) {
+        setSvgEl(found)
+        mo.disconnect()
+      }
+    })
+    mo.observe(el, { childList: true, subtree: true })
+    return () => mo.disconnect()
   }, [])
 
   // Container rect (para converter screen-clientX a relative-X no overlay).
+  //
+  // **Problema histórico (visto na review visual)**: o `containerRect`
+  // capturado só no mount + window resize/scroll quedaba **obsoleto** cando
+  // dockview redimensionaba os paneis arrastrando o borde — dockview non
+  // dispara window resize, polo que os aneis/ghosts quedaban en
+  // coordenadas vellas (anel orfo arriba á esquerda do canvas).
+  //
+  // **Arranxo**: ResizeObserver no propio contedor. Captura cambios de
+  // tamaño/posición do elemento sin depender de eventos de ventana.
+  // Window resize/scroll seguen como sinais adicionais (cambios de
+  // posición do elemento na páxina).
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null)
   useEffect(() => {
     if (containerRef.current === null) return
+    const el = containerRef.current
     const update = (): void => {
-      if (containerRef.current !== null) {
-        setContainerRect(containerRef.current.getBoundingClientRect())
-      }
+      setContainerRect(el.getBoundingClientRect())
     }
     update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
     window.addEventListener('resize', update)
     window.addEventListener('scroll', update, true)
     return () => {
+      ro.disconnect()
       window.removeEventListener('resize', update)
       window.removeEventListener('scroll', update, true)
     }
@@ -357,12 +388,18 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       const state = pointerStateRef.current
+      // Calquera estado activo (pressed-node / dragging / marquee) →
+      // restablece a idle. Antes só se cubrían dragging e marquee, o que
+      // deixaba o pipeline en pressed-node se o usuario premía Escape
+      // tras pointerdown sen mover; o seguinte pointermove tentaría
+      // iniciar drag desde un startDoc xa irrelevante. Agora limpamos sempre.
       if (state.kind === 'dragging') {
         state.operation.cancel()
         setGhostPositions(undefined)
-        pointerStateRef.current = IDLE
       } else if (state.kind === 'marquee') {
         setMarqueeRectPx(undefined)
+      }
+      if (state.kind !== 'idle') {
         pointerStateRef.current = IDLE
       }
     }

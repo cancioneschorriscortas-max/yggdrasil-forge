@@ -235,6 +235,10 @@
   height: 100%;
   background: var(--editor-bg-canvas);
   overflow: hidden;
+  /* Evita que o arrastre de nodo seleccione texto dos labels SVG
+     ("churros" en azul realzado, p.ex.). O canvas non é texto editable. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 .editor-canvas > * {
   flex: 1;
