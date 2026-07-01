@@ -19,6 +19,17 @@ import { ProblemsPanel } from '../src/panels/ProblemsPanel.js'
 
 afterEach(() => cleanup())
 
+/**
+ * Helper para tests: abre a sección "Avanzado" do Inspector. Todos os
+ * campos estruturados están alí (pregados por defecto en 7.5c-U).
+ */
+function openAdvanced(): void {
+  const toggle = screen.getByRole('button', { name: /Avanzado/i })
+  act(() => {
+    fireEvent.click(toggle)
+  })
+}
+
 function buildEngine(): EditorEngine {
   const tree: TreeDef = {
     id: 'struct-test',
@@ -55,6 +66,7 @@ describe('ExclusionsEditor — add/remove', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
+    openAdvanced()
     // O selector "engadir exclusión" debe ofrecer bar e baz (non foo).
     const addSelect = screen.getByLabelText(/Engadir exclusión/i) as HTMLSelectElement
     // Cambia a 'bar' → onChange dispara o add inmediato.
@@ -80,6 +92,7 @@ describe('ExclusionsEditor — add/remove', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
+    openAdvanced()
     const removeBtn = screen.getByLabelText(/Quitar exclusión bar/i)
     act(() => {
       fireEvent.click(removeBtn)
@@ -96,6 +109,7 @@ describe('★ EffectsEditor — gate manifesto-descriptor', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
+    openAdvanced()
     const addEffectSelect = screen.getByLabelText(/Engadir effect plano/i) as HTMLSelectElement
     const options = Array.from(addEffectSelect.options).map((o) => o.value)
     // Os UNSUPPORTED NON deben aparecer.
@@ -116,6 +130,7 @@ describe('★ EffectsEditor — gate manifesto-descriptor', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
+    openAdvanced()
     const addEffectSelect = screen.getByLabelText(/Engadir effect plano/i) as HTMLSelectElement
     act(() => {
       fireEvent.change(addEffectSelect, { target: { value: 'modify_resource' } })
@@ -133,6 +148,7 @@ describe('CostEditor', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
+    openAdvanced()
     const addCost = screen.getByLabelText(/Engadir custo/i) as HTMLSelectElement
     act(() => {
       fireEvent.change(addCost, { target: { value: 'gold' } })

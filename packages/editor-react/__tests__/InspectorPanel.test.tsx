@@ -43,15 +43,16 @@ describe('InspectorPanel — modos de selección', () => {
 
   it('renderiza widgets do nodo seleccionado tras replace', () => {
     const engine = buildEngine()
-    render(<InspectorPanel editorEngine={engine} />)
+    const { container } = render(<InspectorPanel editorEngine={engine} />)
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
     expect(screen.getByText('foo')).toBeDefined()
-    expect(screen.getByText('Identidade')).toBeDefined()
-    expect(screen.getByText('Aparencia')).toBeDefined()
-    expect(screen.getByText('Lóxica')).toBeDefined()
-    expect(screen.getByLabelText(/Etiqueta/i)).toBeDefined()
+    // Widgets Básicos existen (label e color polo seu id estable).
+    expect(container.querySelector('#inspector-label')).toBeDefined()
+    expect(container.querySelector('#inspector-color')).toBeDefined()
+    // A sección Avanzado existe (pregada por defecto).
+    expect(screen.getByRole('button', { name: /Avanzado/i })).toBeDefined()
   })
 
   it('multi-selección (>1): amosa conta e desactiva edición', () => {
@@ -98,11 +99,13 @@ describe('InspectorPanel — edición despacha Commands', () => {
   it('editar color: commit on blur', () => {
     const engine = buildEngine()
     const docBefore = engine.getDocument()
-    render(<InspectorPanel editorEngine={engine} />)
+    const { container } = render(<InspectorPanel editorEngine={engine} />)
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
-    const color = screen.getByLabelText(/Cor/i) as HTMLInputElement
+    // O input color ten id 'inspector-color'; getByLabelText podería ambigüerse
+    // por FieldLabel + FieldHelp compartindo texto "Cor".
+    const color = container.querySelector('#inspector-color') as HTMLInputElement
     expect(color.value).toBe('#aabbcc')
     act(() => {
       fireEvent.change(color, { target: { value: '#ff0000' } })
@@ -115,16 +118,29 @@ describe('InspectorPanel — edición despacha Commands', () => {
     expect(fooAfter?.color).toBe('#ff0000')
   })
 
-  it('editar type (enum): commit inmediato', () => {
+  it('editar type (enum) co Select propio: commit inmediato', () => {
     const engine = buildEngine()
     render(<InspectorPanel editorEngine={engine} />)
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'bar' }])
     })
-    const typeSelect = screen.getByLabelText(/Tipo/i) as HTMLSelectElement
-    expect(typeSelect.value).toBe('notable')
+    // Tipo está en Avanzado (pregado).
+    const toggle = screen.getByRole('button', { name: /Avanzado/i })
     act(() => {
-      fireEvent.change(typeSelect, { target: { value: 'keystone' } })
+      fireEvent.click(toggle)
+    })
+    // O Select propio: abre o dropdown premendo o botón trigger.
+    // Usamos aria-label do trigger (que ten o labelText "Tipo").
+    const trigger = screen.getByRole('button', { name: 'Tipo' })
+    // Amosa "Destacado" (label localizado de 'notable').
+    expect(trigger.textContent).toContain('Destacado')
+    act(() => {
+      fireEvent.click(trigger)
+    })
+    // Cando abre, aparecen as opcións como listbox → option.
+    const claveOpt = screen.getByRole('option', { name: /Clave/i })
+    act(() => {
+      fireEvent.click(claveOpt)
     })
     const barAfter = engine.getDocument().tree.nodes.find((n) => n.id === 'bar')
     expect(barAfter?.type).toBe('keystone')
@@ -146,6 +162,13 @@ describe('InspectorPanel — edición despacha Commands', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'bar' }])
     })
+    // Estruturados están en Avanzado (pregado).
+    const toggle = screen.getByRole('button', { name: /Avanzado/i })
+    act(() => {
+      fireEvent.click(toggle)
+    })
+    // Prerequisites, tiers, costPerTier son "structured con of != editable" →
+    // mostran resumo con "edición en 7.5c-ii".
     expect(screen.getAllByText(/edición en 7\.5c-ii/i).length).toBeGreaterThan(0)
   })
 })

@@ -74,6 +74,13 @@ export interface PropertyDescriptor<T = unknown> {
   readonly group: 'identity' | 'appearance' | 'logic'
   /** Campo non editable (ex.: id). O Inspector deshabilita o widget. */
   readonly readonly?: boolean
+  /**
+   * Marca o campo como "avanzado" (Briefing 7.5c-U): o Inspector
+   * agrupa estes baixo unha sección "Avanzado" **pregada por defecto**
+   * para non abafar ao usuario medio. Os non-avanzados van en "Básico"
+   * (sempre visible).
+   */
+  readonly advanced?: boolean
   /** Tooltip/hint opcional. */
   readonly describe?: LocalizedString
   /** Lee o valor actual desde un NodeDef. */

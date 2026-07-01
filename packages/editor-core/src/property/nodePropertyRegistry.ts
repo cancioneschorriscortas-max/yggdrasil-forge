@@ -1,13 +1,21 @@
 // ── INICIO: nodePropertyRegistry ──
-// Property Registry concreto para `NodeDef`. Cubre **campos escalares**
-// en 7.5c-i; os estruturados están **declarados** (kind:'structured')
-// pero a súa edición vén en 7.5c-ii (sub-editores + gate manifesto).
+// Property Registry concreto para `NodeDef`. Cobre **campos escalares**
+// en 7.5c-i, campos estruturados en 7.5c-ii, e a pasada de usabilidade
+// en 7.5c-U (labels + describe + `advanced` flag).
 //
 // **Type-test de non-drift**: usamos tuplas literais const para
 // `NodeType` e `NodeShape` (xa que TS non xera arrays runtime das
 // unións de literais). O `Equals<>` compile-time garante que se
 // engades un valor a `NodeType`/`NodeShape` en @core sen actualizar
 // aquí, o typecheck falla → cero drift silencioso.
+//
+// **★ Usabilidade (7.5c-U)**:
+//   - Cada descriptor ten `label` gl + `describe` gl (contido validado
+//     no Briefing §7). Cero xerga inglesa exposta ao usuario.
+//   - `tier`/`maxTier`/`costPerTier`/`tiers` renomeados a
+//     Nivel/Nivel máximo/etc.
+//   - Flag `advanced` marca os campos que van pregados baixo
+//     "Avanzado" no Inspector. Non-advanced = "Básico" (sempre visible).
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { NodeDef, NodeShape, NodeType } from '@yggdrasil-forge/core'
@@ -38,35 +46,28 @@ type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B 
   : false
 const _typeOptionsCoverNodeType: Equals<(typeof NODE_TYPE_OPTIONS)[number], NodeType> = true
 const _shapeOptionsCoverNodeShape: Equals<(typeof NODE_SHAPE_OPTIONS)[number], NodeShape> = true
-// Mark unused vars como usados (vincúlanse polo tipo, non polo valor).
 void _typeOptionsCoverNodeType
 void _shapeOptionsCoverNodeShape
 
 // ── Helper para descriptores que delegan en setNodeField ──
-/**
- * Crea un descriptor que **delega directamente en `setNodeField`**.
- * O xenérico `K extends keyof NodeDef` garante que o tipo do valor
- * coincide con `NodeDef[K]` (ex.: `label` recibe `LocalizedString`,
- * `size` recibe `number`, etc.). `setNodeField` xa trata
- * `LocalizedString` correctamente (acepta `string | Record`), polo
- * que **non fai falta trato especial para `label`/`description`**.
- */
 function fieldDescriptor<K extends keyof NodeDef>(args: {
   key: K
   label: LocalizedString
+  describe: LocalizedString
   type: PropertyDescriptor['type']
   group: PropertyDescriptor['group']
   readonly?: boolean
-  describe?: LocalizedString
+  advanced?: boolean
 }): PropertyDescriptor<NodeDef[K]> {
-  const { key, label, type, group, readonly, describe } = args
+  const { key, label, describe, type, group, readonly, advanced } = args
   return {
     key: key as string,
     label,
+    describe,
     type,
     group,
     ...(readonly === true && { readonly: true }),
-    ...(describe !== undefined && { describe }),
+    ...(advanced === true && { advanced: true }),
     get(node: NodeDef): NodeDef[K] | undefined {
       return node[key]
     },
@@ -77,22 +78,16 @@ function fieldDescriptor<K extends keyof NodeDef>(args: {
 }
 
 // ── Descriptor especial para `id` (readonly, non chamable) ──
-/**
- * O `id` é readonly: cambialo rompe referencias (edges, prerequisites,
- * exclusions). O Inspector deshabilita o widget; este `set` lanza
- * defensivamente para que ningún flow accidental termine xerando un
- * Command de id.
- */
 const idDescriptor: PropertyDescriptor<string> = {
   key: 'id',
   label: { en: 'ID', gl: 'ID' },
+  describe: {
+    en: 'Unique internal name. Cannot be changed.',
+    gl: 'Nome interno único. Non se pode cambiar.',
+  },
   type: { kind: 'text' },
   group: 'identity',
   readonly: true,
-  describe: {
-    en: 'Unique identifier. Cannot be changed (would break references).',
-    gl: 'Identificador único. Non se pode cambiar (rompería referencias).',
-  },
   get(node) {
     return node.id
   },
@@ -102,120 +97,166 @@ const idDescriptor: PropertyDescriptor<string> = {
 }
 
 // ── Rexistro final ──
-/**
- * **Registry de propiedades para NodeDef**. Os widgets do Inspector
- * iteran este array, agrúpano por `group`, e renderizan o widget
- * apropiado por `type.kind`.
- *
- * Orde dentro do array reflicte a orde recomendada de display dentro
- * de cada grupo.
- */
 export const nodePropertyRegistry: readonly PropertyDescriptor[] = [
   // ── Identidade ──
   idDescriptor,
   fieldDescriptor({
     key: 'type',
     label: { en: 'Type', gl: 'Tipo' },
+    describe: {
+      en: 'The node category; changes its visual weight.',
+      gl: 'A categoría do nodo; cambia a súa importancia visual.',
+    },
     type: { kind: 'enum', options: NODE_TYPE_OPTIONS },
     group: 'identity',
+    advanced: true, // usuario medio non escolle isto habitualmente
   }),
   fieldDescriptor({
     key: 'label',
     label: { en: 'Label', gl: 'Etiqueta' },
+    describe: {
+      en: 'The name the user sees on the map.',
+      gl: 'O nome que ve o usuario no mapa.',
+    },
     type: { kind: 'localizedText' },
     group: 'identity',
   }),
   fieldDescriptor({
     key: 'description',
     label: { en: 'Description', gl: 'Descrición' },
+    describe: {
+      en: 'A short text that explains what this node is.',
+      gl: 'Un texto curto que explica que é este nodo.',
+    },
     type: { kind: 'localizedText' },
     group: 'identity',
   }),
-  // ── Aparencia ──
+  // ── Aparencia (todos en Básico) ──
   fieldDescriptor({
     key: 'color',
     label: { en: 'Color', gl: 'Cor' },
+    describe: { en: 'The node color.', gl: 'A cor do nodo.' },
     type: { kind: 'color' },
     group: 'appearance',
   }),
   fieldDescriptor({
     key: 'icon',
     label: { en: 'Icon', gl: 'Icona' },
+    describe: {
+      en: 'An icon or emoji inside the node (optional).',
+      gl: 'Unha icona ou emoji dentro do nodo (opcional).',
+    },
     type: { kind: 'text' },
     group: 'appearance',
-    describe: { en: 'Icon id (URL, emoji, etc.)', gl: 'Id de icona (URL, emoji, etc.)' },
   }),
   fieldDescriptor({
     key: 'shape',
     label: { en: 'Shape', gl: 'Forma' },
+    describe: { en: 'Circle, hexagon, diamond…', gl: 'Círculo, hexágono, rombo…' },
     type: { kind: 'enum', options: NODE_SHAPE_OPTIONS },
     group: 'appearance',
   }),
   fieldDescriptor({
     key: 'size',
     label: { en: 'Size', gl: 'Tamaño' },
+    describe: {
+      en: 'Leave empty for the default size.',
+      gl: 'Déixao baleiro para o tamaño por defecto.',
+    },
     type: { kind: 'number', min: 0.01, step: 1 },
     group: 'appearance',
-    describe: {
-      en: 'Base size in layout units (>0). Default by type.',
-      gl: 'Tamaño base en unidades de layout (>0). Default por tipo.',
-    },
   }),
-  // ── Lóxica (escalar) ──
+  // ── Lóxica (todos AVANZADO) ──
   fieldDescriptor({
     key: 'tier',
-    label: { en: 'Tier', gl: 'Tier' },
+    label: { en: 'Level', gl: 'Nivel' },
+    describe: {
+      en: 'If the node improves in stages (e.g., Mk.I → Mk.II).',
+      gl: 'Se o nodo se mellora por etapas (ex. Mk.I → Mk.II).',
+    },
     type: { kind: 'number', step: 1 },
     group: 'logic',
+    advanced: true,
   }),
   fieldDescriptor({
     key: 'maxTier',
-    label: { en: 'Max tier', gl: 'Tier máximo' },
+    label: { en: 'Max level', gl: 'Nivel máximo' },
+    describe: {
+      en: 'Up to which stage it can be improved.',
+      gl: 'Ata que etapa se pode mellorar.',
+    },
     type: { kind: 'number', min: 1, step: 1 },
     group: 'logic',
+    advanced: true,
   }),
-  // ── Estruturados (DECLARADOS — edición en 7.5c-ii) ──
+  // ── Estruturados (DECLARADOS — edición en 7.5c-ii+, todos AVANZADO) ──
   fieldDescriptor({
     key: 'cost',
     label: { en: 'Cost', gl: 'Custo' },
+    describe: {
+      en: 'What has to be paid to unlock it.',
+      gl: 'Que hai que pagar para desbloquealo.',
+    },
     type: { kind: 'structured', of: 'cost' },
     group: 'logic',
+    advanced: true,
   }),
   fieldDescriptor({
     key: 'costPerTier',
-    label: { en: 'Cost per tier', gl: 'Custo por tier' },
+    label: { en: 'Cost per level', gl: 'Custo por nivel' },
+    describe: {
+      en: 'Cost variation per level of the node.',
+      gl: 'Variación do custo segundo o nivel do nodo.',
+    },
     type: { kind: 'structured', of: 'costPerTier' },
     group: 'logic',
+    advanced: true,
   }),
   fieldDescriptor({
     key: 'tiers',
-    label: { en: 'Tiers info', gl: 'Info de tiers' },
+    label: { en: 'Levels info', gl: 'Info de niveis' },
+    describe: {
+      en: 'Presentation information per level.',
+      gl: 'Información de presentación por nivel.',
+    },
     type: { kind: 'structured', of: 'tiers' },
     group: 'logic',
+    advanced: true,
   }),
   fieldDescriptor({
     key: 'effects',
     label: { en: 'Effects', gl: 'Efectos' },
+    describe: {
+      en: 'What the node does when unlocked (e.g., grant resources).',
+      gl: 'Que fai o nodo ao desbloquealo (ex. dar recursos).',
+    },
     type: { kind: 'structured', of: 'effects' },
     group: 'logic',
+    advanced: true,
   }),
   fieldDescriptor({
     key: 'prerequisites',
-    label: { en: 'Prerequisites', gl: 'Prerrequisitos' },
+    label: { en: 'Requirements', gl: 'Requisitos' },
+    describe: {
+      en: 'What has to be unlocked before taking this node.',
+      gl: 'Que hai que desbloquear antes de coller este nodo.',
+    },
     type: { kind: 'structured', of: 'prerequisites' },
     group: 'logic',
+    advanced: true,
   }),
   fieldDescriptor({
     key: 'exclusions',
     label: { en: 'Exclusions', gl: 'Exclusións' },
+    describe: {
+      en: 'Incompatible nodes: taking this blocks those (and vice versa).',
+      gl: 'Nodos incompatibles: coller este bloquea eses (e ao revés).',
+    },
     type: { kind: 'structured', of: 'exclusions' },
     group: 'logic',
+    advanced: true,
   }),
 ]
 
-/**
- * **Internos exportados** (para tests / consumidores avanzados que
- * queiran iterar as opcións de enum sen acoplarse aos descriptors).
- */
 export { NODE_TYPE_OPTIONS, NODE_SHAPE_OPTIONS }
 // ── FIN: nodePropertyRegistry ──

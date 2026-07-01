@@ -95,6 +95,18 @@ export {
   authorablePlainEffectTypes,
   isPlainAuthorableEffectType,
 } from './property/authorableEffectTypes.js'
+// ── Localización de enums (7.5c-U) ──
+export type { EnumLabelEntry } from './property/enumLabels.js'
+export {
+  NODE_TYPE_LABELS,
+  NODE_SHAPE_LABELS,
+  EFFECT_TYPE_LABELS,
+  getNodeTypeLabel,
+  getNodeTypeDescribe,
+  getNodeShapeLabel,
+  getEffectTypeLabel,
+  getEffectTypeDescribe,
+} from './property/enumLabels.js'
 // LocalizedString re-exportada para consumidores (editor-react) que non
 // teñen @common como dep directa.
 export type { LocalizedString } from '@yggdrasil-forge/common'
