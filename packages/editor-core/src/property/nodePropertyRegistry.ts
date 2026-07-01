@@ -207,17 +207,11 @@ export const nodePropertyRegistry: readonly PropertyDescriptor[] = [
     group: 'logic',
     advanced: true,
   }),
-  fieldDescriptor({
-    key: 'tiers',
-    label: { en: 'Levels info', gl: 'Info de niveis' },
-    describe: {
-      en: 'Presentation information per level.',
-      gl: 'Información de presentación por nivel.',
-    },
-    type: { kind: 'structured', of: 'tiers' },
-    group: 'logic',
-    advanced: true,
-  }),
+  // NOTA (7.5c-T2): `tiers` (F9.1: NodeTierInfo[]) retirado do Inspector.
+  // É unha feature DECLARADA no schema pero NON IMPLEMENTADA no runtime.
+  // Non se expón (nin morto nin sen-implementar se expoñen). Cuberto polo
+  // gate `UNIMPLEMENTED_NODEDEF_FIELDS` — cando alguén implemente F9.1
+  // no runtime, reintróducese aquí + movesé no gate a `USED`.
   fieldDescriptor({
     key: 'effects',
     label: { en: 'Effects', gl: 'Efectos' },

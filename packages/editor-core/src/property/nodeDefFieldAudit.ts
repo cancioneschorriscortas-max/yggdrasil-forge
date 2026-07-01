@@ -1,29 +1,36 @@
 // ── INICIO: nodeDefFieldAudit ──
-// **Gate arquitectural (Briefing 7.5c-T §3)** — garantía de que
-// cada campo de `NodeDef` está clasificado como *usado* ou
-// *deprecado*. Se `NodeDef` engade un campo sen aparecer en ningunha
-// das dúas tuplas, o typecheck falla. Cero ambigüidade sobre
-// "esquecín se este campo se usa ou non".
+// **Gate arquitectural** — garantía de que cada campo de `NodeDef`
+// está clasificado nun de **tres estados**. Se `NodeDef` engade un
+// campo sen aparecer en ningunha das tuplas, o typecheck falla.
 //
-// **Mesmo patrón** que o gate manifesto-descriptor de effects
-// (`SUPPORTED_EFFECT_TYPES` / `UNSUPPORTED_EFFECT_TYPES`). Cada un
-// destes gates é un dique arquitectural que **obriga a intencionalidade**
-// no dominio.
+// **★ Paralelismo explícito co manifesto de effects**:
+//   USED_NODEDEF_FIELDS         ↔  SUPPORTED_EFFECT_TYPES
+//   UNIMPLEMENTED_NODEDEF_FIELDS ↔  UNSUPPORTED_EFFECT_TYPES
+//   DEPRECATED_NODEDEF_FIELDS   ↔  (non ten equivalente aínda; efectos non
+//                                    deprecaron ningún)
 //
-// **Detonante histórico** (7.5c-T): `NodeDef.tier` estivo declarado no
-// schema durante meses sen ningún uso no runtime. Só se destapou
-// cando o Inspector empezou a exponer cada campo como widget editable
-// e Agarfal preguntou "nivel 35 con maxTier 3?".
+// **Mesma filosofía**: o schema non oculta fantasmas — decláraos.
+//   - `USED`: campo lido nalgures (runtime, engine, layout, renderer, search).
+//   - `UNIMPLEMENTED`: feature declarada no schema pero **motor ignórao**.
+//     Non expoñer no editor ata implementalo (o análogo de `modify_stat`).
+//   - `DEPRECATED`: legado a retirar nun major futuro. Detéctase polo
+//     JSDoc `@deprecated`; aquí listámolos explicitamente polo type-test.
+//
+// **Historial**:
+//   - 7.5c-T (introdución do gate): 2 estados (USED + DEPRECATED). `tier`
+//     movido a DEPRECATED. `tiers` en USED cunha NOTA provisional porque
+//     o Executor non atopara usos pero o Arquitecto pediu non tocalo.
+//   - 7.5c-T2 (este ficheiro): 3 estados. `tiers` reclasificado como
+//     UNIMPLEMENTED (F9.1 declarada, non implementada). A nota
+//     provisional retirada.
 //
 // **Como estender**:
-//   - Se engades un campo NOVO a `NodeDef` que xa se usa nalgures:
-//     amádeo a `USED_NODEDEF_FIELDS`.
-//   - Se engades un campo NOVO como placeholder futuro:
-//     amádeo a `DEPRECATED_NODEDEF_FIELDS` con JSDoc `@deprecated`
-//     no schema (marcando "sen efecto no runtime").
-//   - Se atopas un campo existente que xa non se usa:
-//     movalo a `DEPRECATED_NODEDEF_FIELDS` (retirar do runtime é
-//     breaking → agarda a un major).
+//   - Campo NOVO xa usado polo runtime/renderer/search → `USED_NODEDEF_FIELDS`.
+//   - Campo NOVO como placeholder de feature futura → `UNIMPLEMENTED_NODEDEF_FIELDS`
+//     + JSDoc `@remarks` no schema explicando por que non se implementou.
+//   - Campo existente que xa non se usa → `DEPRECATED_NODEDEF_FIELDS`
+//     + JSDoc `@deprecated` no schema (retirar do runtime é breaking →
+//     espera a un major).
 
 import type { NodeDef } from '@yggdrasil-forge/core'
 
@@ -48,11 +55,6 @@ export const USED_NODEDEF_FIELDS = [
   'subtreeId',
   'subtreeOverrides',
   'maxTier',
-  // NOTA (7.5c-T): `tiers` está aquí por indicación explícita do
-  // Arquitecto ("`tiers` fican, relacionan con `maxTier`, o sistema
-  // real de rangos"), pero o Executor NON atopou usos en runtime nin
-  // en @react. Podería ser candidato futuro a auditoría específica.
-  'tiers',
   'cost',
   'costPerTier',
   'effects',
@@ -68,6 +70,20 @@ export const USED_NODEDEF_FIELDS = [
   'timeConstraints',
 ] as const
 
+// ── UNIMPLEMENTED: feature declarada, motor ignórao ──
+//
+// **Non se expón no editor** — sería confundir ao autor con algo que
+// non ten efecto. Cando se implemente no runtime, movese aquí a
+// `USED` + reintróducese o descriptor no `nodePropertyRegistry`.
+export const UNIMPLEMENTED_NODEDEF_FIELDS = [
+  // `tiers` (F9.1): `NodeTierInfo[]` con etiquetas/descricións por
+  // rango. Grep exhaustivo en @core/engine, @core/runtime, @react,
+  // @search: cero lecturas efectivas (só self-references en comentarios
+  // do propio node.ts). Retirado do Inspector en 7.5c-T2. Cando se
+  // implemente F9.1, moverase aquí a USED.
+  'tiers',
+] as const
+
 // ── DEPRECATED: campos `@deprecated` no schema, sen retirar por
 // razóns de compatibilidade (retiralos é breaking → maior futuro) ──
 export const DEPRECATED_NODEDEF_FIELDS = [
@@ -78,17 +94,19 @@ export const DEPRECATED_NODEDEF_FIELDS = [
   'tier',
 ] as const
 
-// ── Type-test de cobertura completa ──
+// ── Type-test de cobertura completa (tres estados) ──
 // Se `NodeDef` engade/quita un campo sen actualizar as tuplas, o
 // typecheck falla. Iso obriga a decidir *conscientemente* a que
-// grupo pertence.
+// grupo pertence: USED, UNIMPLEMENTED, ou DEPRECATED.
 type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
   ? true
   : false
 
 const _fieldsCoverNodeDef: Equals<
   keyof NodeDef,
-  (typeof USED_NODEDEF_FIELDS)[number] | (typeof DEPRECATED_NODEDEF_FIELDS)[number]
+  | (typeof USED_NODEDEF_FIELDS)[number]
+  | (typeof UNIMPLEMENTED_NODEDEF_FIELDS)[number]
+  | (typeof DEPRECATED_NODEDEF_FIELDS)[number]
 > = true
 void _fieldsCoverNodeDef
 // ── FIN: nodeDefFieldAudit ──

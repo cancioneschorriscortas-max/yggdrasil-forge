@@ -25,8 +25,8 @@ const sampleNodeMinimal: NodeDef = {
 }
 
 describe('nodePropertyRegistry — cobertura', () => {
-  it('inclúe os 9 escalares + 6 estruturados (=15, tras retirar `tier` en 7.5c-T)', () => {
-    expect(nodePropertyRegistry.length).toBe(15)
+  it('inclúe os 9 escalares + 5 estruturados (=14, tras retirar `tier` en 7.5c-T e `tiers` en 7.5c-T2)', () => {
+    expect(nodePropertyRegistry.length).toBe(14)
   })
 
   it('inclúe os campos escalares esperados', () => {
@@ -51,13 +51,18 @@ describe('nodePropertyRegistry — cobertura', () => {
     expect(keys).not.toContain('tier')
   })
 
-  it('inclúe os campos estruturados (declarados, edición en 7.5c-ii)', () => {
+  it('inclúe os campos estruturados declarados (5, tras retirar `tiers` en 7.5c-T2)', () => {
     const structured = nodePropertyRegistry.filter((d) => d.type.kind === 'structured')
-    expect(structured.length).toBe(6)
+    expect(structured.length).toBe(5)
     const ofs = structured.map((d) => (d.type as { of: string }).of)
     expect(new Set(ofs)).toEqual(
-      new Set(['cost', 'costPerTier', 'tiers', 'effects', 'prerequisites', 'exclusions']),
+      new Set(['cost', 'costPerTier', 'effects', 'prerequisites', 'exclusions']),
     )
+  })
+
+  it('★ tiers retirado do Inspector (7.5c-T2, UNIMPLEMENTED no gate)', () => {
+    const keys = nodePropertyRegistry.map((d) => d.key)
+    expect(keys).not.toContain('tiers')
   })
 
   it('agrupa correctamente: id/type/label/description en identity', () => {

@@ -152,7 +152,6 @@ describe('★ Flag advanced (partición Básico vs Avanzado)', () => {
       'effects',
       'cost',
       'costPerTier',
-      'tiers',
     ]) {
       expect(keys.has(expected)).toBe(true)
     }
@@ -161,6 +160,11 @@ describe('★ Flag advanced (partición Básico vs Avanzado)', () => {
   it('★ tier NON está en Avanzado (retirado do Inspector en 7.5c-T)', () => {
     const keys = new Set(nodePropertyRegistry.map((d) => d.key))
     expect(keys.has('tier')).toBe(false)
+  })
+
+  it('★ tiers NON está en Avanzado (retirado do Inspector en 7.5c-T2, UNIMPLEMENTED)', () => {
+    const keys = new Set(nodePropertyRegistry.map((d) => d.key))
+    expect(keys.has('tiers')).toBe(false)
   })
 
   it('id: readonly, NON está en Básico nin Avanzado (vai na cabeceira)', () => {
@@ -192,12 +196,6 @@ describe('Labels renomeados (7.5c-U + 7.5c-T)', () => {
     const desc = nodePropertyRegistry.find((d) => d.key === 'costPerTier')
     const gl = typeof desc?.label === 'object' ? desc.label.gl : desc?.label
     expect(gl).toBe('Custo por nivel')
-  })
-
-  it('tiers → "Info de niveis"', () => {
-    const desc = nodePropertyRegistry.find((d) => d.key === 'tiers')
-    const gl = typeof desc?.label === 'object' ? desc.label.gl : desc?.label
-    expect(gl).toBe('Info de niveis')
   })
 
   it('prerequisites → "Requisitos"', () => {

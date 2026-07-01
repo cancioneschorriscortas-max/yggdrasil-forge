@@ -121,7 +121,6 @@ Cando hai un só nodo seleccionado, o Inspector amósao en tres seccións:
 **Estruturados**:
 - **Custo**: lista de pares (resource, amount). Cánto costa desbloquear/avanzar este nodo.
 - **Cost per tier**: variación de custo por tier (lectura, edición en fase futura).
-- **Tiers info**: información de presentación por tier (lectura).
 - **Effects**: efectos que pasan ao desbloquear o nodo.
 - **Prerrequisitos**: regra de cando se pode desbloquear (lectura, edición en fase futura).
 - **Exclusións**: outros nodos mutuamente excluíntes con este.
@@ -243,7 +242,7 @@ Estas funcionalidades aparecen pero **non están dispoñibles** na versión actu
 
 - **`description`/`label` multi-idioma**: pódese editar a entrada `en` por defecto se a árbore é multi-locale. As outras locales **consérvanse** pero non se poden editar dende o editor. (Banco: "locale do canvas".)
 - **`prerequisites`**: a edición das regras `all`/`any`/condición agárdase para a fase 2 de 7.5c-ii (a árbore aniñada).
-- **`tiers`, `costPerTier`**: lectura. Edición en fase posterior.
+- **`costPerTier`**: lectura. Edición en fase posterior.
 - **Effects `composite`/`conditional`**: lectura. Edición en fase 2 (a árbore aniñada de effects).
 - **Edición común multi-selección**: cando hai >1 nodos seleccionados, non podes editar propiedades simultaneamente. Selecciona dun en un por agora.
 - **Tools de creación** (engadir nodo novo, engadir aresta nova): non hai aínda UI. Engade os nodos editando o JSON da árbore directamente.

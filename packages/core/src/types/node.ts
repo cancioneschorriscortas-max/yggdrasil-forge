@@ -158,6 +158,10 @@ export interface NodeDef {
   /**
    * Info de presentación por rango (etiqueta/descrición localizadas).
    * Índice = tier - 1. Complementa costPerTier/effects (non os duplica).
+   *
+   * @remarks Declarado (F9.1) pero NON implementado no runtime — o motor
+   * ignórao. Non expoñer no editor ata implementalo.
+   * (Análogo a `modify_stat` nos efectos: no schema, ignorado polo runtime.)
    */
   readonly tiers?: readonly NodeTierInfo[]
   // ── FIN: F9.1 ──

@@ -95,9 +95,10 @@ export {
   authorablePlainEffectTypes,
   isPlainAuthorableEffectType,
 } from './property/authorableEffectTypes.js'
-// ── Gate auditoría dead-code de NodeDef (7.5c-T) ──
+// ── Gate auditoría dead-code de NodeDef (7.5c-T + 7.5c-T2) ──
 export {
   USED_NODEDEF_FIELDS,
+  UNIMPLEMENTED_NODEDEF_FIELDS,
   DEPRECATED_NODEDEF_FIELDS,
 } from './property/nodeDefFieldAudit.js'
 // ── Localización de enums (7.5c-U) ──
