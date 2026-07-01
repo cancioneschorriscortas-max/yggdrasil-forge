@@ -167,23 +167,18 @@ export const nodePropertyRegistry: readonly PropertyDescriptor[] = [
     group: 'appearance',
   }),
   // ── Lóxica (todos AVANZADO) ──
-  fieldDescriptor({
-    key: 'tier',
-    label: { en: 'Level', gl: 'Nivel' },
-    describe: {
-      en: 'If the node improves in stages (e.g., Mk.I → Mk.II).',
-      gl: 'Se o nodo se mellora por etapas (ex. Mk.I → Mk.II).',
-    },
-    type: { kind: 'number', step: 1 },
-    group: 'logic',
-    advanced: true,
-  }),
+  //
+  // NOTA (7.5c-T): `tier` (que existía en NodeDef) foi retirado do
+  // Inspector. É `@deprecated` no schema porque **non se lee no runtime**
+  // (o rango actual vive en `state.currentTier`, non no NodeDef). Se
+  // algún día se implementan semánticos para `NodeDef.tier`, reintróducese
+  // o descriptor. Ver docs/architecture/MASTER.md → Annex A.
   fieldDescriptor({
     key: 'maxTier',
-    label: { en: 'Max level', gl: 'Nivel máximo' },
+    label: { en: 'Ranks', gl: 'Rangos' },
     describe: {
-      en: 'Up to which stage it can be improved.',
-      gl: 'Ata que etapa se pode mellorar.',
+      en: 'How many ranks the node has. Leave at 1 for a simple node. Ex.: 3 = three stages (Mk.I → Mk.II → Mk.III).',
+      gl: 'Cantos rangos ou etapas ten o nodo. Déixao en 1 para un nodo simple. Ex.: 3 = tres etapas (Mk.I → Mk.II → Mk.III).',
     },
     type: { kind: 'number', min: 1, step: 1 },
     group: 'logic',

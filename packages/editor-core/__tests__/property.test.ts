@@ -25,8 +25,8 @@ const sampleNodeMinimal: NodeDef = {
 }
 
 describe('nodePropertyRegistry — cobertura', () => {
-  it('inclúe os 10 escalares + 6 estruturados (=16)', () => {
-    expect(nodePropertyRegistry.length).toBe(16)
+  it('inclúe os 9 escalares + 6 estruturados (=15, tras retirar `tier` en 7.5c-T)', () => {
+    expect(nodePropertyRegistry.length).toBe(15)
   })
 
   it('inclúe os campos escalares esperados', () => {
@@ -40,11 +40,15 @@ describe('nodePropertyRegistry — cobertura', () => {
       'icon',
       'shape',
       'size',
-      'tier',
       'maxTier',
     ]) {
       expect(keys).toContain(expected)
     }
+  })
+
+  it('★ tier retirado do Inspector (7.5c-T, agora @deprecated no schema)', () => {
+    const keys = nodePropertyRegistry.map((d) => d.key)
+    expect(keys).not.toContain('tier')
   })
 
   it('inclúe os campos estruturados (declarados, edición en 7.5c-ii)', () => {
@@ -63,8 +67,8 @@ describe('nodePropertyRegistry — cobertura', () => {
     expect(typeDesc?.group).toBe('identity')
     const colorDesc = nodePropertyRegistry.find((d) => d.key === 'color')
     expect(colorDesc?.group).toBe('appearance')
-    const tierDesc = nodePropertyRegistry.find((d) => d.key === 'tier')
-    expect(tierDesc?.group).toBe('logic')
+    const maxTierDesc = nodePropertyRegistry.find((d) => d.key === 'maxTier')
+    expect(maxTierDesc?.group).toBe('logic')
   })
 })
 
@@ -145,13 +149,6 @@ describe('descriptors escalares — get + set producen Command correcto', () => 
     expect(desc.type.kind).toBe('number')
     expect((desc.type as { min?: number }).min).toBe(0.01)
     expect(desc.get(sampleNode)).toBe(2)
-  })
-
-  it('tier: get lee', () => {
-    const desc = findDescriptor('tier')
-    expect(desc.type.kind).toBe('number')
-    expect(desc.get(sampleNode)).toBe(1)
-    expect(desc.get(sampleNodeMinimal)).toBeUndefined()
   })
 
   it('maxTier: get lee, type.min = 1', () => {

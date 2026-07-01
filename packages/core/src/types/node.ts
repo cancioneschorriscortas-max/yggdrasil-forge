@@ -134,7 +134,10 @@ export interface NodeDef {
   /** Tamaño base en unidades de layout (raio para `circle`). > 0. Se ausente, derívase por `type`. */
   readonly size?: number
 
-  /** Rango actual (para multi-tier nodes). */
+  /**
+   * @deprecated Sen efecto no runtime (o rango actual é `state.currentTier`,
+   * e o máximo é `maxTier`). Non usar; retirarase nun major.
+   */
   readonly tier?: number
 
   /** Rango máximo (default: 1). */

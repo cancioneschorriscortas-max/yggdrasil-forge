@@ -116,8 +116,7 @@ Cando hai un só nodo seleccionado, o Inspector amósao en tres seccións:
 
 ### Lóxica
 **Escalares**:
-- **Tier**: rango actual do nodo (para nodos multi-tier).
-- **Tier máximo**: cantos rangos pode acadar.
+- **Rangos** (`maxTier`): cantos rangos ou etapas ten o nodo. Déixao en 1 para un nodo simple. Ex.: 3 = tres etapas (Mk.I → Mk.II → Mk.III).
 
 **Estruturados**:
 - **Custo**: lista de pares (resource, amount). Cánto costa desbloquear/avanzar este nodo.

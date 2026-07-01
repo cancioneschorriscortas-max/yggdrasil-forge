@@ -73,10 +73,10 @@ describe('★ Sección Avanzado (pregada por defecto)', () => {
     })
     const toggle = screen.getByRole('button', { name: /Avanzado/i })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    // Campos avanzados non deben estar visibles: 'Nivel', 'Nivel máximo',
+    // Campos avanzados non deben estar visibles: 'Rangos',
     // 'Requisitos', 'Exclusións', 'Efectos', etc.
-    expect(screen.queryByText(/^Nivel$/)).toBeNull()
-    expect(screen.queryByText(/Nivel máximo/)).toBeNull()
+    expect(screen.queryByText(/^Rangos$/)).toBeNull()
+    expect(screen.queryByText(/Requisitos/)).toBeNull()
   })
 
   it('click no toggle → despregase e amosa campos avanzados', () => {
@@ -90,9 +90,8 @@ describe('★ Sección Avanzado (pregada por defecto)', () => {
       fireEvent.click(toggle)
     })
     expect(toggle.getAttribute('aria-expanded')).toBe('true')
-    // Agora Nivel, Nivel máximo, Efectos, etc. visibles.
-    expect(screen.getByText('Nivel')).toBeDefined()
-    expect(screen.getByText('Nivel máximo')).toBeDefined()
+    // Agora Rangos, Efectos, etc. visibles.
+    expect(screen.getByText('Rangos')).toBeDefined()
     expect(screen.getByText('Requisitos')).toBeDefined()
     expect(screen.getByText('Exclusións')).toBeDefined()
   })
@@ -103,9 +102,9 @@ describe('★ Sección Avanzado (pregada por defecto)', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
-    // O contador amosa 9: type, tier, maxTier, cost, costPerTier, tiers,
-    // effects, prerequisites, exclusions.
-    const count = screen.getByText('9', { selector: '.editor-inspector__advanced-count' })
+    // O contador amosa 8 (7.5c-T: retirado `tier`): type, maxTier, cost,
+    // costPerTier, tiers, effects, prerequisites, exclusions.
+    const count = screen.getByText('8', { selector: '.editor-inspector__advanced-count' })
     expect(count).toBeDefined()
   })
 })

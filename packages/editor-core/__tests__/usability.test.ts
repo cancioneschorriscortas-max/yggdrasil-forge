@@ -141,12 +141,11 @@ describe('★ Flag advanced (partición Básico vs Avanzado)', () => {
     }
   })
 
-  it('Avanzado contén: type, tier, maxTier, prerequisites, exclusions, effects, cost, costPerTier, tiers', () => {
+  it('Avanzado contén: type, maxTier, prerequisites, exclusions, effects, cost, costPerTier, tiers', () => {
     const advanced = nodePropertyRegistry.filter((d) => d.advanced === true)
     const keys = new Set(advanced.map((d) => d.key))
     for (const expected of [
       'type',
-      'tier',
       'maxTier',
       'prerequisites',
       'exclusions',
@@ -159,6 +158,11 @@ describe('★ Flag advanced (partición Básico vs Avanzado)', () => {
     }
   })
 
+  it('★ tier NON está en Avanzado (retirado do Inspector en 7.5c-T)', () => {
+    const keys = new Set(nodePropertyRegistry.map((d) => d.key))
+    expect(keys.has('tier')).toBe(false)
+  })
+
   it('id: readonly, NON está en Básico nin Avanzado (vai na cabeceira)', () => {
     const idDesc = nodePropertyRegistry.find((d) => d.key === 'id')
     expect(idDesc?.readonly).toBe(true)
@@ -166,17 +170,22 @@ describe('★ Flag advanced (partición Básico vs Avanzado)', () => {
   })
 })
 
-describe('Labels renomeados (7.5c-U)', () => {
-  it('tier → "Nivel"', () => {
-    const desc = nodePropertyRegistry.find((d) => d.key === 'tier')
-    const gl = typeof desc?.label === 'object' ? desc.label.gl : desc?.label
-    expect(gl).toBe('Nivel')
-  })
-
-  it('maxTier → "Nivel máximo"', () => {
+describe('Labels renomeados (7.5c-U + 7.5c-T)', () => {
+  it('★ maxTier → "Rangos" (7.5c-T: renomeo desde "Nivel máximo")', () => {
     const desc = nodePropertyRegistry.find((d) => d.key === 'maxTier')
     const gl = typeof desc?.label === 'object' ? desc.label.gl : desc?.label
-    expect(gl).toBe('Nivel máximo')
+    expect(gl).toBe('Rangos')
+  })
+
+  it('★ maxTier describe ten exemplo Mk.I → Mk.II → Mk.III', () => {
+    const desc = nodePropertyRegistry.find((d) => d.key === 'maxTier')
+    const gl = typeof desc?.describe === 'object' ? desc.describe.gl : desc?.describe
+    expect(gl).toContain('Mk.I')
+    expect(gl).toContain('Mk.II')
+    expect(gl).toContain('Mk.III')
+    // Menciona ambos "rangos" e "etapas" para cubrir contextos xogo/educación.
+    expect(gl).toContain('rangos')
+    expect(gl).toContain('etapas')
   })
 
   it('costPerTier → "Custo por nivel"', () => {

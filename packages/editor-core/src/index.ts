@@ -95,6 +95,11 @@ export {
   authorablePlainEffectTypes,
   isPlainAuthorableEffectType,
 } from './property/authorableEffectTypes.js'
+// ── Gate auditoría dead-code de NodeDef (7.5c-T) ──
+export {
+  USED_NODEDEF_FIELDS,
+  DEPRECATED_NODEDEF_FIELDS,
+} from './property/nodeDefFieldAudit.js'
 // ── Localización de enums (7.5c-U) ──
 export type { EnumLabelEntry } from './property/enumLabels.js'
 export {
