@@ -12,6 +12,7 @@
 
 import type { NodeDef } from '@yggdrasil-forge/core'
 import type { JSX } from 'react'
+import { Select, type SelectOption } from '../widgets/Select.js'
 
 export interface ExclusionsEditorProps {
   readonly value: readonly string[] | undefined
@@ -64,19 +65,15 @@ export function ExclusionsEditor({
       )}
       {available.length > 0 && (
         <div className="editor-inspector-struct__add">
-          <select
-            className="editor-inspector-input"
+          <Select
             value=""
-            onChange={(e) => addId(e.target.value)}
-            aria-label="Engadir exclusión"
-          >
-            <option value="">— engadir exclusión —</option>
-            {available.map((n) => (
-              <option key={n.id} value={n.id}>
-                {n.id}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: '— engadir exclusión —' },
+              ...available.map((n): SelectOption => ({ value: n.id, label: n.id })),
+            ]}
+            onChange={addId}
+            ariaLabel="Engadir exclusión"
+          />
         </div>
       )}
     </div>

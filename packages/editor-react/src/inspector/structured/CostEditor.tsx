@@ -10,6 +10,7 @@
 
 import type { Cost, Resource } from '@yggdrasil-forge/core'
 import { type JSX, useEffect, useState } from 'react'
+import { Select, type SelectOption } from '../widgets/Select.js'
 
 export interface CostEditorProps {
   readonly value: readonly Cost[] | undefined
@@ -70,19 +71,15 @@ export function CostEditor({ value, resources, onCommit }: CostEditorProps): JSX
       )}
       {addable.length > 0 && (
         <div className="editor-inspector-struct__add">
-          <select
-            className="editor-inspector-input"
+          <Select
             value=""
-            onChange={(e) => addCost(e.target.value)}
-            aria-label="Engadir custo"
-          >
-            <option value="">— engadir custo —</option>
-            {addable.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.id}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: '— engadir custo —' },
+              ...addable.map((r): SelectOption => ({ value: r.id, label: r.id })),
+            ]}
+            onChange={addCost}
+            ariaLabel="Engadir custo"
+          />
         </div>
       )}
     </div>
@@ -122,18 +119,12 @@ function CostRow({
 
   return (
     <li className="editor-inspector-struct__row">
-      <select
-        className="editor-inspector-input editor-inspector-struct__sel"
+      <Select
         value={cost.resourceId}
-        onChange={(e) => onEditResource(e.target.value)}
-        aria-label="Resource id"
-      >
-        {resources.map((r) => (
-          <option key={r.id} value={r.id}>
-            {r.id}
-          </option>
-        ))}
-      </select>
+        options={resources.map((r): SelectOption => ({ value: r.id, label: r.id }))}
+        onChange={onEditResource}
+        ariaLabel="Resource id"
+      />
       <input
         type="number"
         className="editor-inspector-input editor-inspector-struct__num"

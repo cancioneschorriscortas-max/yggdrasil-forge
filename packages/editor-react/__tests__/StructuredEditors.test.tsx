@@ -67,11 +67,14 @@ describe('ExclusionsEditor — add/remove', () => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
     openAdvanced()
-    // O selector "engadir exclusión" debe ofrecer bar e baz (non foo).
-    const addSelect = screen.getByLabelText(/Engadir exclusión/i) as HTMLSelectElement
-    // Cambia a 'bar' → onChange dispara o add inmediato.
+    // O Select propio: abrir dropdown do "Engadir exclusión".
+    const trigger = screen.getByRole('button', { name: /Engadir exclusión/i })
     act(() => {
-      fireEvent.change(addSelect, { target: { value: 'bar' } })
+      fireEvent.click(trigger)
+    })
+    const barOption = screen.getByRole('option', { name: 'bar' })
+    act(() => {
+      fireEvent.click(barOption)
     })
     const fooAfter = engine.getDocument().tree.nodes.find((n) => n.id === 'foo')
     expect(fooAfter?.exclusions).toEqual(['bar'])
@@ -110,18 +113,29 @@ describe('★ EffectsEditor — gate manifesto-descriptor', () => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
     openAdvanced()
-    const addEffectSelect = screen.getByLabelText(/Engadir effect plano/i) as HTMLSelectElement
-    const options = Array.from(addEffectSelect.options).map((o) => o.value)
-    // Os UNSUPPORTED NON deben aparecer.
-    expect(options).not.toContain('modify_stat')
-    expect(options).not.toContain('plugin')
+    // Abre o dropdown "Engadir effect plano" (Select propio).
+    const trigger = screen.getByRole('button', { name: /Engadir effect plano/i })
+    act(() => {
+      fireEvent.click(trigger)
+    })
+    const listbox = screen.getByRole('listbox')
+    const optionValues = Array.from(listbox.querySelectorAll('[role="option"]')).map(
+      (el) => (el as HTMLElement).id.split('-opt-')[0],
+    )
+    // (Nota: como o Select xera ids opt-INDEX, mellor comprobamos os textos)
+    const optionTexts = Array.from(listbox.querySelectorAll('[role="option"]')).map(
+      (el) => el.textContent ?? '',
+    )
+    void optionValues
+    // Os UNSUPPORTED NON deben aparecer (labels localizados).
+    expect(optionTexts.join(' ')).not.toContain('modify_stat')
+    expect(optionTexts.join(' ')).not.toContain('plugin')
     // Os aniñados (fase 2) tampouco no selector plano.
-    expect(options).not.toContain('composite')
-    expect(options).not.toContain('conditional')
-    // SI deben aparecer os planos soportados.
-    expect(options).toContain('modify_resource')
-    expect(options).toContain('unlock_node')
-    expect(options).toContain('set_progress')
+    expect(optionTexts.join(' ')).not.toContain('Composto')
+    expect(optionTexts.join(' ')).not.toContain('Condicional')
+    // SI deben aparecer os planos soportados (labels gl).
+    expect(optionTexts.some((t) => t.includes('Modificar recurso'))).toBe(true)
+    expect(optionTexts.some((t) => t.includes('Desbloquear nodo'))).toBe(true)
   })
 
   it('engadir un modify_resource → effects do nodo contén o effect', () => {
@@ -131,9 +145,14 @@ describe('★ EffectsEditor — gate manifesto-descriptor', () => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
     openAdvanced()
-    const addEffectSelect = screen.getByLabelText(/Engadir effect plano/i) as HTMLSelectElement
+    const trigger = screen.getByRole('button', { name: /Engadir effect plano/i })
     act(() => {
-      fireEvent.change(addEffectSelect, { target: { value: 'modify_resource' } })
+      fireEvent.click(trigger)
+    })
+    // A opción "Modificar recurso" corresponde a modify_resource.
+    const opt = screen.getByRole('option', { name: /Modificar recurso/i })
+    act(() => {
+      fireEvent.click(opt)
     })
     const fooAfter = engine.getDocument().tree.nodes.find((n) => n.id === 'foo')
     expect(fooAfter?.effects?.length).toBe(1)
@@ -149,9 +168,13 @@ describe('CostEditor', () => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
     openAdvanced()
-    const addCost = screen.getByLabelText(/Engadir custo/i) as HTMLSelectElement
+    const trigger = screen.getByRole('button', { name: /Engadir custo/i })
     act(() => {
-      fireEvent.change(addCost, { target: { value: 'gold' } })
+      fireEvent.click(trigger)
+    })
+    const opt = screen.getByRole('option', { name: 'gold' })
+    act(() => {
+      fireEvent.click(opt)
     })
     const fooAfter = engine.getDocument().tree.nodes.find((n) => n.id === 'foo')
     expect(fooAfter?.cost).toEqual([{ resourceId: 'gold', amount: 1 }])

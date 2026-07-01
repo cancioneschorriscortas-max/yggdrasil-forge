@@ -15,8 +15,13 @@
 // edición en fase 2 —". Cero edición destructiva.
 
 import type { Effect, Resource } from '@yggdrasil-forge/core'
-import { authorablePlainEffectTypes } from '@yggdrasil-forge/editor-core'
+import {
+  authorablePlainEffectTypes,
+  getEffectTypeDescribe,
+  getEffectTypeLabel,
+} from '@yggdrasil-forge/editor-core'
 import { type JSX, useEffect, useState } from 'react'
+import { Select, type SelectOption } from '../widgets/Select.js'
 
 export interface EffectsEditorProps {
   readonly value: readonly Effect[] | undefined
@@ -95,19 +100,22 @@ export function EffectsEditor({
         </ul>
       )}
       <div className="editor-inspector-struct__add">
-        <select
-          className="editor-inspector-input"
+        <Select
           value=""
-          onChange={(e) => addEffectOfType(e.target.value)}
-          aria-label="Engadir effect plano"
-        >
-          <option value="">— engadir effect —</option>
-          {plainTypes.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: '', label: '— engadir effect —' },
+            ...plainTypes.map((t): SelectOption => {
+              const describe = getEffectTypeDescribe(t)
+              return {
+                value: t,
+                label: getEffectTypeLabel(t),
+                ...(describe !== undefined && { describe }),
+              }
+            }),
+          ]}
+          onChange={addEffectOfType}
+          ariaLabel="Engadir effect plano"
+        />
       </div>
     </div>
   )
@@ -165,28 +173,22 @@ function EffectParams({ effect, resources, allNodeIds, onUpdate }: EffectParamsP
     case 'modify_resource':
       return (
         <>
-          <select
-            className="editor-inspector-input editor-inspector-struct__sel"
+          <Select
             value={effect.resourceId}
-            onChange={(e) => onUpdate({ ...effect, resourceId: e.target.value })}
-            aria-label="Resource id"
-          >
-            {resources.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.id}
-              </option>
-            ))}
-          </select>
-          <select
-            className="editor-inspector-input"
+            options={resources.map((r): SelectOption => ({ value: r.id, label: r.id }))}
+            onChange={(v) => onUpdate({ ...effect, resourceId: v })}
+            ariaLabel="Resource id"
+          />
+          <Select
             value={effect.op}
-            onChange={(e) => onUpdate({ ...effect, op: e.target.value as '+' | '-' | '*' })}
-            aria-label="Op"
-          >
-            <option value="+">+</option>
-            <option value="-">-</option>
-            <option value="*">×</option>
-          </select>
+            options={[
+              { value: '+', label: '+' },
+              { value: '-', label: '−' },
+              { value: '*', label: '×' },
+            ]}
+            onChange={(v) => onUpdate({ ...effect, op: v as '+' | '-' | '*' })}
+            ariaLabel="Op"
+          />
           <NumberCell
             value={effect.amount}
             onCommit={(v) => onUpdate({ ...effect, amount: v })}
@@ -202,26 +204,26 @@ function EffectParams({ effect, resources, allNodeIds, onUpdate }: EffectParamsP
             allNodeIds={allNodeIds}
             onChange={(v) => onUpdate({ ...effect, nodeId: v })}
           />
-          <select
-            className="editor-inspector-input"
+          <Select
             value={effect.state}
-            onChange={(e) =>
+            options={[
+              { value: 'locked', label: 'Bloqueado' },
+              { value: 'unlockable', label: 'Desbloqueable' },
+              { value: 'unlocked', label: 'Desbloqueado' },
+              { value: 'maxed', label: 'Ao máximo' },
+            ]}
+            onChange={(v) =>
               onUpdate({
                 ...effect,
-                state: e.target.value as Effect & { type: 'modify_node_state' } extends infer X
+                state: v as Effect & { type: 'modify_node_state' } extends infer X
                   ? X extends { state: infer S }
                     ? S
                     : never
                   : never,
               })
             }
-            aria-label="State"
-          >
-            <option value="locked">locked</option>
-            <option value="unlockable">unlockable</option>
-            <option value="unlocked">unlocked</option>
-            <option value="maxed">maxed</option>
-          </select>
+            ariaLabel="State"
+          />
         </>
       )
     case 'set_node_visibility':
@@ -305,23 +307,12 @@ interface NodeIdSelectProps {
   readonly onChange: (next: string) => void
 }
 function NodeIdSelect({ value, allNodeIds, onChange }: NodeIdSelectProps): JSX.Element {
-  return (
-    <select
-      className="editor-inspector-input editor-inspector-struct__sel"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label="Node id"
-    >
-      {!allNodeIds.includes(value) && value !== '' && (
-        <option value={value}>{value} (fora da árbore)</option>
-      )}
-      {allNodeIds.map((id) => (
-        <option key={id} value={id}>
-          {id}
-        </option>
-      ))}
-    </select>
-  )
+  const options: SelectOption[] = []
+  if (value !== '' && !allNodeIds.includes(value)) {
+    options.push({ value, label: `${value} (fora da árbore)` })
+  }
+  for (const id of allNodeIds) options.push({ value: id, label: id })
+  return <Select value={value} options={options} onChange={onChange} ariaLabel="Node id" />
 }
 
 interface NumberCellProps {
