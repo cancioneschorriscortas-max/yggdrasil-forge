@@ -1,5 +1,74 @@
 # @yggdrasil-forge/core
 
+## 0.5.0
+
+### Minor Changes
+
+- 8597e50: feat(core): `CurveStyle: 'octilinear'` in `PathBuilder`
+
+  New routing style for edges: one straight segment (horizontal or
+  vertical, dominant axis) followed by one 45° segment. PCB / subway /
+  Deus Ex look. Useful for fixed-position layouts (IdentityLayout) with
+  local connections — exercised by the upcoming `cyberware-ripperdoc`
+  example.
+
+  Algorithm: the straight leg follows the dominant axis (max |delta|)
+  until only |min delta| remains, then closes at 45°. Degenerates to a
+  two-point line when source and target are aligned horizontally or
+  vertically.
+
+  Implementation is local to the per-edge router (same `kind: 'polyline'`
+  as `'orthogonal'`); the renderer needs no changes. Glow / circuit joins
+  remain consumer-side (CSS) as with `'orthogonal'`. Future grid-routing
+  with obstacles is out of scope.
+
+- 99d0d44: feat(core): support manifest (machine-readable runtime contract)
+
+  Adds a new public API that exposes what the engine actually
+  implements at runtime, distinct from what the type union declares.
+  Useful for editor tooling that needs to warn authors about features
+  the engine won't apply (e.g. `modify_stat` is in the `Effect` union
+  but the runtime rejects it with `EFFECT_TYPE_UNSUPPORTED`).
+
+  New public exports from `@yggdrasil-forge/core`:
+
+  supportManifest: SupportManifest
+  describeSupport(): SupportManifest
+  SupportEntry, SupportManifest (types)
+
+  SUPPORTED_EFFECT_TYPES (8 effect kinds actually applied)
+  UNSUPPORTED_EFFECT_TYPES (2 declared-but-not-applied)
+  SUPPORTED_CONDITION_TYPES (14 conditions evaluated by UnlockResolver)
+  isEffectSupported(type)
+  isEffectUnsupported(type)
+  isConditionSupported(type)
+  SupportedEffectType, UnsupportedEffectType, SupportedConditionType
+
+  Internally, `EffectsRunner` now derives its unsupported check from
+  `UNSUPPORTED_EFFECT_TYPES` (single source) instead of a hardcoded
+  local function. Behaviour is unchanged.
+
+  Compile-time gate: `SUPPORTED_EFFECT_TYPES ∪ UNSUPPORTED_EFFECT_TYPES`
+  must equal `Effect['type']` exactly (via `Equals<>` type-test). Adding
+  a new effect kind to the union without classifying it breaks the build.
+  Same for `UnlockCondition['type']` against `SUPPORTED_CONDITION_TYPES`.
+
+  Consumed by `@yggdrasil-forge/editor-core` (forthcoming) to surface
+  non-blocking warnings when documents reference unsupported features.
+
+### Patch Changes
+
+- 27b9f61: Deprecate `NodeDef.tier` field (no runtime effect). The current rank of a
+  node lives in the runtime state (`state.currentTier`), and the maximum in
+  `NodeDef.maxTier`. The `tier` field will be removed in a future major
+  release. Consumers should not reference this field; if they need
+  declarative rank data, they should use `maxTier` or the runtime state.
+- 5f41960: Clarify that `NodeDef.tiers` (F9.1: `NodeTierInfo[]` for per-rank
+  label/description) is declared but **not implemented** in the runtime.
+  The engine ignores it; consumers should not rely on it having any
+  effect. Analogous to `modify_stat` in the effect manifest (declared,
+  unsupported). No API change; JSDoc `@remarks` only.
+
 ## 0.4.0
 
 ### Minor Changes
@@ -17,12 +86,10 @@
   - `shape: 'line'` — only value implemented in v1 (`curve`/`spiral` future,
     parser rejects them today).
   - `innerRadius` (default 90) and `outerRadius` (default 320).
-  - `lengthMode: 'equal-span' | 'fixed-step'`:
-    - `equal-span` (default) — every strand spans the full `[innerRadius,
+  - `lengthMode: 'equal-span' | 'fixed-step'`: - `equal-span` (default) — every strand spans the full `[innerRadius,
 outerRadius]` regardless of member count; clusters with fewer members have
-      more spacing.
-    - `fixed-step` — constant radial step across all strands; shorter clusters
-      finish before reaching `outerRadius`.
+    more spacing. - `fixed-step` — constant radial step across all strands; shorter clusters
+    finish before reaching `outerRadius`.
   - `startAngle` (default `-π/2`) to rotate the whole constellation.
 
   This layout only positions; the visible strands come from `treeDef.edges`

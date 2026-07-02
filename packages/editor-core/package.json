@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/editor-core",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Editor Engine for Yggdrasil Forge — headless edit-side core (document, session, persistence). Cero UI, cero React.",
   "private": true,
   "license": "MIT",

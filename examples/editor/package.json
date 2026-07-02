@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge-examples/editor",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Runnable Vite app to showcase @yggdrasil-forge/editor-react (7.5a shell)",
   "type": "module",
