@@ -3,12 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Yggdrasil Editor (7.5a shell)</title>
+    <title>Yggdrasil Editor</title>
     <style>
+      /* Base pre-hidratación: reset + fallback marfil (o default do
+       * tema en 7.5d). As cores canónicas veñen dos tokens de
+       * @editor-react (ver theme/tokens.css); estas de aquí só
+       * previñen o flash branco mentres o CSS carga. Se o usuario
+       * ten opt-in a `data-editor-theme="dark"`, o .editor-shell
+       * pintará sobre isto sen visible flicker.
+       */
       html, body, #root { margin: 0; padding: 0; height: 100%; }
       body {
-        background: #0b0b0c;
-        color: #e6e6e8;
+        background: #fbfbfa; /* --editor-bg-shell (marfil) literal */
+        color: #2b2b28;      /* --editor-text-primary literal */
         font-family: 'Inter', system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
       }

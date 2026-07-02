@@ -94,7 +94,7 @@ export function PanelHost({ panels, onReady }: PanelHostProps): JSX.Element {
 
   return (
     <DockviewReact
-      className="dv-dockview dockview-theme-abyss"
+      className="dv-dockview dockview-theme-light"
       components={components}
       onReady={handleReady}
     />
