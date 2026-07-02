@@ -2,16 +2,18 @@
 // Router de sub-editores estruturados.
 //
 // Para cada descriptor `kind:'structured'`, resolve o sub-editor por
-// `of`. Os campos non implementados na fase 1 (`tiers`, `costPerTier`,
-// `prerequisites`) caen ao `StructuredSummaryWidget` (lectura).
+// `of`. Os campos non implementados (`costPerTier`) caen ao
+// `StructuredSummaryWidget` (lectura). `tiers` está retirado (7.5c-T2,
+// UNIMPLEMENTED). `prerequisites` editable en 7.5c-ii fase 2.
 
-import type { Cost, Effect, NodeDef, Resource } from '@yggdrasil-forge/core'
+import type { Cost, Effect, NodeDef, Resource, StatDef, UnlockRule } from '@yggdrasil-forge/core'
 import type { PropertyType } from '@yggdrasil-forge/editor-core'
 import type { JSX } from 'react'
 import { StructuredSummaryWidget } from '../widgets/StructuredSummaryWidget.js'
 import { CostEditor } from './CostEditor.js'
 import { EffectsEditor } from './EffectsEditor.js'
 import { ExclusionsEditor } from './ExclusionsEditor.js'
+import { PrerequisitesEditor } from './PrerequisitesEditor.js'
 
 export interface StructuredEditorProps {
   readonly typeInfo: Extract<PropertyType, { kind: 'structured' }>
@@ -19,6 +21,7 @@ export interface StructuredEditorProps {
   readonly currentNode: NodeDef
   readonly allNodes: readonly NodeDef[]
   readonly resources: readonly Resource[] | undefined
+  readonly stats: readonly StatDef[] | undefined
   readonly onCommit: (next: unknown) => void
 }
 
@@ -28,6 +31,7 @@ export function StructuredEditor({
   currentNode,
   allNodes,
   resources,
+  stats,
   onCommit,
 }: StructuredEditorProps): JSX.Element {
   switch (typeInfo.of) {
@@ -57,11 +61,21 @@ export function StructuredEditor({
           onCommit={(next) => onCommit(next)}
         />
       )
-    // Fase 2: prerequisites (UnlockRule aniñada).
-    // En fase 1: resumo de lectura.
     case 'prerequisites':
-    case 'tiers':
+      return (
+        <PrerequisitesEditor
+          value={value as UnlockRule | undefined}
+          currentNode={currentNode}
+          allNodes={allNodes}
+          resources={resources}
+          stats={stats}
+          onCommit={(next) => onCommit(next)}
+        />
+      )
+    // Aínda por implementar: costPerTier (F9.1 relacionada). `tiers`
+    // retirado en 7.5c-T2 (UNIMPLEMENTED).
     case 'costPerTier':
+    case 'tiers':
       return <StructuredSummaryWidget of={typeInfo.of} value={value} />
     default: {
       // Exhaustividade: se PropertyType.structured.of medra, TS falla aquí.

@@ -769,3 +769,58 @@
   gap: 8px;
   margin-top: 8px;
 }
+
+/* ── PrerequisitesEditor (7.5c-ii fase 2) ── */
+.editor-inspector-prereq__intro {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border-subtle);
+  border-radius: var(--editor-radius-sm);
+  margin-bottom: 8px;
+}
+.editor-inspector-prereq__intro-text {
+  color: var(--editor-text-secondary);
+  font-size: var(--editor-font-size-sm);
+}
+.editor-inspector-prereq__combinator {
+  min-width: 110px;
+}
+.editor-inspector-prereq__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+  margin-bottom: 6px;
+}
+.editor-inspector-prereq__row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.editor-inspector-prereq__type-label {
+  font-weight: 600;
+  color: var(--editor-text-primary);
+  font-size: var(--editor-font-size-sm);
+}
+.editor-inspector-prereq__params {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.editor-inspector-prereq__param {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.editor-inspector-prereq__param-label {
+  min-width: 90px;
+  color: var(--editor-text-secondary);
+  font-size: var(--editor-font-size-xs);
+}

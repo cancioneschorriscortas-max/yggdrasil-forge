@@ -95,6 +95,28 @@ export {
   authorablePlainEffectTypes,
   isPlainAuthorableEffectType,
 } from './property/authorableEffectTypes.js'
+// ── Gate condicións (7.5c-ii fase 2) ──
+export {
+  authorableConditionTypes,
+  isAuthorableConditionType,
+} from './property/authorableConditionTypes.js'
+// ── Localización de condicións + combinadores (7.5c-ii fase 2) ──
+export type {
+  ConditionParamKind,
+  ConditionParamSpec,
+  ConditionLabelEntry,
+} from './property/conditionLabels.js'
+export {
+  RULE_COMBINATOR_LABELS,
+  CONDITION_TYPE_LABELS,
+  NODE_STATE_LABELS,
+  getConditionTypeLabel,
+  getConditionTypeDescribe,
+  getConditionParams,
+  getCombinatorLabel,
+  getCombinatorDescribe,
+  getNodeStateLabel,
+} from './property/conditionLabels.js'
 // ── Gate auditoría dead-code de NodeDef (7.5c-T + 7.5c-T2) ──
 export {
   USED_NODEDEF_FIELDS,

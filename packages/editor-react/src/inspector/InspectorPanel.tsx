@@ -9,7 +9,7 @@
 // **Selección baleira**: hint informativo.
 // **Re-render en vivo**: useSyncExternalStore.
 
-import type { NodeDef, Resource } from '@yggdrasil-forge/core'
+import type { NodeDef, Resource, StatDef } from '@yggdrasil-forge/core'
 import {
   type EditorEngine,
   type PropertyDescriptor,
@@ -124,13 +124,13 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
         <span className="editor-inspector__node-id">{node.id}</span>
       </header>
       {readonlyFields.map((d) =>
-        renderField(d, node, doc.tree.nodes, doc.tree.resources, commitField),
+        renderField(d, node, doc.tree.nodes, doc.tree.resources, doc.tree.stats, commitField),
       )}
 
       {/* Básico: sempre visible */}
       <section className="editor-inspector__group editor-inspector__group--basic">
         {basicFields.map((d) =>
-          renderField(d, node, doc.tree.nodes, doc.tree.resources, commitField),
+          renderField(d, node, doc.tree.nodes, doc.tree.resources, doc.tree.stats, commitField),
         )}
       </section>
 
@@ -138,7 +138,7 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
       {advancedFields.length > 0 && (
         <AdvancedSection fieldCount={advancedFields.length}>
           {advancedFields.map((d) =>
-            renderField(d, node, doc.tree.nodes, doc.tree.resources, commitField),
+            renderField(d, node, doc.tree.nodes, doc.tree.resources, doc.tree.stats, commitField),
           )}
         </AdvancedSection>
       )}
@@ -157,13 +157,24 @@ function renderField(
   node: NodeDef,
   allNodes: readonly NodeDef[],
   resources: readonly Resource[] | undefined,
+  stats: readonly StatDef[] | undefined,
   commit: (d: PropertyDescriptor, value: unknown) => void,
 ): JSX.Element {
   const widgetId = `inspector-${d.key}`
   const value = d.get(node)
   const disabled = d.readonly === true
 
-  const widget = renderWidget(d, widgetId, value, disabled, node, allNodes, resources, commit)
+  const widget = renderWidget(
+    d,
+    widgetId,
+    value,
+    disabled,
+    node,
+    allNodes,
+    resources,
+    stats,
+    commit,
+  )
 
   // Resolvo unha aria-label tamén como pickText (ex.: "Etiqueta").
   return (
@@ -189,6 +200,7 @@ function renderWidget(
   node: NodeDef,
   allNodes: readonly NodeDef[],
   resources: readonly Resource[] | undefined,
+  stats: readonly StatDef[] | undefined,
   commit: (d: PropertyDescriptor, value: unknown) => void,
 ): JSX.Element {
   const labelText = pickText(d.label)
@@ -267,6 +279,7 @@ function renderWidget(
           currentNode={node}
           allNodes={allNodes}
           resources={resources}
+          stats={stats}
           onCommit={(next) => commit(d, next)}
         />
       )
