@@ -20,13 +20,13 @@
   --editor-accent-soft: var(--editor-accent-preview-soft);
 }
 
-/* ── Barra superior ── */
+/* ── Barra superior (7.5d: un chisco de aire) ── */
 .editor-topbar {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 12px;
-  height: 36px;
+  padding: 0 14px;
+  height: 40px;
   background: var(--editor-bg-panel);
   border-bottom: var(--editor-border-width) solid var(--editor-border-default);
 }
@@ -50,7 +50,7 @@
 .editor-topbar__section {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .editor-topbar__divider {
@@ -99,13 +99,13 @@
   overflow: hidden;
 }
 
-/* ── Barra de estado ── */
+/* ── Barra de estado (7.5d: un chisco de aire) ── */
 .editor-statusbar {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 12px;
-  height: 22px;
+  padding: 0 14px;
+  height: 24px;
   background: var(--editor-bg-panel);
   border-top: var(--editor-border-width) solid var(--editor-border-default);
   font-size: var(--editor-font-size-xs);
@@ -127,7 +127,7 @@
   font-weight: 500;
 }
 
-/* ── Paneis ── */
+/* ── Paneis (7.5d: un chisco de aire nos ítems de lista) ── */
 .editor-panel {
   display: flex;
   flex-direction: column;
@@ -137,7 +137,7 @@
   font-size: var(--editor-font-size-sm);
 }
 .editor-panel__body {
-  padding: 12px;
+  padding: 14px;
   overflow: auto;
   flex: 1;
 }
@@ -145,7 +145,7 @@
   color: var(--editor-text-muted);
   font-style: italic;
   font-size: var(--editor-font-size-sm);
-  padding: 24px 12px;
+  padding: 24px 14px;
   text-align: center;
 }
 .editor-panel__list {
@@ -154,7 +154,7 @@
   margin: 0;
 }
 .editor-panel__list li {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: var(--editor-radius-sm);
   font-family: var(--editor-font-mono);
   font-size: var(--editor-font-size-xs);

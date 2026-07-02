@@ -1,60 +1,63 @@
-/* ── INICIO: tokens.css — chrome grafito do editor ──
+/* ── INICIO: tokens.css — chrome marfil cálido do editor ──
  *
  * Tokens canónicos do shell do editor. A UI consume estas CSS vars,
- * NUNCA hexadecimais hardcoded. Iso permite tematizar Dark ↔ Light
+ * NUNCA hexadecimais hardcoded. Iso permite tematizar Light ↔ Dark
  * (e futuro: high-contrast) sin tocar compoñentes.
  *
  * **A UI do editor non se tematiza polo proxecto editado.** O tema do
  * panadeiro/cyberware vive DENTRO do canvas (7.5b). O chrome é
- * deliberadamente neutro para "desaparecer" e deixar protagonismo ao
- * contido.
+ * deliberadamente neutro e recesivo para "desaparecer" e deixar
+ * protagonismo ao contido.
+ *
+ * **7.5d**: paleta marfil cálida por defecto (validada visualmente
+ * por Agarfal). O escuro grafito consérvase intacto como opt-in.
  *
  * Acentos:
  *   - Azul (--editor-accent-authoring): modo Autoría (default).
  *   - Verde (--editor-accent-preview): modo Preview.
  * */
 
-:root[data-editor-theme="dark"],
+:root[data-editor-theme="light"],
 :root:not([data-editor-theme]) {
-  /* Backgrounds */
-  --editor-bg-canvas: #0b0b0c;
-  --editor-bg-shell: #0e0e10;
-  --editor-bg-panel: #121214;
-  --editor-bg-elevated: #1e1e22; /* Popovers, dropdowns (encima do panel) */
-  --editor-bg-hover: #1a1a1d;
-  --editor-bg-selected: #232328;
+  /* Backgrounds — marfil cálido */
+  --editor-bg-canvas: #f4f4f1;
+  --editor-bg-shell: #fbfbfa;
+  --editor-bg-panel: #ffffff;
+  --editor-bg-elevated: #ffffff;
+  --editor-bg-hover: #f2f1ec;
+  --editor-bg-selected: #ece9e2;
 
-  /* Text */
-  --editor-text-primary: #e6e6e8;
-  --editor-text-secondary: #9a9aa3;
-  --editor-text-muted: #5a5a63;
-  --editor-text-inverse: #0b0b0c;
+  /* Text — grafito quente */
+  --editor-text-primary: #2b2b28;
+  --editor-text-secondary: #6b6b64;
+  --editor-text-muted: #9a9a90;
+  --editor-text-inverse: #ffffff;
 
-  /* Borders */
-  --editor-border: #2f2f36; /* alias por defecto para --editor-border-strong */
-  --editor-border-default: #232328;
-  --editor-border-strong: #2f2f36;
-  --editor-border-subtle: #1a1a1d;
+  /* Borders — marfil suave */
+  --editor-border: #d8d6d0; /* alias por defecto para --editor-border-strong */
+  --editor-border-default: #e7e6e2;
+  --editor-border-strong: #d8d6d0;
+  --editor-border-subtle: #f0efec;
 
-  /* Accents (modal por modo) */
-  --editor-accent: #4f8cff; /* alias xeneral (mesmo que authoring) */
-  --editor-accent-soft: rgba(79, 140, 255, 0.18);
-  --editor-accent-authoring: #4f8cff;
-  --editor-accent-authoring-soft: rgba(79, 140, 255, 0.18);
-  --editor-accent-preview: #36d399;
-  --editor-accent-preview-soft: rgba(54, 211, 153, 0.18);
+  /* Accents (modal por modo) — azul autoría / verde preview */
+  --editor-accent: #2563eb; /* alias xeneral (mesmo que authoring) */
+  --editor-accent-soft: rgba(37, 99, 235, 0.1);
+  --editor-accent-authoring: #2563eb;
+  --editor-accent-authoring-soft: rgba(37, 99, 235, 0.1);
+  --editor-accent-preview: #16a34a;
+  --editor-accent-preview-soft: rgba(22, 163, 74, 0.1);
 
-  /* Severities (panel Problemas — futuro 7.5+) */
-  --editor-severity-error: #ff6b6b;
-  --editor-severity-warning: #f0a830;
-  --editor-severity-info: #4f8cff;
+  /* Severities (panel Problemas) */
+  --editor-severity-error: #dc2626;
+  --editor-severity-warning: #d97706;
+  --editor-severity-info: #2563eb;
 
-  /* Espazos */
-  --editor-radius-sm: 2px;
-  --editor-radius-md: 4px;
-  --editor-radius-lg: 6px;
+  /* Espazos (radii suavizados en 7.5d) */
+  --editor-radius-sm: 4px;
+  --editor-radius-md: 6px;
+  --editor-radius-lg: 8px;
   --editor-border-width: 1px;
-  --editor-shadow-elev1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --editor-shadow-elev1: 0 1px 2px rgba(50, 45, 35, 0.06);
 
   /* Tipografía */
   --editor-font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -65,36 +68,43 @@
   --editor-font-size-lg: 15px;
 }
 
-:root[data-editor-theme="light"] {
-  --editor-bg-canvas: #fafafa;
-  --editor-bg-shell: #ffffff;
-  --editor-bg-panel: #f4f4f5;
-  --editor-bg-elevated: #ffffff;
-  --editor-bg-hover: #ebebef;
-  --editor-bg-selected: #dfdfe5;
+/* Escuro grafito (opt-in tras 7.5d) — SEN cambios respecto a versión anterior. */
+:root[data-editor-theme="dark"] {
+  /* Backgrounds */
+  --editor-bg-canvas: #0b0b0c;
+  --editor-bg-shell: #0e0e10;
+  --editor-bg-panel: #121214;
+  --editor-bg-elevated: #1e1e22;
+  --editor-bg-hover: #1a1a1d;
+  --editor-bg-selected: #232328;
 
-  --editor-text-primary: #1a1a1d;
-  --editor-text-secondary: #5a5a63;
-  --editor-text-muted: #9a9aa3;
-  --editor-text-inverse: #ffffff;
+  /* Text */
+  --editor-text-primary: #e6e6e8;
+  --editor-text-secondary: #9a9aa3;
+  --editor-text-muted: #5a5a63;
+  --editor-text-inverse: #0b0b0c;
 
-  --editor-border: #b4b4b8;
-  --editor-border-default: #d4d4d8;
-  --editor-border-strong: #b4b4b8;
-  --editor-border-subtle: #e6e6e8;
+  /* Borders */
+  --editor-border: #2f2f36;
+  --editor-border-default: #232328;
+  --editor-border-strong: #2f2f36;
+  --editor-border-subtle: #1a1a1d;
 
-  --editor-accent: #2563eb;
-  --editor-accent-soft: rgba(37, 99, 235, 0.12);
-  --editor-accent-authoring: #2563eb;
-  --editor-accent-authoring-soft: rgba(37, 99, 235, 0.12);
-  --editor-accent-preview: #16a34a;
-  --editor-accent-preview-soft: rgba(22, 163, 74, 0.12);
+  /* Accents (modal por modo) */
+  --editor-accent: #4f8cff;
+  --editor-accent-soft: rgba(79, 140, 255, 0.18);
+  --editor-accent-authoring: #4f8cff;
+  --editor-accent-authoring-soft: rgba(79, 140, 255, 0.18);
+  --editor-accent-preview: #36d399;
+  --editor-accent-preview-soft: rgba(54, 211, 153, 0.18);
 
-  --editor-severity-error: #dc2626;
-  --editor-severity-warning: #d97706;
-  --editor-severity-info: #2563eb;
+  /* Severities */
+  --editor-severity-error: #ff6b6b;
+  --editor-severity-warning: #f0a830;
+  --editor-severity-info: #4f8cff;
 
-  --editor-shadow-elev1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  /* Sombra máis forte (grafito). Os radii son comúns (viven no bloque light). */
+  --editor-shadow-elev1: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 /* ── FIN: tokens.css ── */
 /* ── INICIO: shell.css — layout do EditorShell ── */
@@ -119,13 +129,13 @@
   --editor-accent-soft: var(--editor-accent-preview-soft);
 }
 
-/* ── Barra superior ── */
+/* ── Barra superior (7.5d: un chisco de aire) ── */
 .editor-topbar {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 12px;
-  height: 36px;
+  padding: 0 14px;
+  height: 40px;
   background: var(--editor-bg-panel);
   border-bottom: var(--editor-border-width) solid var(--editor-border-default);
 }
@@ -149,7 +159,7 @@
 .editor-topbar__section {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .editor-topbar__divider {
@@ -198,13 +208,13 @@
   overflow: hidden;
 }
 
-/* ── Barra de estado ── */
+/* ── Barra de estado (7.5d: un chisco de aire) ── */
 .editor-statusbar {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 12px;
-  height: 22px;
+  padding: 0 14px;
+  height: 24px;
   background: var(--editor-bg-panel);
   border-top: var(--editor-border-width) solid var(--editor-border-default);
   font-size: var(--editor-font-size-xs);
@@ -226,7 +236,7 @@
   font-weight: 500;
 }
 
-/* ── Paneis ── */
+/* ── Paneis (7.5d: un chisco de aire nos ítems de lista) ── */
 .editor-panel {
   display: flex;
   flex-direction: column;
@@ -235,26 +245,8 @@
   color: var(--editor-text-primary);
   font-size: var(--editor-font-size-sm);
 }
-
-/* ── Canvas (substitúe o placeholder; full-bleed dentro do panel) ── */
-.editor-canvas {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  background: var(--editor-bg-canvas);
-  overflow: hidden;
-  /* Evita que o arrastre de nodo seleccione texto dos labels SVG
-     ("churros" en azul realzado, p.ex.). O canvas non é texto editable. */
-  user-select: none;
-  -webkit-user-select: none;
-}
-.editor-canvas > * {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-}
 .editor-panel__body {
-  padding: 12px;
+  padding: 14px;
   overflow: auto;
   flex: 1;
 }
@@ -262,7 +254,7 @@
   color: var(--editor-text-muted);
   font-style: italic;
   font-size: var(--editor-font-size-sm);
-  padding: 24px 12px;
+  padding: 24px 14px;
   text-align: center;
 }
 .editor-panel__list {
@@ -271,7 +263,7 @@
   margin: 0;
 }
 .editor-panel__list li {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: var(--editor-radius-sm);
   font-family: var(--editor-font-mono);
   font-size: var(--editor-font-size-xs);
