@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/editor-react",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "React UI shell for Yggdrasil Forge editor — chrome (PanelHost + dockview + tres zonas). Cero canvas/inspector aínda (van en 7.5b/7.5c).",
   "private": true,
   "license": "MIT",
