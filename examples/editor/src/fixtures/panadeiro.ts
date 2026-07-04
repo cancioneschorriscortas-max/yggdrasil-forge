@@ -13,6 +13,7 @@
 // dos exemplos cargables polo usuario.
 
 import type { TreeDef } from '@yggdrasil-forge/core'
+import type { DocumentMeta, ThemeSpec } from '@yggdrasil-forge/editor-core'
 
 export const panadeiroTree: TreeDef = {
   id: 'oberon-panadeiro-shell',
@@ -62,4 +63,27 @@ export const panadeiroTree: TreeDef = {
   ],
   layout: { type: 'custom' },
 } as TreeDef
+
+/**
+ * Tema de mostra (7.5e §5). Panadeiro cárgase co preset "tintado" +
+ * unha rexión tintada para o grupo `pan` (validación visual do
+ * ThemePanel dende o arranque).
+ */
+export const panadeiroTheme: ThemeSpec = {
+  preset: 'tintado',
+  nodeFills: {
+    locked: '#c8c4bb',
+    unlockable: '#e6b8a2',
+    unlocked: '#7cb37c',
+    maxed: '#4a8f4a',
+    inProgress: '#e6c98a',
+  },
+  regions: [{ id: 'pan-region', label: 'Pan', tag: 'pan', color: '#c8875f' }],
+}
+
+/** Meta por defecto do panadeiro (bounds + tema). */
+export const panadeiroDocumentMeta: Partial<DocumentMeta> = {
+  coordinateBounds: { minX: -50, minY: -50, maxX: 300, maxY: 300 },
+  theme: panadeiroTheme,
+}
 // ── FIN: fixtures/panadeiro.ts ──

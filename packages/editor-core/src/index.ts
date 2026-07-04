@@ -13,6 +13,11 @@ export {
   type EditorDocument,
   createEditorDocument,
 } from './document/EditorDocument.js'
+export type {
+  ThemeNodeState,
+  ThemeRegionTint,
+  ThemeSpec,
+} from './document/ThemeSpec.js'
 
 // Persistencia
 export type { DocumentAdapter } from './document/DocumentAdapter.js'
@@ -30,6 +35,7 @@ export {
   moveNode,
   removeEdge,
   removeNode,
+  setMetaField,
   setNodeField,
 } from './command/commands/index.js'
 export {

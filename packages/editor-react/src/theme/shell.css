@@ -167,5 +167,30 @@
 /* ── Sobre-escribimos dockview con noso chrome ── */
 .editor-workspace .dv-dockview {
   background: var(--editor-bg-canvas);
+
+  /* 7.5e §6: **ata dockview aos tokens editor-* **.
+   *
+   * Con isto, cambiar de marfil a grafito (data-editor-theme='dark')
+   * mudaría tanto o chrome do editor como o chrome do dockview cun
+   * só toggle — sen tocar o className do PanelHost.
+   *
+   * Cobre grupo de paneis, tabs (activas/visibles/ocultas), separators
+   * e outlines. Con isto o className `dockview-theme-light` do
+   * PanelHost pasa a ser redundante pero mantense por seguridade
+   * (fallback se o dockview cambia vars).
+   */
+  --dv-group-view-background-color: var(--editor-bg-shell);
+  --dv-tabs-and-actions-container-background-color: var(--editor-bg-panel);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--editor-bg-shell);
+  --dv-activegroup-visiblepanel-tab-color: var(--editor-text-primary);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--editor-bg-panel);
+  --dv-activegroup-hiddenpanel-tab-color: var(--editor-text-secondary);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--editor-bg-shell);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--editor-text-secondary);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--editor-bg-panel);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--editor-text-muted);
+  --dv-separator-border: var(--editor-border-default);
+  --dv-tab-divider-color: var(--editor-border-subtle);
+  --dv-paneview-active-outline-color: var(--editor-accent);
 }
 /* ── FIN: shell.css ── */

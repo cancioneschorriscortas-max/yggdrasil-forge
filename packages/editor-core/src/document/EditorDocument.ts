@@ -10,6 +10,7 @@
 // Cero React. Cero UI. Cero clases — todo data + factories.
 
 import type { Bounds, TreeDef } from '@yggdrasil-forge/core'
+import type { ThemeSpec } from './ThemeSpec.js'
 
 /** Documento de edición = motor + metadatos de nivel editor. */
 export interface EditorDocument {
@@ -36,6 +37,12 @@ export interface DocumentMeta {
   readonly thumbnail?: string
   /** Outros documentos referenciados (para composition futura). */
   readonly imports?: readonly string[]
+  /**
+   * Tema visual do documento (7.5e). Opcional; sen el aplícase o
+   * tema base do renderer (`minimal` de @react). O tema pasa polo
+   * motor (undo/redo) e serializa co documento.
+   */
+  readonly theme?: ThemeSpec
   // FUTURO (NON v1): comments, annotations, bookmarks, revisions.
 }
 
@@ -75,6 +82,7 @@ export function createEditorDocument(tree: TreeDef, meta?: Partial<DocumentMeta>
     ...(meta?.coordinateBounds !== undefined && { coordinateBounds: meta.coordinateBounds }),
     ...(meta?.thumbnail !== undefined && { thumbnail: meta.thumbnail }),
     ...(meta?.imports !== undefined && { imports: meta.imports }),
+    ...(meta?.theme !== undefined && { theme: meta.theme }),
   }
   return { tree, meta: merged }
 }

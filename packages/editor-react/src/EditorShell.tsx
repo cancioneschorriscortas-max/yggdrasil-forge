@@ -23,6 +23,7 @@ import { InspectorPanel } from './inspector/InspectorPanel.js'
 import { OutlinerPanel } from './panels/OutlinerPanel.js'
 import { type PanelDef, PanelHost } from './panels/PanelHost.js'
 import { ProblemsPanel } from './panels/ProblemsPanel.js'
+import { ThemePanel } from './panels/ThemePanel.js'
 import { StatusBar } from './shell/StatusBar.js'
 import { TopBar } from './shell/TopBar.js'
 import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
@@ -55,6 +56,13 @@ export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellPr
         title: 'Inspector',
         component: () => <InspectorPanel editorEngine={engine} />,
         defaultLocation: 'right',
+      },
+      {
+        id: 'theme',
+        title: 'Tema',
+        component: () => <ThemePanel editorEngine={engine} />,
+        defaultLocation: 'right',
+        withinPanel: 'inspector',
       },
       {
         id: 'problems',

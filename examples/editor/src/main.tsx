@@ -23,13 +23,12 @@ import 'dockview-react/dist/styles/dockview.css'
 import '@yggdrasil-forge/editor-react/styles.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { panadeiroTree } from './fixtures/panadeiro.js'
+import { panadeiroDocumentMeta, panadeiroTree } from './fixtures/panadeiro.js'
 
 // Carga panadeiro como dato + coordinateBounds para que a status bar
-// amose "World W×H" e o SkillTree fit-on-mount encadre ben.
-const doc = createEditorDocument(panadeiroTree, {
-  coordinateBounds: { minX: -50, minY: -50, maxX: 300, maxY: 300 },
-})
+// amose "World W×H" e o SkillTree fit-on-mount encadre ben, e o
+// tema por defecto (7.5e §5) que aplica preset "tintado" + rexión pan.
+const doc = createEditorDocument(panadeiroTree, panadeiroDocumentMeta)
 // ★ 7.5c-ii: rexistrar os soft validators para que o ProblemsPanel
 // reciba warnings (asymmetricExclusion, prerequisiteCycle,
 // layoutOverflow, unsupportedFeature). Os duros (structural,

@@ -35,9 +35,17 @@ import {
   type EditorEngine,
   type Operation,
   type SelectionRef,
+  type ThemeSpec,
   createMoveOperation,
 } from '@yggdrasil-forge/editor-core'
-import { SkillTree, type ViewportState } from '@yggdrasil-forge/react'
+import {
+  type RegionSpec,
+  SkillTree,
+  type Theme,
+  ThemeProvider,
+  type ViewportState,
+  minimal,
+} from '@yggdrasil-forge/react'
 import {
   type JSX,
   type PointerEvent as ReactPointerEvent,
@@ -410,7 +418,42 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
     setViewportVersion((v) => v + 1)
   }, [])
 
-  const { coordinateBounds } = doc.meta
+  const { coordinateBounds, theme: themeSpec, background } = doc.meta
+
+  // ── 7.5e: mapeo tema→render ──
+  //
+  // Constrúe o `Theme` de @react partindo de `minimal` con override
+  // parcial dos nodeFill<Estado>. Memoiza por identidade do `themeSpec`
+  // para non crear un obxecto novo en cada render (evita cambios
+  // triviais de referencia no ThemeProvider).
+  //
+  // O ThemeProvider é un provider de contexto React puro — **non mete
+  // nodos DOM entre o contedor e o `<svg>`/`<g>`**. Por tanto a costura
+  // CTM de 7.5b-ii (findCanvasCtmElement busca o primeiro `<g>`
+  // descendente do `<svg>`) segue intacta. Aínda así, verificable
+  // visualmente con drag + zoom.
+  const theme: Theme = useMemo(() => {
+    const spec: ThemeSpec = themeSpec ?? {}
+    const fills = spec.nodeFills ?? {}
+    return {
+      ...minimal,
+      colors: {
+        ...minimal.colors,
+        ...(fills.locked !== undefined && { nodeFillLocked: fills.locked }),
+        ...(fills.unlockable !== undefined && { nodeFillUnlockable: fills.unlockable }),
+        ...(fills.unlocked !== undefined && { nodeFillUnlocked: fills.unlocked }),
+        ...(fills.maxed !== undefined && { nodeFillMaxed: fills.maxed }),
+        ...(fills.inProgress !== undefined && { nodeFillInProgress: fills.inProgress }),
+      },
+    }
+  }, [themeSpec])
+
+  // Rexións do tema → props do SkillTree. Mesma forma exacta.
+  const regions: readonly RegionSpec[] = themeSpec?.regions ?? []
+
+  // Fondo: v1 só `src`. `opacity/contrast` esperan a que @react os
+  // consuma (banked).
+  const backgroundImage: string | undefined = background?.src
 
   return (
     <div
@@ -422,11 +465,15 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       onPointerCancelCapture={handlePointerUp}
       style={{ position: 'relative' }}
     >
-      <SkillTree
-        engine={treeEngine}
-        onViewportChange={handleViewportChange}
-        {...(coordinateBounds !== undefined && { coordinateBounds })}
-      />
+      <ThemeProvider theme={theme}>
+        <SkillTree
+          engine={treeEngine}
+          onViewportChange={handleViewportChange}
+          {...(coordinateBounds !== undefined && { coordinateBounds })}
+          {...(regions.length > 0 && { regions })}
+          {...(backgroundImage !== undefined && { backgroundImage })}
+        />
+      </ThemeProvider>
       <CanvasOverlay
         ctmEl={ctmEl}
         containerRect={containerRect}

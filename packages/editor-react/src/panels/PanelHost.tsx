@@ -27,6 +27,13 @@ export interface PanelDef {
   readonly title: string
   readonly component: FC<PanelProps>
   readonly defaultLocation: 'left' | 'center' | 'right' | 'bottom'
+  /**
+   * Se define, o panel engádese como **pestana no mesmo grupo** do
+   * panel referenciado (7.5e §4). Iso usa `position.direction: 'within'`
+   * de dockview. O panel referenciado debe existir antes; para iso
+   * garantímolo procesando primeiro os que non teñen `withinPanel`.
+   */
+  readonly withinPanel?: string
   readonly closable?: boolean
 }
 
@@ -62,10 +69,14 @@ export function PanelHost({ panels, onReady }: PanelHostProps): JSX.Element {
   }
 
   function handleReady(event: DockviewReadyEvent): void {
-    // Engadir paneis na orde dada — primeiro o central (ancla), despois
-    // os laterais que se posicionan respecto del.
+    // Ordenar: primeiro o central (ancla), despois laterais sen `withinPanel`,
+    // e por último os que se meten "dentro" doutro grupo (7.5e §4: precisan
+    // que o panel referenciado xa exista).
     const center = panels.filter((p) => p.defaultLocation === 'center')
-    const sides = panels.filter((p) => p.defaultLocation !== 'center')
+    const sides = panels.filter(
+      (p) => p.defaultLocation !== 'center' && p.withinPanel === undefined,
+    )
+    const within = panels.filter((p) => p.withinPanel !== undefined)
     let referenceId: string | undefined
     for (const p of center) {
       event.api.addPanel({
@@ -87,6 +98,19 @@ export function PanelHost({ panels, onReady }: PanelHostProps): JSX.Element {
             ...(referenceId !== undefined && { referencePanel: referenceId }),
           },
         }),
+      })
+    }
+    for (const p of within) {
+      const target = p.withinPanel
+      if (target === undefined) continue
+      event.api.addPanel({
+        id: p.id,
+        component: p.id,
+        title: p.title,
+        position: {
+          direction: 'within',
+          referencePanel: target,
+        },
       })
     }
     onReady?.(event.api)

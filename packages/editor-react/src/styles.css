@@ -276,6 +276,21 @@
 /* ── Sobre-escribimos dockview con noso chrome ── */
 .editor-workspace .dv-dockview {
   background: var(--editor-bg-canvas);
+
+  /* 7.5e §6: ata dockview aos tokens editor-*. Ver theme/shell.css. */
+  --dv-group-view-background-color: var(--editor-bg-shell);
+  --dv-tabs-and-actions-container-background-color: var(--editor-bg-panel);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--editor-bg-shell);
+  --dv-activegroup-visiblepanel-tab-color: var(--editor-text-primary);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--editor-bg-panel);
+  --dv-activegroup-hiddenpanel-tab-color: var(--editor-text-secondary);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--editor-bg-shell);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--editor-text-secondary);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--editor-bg-panel);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--editor-text-muted);
+  --dv-separator-border: var(--editor-border-default);
+  --dv-tab-divider-color: var(--editor-border-subtle);
+  --dv-paneview-active-outline-color: var(--editor-accent);
 }
 /* ── FIN: shell.css ── */
 
@@ -815,4 +830,95 @@
   min-width: 90px;
   color: var(--editor-text-secondary);
   font-size: var(--editor-font-size-xs);
+}
+
+/* ── ThemePanel (7.5e) ── */
+.editor-theme-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 24px;
+}
+.editor-theme-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.editor-theme-panel__section-title {
+  margin: 0;
+  font-size: var(--editor-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--editor-text-secondary);
+  font-weight: 600;
+}
+.editor-theme-panel__section-help {
+  margin: 0;
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+.editor-theme-panel__chips {
+  display: flex;
+  gap: 6px;
+}
+.editor-theme-panel__chip {
+  padding: 4px 12px;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-md);
+  color: var(--editor-text-primary);
+  font-family: inherit;
+  font-size: var(--editor-font-size-sm);
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.editor-theme-panel__chip:hover {
+  background: var(--editor-bg-hover);
+}
+.editor-theme-panel__chip--active {
+  background: var(--editor-accent-soft);
+  color: var(--editor-accent);
+  border-color: var(--editor-accent);
+}
+.editor-theme-panel__fill-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.editor-theme-panel__regions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editor-theme-panel__region-row {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px !important;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border-subtle);
+  border-radius: var(--editor-radius-sm);
+  cursor: default !important;
+  font-family: inherit !important;
+  font-size: var(--editor-font-size-sm) !important;
+}
+.editor-theme-panel__region-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.editor-theme-panel__region-label {
+  font-weight: 500;
+  color: var(--editor-text-primary);
+}
+.editor-theme-panel__region-tag {
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-muted);
+  font-family: var(--editor-font-mono);
+}
+.editor-theme-panel__clear-bg {
+  margin-top: 6px;
+  align-self: flex-start;
 }

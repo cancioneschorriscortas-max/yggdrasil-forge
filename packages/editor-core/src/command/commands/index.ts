@@ -12,6 +12,7 @@
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { EdgeDef, NodeDef, Position } from '@yggdrasil-forge/core'
 import { castDraft } from 'immer'
+import type { DocumentMeta } from '../../document/EditorDocument.js'
 import type { Command } from '../Command.js'
 
 /** Move un nodo a `position`. No-op se o nodo non existe. */
@@ -97,6 +98,39 @@ export function removeEdge(edgeId: string, label?: LocalizedString): Command {
     mutate(draft) {
       const idx = draft.tree.edges.findIndex((e) => e.id === edgeId)
       if (idx >= 0) draft.tree.edges.splice(idx, 1)
+    },
+  }
+}
+
+/**
+ * Cambia un campo de `meta` do documento (7.5e).
+ *
+ * **Espello tipado de `setNodeField`** pero para `DocumentMeta`. Cobre
+ * `theme`, `background`, e futuros campos cun só comando; a UI decide
+ * que expón (igual que co Inspector). Undo/redo automático vía
+ * History como calquera comando.
+ *
+ * `formatVersion` queda tecnicamente accesible polo comando (como
+ * `id` en `setNodeField`): a UI **non o expón**; sen garda especial,
+ * consistencia co precedente.
+ *
+ * O `field: K extends keyof DocumentMeta` **exclúe** propiedades
+ * opcionais sen valor (se `K` non se pode "asignar" a un opcional,
+ * TS falla en compile). Para setear a `undefined` (equivalente a
+ * "quitar" o campo), pasar `undefined` explícito no `value`.
+ */
+export function setMetaField<K extends keyof DocumentMeta>(
+  field: K,
+  value: DocumentMeta[K],
+  label?: LocalizedString,
+): Command {
+  return {
+    type: 'setMetaField',
+    ...(label !== undefined && { label }),
+    mutate(draft) {
+      // O cast é necesario por exactOptionalPropertyTypes + readonly;
+      // queda interno ao Command (mesmo padrón que setNodeField).
+      ;(draft.meta as Record<string, unknown>)[field as string] = castDraft(value) as unknown
     },
   }
 }
