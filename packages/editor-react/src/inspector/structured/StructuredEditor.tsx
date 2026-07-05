@@ -2,15 +2,15 @@
 // Router de sub-editores estruturados.
 //
 // Para cada descriptor `kind:'structured'`, resolve o sub-editor por
-// `of`. Os campos non implementados (`costPerTier`) caen ao
-// `StructuredSummaryWidget` (lectura). `tiers` está retirado (7.5c-T2,
-// UNIMPLEMENTED). `prerequisites` editable en 7.5c-ii fase 2.
+// `of`. `tiers` está retirado (7.5c-T2, UNIMPLEMENTED). `prerequisites`
+// editable en 7.5c-ii fase 2. `costPerTier` editable en 7.5f.
 
 import type { Cost, Effect, NodeDef, Resource, StatDef, UnlockRule } from '@yggdrasil-forge/core'
 import type { PropertyType } from '@yggdrasil-forge/editor-core'
 import type { JSX } from 'react'
 import { StructuredSummaryWidget } from '../widgets/StructuredSummaryWidget.js'
 import { CostEditor } from './CostEditor.js'
+import { CostPerTierEditor } from './CostPerTierEditor.js'
 import { EffectsEditor } from './EffectsEditor.js'
 import { ExclusionsEditor } from './ExclusionsEditor.js'
 import { PrerequisitesEditor } from './PrerequisitesEditor.js'
@@ -72,9 +72,16 @@ export function StructuredEditor({
           onCommit={(next) => onCommit(next)}
         />
       )
-    // Aínda por implementar: costPerTier (F9.1 relacionada). `tiers`
-    // retirado en 7.5c-T2 (UNIMPLEMENTED).
     case 'costPerTier':
+      return (
+        <CostPerTierEditor
+          value={value as readonly (readonly Cost[])[] | undefined}
+          maxTier={currentNode.maxTier}
+          resources={resources}
+          onCommit={(next) => onCommit(next)}
+        />
+      )
+    // `tiers` retirado en 7.5c-T2 (UNIMPLEMENTED). Case defensivo.
     case 'tiers':
       return <StructuredSummaryWidget of={typeInfo.of} value={value} />
     default: {

@@ -24,6 +24,7 @@ export const panadeiroTree: TreeDef = {
     { id: 'pan', label: { en: 'Bread' } },
     { id: 'docería', label: { en: 'Pastry' } },
   ],
+  resources: [{ id: 'fariña', label: { en: 'Flour', gl: 'Fariña' }, initial: 0 }],
   nodes: [
     { id: 'fariña', type: 'small', label: { en: 'Flour' }, group: 'pan', position: { x: 0, y: 0 } },
     {
@@ -46,6 +47,14 @@ export const panadeiroTree: TreeDef = {
       label: { en: 'Sweet dough' },
       group: 'docería',
       position: { x: 0, y: 200 },
+      maxTier: 3,
+      // Custo escalado por rango: 1, 2, 3 unidades de fariña.
+      // Amosa o widget con array denso completo.
+      costPerTier: [
+        [{ resourceId: 'fariña', amount: 1 }],
+        [{ resourceId: 'fariña', amount: 2 }],
+        [{ resourceId: 'fariña', amount: 3 }],
+      ],
     },
     {
       id: 'churros',

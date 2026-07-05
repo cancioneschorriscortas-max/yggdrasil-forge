@@ -135,7 +135,10 @@ export const nodePropertyRegistry: readonly PropertyDescriptor[] = [
   fieldDescriptor({
     key: 'color',
     label: { en: 'Color', gl: 'Cor' },
-    describe: { en: 'The node color.', gl: 'A cor do nodo.' },
+    describe: {
+      en: "The node's color. Takes precedence over the theme's per-state fill.",
+      gl: 'A cor do nodo. Prevalece sobre o recheo por estado do tema.',
+    },
     type: { kind: 'color' },
     group: 'appearance',
   }),

@@ -922,3 +922,91 @@
   margin-top: 6px;
   align-self: flex-start;
 }
+
+/* ── CostPerTierEditor (7.5f) ── */
+.editor-inspector-cpt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.editor-inspector-cpt__intro {
+  margin: 0 0 4px 0;
+}
+.editor-inspector-cpt__single-hint {
+  margin: 0 0 4px 0;
+  color: var(--editor-text-muted);
+}
+.editor-inspector-cpt__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editor-inspector-cpt__row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 8px 10px !important;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+  cursor: default !important;
+  font-family: inherit !important;
+}
+.editor-inspector-cpt__row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.editor-inspector-cpt__row-title {
+  font-weight: 600;
+  color: var(--editor-text-primary);
+  font-size: var(--editor-font-size-sm);
+}
+.editor-inspector-cpt__row-nocost {
+  margin: 0;
+  color: var(--editor-text-muted);
+  font-style: italic;
+}
+.editor-inspector-cpt__costs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.editor-inspector-cpt__cost-cell {
+  display: grid !important;
+  grid-template-columns: 1fr 80px auto;
+  gap: 6px !important;
+  align-items: center;
+  padding: 4px 6px !important;
+  background: var(--editor-bg-shell);
+  border: 1px solid var(--editor-border-subtle);
+  border-radius: var(--editor-radius-sm);
+  cursor: default !important;
+  font-family: inherit !important;
+}
+.editor-inspector-cpt__add {
+  margin-top: 2px;
+}
+.editor-inspector-cpt__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.editor-inspector-cpt__clear {
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--editor-text-secondary);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+  font-size: var(--editor-font-size-xs);
+  font-family: inherit;
+  cursor: pointer;
+}
+.editor-inspector-cpt__clear:hover {
+  background: var(--editor-bg-panel);
+  color: var(--editor-text-primary);
+}

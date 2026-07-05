@@ -156,7 +156,7 @@ describe('InspectorPanel — edición despacha Commands', () => {
     expect(idInput.disabled).toBe(true)
   })
 
-  it('campos estruturados amosan resumo (non editables)', () => {
+  it('campos estruturados amosan os seus sub-editores en Avanzado', () => {
     const engine = buildEngine()
     render(<InspectorPanel editorEngine={engine} />)
     act(() => {
@@ -167,9 +167,13 @@ describe('InspectorPanel — edición despacha Commands', () => {
     act(() => {
       fireEvent.click(toggle)
     })
-    // Prerequisites, tiers, costPerTier son "structured con of != editable" →
-    // mostran resumo con "edición en 7.5c-ii".
-    expect(screen.getAllByText(/edición en 7\.5c-ii/i).length).toBeGreaterThan(0)
+    // costPerTier renderiza o CostPerTierEditor. Nesta árbore sen
+    // resources, o widget amosa o hint "árbore non ten resources".
+    // Iso demostra que a rota funciona (chegou ao CostPerTierEditor,
+    // que decide amosar hint). O test cobre a integración router →
+    // sub-editor. Se algún día se engade resources á árbore de test,
+    // veremos "Rango 1" en lugar do hint.
+    expect(screen.getAllByText(/non ten resources definidos/i).length).toBeGreaterThan(0)
   })
 })
 

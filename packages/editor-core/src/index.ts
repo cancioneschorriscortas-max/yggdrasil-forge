@@ -123,6 +123,14 @@ export {
   getCombinatorDescribe,
   getNodeStateLabel,
 } from './property/conditionLabels.js'
+// ── Helpers de costPerTier (7.5f) ──
+export type { CostPerTierRow } from './property/costPerTierHelpers.js'
+export {
+  COST_PER_TIER_STRINGS,
+  costPerTierRowsFor,
+  packCostPerTier,
+  rankLabel,
+} from './property/costPerTierHelpers.js'
 // ── Gate auditoría dead-code de NodeDef (7.5c-T + 7.5c-T2) ──
 export {
   USED_NODEDEF_FIELDS,
