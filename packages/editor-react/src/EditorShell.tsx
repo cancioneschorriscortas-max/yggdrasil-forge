@@ -2,7 +2,7 @@
 // Composición top-level do editor:
 //
 //   ┌──────────────────────────────────────────────────────────────┐
-//   │ TopBar (brand · layouts · undo/redo · zoom · mode toggle)   │
+//   │ TopBar (brand · Paneis · undo/redo · zoom · mode toggle)    │
 //   ├──────────────┬──────────────────────────┬──────────────────┤
 //   │ Outliner     │ Canvas (SkillTree real)  │ Inspector | Tema │
 //   │ (left)       │ (center, 7.5b-i)         │  ou Proba (7.6)  │
@@ -12,16 +12,21 @@
 //   │ StatusBar (nodes · edges · mode · world)                    │
 //   └──────────────────────────────────────────────────────────────┘
 //
-// **7.6**: en modo Proba, o panel dereito muda de Inspector|Tema a
-// Proba. Nunca conviven os dous mundos. O EditorCanvas recibe a
-// sesión de Proba activa para renderizar co runtime real.
+// **7.7 — as 4 dores estables**:
+//   1. Menú Paneis no TopBar para reabrir pechados + Restaurar.
+//   2. Cambio de modo NON destrúe disposición (reconciliación
+//      engadir-antes-de-quitar en PanelHost).
+//   3. Persistencia por props: a app decide como gardar/restaurar
+//      (localStorage no examples/editor).
+//   4. Tamaños/xeometría conservados xa que se elimina `key={mode}`.
 
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
-import { type JSX, useMemo } from 'react'
+import type { SerializedDockview } from 'dockview-react'
+import { type JSX, useCallback, useMemo, useRef, useState } from 'react'
 import { EditorCanvas } from './canvas/EditorCanvas.js'
 import { InspectorPanel } from './inspector/InspectorPanel.js'
 import { OutlinerPanel } from './panels/OutlinerPanel.js'
-import { type PanelDef, PanelHost } from './panels/PanelHost.js'
+import { type PanelDef, PanelHost, type PanelHostHandle } from './panels/PanelHost.js'
 import { ProblemsPanel } from './panels/ProblemsPanel.js'
 import { ThemePanel } from './panels/ThemePanel.js'
 import { ProbaPanel } from './proba/ProbaPanel.js'
@@ -33,22 +38,51 @@ import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
 export interface EditorShellProps {
   readonly engine: EditorEngine
   readonly initialMode?: EditorMode
+  /**
+   * Disposición gardada a restaurar no arranque (7.7 §3). Se falla,
+   * invócase `onLayoutInvalid` e cae ao default.
+   */
+  readonly initialLayout?: SerializedDockview
+  /**
+   * Chamado (debounced ~300ms) tras cada cambio de layout. A app
+   * decide se e como gardar.
+   */
+  readonly onLayoutChange?: (layout: SerializedDockview) => void
+  /**
+   * Chamado se o `initialLayout` non se puido restaurar. A app debe
+   * limpar o gardado.
+   */
+  readonly onLayoutInvalid?: () => void
 }
 
-export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellProps): JSX.Element {
+export function EditorShell({
+  engine,
+  initialMode = 'authoring',
+  initialLayout,
+  onLayoutChange,
+  onLayoutInvalid,
+}: EditorShellProps): JSX.Element {
   const { mode, toggleMode } = useEditorMode(initialMode)
   const probaSession = useProbaSession(engine, mode)
+  const handleRef = useRef<PanelHostHandle | null>(null)
+  const [visiblePanelIds, setVisiblePanelIds] = useState<readonly string[]>([])
 
-  // PanelDefs estables por modo. En Proba, o grupo dereito é «Proba»
-  // (Inspector/Tema fóra). En Autoría, Inspector|Tema (Proba fóra).
-  //
-  // ★ `key={mode}` no PanelHost forza desmontaxe/montaxe de dockview
-  //   ao cambiar de modo — evita layout persistente co panel antigo.
+  // **7.7 §3**: só se persiste a disposición de Autoría. En Proba non
+  // autogardamos, e o arranque é sempre en Autoría (initialMode). O
+  // handler que damos ao PanelHost fai o filtrado.
+  const handleLayoutChange = useCallback(
+    (layout: SerializedDockview) => {
+      if (mode !== 'authoring') return
+      onLayoutChange?.(layout)
+    },
+    [mode, onLayoutChange],
+  )
+
   const panels = useMemo<readonly PanelDef[]>(
     () => [
       {
         id: 'outliner',
-        title: 'Outliner',
+        title: 'Estrutura',
         component: () => <OutlinerPanel engine={engine} />,
         defaultLocation: 'left',
       },
@@ -84,7 +118,7 @@ export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellPr
           ]),
       {
         id: 'problems',
-        title: 'Problems',
+        title: 'Problemas',
         component: () => <ProblemsPanel engine={engine} />,
         defaultLocation: 'bottom',
       },
@@ -92,11 +126,38 @@ export function EditorShell({ engine, initialMode = 'authoring' }: EditorShellPr
     [engine, mode, probaSession],
   )
 
+  const handleTogglePanel = useCallback((id: string) => {
+    const h = handleRef.current
+    if (h === null) return
+    if (h.getVisiblePanelIds().includes(id)) h.hidePanel(id)
+    else h.showPanel(id)
+  }, [])
+
+  const handleResetLayout = useCallback(() => {
+    handleRef.current?.reset()
+    onLayoutInvalid?.() // Sinal para que a app limpe o gardado.
+  }, [onLayoutInvalid])
+
   return (
     <div className="editor-shell" data-mode={mode}>
-      <TopBar engine={engine} mode={mode} onToggleMode={toggleMode} />
+      <TopBar
+        engine={engine}
+        mode={mode}
+        onToggleMode={toggleMode}
+        panels={panels}
+        visiblePanelIds={visiblePanelIds}
+        onTogglePanel={handleTogglePanel}
+        onResetLayout={handleResetLayout}
+      />
       <div className="editor-workspace">
-        <PanelHost key={mode} panels={panels} />
+        <PanelHost
+          panels={panels}
+          handleRef={handleRef}
+          onVisiblePanelsChange={setVisiblePanelIds}
+          {...(initialLayout !== undefined && { initialLayout })}
+          {...(onLayoutChange !== undefined && { onLayoutChange: handleLayoutChange })}
+          {...(onLayoutInvalid !== undefined && { onLayoutInvalid })}
+        />
       </div>
       <StatusBar engine={engine} mode={mode} />
     </div>

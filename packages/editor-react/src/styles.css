@@ -1254,3 +1254,60 @@
   background: var(--editor-bg-panel);
   color: var(--editor-text-primary);
 }
+
+/* ── PanelsMenu (7.7 §1) ── */
+.editor-topbar__panels-menu {
+  position: relative;
+  display: inline-block;
+}
+.editor-topbar__panels-menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 200px;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.editor-topbar__panels-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: var(--editor-font-size-sm);
+  color: var(--editor-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.editor-topbar__panels-menu-item:hover {
+  background: var(--editor-bg-shell);
+}
+.editor-topbar__panels-menu-mark {
+  display: inline-block;
+  width: 14px;
+  text-align: center;
+  color: var(--editor-accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.editor-topbar__panels-menu-sep {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--editor-border-subtle);
+  border: none;
+}
+.editor-topbar__panels-menu-reset {
+  color: var(--editor-text-secondary);
+}
+.editor-topbar__panels-menu-reset:hover {
+  color: var(--editor-text-primary);
+}

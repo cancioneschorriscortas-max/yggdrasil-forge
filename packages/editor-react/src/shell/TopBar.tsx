@@ -11,16 +11,34 @@
 
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useCallback, useSyncExternalStore } from 'react'
+import type { PanelDef } from '../panels/PanelHost.js'
 import { PROBA_STRINGS, pickLoc } from '../proba/probaStrings.js'
+import { PanelsMenu } from './PanelsMenu.js'
 import type { EditorMode } from './useEditorMode.js'
 
 export interface TopBarProps {
   readonly engine: EditorEngine
   readonly mode: EditorMode
   readonly onToggleMode: () => void
+  /** Paneis dispoñibles no modo actual (para o menú Paneis). */
+  readonly panels: readonly PanelDef[]
+  /** Ids dos paneis actualmente visibles. */
+  readonly visiblePanelIds: readonly string[]
+  /** Alterna visibilidade dun panel (mostra se pechado, pecha se visible). */
+  readonly onTogglePanel: (id: string) => void
+  /** Restaura a disposición por defecto (limpando gardado). */
+  readonly onResetLayout: () => void
 }
 
-export function TopBar({ engine, mode, onToggleMode }: TopBarProps): JSX.Element {
+export function TopBar({
+  engine,
+  mode,
+  onToggleMode,
+  panels,
+  visiblePanelIds,
+  onTogglePanel,
+  onResetLayout,
+}: TopBarProps): JSX.Element {
   // Re-render en cada commit (canUndo/canRedo cambian).
   useSyncExternalStore(
     (cb) => engine.subscribe(cb),
@@ -46,16 +64,14 @@ export function TopBar({ engine, mode, onToggleMode }: TopBarProps): JSX.Element
 
       <div className="editor-topbar__divider" />
 
-      <div className="editor-topbar__section" aria-label="layouts">
-        <button type="button" className="editor-button" disabled title="Design layout (TODO)">
-          Design
-        </button>
-        <button type="button" className="editor-button" disabled title="Tree layout (TODO)">
-          Tree
-        </button>
-        <button type="button" className="editor-button" disabled title="Testing layout (TODO)">
-          Testing
-        </button>
+      {/* Menú Paneis (7.7 §1): dropdown con visibilidade + Restaurar. */}
+      <div className="editor-topbar__section" aria-label="paneis">
+        <PanelsMenu
+          panels={panels}
+          visiblePanelIds={visiblePanelIds}
+          onTogglePanel={onTogglePanel}
+          onResetLayout={onResetLayout}
+        />
       </div>
 
       {/* Undo/redo só ten sentido en Autoría — en Proba, o "undo"
