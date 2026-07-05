@@ -5,6 +5,7 @@
 
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useSyncExternalStore } from 'react'
+import { PROBA_STRINGS, pickLoc } from '../proba/probaStrings.js'
 import type { EditorMode } from './useEditorMode.js'
 
 export interface StatusBarProps {
@@ -44,7 +45,9 @@ export function StatusBar({ engine, mode }: StatusBarProps): JSX.Element {
       <span className="editor-statusbar__divider" />
       <span className="editor-statusbar__item">
         <span className="editor-statusbar__mode" aria-label="mode">
-          {mode}
+          {mode === 'authoring'
+            ? pickLoc(PROBA_STRINGS.modeAuthoring)
+            : pickLoc(PROBA_STRINGS.modePreview)}
         </span>
       </span>
       {worldLabel !== null && (

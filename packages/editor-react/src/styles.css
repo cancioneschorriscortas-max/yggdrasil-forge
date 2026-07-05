@@ -1010,3 +1010,247 @@
   background: var(--editor-bg-panel);
   color: var(--editor-text-primary);
 }
+
+/* ── ProbaPanel (7.6) ── */
+.editor-proba {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  color: var(--editor-text-primary);
+  font-family: inherit;
+}
+.editor-proba__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+.editor-proba__icon {
+  color: var(--editor-accent-preview, #2f9e44);
+  font-size: 14px;
+}
+.editor-proba__title {
+  font-size: var(--editor-font-size-md);
+  font-weight: 600;
+}
+.editor-proba__live-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: var(--editor-accent-preview, #2f9e44);
+  color: white;
+  border-radius: 999px;
+  font-size: var(--editor-font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.editor-proba__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.editor-proba__section-title {
+  margin: 0;
+  font-size: var(--editor-font-size-sm);
+  font-weight: 600;
+  color: var(--editor-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.editor-proba__hint {
+  margin: 0;
+  color: var(--editor-text-muted);
+  font-size: var(--editor-font-size-xs);
+  line-height: 1.4;
+}
+.editor-proba__empty {
+  font-style: italic;
+}
+
+/* Recursos */
+.editor-proba__resources {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.editor-proba__resource-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border-subtle);
+  border-radius: var(--editor-radius-sm);
+}
+.editor-proba__resource-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--editor-border);
+}
+.editor-proba__resource-icon {
+  font-size: 14px;
+}
+.editor-proba__resource-label {
+  font-size: var(--editor-font-size-sm);
+}
+.editor-proba__resource-amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2ch;
+  text-align: right;
+}
+.editor-proba__resource-controls {
+  display: inline-flex;
+  gap: 2px;
+}
+.editor-proba__grant-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--editor-border);
+  background: var(--editor-bg-shell);
+  border-radius: var(--editor-radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--editor-text-primary);
+}
+.editor-proba__grant-btn:hover {
+  background: var(--editor-bg-panel);
+}
+
+/* Ficha nodo */
+.editor-proba__node-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--editor-bg-panel);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+}
+.editor-proba__node-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.editor-proba__node-label {
+  font-weight: 600;
+  font-size: var(--editor-font-size-md);
+}
+.editor-proba__node-state {
+  padding: 1px 8px;
+  font-size: var(--editor-font-size-xs);
+  border-radius: 999px;
+  background: var(--editor-bg-shell);
+  color: var(--editor-text-secondary);
+}
+.editor-proba__node-state--unlocked,
+.editor-proba__node-state--maxed {
+  background: var(--editor-accent-preview, #2f9e44);
+  color: white;
+}
+.editor-proba__node-state--unlockable {
+  background: #e3f5e0;
+  color: #2f6e2a;
+}
+.editor-proba__node-tier {
+  margin: 0;
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+}
+.editor-proba__block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.editor-proba__block-title {
+  margin: 0;
+  font-size: var(--editor-font-size-xs);
+  font-weight: 600;
+  color: var(--editor-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.editor-proba__conditions,
+.editor-proba__costs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.editor-proba__condition,
+.editor-proba__cost {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--editor-font-size-xs);
+}
+.editor-proba__condition.is-ok .editor-proba__condition-mark,
+.editor-proba__cost.is-ok .editor-proba__cost-mark {
+  color: #2f9e44;
+}
+.editor-proba__condition.is-fail .editor-proba__condition-mark,
+.editor-proba__cost.is-fail .editor-proba__cost-mark {
+  color: #c92a2a;
+}
+.editor-proba__cost-have {
+  color: var(--editor-text-muted);
+}
+.editor-proba__unlock-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+.editor-proba__unlock-btn {
+  padding: 8px 12px;
+  background: var(--editor-accent-preview, #2f9e44);
+  color: white;
+  border: 1px solid transparent;
+  border-radius: var(--editor-radius-sm);
+  font-family: inherit;
+  font-size: var(--editor-font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.editor-proba__unlock-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.editor-proba__unlock-btn:disabled {
+  background: var(--editor-bg-shell);
+  color: var(--editor-text-muted);
+  border-color: var(--editor-border);
+  cursor: not-allowed;
+}
+.editor-proba__unlock-hint {
+  text-align: center;
+}
+.editor-proba__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid var(--editor-border-subtle);
+}
+.editor-proba__reset {
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--editor-text-secondary);
+  border: 1px solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+  font-family: inherit;
+  font-size: var(--editor-font-size-xs);
+  cursor: pointer;
+}
+.editor-proba__reset:hover {
+  background: var(--editor-bg-panel);
+  color: var(--editor-text-primary);
+}

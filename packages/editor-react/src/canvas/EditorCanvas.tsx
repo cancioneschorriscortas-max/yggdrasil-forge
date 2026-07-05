@@ -56,6 +56,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
+import type { ProbaSession } from '../proba/useProbaSession.js'
 import { CanvasOverlay, type OverlayRectPx } from './CanvasOverlay.js'
 import { hitTestNode, nodesInRect } from './internals/hitTest.js'
 import {
@@ -70,6 +71,14 @@ import { docToScreen, findCanvasCtmElement, screenToDoc } from './internals/scre
 
 export interface EditorCanvasProps {
   readonly editorEngine: EditorEngine
+  /**
+   * **7.6**: sesión de Proba activa (opcional). Se está definida:
+   *   - o SkillTree renderiza co treeEngine da sesión (non co de render).
+   *   - drag/marquee desactivados; a selección (para a ficha) mantense.
+   *   - undo/redo do documento non se ven afectados (o EditorEngine
+   *     non se toca; edición está apagada polo TopBar/Inspector aparte).
+   */
+  readonly probaSession?: ProbaSession | null
 }
 
 /**
@@ -103,14 +112,23 @@ function useSelectedRefs(editorEngine: EditorEngine): readonly SelectionRef[] {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
 
-export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
+export function EditorCanvas({
+  editorEngine,
+  probaSession = null,
+}: EditorCanvasProps): JSX.Element {
   // Re-render en commits do EditorEngine.
   const doc = useSyncExternalStore(
     (cb) => editorEngine.subscribe(cb),
     () => editorEngine.getDocument(),
   )
-  const treeEngine = useMemo(() => new TreeEngine(doc.tree), [doc])
+  // **7.6**: se hai sesión de Proba, o SkillTree renderiza co seu
+  // TreeEngine (con estado vivo — nodos desbloquéanse, recursos
+  // baixan). Sen sesión, TreeEngine de RENDER (todo bloqueado, para
+  // ver a estrutura durante Autoría).
+  const renderTreeEngine = useMemo(() => new TreeEngine(doc.tree), [doc])
+  const treeEngine = probaSession?.treeEngine ?? renderTreeEngine
   const selectedRefs = useSelectedRefs(editorEngine)
+  const inProba = probaSession !== null
 
   // Container do canvas e versión do viewport (para forzar overlay redraw).
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -221,6 +239,20 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       const mods = modifiersOf(e)
       const hit = hitTestNode(docPoint, doc.tree)
 
+      // **7.6**: en Proba, clic segue seleccionando (a ficha do
+      // ProbaPanel necesítao) pero NON se inicia drag nin marquee.
+      if (inProba) {
+        if (hit !== null) {
+          e.stopPropagation()
+          editorEngine.getSession().selection.replace([hit])
+        } else {
+          editorEngine.getSession().selection.clear()
+        }
+        // Pan/zoom seguen funcionando (non paramos propagación no
+        // caso de baleiro; en nodo si para evitar pan sobre nodo).
+        return
+      }
+
       if (hit !== null) {
         // Sobre un nodo: o editor xestiona. Bloqueamos a propagación para
         // que o SkillTree NON inicie pan.
@@ -263,12 +295,13 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       editorEngine.getSession().selection.clear()
       // NON stopPropagation: deixa que o SkillTree inicie pan.
     },
-    [ctmEl, doc, containerRect, editorEngine],
+    [ctmEl, doc, containerRect, editorEngine, inProba],
   )
 
   const handlePointerMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (ctmEl === null) return
+      if (inProba) return
       const state = pointerStateRef.current
 
       if (state.kind === 'pressed-node') {
@@ -343,11 +376,12 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       }
       // idle: sin operación, sin marquee → nada que facer.
     },
-    [ctmEl, editorEngine, containerRect],
+    [ctmEl, editorEngine, containerRect, inProba],
   )
 
   const handlePointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (inProba) return
       const state = pointerStateRef.current
 
       if (state.kind === 'pressed-node') {
@@ -385,7 +419,7 @@ export function EditorCanvas({ editorEngine }: EditorCanvasProps): JSX.Element {
       // Sin acción específica; non tocou nada o noso pipeline.
       void e
     },
-    [editorEngine, doc, commitOperation],
+    [editorEngine, doc, commitOperation, inProba],
   )
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {

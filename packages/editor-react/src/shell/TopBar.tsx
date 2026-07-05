@@ -2,16 +2,16 @@
 // Barra superior do shell. Mantén:
 //   - Brand (logo/nome + version tag).
 //   - Presets LAYOUTS (placeholder; reconfigurarán dockview en futuro).
-//   - undo/redo (chaman engine.undo()/redo(), deshabilitados segundo
-//     canUndo()/canRedo()).
+//   - undo/redo (só en Autoría, ocúltanse en Proba).
 //   - Zoom (placeholder).
-//   - Toggle de modo (Autoría ↔ Preview).
+//   - Toggle de modo (Autoría ↔ Proba, localizado en 7.6).
 //
 // Re-renderiza nos cambios commiteados do engine via useSyncExternalStore
 // (para refrescar canUndo/canRedo).
 
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useCallback, useSyncExternalStore } from 'react'
+import { PROBA_STRINGS, pickLoc } from '../proba/probaStrings.js'
 import type { EditorMode } from './useEditorMode.js'
 
 export interface TopBarProps {
@@ -28,6 +28,7 @@ export function TopBar({ engine, mode, onToggleMode }: TopBarProps): JSX.Element
   )
   const canUndo = engine.canUndo()
   const canRedo = engine.canRedo()
+  const inProba = mode === 'preview'
 
   const handleUndo = useCallback(() => {
     engine.undo()
@@ -57,30 +58,35 @@ export function TopBar({ engine, mode, onToggleMode }: TopBarProps): JSX.Element
         </button>
       </div>
 
-      <div className="editor-topbar__divider" />
-
-      <div className="editor-topbar__section" aria-label="history">
-        <button
-          type="button"
-          className="editor-button"
-          onClick={handleUndo}
-          disabled={!canUndo}
-          aria-label="undo"
-          title="Undo"
-        >
-          ↶
-        </button>
-        <button
-          type="button"
-          className="editor-button"
-          onClick={handleRedo}
-          disabled={!canRedo}
-          aria-label="redo"
-          title="Redo"
-        >
-          ↷
-        </button>
-      </div>
+      {/* Undo/redo só ten sentido en Autoría — en Proba, o "undo"
+          é «Reiniciar proba» (vive no ProbaPanel). */}
+      {!inProba && (
+        <>
+          <div className="editor-topbar__divider" />
+          <div className="editor-topbar__section" aria-label="history">
+            <button
+              type="button"
+              className="editor-button"
+              onClick={handleUndo}
+              disabled={!canUndo}
+              aria-label="undo"
+              title="Undo"
+            >
+              ↶
+            </button>
+            <button
+              type="button"
+              className="editor-button"
+              onClick={handleRedo}
+              disabled={!canRedo}
+              aria-label="redo"
+              title="Redo"
+            >
+              ↷
+            </button>
+          </div>
+        </>
+      )}
 
       <div className="editor-topbar__divider" />
 
@@ -104,7 +110,7 @@ export function TopBar({ engine, mode, onToggleMode }: TopBarProps): JSX.Element
           onClick={() => mode !== 'authoring' && onToggleMode()}
           aria-pressed={mode === 'authoring'}
         >
-          Authoring
+          {pickLoc(PROBA_STRINGS.modeAuthoring)}
         </button>
         <button
           type="button"
@@ -114,7 +120,7 @@ export function TopBar({ engine, mode, onToggleMode }: TopBarProps): JSX.Element
           onClick={() => mode !== 'preview' && onToggleMode()}
           aria-pressed={mode === 'preview'}
         >
-          Preview
+          {pickLoc(PROBA_STRINGS.modePreview)}
         </button>
       </div>
     </div>

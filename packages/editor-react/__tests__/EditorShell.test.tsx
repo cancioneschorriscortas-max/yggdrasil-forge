@@ -61,10 +61,10 @@ describe('EditorShell — modo (Autoría ↔ Preview)', () => {
     expect(shell?.getAttribute('data-mode')).toBe('authoring')
   })
 
-  it('clic en Preview cambia data-mode a preview', () => {
+  it('clic en Proba cambia data-mode a preview', () => {
     const { engine } = buildFixture()
     const { container } = render(<EditorShell engine={engine} />)
-    const previewBtn = screen.getByRole('button', { name: /preview/i })
+    const previewBtn = screen.getByRole('button', { name: /^Proba$/i })
     fireEvent.click(previewBtn)
     const shell = container.querySelector('.editor-shell')
     expect(shell?.getAttribute('data-mode')).toBe('preview')
@@ -73,7 +73,7 @@ describe('EditorShell — modo (Autoría ↔ Preview)', () => {
   it('botón do modo activo ten aria-pressed=true', () => {
     const { engine } = buildFixture()
     render(<EditorShell engine={engine} />)
-    const authoringBtn = screen.getByRole('button', { name: /authoring/i })
+    const authoringBtn = screen.getByRole('button', { name: /^Autoría$/i })
     expect(authoringBtn.getAttribute('aria-pressed')).toBe('true')
   })
 
@@ -86,13 +86,13 @@ describe('EditorShell — modo (Autoría ↔ Preview)', () => {
 })
 
 describe('EditorShell — StatusBar reflicte os counts da fixture', () => {
-  it('amosa nodes 3 / edges 1 / mode authoring', () => {
+  it('amosa nodes 3 / edges 1 / mode Autoría', () => {
     const { engine } = buildFixture()
     render(<EditorShell engine={engine} />)
     const status = screen.getByRole('status')
     expect(status.textContent).toContain('nodes 3')
     expect(status.textContent).toContain('edges 1')
-    expect(status.textContent).toContain('authoring')
+    expect(status.textContent).toContain('Autoría')
   })
 
   it('cando coordinateBounds está definido, amosa Mundo W×H', () => {
@@ -105,9 +105,9 @@ describe('EditorShell — StatusBar reflicte os counts da fixture', () => {
   it('actualiza mode na status bar tras toggle', () => {
     const { engine } = buildFixture()
     render(<EditorShell engine={engine} />)
-    fireEvent.click(screen.getByRole('button', { name: /preview/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^Proba$/i }))
     const status = screen.getByRole('status')
-    expect(status.textContent).toContain('preview')
+    expect(status.textContent).toContain('Proba')
   })
 })
 // ── FIN: tests EditorShell ──
