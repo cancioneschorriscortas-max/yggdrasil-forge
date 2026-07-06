@@ -128,6 +128,10 @@ function addPanelSmart(
 
   // 1) `within` explícito e vivo?
   if (panel.withinPanel !== undefined && api.getPanel(panel.withinPanel) !== undefined) {
+    // ★ Non roubar foco ao panel referenciado (que é onde o usuario
+    // xa estaba mirando). Iso mantén Inspector activo cando Tema
+    // reaparece tras un swap de modo.
+    options.inactive = true
     options.position = { direction: 'within', referencePanel: panel.withinPanel }
     api.addPanel(options)
     return
@@ -199,6 +203,11 @@ function buildDefaultLayout(api: DockviewApi, panels: readonly PanelDef[]): void
       id: p.id,
       component: p.id,
       title: p.title,
+      // ★ 7.7 fix: engadido como pestana no mesmo grupo pero SEN
+      // roubarlle o foco ao panel referenciado. Doutro xeito o último
+      // panel engadido queda como tab activa e Inspector arrancaría
+      // pechado detrás de Tema.
+      inactive: true,
       position: { direction: 'within', referencePanel: target },
     })
   }
