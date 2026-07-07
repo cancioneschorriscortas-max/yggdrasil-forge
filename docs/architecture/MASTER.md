@@ -4712,3 +4712,79 @@ implementalo no runtime (mantén o tipo) ou **eliminalo da unión** (rompe o tip
 público, pero deixa de mentir). A segunda é máis honesta; cambio breaking en
 `@core`. Mentres non se resolva, manter este aviso visible.
 
+### A.6.39 — "Tokenizado" só o é se o é TODA a superficie
+
+**Contexto.** Briefing 7.5d (reskin marfil): o Director afirmou "todo o chrome
+está tokenizado, cero hex hardcoded" tras auditar só `tokens.css` (que si
+estaba limpo). Ao aplicar o tema claro, o editor quedou mestizo: o
+`examples/editor/index.html` tiña `background: #0b0b0c` hardcoded no `<style>`
+de arranque, e dockview traía o seu propio tema (`dockview-theme-abyss`) alleo
+aos tokens. Dous hardcodes ocultos que ningún test cazou; cazounos a ollada do
+dono.
+
+**Lección.** Un ficheiro de tokens limpo NON implica un chrome gobernado por
+tokens. A superficie real inclúe: o HTML de arranque dos examples, as clases
+de tema de dependencias de terceiros (dockview), e calquera CSS bundle
+duplicado. Antes de afirmar "tokenizado": `grep` de hex/cores sobre a
+superficie ENTEIRA, non sobre o ficheiro de tokens.
+
+**Regra.** As dependencias con sistema de tema propio átanse aos nosos tokens
+(`--dv-*: var(--editor-*)`) para que TODOS os temas as gobernen dunha vez
+(resolto así en 7.5e, cambio 6).
+
+### A.6.40 — dockview: a reconciliación de paneis recrea grupos (e jsdom non o ve)
+
+**Contexto.** O swap Autoría↔Proba (7.6/7.7) facía engadir-antes-de-quitar
+para conservar o grupo, pero `addPanelSmart` buscaba o panel de referencia só
+no conxunto NOVO de paneis: nunca atopaba os que desaparecían, dockview creaba
+un grupo novo en cada swap e recalculaba os tamaños dos veciños — pisando o
+axuste manual do usuario. O test de xeometría especificado no briefing non o
+cazou: jsdom non reproduce o recálculo de tamaños do dockview real.
+
+**Lección.** (1) Nas reconciliacións de paneis, o emparellamento debe facerse
+sobre a UNIÓN de paneis anteriores+novos, e os tamaños reais dos grupos
+(`width`/`height` por `group.id`) captúranse ANTES da mutación e reapítanse
+DESPOIS — preservar o axuste real do usuario, non un default (decisión do
+dono, 7.7c opción B). (2) "tests ≠ render" aplica tamén ao layout: as
+afirmacións de xeometría de dockview só se verifican en navegador real; se un
+test jsdom non pode ver o recálculo, dío nun comentario en vez de finxir
+cobertura.
+
+### A.6.41 — As capas separadas necesitan a costura deseñada (defaults con suposicións cocidas)
+
+**Contexto.** O tema do chrome (tokens do editor) e o tema do documento
+(`meta.theme`) están separados a propósito ("Same Data. Different Themes.").
+Ao chegar o chrome escuro (7.8), o texto dos nodos quedou case invisible: o
+documento sen opinión caía ao tema base `minimal` de `@react`, cuxas cores
+asumen fondo claro (`text #222222`, `edge #999999`, `mesh #dddddd`...). O
+dono sinalou que a mesma clase de fallo xa aparecera antes. O primeiro arranxo
+foi unha heurística por campo no consumidor (parche); o de raíz (7.9) foi un
+tema base irmán `minimalDark` en `@react` e que o editor escolla a BASE enteira
+segundo o chrome, cos overrides do documento gañando sempre.
+
+**Lección.** Separar capas é correcto, pero a costura (que pasa cando unha
+capa non opina) hai que deseñala. Un default con suposicións cocidas (fondo
+claro) é un bug latente en cada consumidor que rompa a suposición. Ao
+introducir unha variable nova de contorno (chrome escuro), auditar TODOS os
+defaults que asumían a anterior — dun golpe, na capa que os posúe, non parche
+a parche no consumidor.
+
+### A.6.42 — O subconxunto autorable = o subconxunto persistible
+
+**Contexto.** Briefing 7.5f (editor de `costPerTier`): o runtime
+(`ResourceManager`) distingue `perTier[i] === undefined` (fallback ao custo
+base) de `perTier[i] === []` (gratis nese rango), e o primeiro deseño do
+widget expuña esa distinción por rango. Pero o schema Zod
+(`treeDefSchema.ts`) é denso-only (cero `nullable` en todo o ficheiro) e JSON
+converte os buracos en `null` — o estado sparse é INALCANZABLE desde calquera
+documento persistido; só existe en memoria. O dispatch rebentaba con
+`YGG_V001` antes de que Immer sequera actuase.
+
+**Lección.** Un editor pode autorar calquera estado que sobreviva a
+gardar-e-abrir, e SÓ eses. Estados que o runtime tolera en memoria pero que o
+schema rexeita, ou que JSON non representa fielmente, están fóra do
+subconxunto autorable: autoralos fabrica corrupción con interface bonita.
+Curmá de "typecheck ≠ render": aquí é **runtime ≠ formato**.
+
+**Regra.** Antes de deseñar UI para un estado: `schema.safeParse(candidato)` e
+`JSON.parse(JSON.stringify(candidato))` son as dúas portas obrigadas.
