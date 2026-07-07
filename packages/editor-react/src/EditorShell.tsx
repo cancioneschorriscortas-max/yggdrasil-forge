@@ -53,6 +53,14 @@ export interface EditorShellProps {
    * limpar o gardado.
    */
   readonly onLayoutInvalid?: () => void
+  /**
+   * Tema do chrome (7.8): `'light' | 'dark'`. Controlado desde a
+   * app — EditorShell NON toca `document`/`localStorage`, só reenvía
+   * ao TopBar. Se non se pasa, o switch non se renderiza.
+   */
+  readonly theme?: 'light' | 'dark'
+  /** Chamado co novo tema cando o usuario clica o switch do TopBar. */
+  readonly onThemeChange?: (theme: 'light' | 'dark') => void
 }
 
 export function EditorShell({
@@ -61,6 +69,8 @@ export function EditorShell({
   initialLayout,
   onLayoutChange,
   onLayoutInvalid,
+  theme,
+  onThemeChange,
 }: EditorShellProps): JSX.Element {
   const { mode, toggleMode } = useEditorMode(initialMode)
   const probaSession = useProbaSession(engine, mode)
@@ -148,6 +158,8 @@ export function EditorShell({
         visiblePanelIds={visiblePanelIds}
         onTogglePanel={handleTogglePanel}
         onResetLayout={handleResetLayout}
+        {...(theme !== undefined && { theme })}
+        {...(onThemeChange !== undefined && { onThemeChange })}
       />
       <div className="editor-workspace">
         <PanelHost

@@ -22,7 +22,7 @@ import { EditorShell } from '@yggdrasil-forge/editor-react'
 import 'dockview-react/dist/styles/dockview.css'
 import '@yggdrasil-forge/editor-react/styles.css'
 import type { SerializedDockview } from 'dockview-react'
-import { type JSX, StrictMode, useCallback, useMemo } from 'react'
+import { type JSX, StrictMode, useCallback, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { panadeiroDocumentMeta, panadeiroTree } from './fixtures/panadeiro.js'
 
@@ -59,6 +59,21 @@ function clearLayout(): void {
   }
 }
 
+// ── 7.8 — tema do chrome (claro/escuro) ──
+// Mesma clave que le o script anti-flash de index.html. Por defecto
+// claro; se o localStorage falla (cota/privado) cae en claro tamén.
+type EditorTheme = 'light' | 'dark'
+const THEME_STORAGE_KEY = 'ygg-editor-theme'
+
+function loadTheme(): EditorTheme {
+  if (typeof window === 'undefined') return 'light'
+  try {
+    return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
 // Carga panadeiro como dato + coordinateBounds para que a status bar
 // amose "World W×H" e o SkillTree fit-on-mount encadre ben, e o
 // tema por defecto (7.5e §5) que aplica preset "tintado" + rexión pan.
@@ -75,12 +90,27 @@ function App(): JSX.Element {
   const initialLayout = useMemo(() => loadLayout(), [])
   const onLayoutChange = useCallback((layout: SerializedDockview) => saveLayout(layout), [])
   const onLayoutInvalid = useCallback(() => clearLayout(), [])
+
+  // ── 7.8 — tema do chrome ──
+  const [theme, setTheme] = useState<EditorTheme>(() => loadTheme())
+  useEffect(() => {
+    document.documentElement.dataset.editorTheme = theme
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+    } catch {
+      // Cota chea ou modo privado — silencio.
+    }
+  }, [theme])
+  const onThemeChange = useCallback((t: EditorTheme) => setTheme(t), [])
+
   return (
     <EditorShell
       engine={engine}
       {...(initialLayout !== undefined && { initialLayout })}
       onLayoutChange={onLayoutChange}
       onLayoutInvalid={onLayoutInvalid}
+      theme={theme}
+      onThemeChange={onThemeChange}
     />
   )
 }

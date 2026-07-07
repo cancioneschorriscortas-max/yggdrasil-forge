@@ -68,42 +68,43 @@
   --editor-font-size-lg: 15px;
 }
 
-/* Escuro grafito (opt-in tras 7.5d) — SEN cambios respecto a versión anterior. */
+/* Escuro (opt-in) — paleta refrescada en 7.8. Fondo case-negro
+ * profundo, paneis lixeiramente máis claros, texto gris-claro,
+ * acento azul. Os radii/fontes son comúns (viven no bloque light). */
 :root[data-editor-theme="dark"] {
   /* Backgrounds */
-  --editor-bg-canvas: #0b0b0c;
-  --editor-bg-shell: #0e0e10;
-  --editor-bg-panel: #121214;
-  --editor-bg-elevated: #1e1e22;
-  --editor-bg-hover: #1a1a1d;
-  --editor-bg-selected: #232328;
+  --editor-bg-canvas: #16171b;
+  --editor-bg-shell: #0f1013;
+  --editor-bg-panel: #131418;
+  --editor-bg-elevated: #1c1d23;
+  --editor-bg-hover: #1a1b20;
+  --editor-bg-selected: #22242b;
 
   /* Text */
-  --editor-text-primary: #e6e6e8;
-  --editor-text-secondary: #9a9aa3;
-  --editor-text-muted: #5a5a63;
-  --editor-text-inverse: #0b0b0c;
+  --editor-text-primary: #e8e9ea;
+  --editor-text-secondary: #9a9da6;
+  --editor-text-muted: #6b6e78;
+  --editor-text-inverse: #0f1013;
 
-  /* Borders */
-  --editor-border: #2f2f36;
-  --editor-border-default: #232328;
-  --editor-border-strong: #2f2f36;
-  --editor-border-subtle: #1a1a1d;
+  /* Borders — alias xeral iguala a strong, coma no bloque light. */
+  --editor-border: #33363e;
+  --editor-border-default: #26282e;
+  --editor-border-strong: #33363e;
+  --editor-border-subtle: #1e2025;
 
-  /* Accents (modal por modo) */
-  --editor-accent: #4f8cff;
-  --editor-accent-soft: rgba(79, 140, 255, 0.18);
-  --editor-accent-authoring: #4f8cff;
-  --editor-accent-authoring-soft: rgba(79, 140, 255, 0.18);
-  --editor-accent-preview: #36d399;
-  --editor-accent-preview-soft: rgba(54, 211, 153, 0.18);
+  /* Accents (modal por modo) — alias xeral iguala a authoring. */
+  --editor-accent: #3b82f6;
+  --editor-accent-soft: rgba(59, 130, 246, 0.15);
+  --editor-accent-authoring: #3b82f6;
+  --editor-accent-authoring-soft: rgba(59, 130, 246, 0.15);
+  --editor-accent-preview: #22c55e;
+  --editor-accent-preview-soft: rgba(34, 197, 94, 0.15);
 
-  /* Severities */
+  /* Severities — sen cambios (contraste de sobra sobre #131418). */
   --editor-severity-error: #ff6b6b;
   --editor-severity-warning: #f0a830;
   --editor-severity-info: #4f8cff;
 
-  /* Sombra máis forte (grafito). Os radii son comúns (viven no bloque light). */
-  --editor-shadow-elev1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --editor-shadow-elev1: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 /* ── FIN: tokens.css ── */

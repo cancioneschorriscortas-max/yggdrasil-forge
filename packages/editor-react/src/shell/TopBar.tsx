@@ -28,6 +28,13 @@ export interface TopBarProps {
   readonly onTogglePanel: (id: string) => void
   /** Restaura a disposición por defecto (limpando gardado). */
   readonly onResetLayout: () => void
+  /**
+   * Tema do chrome (7.8). Controlado desde a app — se non se pasa, o
+   * switch claro/escuro non se renderiza.
+   */
+  readonly theme?: 'light' | 'dark'
+  /** Chamado co tema oposto ao actual cando o usuario clica o switch. */
+  readonly onThemeChange?: (theme: 'light' | 'dark') => void
 }
 
 export function TopBar({
@@ -38,6 +45,8 @@ export function TopBar({
   visiblePanelIds,
   onTogglePanel,
   onResetLayout,
+  theme,
+  onThemeChange,
 }: TopBarProps): JSX.Element {
   // Re-render en cada commit (canUndo/canRedo cambian).
   useSyncExternalStore(
@@ -116,6 +125,30 @@ export function TopBar({
       </div>
 
       <div className="editor-topbar__spacer" />
+
+      {theme !== undefined && (
+        <>
+          <div className="editor-topbar__section" aria-label="tema">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={theme === 'dark'}
+              aria-label="Tema escuro"
+              title="Tema escuro"
+              className="editor-theme-switch"
+              onClick={() => onThemeChange?.(theme === 'dark' ? 'light' : 'dark')}
+            >
+              <span className="editor-theme-switch__icon" aria-hidden="true">
+                {theme === 'dark' ? '🌙' : '☀'}
+              </span>
+              <span className="editor-theme-switch__track" aria-hidden="true">
+                <span className="editor-theme-switch__thumb" />
+              </span>
+            </button>
+          </div>
+          <div className="editor-topbar__divider" />
+        </>
+      )}
 
       <div className="editor-topbar__section" aria-label="mode">
         <button
