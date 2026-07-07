@@ -45,6 +45,7 @@ import {
   ThemeProvider,
   type ViewportState,
   minimal,
+  minimalDark,
 } from '@yggdrasil-forge/react'
 import {
   type JSX,
@@ -80,13 +81,14 @@ export interface EditorCanvasProps {
    */
   readonly probaSession?: ProbaSession | null
   /**
-   * **7.8.1**: tema do CHROME do editor (claro/escuro), non do
-   * documento. Só se usa para escoller un texto/icona de nodo LEXIBLE
-   * por defecto cando o documento non define un (`ThemeSpec` aínda non
-   * ten campo de cor de texto — 8.x banked). Capas independentes: se
-   * o documento SI definise un tema propio completo no futuro, este
-   * valor deixaría de aplicarse. Sen esta prop, compórtase como
-   * sempre (texto escuro fixo do tema `minimal`) — cero regresión.
+   * **F7.9** (antes 7.8.1, heurística por campo, xa retirada): tema do
+   * CHROME do editor (claro/escuro), non do documento. Escolle a BASE
+   * de render do canvas — `minimalDark` en escuro, `minimal` en
+   * claro/sen definir — para que texto, arestas, malla e trazos sexan
+   * lexibles sobre calquera fondo do chrome. Os overrides explícitos
+   * do documento (`ThemeSpec.textColor`, `nodeFills`) gañan sempre
+   * sobre a base escollida. Sen esta prop, compórtase coma sempre
+   * (`minimal`) — cero regresión.
    */
   readonly chromeTheme?: 'light' | 'dark'
 }
@@ -465,12 +467,21 @@ export function EditorCanvas({
 
   const { coordinateBounds, theme: themeSpec, background } = doc.meta
 
-  // ── 7.5e: mapeo tema→render ──
+  // ── 7.5e → F7.9: mapeo tema→render ──
   //
-  // Constrúe o `Theme` de @react partindo de `minimal` con override
-  // parcial dos nodeFill<Estado>. Memoiza por identidade do `themeSpec`
-  // para non crear un obxecto novo en cada render (evita cambios
-  // triviais de referencia no ThemeProvider).
+  // Constrúe o `Theme` de @react partindo dunha BASE escollida segundo
+  // `chromeTheme` (`minimalDark` en escuro, `minimal` en claro/sen
+  // definir) con override parcial dos nodeFill<Estado> e textColor do
+  // documento. Memoiza por identidade do `themeSpec`+`chromeTheme`
+  // para non crear un obxecto novo en cada render.
+  //
+  // **F7.9**: antes disto había unha heurística ad-hoc só para o
+  // texto (`textOverride = spec.textColor ?? (chromeTheme==='dark' ?
+  // '#e8e9ea' : undefined)`). Arranxo de raíz: a heurística morre, a
+  // BASE ENTEIRA cambia con `chromeTheme` (texto, arestas, malla,
+  // trazos, recheo base — todos lexibles en escuro sen overrides
+  // puntuais). O override do documento (`spec.textColor`, nodeFills)
+  // segue gañando sempre sobre a base escollida.
   //
   // O ThemeProvider é un provider de contexto React puro — **non mete
   // nodos DOM entre o contedor e o `<svg>`/`<g>`**. Por tanto a costura
@@ -480,17 +491,12 @@ export function EditorCanvas({
   const theme: Theme = useMemo(() => {
     const spec: ThemeSpec = themeSpec ?? {}
     const fills = spec.nodeFills ?? {}
-    // **7.8.1 → 7.8.2**: prioridade de resolución do texto/icona:
-    //   1. `spec.textColor` — control directo do autor (pestana Tema).
-    //   2. Heurística automática por `chromeTheme` (só se (1) non se
-    //      definiu): texto claro lexible se o chrome está en escuro.
-    //   3. `minimal.colors.text` (#222222) — cero regresión.
-    const textOverride = spec.textColor ?? (chromeTheme === 'dark' ? '#e8e9ea' : undefined)
+    const base = chromeTheme === 'dark' ? minimalDark : minimal
     return {
-      ...minimal,
+      ...base,
       colors: {
-        ...minimal.colors,
-        ...(textOverride !== undefined && { text: textOverride }),
+        ...base.colors,
+        ...(spec.textColor !== undefined && { text: spec.textColor }),
         ...(fills.locked !== undefined && { nodeFillLocked: fills.locked }),
         ...(fills.unlockable !== undefined && { nodeFillUnlockable: fills.unlockable }),
         ...(fills.unlocked !== undefined && { nodeFillUnlocked: fills.unlocked }),

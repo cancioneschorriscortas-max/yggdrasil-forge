@@ -77,7 +77,7 @@ describe('EditorCanvas — selección por clic via SelectionEngine', () => {
   })
 })
 
-describe('★ 7.8.1 — texto do nodo lexible segundo o tema do chrome', () => {
+describe('★ F7.9 — base do tema segundo o chrome (texto + arestas, non só campo a campo)', () => {
   it('sen chromeTheme (ou "light"): texto escuro por defecto (cero regresión)', () => {
     const engine = buildFixtureEngine()
     render(<EditorCanvas editorEngine={engine} />)
@@ -98,6 +98,21 @@ describe('★ 7.8.1 — texto do nodo lexible segundo o tema do chrome', () => {
     render(<EditorCanvas editorEngine={engine} chromeTheme="light" />)
     const label = screen.getByText('A')
     expect(label.style.fill).toBe('#222222')
+  })
+
+  it('★ as ARESTAS tamén cambian de base en escuro (non só o texto — arranxo de raíz)', () => {
+    const engineLight = buildFixtureEngine()
+    const { container: containerLight } = render(<EditorCanvas editorEngine={engineLight} />)
+    const edgeLight = containerLight.querySelector('.yf-skill-edge') as SVGPathElement
+    expect(edgeLight.style.stroke).toBe('#999999') // minimal.edge
+
+    const engineDark = buildFixtureEngine()
+    const { container: containerDark } = render(
+      <EditorCanvas editorEngine={engineDark} chromeTheme="dark" />,
+    )
+    const edgeDark = containerDark.querySelector('.yf-skill-edge') as SVGPathElement
+    expect(edgeDark.style.stroke).toBe('#565b66') // minimalDark.edge
+    expect(edgeDark.style.stroke).not.toBe('#999999')
   })
 
   it('★ textColor explícito do documento GAÑA sobre chromeTheme="dark"', () => {

@@ -34,6 +34,7 @@ export { ThemeProvider } from './ThemeProvider.js'
 export type { ThemeProviderProps } from './ThemeProvider.js'
 export type { Theme, ThemeColors, ThemeSizes } from './theme-types.js'
 export { minimal } from './themes/minimal.js'
+export { minimalDark } from './themes/minimalDark.js'
 
 // Hooks customizados (independentes do tema).
 export {
