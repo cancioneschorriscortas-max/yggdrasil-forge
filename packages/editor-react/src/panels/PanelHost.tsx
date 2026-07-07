@@ -167,6 +167,18 @@ function addPanelSmart(
 }
 
 /**
+ * Proporcións por defecto sas (7.7b): laterais estreitos, canvas
+ * amplo. Aplícanse tras crear os paneis. Se dockview axusta os
+ * outros grupos automaticamente para respetar estas medidas, o
+ * canvas queda co resto (comportamento observado na versión 6.6.1).
+ */
+const DEFAULT_SIZES = {
+  outlinerWidth: 240,
+  rightGroupWidth: 340,
+  problemsHeight: 180,
+} as const
+
+/**
  * Constrúe a disposición por defecto (arranque limpo).
  * **Unha soa fonte de verdade** — usada polo onReady sen initialLayout
  * e polo reset().
@@ -211,6 +223,34 @@ function buildDefaultLayout(api: DockviewApi, panels: readonly PanelDef[]): void
       position: { direction: 'within', referencePanel: target },
     })
   }
+
+  // ── 7.7b: proporcións por defecto ──
+  // Aplicamos tras a construción para que dockview redistribúa o
+  // resto ao canvas central. `panel.api.setSize({ width | height })`
+  // afecta ao grupo do panel; basta con chamalo unha vez por grupo.
+  applyDefaultSizes(api, panels)
+}
+
+function applyDefaultSizes(api: DockviewApi, panels: readonly PanelDef[]): void {
+  // Escoller un panel representante de cada banda que estea vivo.
+  const firstOfBand = (loc: PanelDef['defaultLocation']): string | undefined => {
+    const def = panels.find((p) => p.defaultLocation === loc && api.getPanel(p.id) !== undefined)
+    return def?.id
+  }
+
+  const leftId = firstOfBand('left')
+  const rightId = firstOfBand('right')
+  const bottomId = firstOfBand('bottom')
+
+  if (leftId !== undefined) {
+    api.getPanel(leftId)?.api.setSize({ width: DEFAULT_SIZES.outlinerWidth })
+  }
+  if (rightId !== undefined) {
+    api.getPanel(rightId)?.api.setSize({ width: DEFAULT_SIZES.rightGroupWidth })
+  }
+  if (bottomId !== undefined) {
+    api.getPanel(bottomId)?.api.setSize({ height: DEFAULT_SIZES.problemsHeight })
+  }
 }
 
 export function PanelHost({
@@ -229,6 +269,9 @@ export function PanelHost({
   // filtrado por modo do EditorShell non tería efecto.
   const onLayoutChangeRef = useRef(onLayoutChange)
   const onVisiblePanelsChangeRef = useRef(onVisiblePanelsChange)
+  // Timer do debounce da persistencia — como ref para poder flushear
+  // desde beforeunload (7.7b).
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     panelsRef.current = panels
   }, [panels])
@@ -238,6 +281,35 @@ export function PanelHost({
   useEffect(() => {
     onVisiblePanelsChangeRef.current = onVisiblePanelsChange
   }, [onVisiblePanelsChange])
+
+  // **7.7b — Cinto de seguridade: flush no beforeunload.**
+  // O `onDidLayoutChange` de dockview é dubidoso ao arrastrar sashes
+  // (sen probas reproducibles nos brownser de Agarfal). Este listener
+  // asegura que o último layout se garda **sincronamente** ao pechar
+  // ou recargar, con ou sen debounce pendente.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const flush = (): void => {
+      const api = apiRef.current
+      if (api === null) return
+      // Cancela debounce pendente — imos escribir xa.
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = null
+      }
+      const cb = onLayoutChangeRef.current
+      if (cb === undefined) return
+      try {
+        cb(api.toJSON())
+      } catch {
+        // Ignora — non hai máis oportunidades neste ciclo.
+      }
+    }
+    window.addEventListener('beforeunload', flush)
+    return () => {
+      window.removeEventListener('beforeunload', flush)
+    }
+  }, [])
 
   // Mapeo id → component para dockview (require nome → factory).
   // Memoizado para non re-crear en cada render.
@@ -277,10 +349,11 @@ export function PanelHost({
     // Subscribir cambios para persistencia (con debounce).
     // Usamos ref → sempre invoca a versión máis recente do callback,
     // permitindo que o EditorShell filtre por modo (só Autoría persiste).
-    let timer: ReturnType<typeof setTimeout> | null = null
+    // O timer vive nun ref para poder ser flusheado polo beforeunload.
     event.api.onDidLayoutChange(() => {
-      if (timer !== null) clearTimeout(timer)
-      timer = setTimeout(() => {
+      if (debounceTimerRef.current !== null) clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = null
         const cb = onLayoutChangeRef.current
         if (cb === undefined) return
         try {

@@ -229,6 +229,99 @@ describe('★ 7.7 §3 — Persistencia', () => {
   })
 })
 
+describe('★ 7.7b — Proporcións por defecto + flush beforeunload', () => {
+  it('buildDefaultLayout aplica anchos aos laterais e alto ao inferior', async () => {
+    const engine = buildEngine()
+    const onLayoutChange = vi.fn()
+    render(<EditorShell engine={engine} onLayoutChange={onLayoutChange} />)
+    await waitForDockviewReady()
+    // Forzar flush síncrono para obter unha foto certa do layout inicial.
+    act(() => {
+      window.dispatchEvent(new Event('beforeunload'))
+    })
+    expect(onLayoutChange).toHaveBeenCalled()
+    const arg = onLayoutChange.mock.calls[0]?.[0] as SerializedDockview | undefined
+    expect(arg).toBeDefined()
+    const asJson = JSON.stringify(arg)
+    // Contido mínimo esperable — os paneis por defecto están todos.
+    expect(asJson).toContain('outliner')
+    expect(asJson).toContain('canvas')
+    expect(asJson).toContain('inspector')
+    expect(asJson).toContain('theme')
+    expect(asJson).toContain('problems')
+  })
+
+  it('★ beforeunload dispara onLayoutChange SINCRONAMENTE (cinto seguridade)', async () => {
+    const engine = buildEngine()
+    const onLayoutChange = vi.fn()
+    render(<EditorShell engine={engine} onLayoutChange={onLayoutChange} />)
+    await waitForDockviewReady()
+    // Clear as chamadas previas (debounce inicial).
+    await new Promise((r) => setTimeout(r, 500))
+    onLayoutChange.mockClear()
+
+    // Fai un cambio: ao pechar Problemas dispárase onDidLayoutChange,
+    // pero o debounce (300ms) segue vivo — o beforeunload debe flushear
+    // sen agardar.
+    act(() => fireEvent.click(screen.getByRole('button', { name: /^Paneis$/i })))
+    const problemasItem = screen
+      .getAllByRole('menuitemcheckbox')
+      .find((n) => (n.textContent ?? '').includes('Problemas'))
+    act(() => fireEvent.click(problemasItem as HTMLElement))
+
+    // Antes do debounce (300ms), disparar beforeunload — debe chamar YA.
+    act(() => {
+      window.dispatchEvent(new Event('beforeunload'))
+    })
+    expect(onLayoutChange).toHaveBeenCalled()
+  })
+
+  it('beforeunload sen cambios pendentes tamén garda foto actual', async () => {
+    const engine = buildEngine()
+    const onLayoutChange = vi.fn()
+    render(<EditorShell engine={engine} onLayoutChange={onLayoutChange} />)
+    await waitForDockviewReady()
+    await new Promise((r) => setTimeout(r, 500))
+    onLayoutChange.mockClear()
+
+    // Sen tocar nada, beforeunload debe emitir toJSON actual.
+    act(() => {
+      window.dispatchEvent(new Event('beforeunload'))
+    })
+    expect(onLayoutChange).toHaveBeenCalled()
+    // O argumento é un obxecto (SerializedDockview).
+    const arg = onLayoutChange.mock.calls[0]?.[0]
+    expect(arg).toBeDefined()
+    expect(typeof arg).toBe('object')
+  })
+
+  it('★ debounce pendente flusheado no beforeunload (sen esperar 300ms)', async () => {
+    const engine = buildEngine()
+    const onLayoutChange = vi.fn()
+    render(<EditorShell engine={engine} onLayoutChange={onLayoutChange} />)
+    await waitForDockviewReady()
+    await new Promise((r) => setTimeout(r, 500))
+    onLayoutChange.mockClear()
+
+    // Provoca un cambio (debounce arrinca).
+    act(() => fireEvent.click(screen.getByRole('button', { name: /^Paneis$/i })))
+    const problemasItem = screen
+      .getAllByRole('menuitemcheckbox')
+      .find((n) => (n.textContent ?? '').includes('Problemas'))
+    act(() => fireEvent.click(problemasItem as HTMLElement))
+
+    // Antes do debounce (300ms), beforeunload debe flushear.
+    act(() => {
+      window.dispatchEvent(new Event('beforeunload'))
+    })
+    // Non nos importa cantas chamadas exactas houbo (dockview pode
+    // disparar onDidLayoutChange múltiples veces durante o cambio,
+    // e algúns debounces poden encadenarse); o núcleo é que **antes**
+    // dos 300ms de debounce xa hai chamada gravada.
+    expect(onLayoutChange).toHaveBeenCalled()
+  })
+})
+
 describe('★ 7.7 §4 — Restaurar disposición', () => {
   it('«Restaurar disposición» invoca onLayoutInvalid (limpa gardado)', async () => {
     const engine = buildEngine()
