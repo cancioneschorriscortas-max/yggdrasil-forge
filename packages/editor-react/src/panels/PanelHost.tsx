@@ -275,6 +275,12 @@ export function PanelHost({
   useEffect(() => {
     panelsRef.current = panels
   }, [panels])
+  // **7.7c**: `PanelDef`s do conxunto ANTERIOR (antes de que `panels`
+  // cambiase). Necesario para que `addPanelSmart` poida atopar un
+  // panel vivo da mesma banda que xa non está no conxunto NOVO (ex.
+  // `inspector` cando `panels` xa é o de Proba) — se non, cae sempre
+  // ao fallback e crea un grupo novo en vez de reutilizar o vivo.
+  const prevPanelsForReconcileRef = useRef<readonly PanelDef[]>(panels)
   useEffect(() => {
     onLayoutChangeRef.current = onLayoutChange
   }, [onLayoutChange])
@@ -400,6 +406,14 @@ export function PanelHost({
   // ── Reconciliación cando `panels` prop cambia ──
   // Diff engadir-antes-de-quitar para preservar grupos e tamaños
   // (dor 2 do briefing 7.7).
+  //
+  // **7.7c**: engadir/quitar paneis dun grupo fai que dockview
+  // recalcule por si só os anchos/altos dese grupo — perdendo o
+  // axuste manual do usuario cada vez que alterna Autoría↔Proba.
+  // Arranxo: capturar o tamaño REAL de cada grupo vivo (identificado
+  // por `group.id`, estable mentres o grupo non quede baleiro — e o
+  // engadir-antes-de-quitar garante que nunca queda baleiro durante
+  // o swap) antes de mutar, e reaplicalo despois.
   useEffect(() => {
     const api = apiRef.current
     if (api === null) return
@@ -408,20 +422,54 @@ export function PanelHost({
     const toAdd = panels.filter((p) => !currentIds.has(p.id))
     const toRemove = [...currentIds].filter((id) => !nextIds.has(id))
 
-    if (toAdd.length === 0 && toRemove.length === 0) return
+    if (toAdd.length === 0 && toRemove.length === 0) {
+      prevPanelsForReconcileRef.current = panels
+      return
+    }
 
     const centerId = panels.find((p) => p.defaultLocation === 'center')?.id
+
+    // ── 7.7c: unión de defs vellos+novos ──
+    // `liveSameBand` en `addPanelSmart` necesita coñecer a
+    // `defaultLocation` de paneis que aínda están vivos en `api` pero
+    // que xa non aparecen en `panels` (o conxunto novo) — por iso se
+    // combina co conxunto anterior. Deduplicado por id (o novo gaña
+    // se hai conflito, non debería habelo con ids estables).
+    const allKnownDefs = new Map<string, PanelDef>()
+    for (const p of prevPanelsForReconcileRef.current) allKnownDefs.set(p.id, p)
+    for (const p of panels) allKnownDefs.set(p.id, p)
+    const allPanelDefs = [...allKnownDefs.values()]
+
+    // ── 7.7c: capturar tamaños reais dos grupos vivos ──
+    const groupSizes = new Map<string, { width: number; height: number }>()
+    for (const group of api.groups) {
+      groupSizes.set(group.id, { width: group.api.width ?? 0, height: group.api.height ?? 0 })
+    }
 
     // 1) Engadir os novos primeiro — poden referenciar aos que van
     //    desaparecer como pivot para conservar o grupo.
     for (const p of toAdd) {
-      addPanelSmart(api, p, panels, centerId)
+      addPanelSmart(api, p, allPanelDefs, centerId)
     }
     // 2) Retirar os que sobran.
     for (const id of toRemove) {
       const p = api.getPanel(id)
       if (p !== undefined) api.removePanel(p)
     }
+
+    // ── 7.7c: reaplicar tamaños aos grupos supervivintes ──
+    // Un grupo cuxa composición de pestanas cambiou (Inspector/Tema
+    // ↔ Proba) segue sendo o MESMO grupo dockview (mesmo `id`) porque
+    // nunca quedou baleiro durante o swap. Grupos novos (sen entrada
+    // capturada) non se tocan — usan o que dockview decida.
+    for (const group of api.groups) {
+      const captured = groupSizes.get(group.id)
+      if (captured === undefined) continue
+      if (captured.width === 0 && captured.height === 0) continue
+      group.api.setSize({ width: captured.width, height: captured.height })
+    }
+
+    prevPanelsForReconcileRef.current = panels
   }, [panels])
 
   return (
