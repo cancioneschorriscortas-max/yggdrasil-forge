@@ -57,6 +57,14 @@ export interface ThemeSpec {
   /** Recheo do corpo do nodo por estado. Parcial: o que falte cae ao tema base. */
   readonly nodeFills?: Partial<Record<ThemeNodeState, string>>
   /**
+   * Cor do texto (label + progreso) e iconas dos nodos, e das
+   * etiquetas de rexión. **Control directo do autor** — se non se
+   * define, o editor escolle un valor lexible automaticamente
+   * segundo o tema claro/escuro do seu chrome (7.8.1); fóra do
+   * editor, cae ao tema base (`minimal`, texto escuro fixo).
+   */
+  readonly textColor?: string
+  /**
    * Tintes de rexión. A CREACIÓN de rexións é doutra ferramenta
    * futura. Aquí só se define o tinte por rexión existente.
    */

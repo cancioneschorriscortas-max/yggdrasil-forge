@@ -6,7 +6,7 @@
 
 import { render, screen } from '@testing-library/react'
 import type { TreeDef } from '@yggdrasil-forge/core'
-import { EditorEngine, createEditorDocument } from '@yggdrasil-forge/editor-core'
+import { EditorEngine, createEditorDocument, setMetaField } from '@yggdrasil-forge/editor-core'
 import { describe, expect, it } from 'vitest'
 import { EditorCanvas } from '../src/canvas/EditorCanvas.js'
 
@@ -74,6 +74,58 @@ describe('EditorCanvas — selección por clic via SelectionEngine', () => {
     expect(engine.getSession().selection.current()[0]?.id).toBe('b')
     // O canvas debería seguir renderizado (sin erro de re-render).
     expect(container.querySelector('.editor-canvas')).not.toBeNull()
+  })
+})
+
+describe('★ 7.8.1 — texto do nodo lexible segundo o tema do chrome', () => {
+  it('sen chromeTheme (ou "light"): texto escuro por defecto (cero regresión)', () => {
+    const engine = buildFixtureEngine()
+    render(<EditorCanvas editorEngine={engine} />)
+    const label = screen.getByText('A')
+    expect(label.style.fill).toBe('#222222')
+  })
+
+  it('★ con chromeTheme="dark": texto claro lexible, non o #222222 fixo', () => {
+    const engine = buildFixtureEngine()
+    render(<EditorCanvas editorEngine={engine} chromeTheme="dark" />)
+    const label = screen.getByText('A')
+    expect(label.style.fill).toBe('#e8e9ea')
+    expect(label.style.fill).not.toBe('#222222')
+  })
+
+  it('chromeTheme="light" explícito compórtase igual que sen prop', () => {
+    const engine = buildFixtureEngine()
+    render(<EditorCanvas editorEngine={engine} chromeTheme="light" />)
+    const label = screen.getByText('A')
+    expect(label.style.fill).toBe('#222222')
+  })
+
+  it('★ textColor explícito do documento GAÑA sobre chromeTheme="dark"', () => {
+    const engine = buildFixtureEngine()
+    engine.dispatch(
+      setMetaField(
+        'theme',
+        { textColor: '#ff00aa' },
+        { en: 'Update theme', gl: 'Actualizar tema' },
+      ),
+    )
+    render(<EditorCanvas editorEngine={engine} chromeTheme="dark" />)
+    const label = screen.getByText('A')
+    expect(label.style.fill).toBe('#ff00aa')
+  })
+
+  it('★ textColor explícito do documento aplícase tamén en chromeTheme="light"/sen definir', () => {
+    const engine = buildFixtureEngine()
+    engine.dispatch(
+      setMetaField(
+        'theme',
+        { textColor: '#ff00aa' },
+        { en: 'Update theme', gl: 'Actualizar tema' },
+      ),
+    )
+    render(<EditorCanvas editorEngine={engine} />)
+    const label = screen.getByText('A')
+    expect(label.style.fill).toBe('#ff00aa')
   })
 })
 // ── FIN: tests EditorCanvas ──

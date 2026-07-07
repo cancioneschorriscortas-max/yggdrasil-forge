@@ -87,6 +87,15 @@ export function ThemePanel({ editorEngine }: ThemePanelProps): JSX.Element {
     })
   }
 
+  const setTextColor = (color: string): void => {
+    dispatchTheme({ ...theme, textColor: color })
+  }
+
+  const clearTextColor = (): void => {
+    const { textColor: _omit, ...rest } = theme
+    dispatchTheme(rest)
+  }
+
   const setRegionColor = (regionId: string, color: string): void => {
     const regions = (theme.regions ?? []).map(
       (r): ThemeRegionTint => (r.id === regionId ? { ...r, color } : r),
@@ -173,6 +182,37 @@ export function ThemePanel({ editorEngine }: ThemePanelProps): JSX.Element {
             value={theme.nodeFills?.maxed}
             onCommit={(c) => setNodeFill('maxed', c)}
           />
+
+          <hr className="editor-theme-panel__divider" />
+
+          <div className="editor-inspector__field editor-theme-panel__fill-row">
+            <FieldLabel
+              htmlFor="theme-text-color"
+              label={{ en: 'Text & icons', gl: 'Texto e iconas' }}
+              describe={{
+                en: 'Node label, progress and region-label color. Auto-adapts to the editor chrome theme when unset.',
+                gl: 'Cor da etiqueta, progreso e etiquetas de rexión dos nodos. Sen definir, adáptase automaticamente ao tema claro/escuro do editor.',
+              }}
+            />
+            <div className="editor-theme-panel__text-color-row">
+              <ColorWidget id="theme-text-color" value={theme.textColor} onCommit={setTextColor} />
+              {theme.textColor !== undefined && (
+                <button
+                  type="button"
+                  className="editor-button editor-theme-panel__text-color-reset"
+                  onClick={clearTextColor}
+                >
+                  Automático
+                </button>
+              )}
+            </div>
+            <FieldHelp
+              describe={{
+                en: 'Node label, progress and region-label color. Auto-adapts to the editor chrome theme when unset.',
+                gl: 'Cor da etiqueta, progreso e etiquetas de rexión dos nodos. Sen definir, adáptase automaticamente ao tema claro/escuro do editor.',
+              }}
+            />
+          </div>
         </section>
 
         {/* ── §3: Rexións ── */}

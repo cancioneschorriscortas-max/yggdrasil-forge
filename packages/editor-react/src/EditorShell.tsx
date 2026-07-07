@@ -99,7 +99,13 @@ export function EditorShell({
       {
         id: 'canvas',
         title: 'Canvas',
-        component: () => <EditorCanvas editorEngine={engine} probaSession={probaSession} />,
+        component: () => (
+          <EditorCanvas
+            editorEngine={engine}
+            probaSession={probaSession}
+            {...(theme !== undefined && { chromeTheme: theme })}
+          />
+        ),
         defaultLocation: 'center',
       },
       ...(mode === 'preview' && probaSession !== null
@@ -133,7 +139,7 @@ export function EditorShell({
         defaultLocation: 'bottom',
       },
     ],
-    [engine, mode, probaSession],
+    [engine, mode, probaSession, theme],
   )
 
   const handleTogglePanel = useCallback((id: string) => {

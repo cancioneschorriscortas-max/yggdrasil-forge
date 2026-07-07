@@ -155,4 +155,41 @@ describe('ThemePanel — Fondo', () => {
     expect(engine.getDocument().meta.background).toBeUndefined()
   })
 })
+
+describe('★ 7.8.2 — control directo de cor de texto', () => {
+  it('editar a cor de texto dispatchea theme.textColor', () => {
+    const engine = buildEngine()
+    const { container } = render(<ThemePanel editorEngine={engine} />)
+    const textInput = container.querySelector('#theme-text-color') as HTMLInputElement
+    act(() => {
+      fireEvent.change(textInput, { target: { value: '#e8e9ea' } })
+    })
+    act(() => {
+      fireEvent.blur(textInput)
+    })
+    expect(engine.getDocument().meta.theme?.textColor).toBe('#e8e9ea')
+  })
+
+  it('botón "Automático" só aparece cando hai textColor definido', () => {
+    const engine = buildEngine()
+    render(<ThemePanel editorEngine={engine} />)
+    expect(screen.queryByRole('button', { name: /Automático/i })).toBeNull()
+  })
+
+  it('★ botón "Automático" quita textColor (volve á heurística)', () => {
+    const engine = buildEngine()
+    engine.dispatch({
+      type: 'setup',
+      mutate(draft) {
+        ;(draft.meta as { theme?: { textColor?: string } }).theme = { textColor: '#ff00aa' }
+      },
+    })
+    render(<ThemePanel editorEngine={engine} />)
+    const resetBtn = screen.getByRole('button', { name: /Automático/i })
+    act(() => {
+      fireEvent.click(resetBtn)
+    })
+    expect(engine.getDocument().meta.theme?.textColor).toBeUndefined()
+  })
+})
 // ── FIN: tests ThemePanel ──

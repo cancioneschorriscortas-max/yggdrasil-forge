@@ -934,6 +934,19 @@
   flex-direction: column;
   gap: 4px;
 }
+.editor-theme-panel__divider {
+  border: none;
+  border-top: var(--editor-border-width) solid var(--editor-border-subtle);
+  margin: 12px 0;
+}
+.editor-theme-panel__text-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.editor-theme-panel__text-color-reset {
+  font-size: var(--editor-font-size-xs);
+}
 .editor-theme-panel__regions {
   display: flex;
   flex-direction: column;

@@ -79,6 +79,16 @@ export interface EditorCanvasProps {
    *     non se toca; edición está apagada polo TopBar/Inspector aparte).
    */
   readonly probaSession?: ProbaSession | null
+  /**
+   * **7.8.1**: tema do CHROME do editor (claro/escuro), non do
+   * documento. Só se usa para escoller un texto/icona de nodo LEXIBLE
+   * por defecto cando o documento non define un (`ThemeSpec` aínda non
+   * ten campo de cor de texto — 8.x banked). Capas independentes: se
+   * o documento SI definise un tema propio completo no futuro, este
+   * valor deixaría de aplicarse. Sen esta prop, compórtase como
+   * sempre (texto escuro fixo do tema `minimal`) — cero regresión.
+   */
+  readonly chromeTheme?: 'light' | 'dark'
 }
 
 /**
@@ -115,6 +125,7 @@ function useSelectedRefs(editorEngine: EditorEngine): readonly SelectionRef[] {
 export function EditorCanvas({
   editorEngine,
   probaSession = null,
+  chromeTheme,
 }: EditorCanvasProps): JSX.Element {
   // Re-render en commits do EditorEngine.
   const doc = useSyncExternalStore(
@@ -469,10 +480,17 @@ export function EditorCanvas({
   const theme: Theme = useMemo(() => {
     const spec: ThemeSpec = themeSpec ?? {}
     const fills = spec.nodeFills ?? {}
+    // **7.8.1 → 7.8.2**: prioridade de resolución do texto/icona:
+    //   1. `spec.textColor` — control directo do autor (pestana Tema).
+    //   2. Heurística automática por `chromeTheme` (só se (1) non se
+    //      definiu): texto claro lexible se o chrome está en escuro.
+    //   3. `minimal.colors.text` (#222222) — cero regresión.
+    const textOverride = spec.textColor ?? (chromeTheme === 'dark' ? '#e8e9ea' : undefined)
     return {
       ...minimal,
       colors: {
         ...minimal.colors,
+        ...(textOverride !== undefined && { text: textOverride }),
         ...(fills.locked !== undefined && { nodeFillLocked: fills.locked }),
         ...(fills.unlockable !== undefined && { nodeFillUnlockable: fills.unlockable }),
         ...(fills.unlocked !== undefined && { nodeFillUnlocked: fills.unlocked }),
@@ -480,7 +498,7 @@ export function EditorCanvas({
         ...(fills.inProgress !== undefined && { nodeFillInProgress: fills.inProgress }),
       },
     }
-  }, [themeSpec])
+  }, [themeSpec, chromeTheme])
 
   // Rexións do tema → props do SkillTree. Mesma forma exacta.
   const regions: readonly RegionSpec[] = themeSpec?.regions ?? []

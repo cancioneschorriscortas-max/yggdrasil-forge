@@ -1,5 +1,6 @@
 ---
 '@yggdrasil-forge/editor-react': minor
+'@yggdrasil-forge/editor-core': minor
 ---
 
 feat(editor): tema escuro do chrome + selector claro/escuro (briefing 7.8)
@@ -36,6 +37,33 @@ dockview non usados (abyss/gh/mocha/monokai/nord/sol) ou translúcidas
 por deseño (sash, drag-over, scrollbar), sen risco visual adicional
 sobre o traballo xa feito en 7.5e (grupo/tabs/separadores).
 
-Fóra de alcance (explícito no briefing): logo/iconas novas no TopBar,
+**Fóra de alcance (explícito no briefing):** logo/iconas novas no TopBar,
 texto "Panels" en inglés, lupa de zoom, `prefers-color-scheme`
 automático, refactor do duplicado `shell.css`/`styles.css`.
+
+---
+
+**7.8.1 → 7.8.2 (mesma sub-fase, tras revisión):** o texto dos nodos no
+canvas (label + número de progreso + etiquetas de rexión) collía
+sempre `#222222` do tema base `minimal` de `@yggdrasil-forge/react`,
+sen relación ningunha co tema do chrome — invisible en escuro se o
+documento non define un `ThemeSpec` propio (caso da fixture
+panadeiro).
+
+Primeira pasada (7.8.1) engadiu só unha heurística automática en
+`EditorCanvas` (adiviñar texto claro/escuro segundo `chromeTheme`).
+Correcto pero insuficiente: o autor non tiña forma DIRECTA de fixar a
+cor el mesmo. 7.8.2 completa a peza que faltaba:
+
+- **`ThemeSpec.textColor?: string`** (novo campo, `editor-core`) —
+  control directo do autor sobre a cor de texto/iconas dos nodos.
+- **Prioridade de resolución** en `EditorCanvas`: `textColor` explícito
+  do documento GAÑA sobre a heurística de `chromeTheme`, que só actúa
+  cando o autor non fixou nada.
+- **UI na pestana Tema** (`ThemePanel`): nova fila "Texto e iconas" co
+  mesmo `ColorWidget` que xa usan os recheos por estado, máis un botón
+  "Automático" que aparece só cando hai un valor fixado e o quita
+  (volve á heurística).
+- Tests: prioridade explícito > heurística (en ambas direccións),
+  dispatch do campo, aparición condicional e funcionamento do botón
+  "Automático".
