@@ -4788,3 +4788,28 @@ Curmá de "typecheck ≠ render": aquí é **runtime ≠ formato**.
 
 **Regra.** Antes de deseñar UI para un estado: `schema.safeParse(candidato)` e
 `JSON.parse(JSON.stringify(candidato))` son as dúas portas obrigadas.
+
+### A.6.43 — jsdom non pode probar interacción xeométrica de canvas (convención)
+
+**Contexto.** O mesmo límite apareceu dúas veces: no drag de 7.5b-ii e en
+Engadir/Conectar de 7.11. jsdom **non ten `PointerEvent` como construtor
+global**, `fireEvent.pointerDown` non propaga `clientX`/`clientY`, e non hai
+`getScreenCTM`/`createSVGPoint` reais. Simular clics-en-canvas a nivel de
+compoñente é unha parede, non un atallo pendente: cada intento custou tempo de
+descubrimento para chegar á mesma conclusión.
+
+**Convención (vinculante para futuros briefings).** Os tests de interaccións
+xeométricas de canvas NON se propoñen a nivel de compoñente baixo jsdom. O
+patrón fixo é:
+
+1. A lóxica da interacción vive **headless** (composites/helpers en
+   `@editor-core`) e próbase exhaustivamente alí, con sondas de fluxo.
+2. O compoñente leva unha **nota honesta** no ficheiro de test explicando o
+   límite (precedente: `EditorCanvas.dragFlow.test.ts`).
+3. O xeométrico real (punto de clic, fantasmas, CTM, aneis) verifícase no
+   **gate visual do dono**, que é a porta deseñada para iso — non finxir
+   cobertura que jsdom non pode dar (irmá de A.6.40).
+
+**Regra para o Director.** Ao escribir un briefing con interacción de canvas:
+especificar directamente o reparto headless-exhaustivo + nota + gate visual.
+Non pedir tests de clic a nivel de compoñente.
