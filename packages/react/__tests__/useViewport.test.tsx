@@ -1,7 +1,7 @@
 // ── INICIO: tests useViewport hook (F10.6) ──
 import { act, renderHook } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useViewport } from '../src/hooks/useViewport.js'
 
 const bounds = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
@@ -108,6 +108,73 @@ describe('useViewport — getZoom segue o estado (F10.6)', () => {
       result.current.zoomBy(2)
     })
     expect(result.current.getZoom()).toBe(2)
+  })
+})
+
+describe('★ useViewport — fit on mount dispara UNHA soa vez (fix reportado por un consumidor)', () => {
+  // O bug: deps [bounds, fitOnMount] facían que o efecto (e por tanto
+  // fitRef.current(), agendado vía requestAnimationFrame) se
+  // re-disparase cada vez que `bounds` cambiaba de referencia — non
+  // só ao montar. Espiamos requestAnimationFrame como proxy: se o
+  // fit se agenda máis dunha vez tras varios cambios de bounds, o
+  // bug volveu.
+
+  function useViewportMountTest(bounds: {
+    minX: number
+    minY: number
+    maxX: number
+    maxY: number
+  }) {
+    const ref = useRef<SVGSVGElement>(null) as RefObject<SVGSVGElement | null>
+    return useViewport(ref, bounds, 16, { fitOnMount: true })
+  }
+
+  it('★ cambiar bounds despois de montar NON volve agendar fit()', () => {
+    const rafSpy = vi.spyOn(globalThis, 'requestAnimationFrame')
+    const boundsA = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
+    const { rerender } = renderHook(({ b }) => useViewportMountTest(b), {
+      initialProps: { b: boundsA },
+    })
+    const callsAfterMount = rafSpy.mock.calls.length
+    expect(callsAfterMount).toBeGreaterThanOrEqual(1) // fit agendado UNHA vez ao montar
+
+    // Simula bounds novos (referencia E valores distintos, coma
+    // layoutBounds recalculado tras engadir un nodo).
+    const boundsB = { minX: 0, minY: 0, maxX: 250, maxY: 180 }
+    rerender({ b: boundsB })
+    const boundsC = { minX: 0, minY: 0, maxX: 400, maxY: 300 }
+    rerender({ b: boundsC })
+
+    // Cero chamadas NOVAS a requestAnimationFrame tras o mount.
+    expect(rafSpy.mock.calls.length).toBe(callsAfterMount)
+    rafSpy.mockRestore()
+  })
+
+  it('bounds dexenerados (árbore baleira) ao montar: NON agenda fit', () => {
+    const rafSpy = vi.spyOn(globalThis, 'requestAnimationFrame')
+    const degenerate = { minX: 0, minY: 0, maxX: 0, maxY: 0 }
+    renderHook(() => useViewportMountTest(degenerate))
+    expect(rafSpy.mock.calls.length).toBe(0)
+    rafSpy.mockRestore()
+  })
+
+  it('bounds dexenerados ao montar → state queda en identidade (sen zoom extremo)', () => {
+    const degenerate = { minX: 0, minY: 0, maxX: 0, maxY: 0 }
+    const { result } = renderHook(() => useViewportMountTest(degenerate))
+    expect(result.current.state).toEqual({ panX: 0, panY: 0, zoom: 1 })
+  })
+
+  it('fit() manual (baixo demanda) segue funcionando despois do fix', () => {
+    const { result } = renderHook(() =>
+      useViewportMountTest({ minX: 0, minY: 0, maxX: 100, maxY: 100 }),
+    )
+    expect(typeof result.current.fit).toBe('function')
+    // svg.current é null en jsdom (sen <svg> real montado) — fit() é
+    // no-op defensivo, pero o contrato (función callable, sen throw)
+    // segue intacto.
+    act(() => {
+      result.current.fit()
+    })
   })
 })
 // ── FIN: tests useViewport hook ──

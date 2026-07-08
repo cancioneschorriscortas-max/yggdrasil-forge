@@ -368,9 +368,42 @@ export function useViewport(
     fitRef.current = fit
   }, [fit])
 
+  // **Fix (reportado por un consumidor, F12.x)**: o nome "fit on mount"
+  // prometía disparar UNHA vez, pero as deps `[bounds, fitOnMount]`
+  // facían que se re-disparase cada vez que `bounds` cambiaba de
+  // referencia — en consumidores sen `coordinateBounds` explícito
+  // (onde `bounds` = layout bounds, recalculados en cada edición),
+  // iso resetaba o pan/zoom interactivo a cada cambio estrutural
+  // (ex. engadir un nodo), perdendo calquera axuste manual do
+  // usuario. `hasFittedRef` garante que `fit()` se chama COMO MOITO
+  // unha vez na vida do hook — se `bounds` non está dispoñible aínda
+  // no primeiro render, o efecto sponta agarda (deps aínda inclúen
+  // `bounds` para reaccionar a esa transición inicial undefined→
+  // definido), pero unha vez fitted (con éxito OU por bounds
+  // dexenerados), nunca máis volve chamar `fit()`.
+  //
+  // **Bounds dexenerados** (ex. árbore baleira → {minX:0,minY:0,
+  // maxX:0,maxY:0}, largo/alto 0): NON fit — deixar o viewport por
+  // defecto (identidade) en vez de encadrar un box de tamaño cero
+  // (que produciría un zoom extremo). Igual se marca como "xa
+  // fitted" para non reintentar: é o comportamento agardado dun
+  // documento baleiro, non un estado transitorio a resolver despois.
+  //
+  // Para quen queira reencadrar baixo demanda (ex. tras engadir
+  // moitos nodos), o contrato xa existe: `fit()` no valor de retorno.
+  const hasFittedRef = useRef(false)
   useEffect(() => {
     if (!fitOnMount) return undefined
+    if (hasFittedRef.current) return undefined
     if (bounds === undefined) return undefined
+
+    const isDegenerate = bounds.maxX - bounds.minX <= 0 || bounds.maxY - bounds.minY <= 0
+    if (isDegenerate) {
+      hasFittedRef.current = true
+      return undefined
+    }
+
+    hasFittedRef.current = true
     // Esperamos un tick para garantir que o <svg> está montado coas
     // dimensións finais. requestAnimationFrame é máis fiable que
     // setTimeout(0) en navegadores reais; en jsdom degrada a no-op.

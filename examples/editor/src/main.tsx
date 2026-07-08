@@ -16,6 +16,7 @@
 
 import type { TreeDef } from '@yggdrasil-forge/core'
 import {
+  type DocumentMeta,
   type EditorDocument,
   EditorEngine,
   createDefaultValidators,
@@ -107,6 +108,21 @@ function emptyTreeDef(): TreeDef {
   } as TreeDef
 }
 
+/**
+ * **Fix (reportado polo dono, xunto co fix de fit-on-mount en
+ * @yggdrasil-forge/react)**: sen `coordinateBounds` explícito, o
+ * `viewBox` do SkillTree segue `layoutBounds` — recalculado en CADA
+ * edición a partir das posicións reais dos nodos. Nunha árbore
+ * baleira/nova, iso significa que o `viewBox` (e por tanto o "zoom"
+ * percibido) medra/encolle cada vez que engades un nodo, aínda que o
+ * fix de `useViewport` xa non che resete o pan/zoom manual. Fornecer
+ * un `coordinateBounds` fixo (mesmo patrón que xa usa `panadeiroDocumentMeta`)
+ * estabiliza a vista mentres constrúes.
+ */
+const emptyDocumentMeta: Partial<DocumentMeta> = {
+  coordinateBounds: { minX: -200, minY: -200, maxX: 200, maxY: 200 },
+}
+
 function buildEngine(doc: EditorDocument): EditorEngine {
   // ★ 7.5c-ii: rexistrar os soft validators para que o ProblemsPanel
   // reciba warnings (asymmetricExclusion, prerequisiteCycle,
@@ -146,7 +162,7 @@ function App(): JSX.Element {
     if (!window.confirm('Substituír o documento actual? O que non exportaras perderase.')) {
       return
     }
-    replaceDocument(createEditorDocument(emptyTreeDef()))
+    replaceDocument(createEditorDocument(emptyTreeDef(), emptyDocumentMeta))
   }, [replaceDocument])
 
   const handleExport = useCallback(() => {
