@@ -61,6 +61,16 @@ export interface EditorShellProps {
   readonly theme?: 'light' | 'dark'
   /** Chamado co novo tema cando o usuario clica o switch do TopBar. */
   readonly onThemeChange?: (theme: 'light' | 'dark') => void
+  /**
+   * Accións de documento (7.10): Novo/Importar/Exportar. Controlado
+   * desde a app — EditorShell NON fai I/O, só reenvía ao TopBar. Se
+   * non se pasa, o menú Ficheiro non se renderiza.
+   */
+  readonly documentActions?: {
+    readonly onNew?: () => void
+    readonly onImport?: () => void
+    readonly onExport?: () => void
+  }
 }
 
 export function EditorShell({
@@ -71,6 +81,7 @@ export function EditorShell({
   onLayoutInvalid,
   theme,
   onThemeChange,
+  documentActions,
 }: EditorShellProps): JSX.Element {
   const { mode, toggleMode } = useEditorMode(initialMode)
   const probaSession = useProbaSession(engine, mode)
@@ -166,6 +177,7 @@ export function EditorShell({
         onResetLayout={handleResetLayout}
         {...(theme !== undefined && { theme })}
         {...(onThemeChange !== undefined && { onThemeChange })}
+        {...(documentActions !== undefined && { documentActions })}
       />
       <div className="editor-workspace">
         <PanelHost

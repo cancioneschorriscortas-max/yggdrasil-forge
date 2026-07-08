@@ -1,28 +1,33 @@
 // ── INICIO: examples/editor/main.tsx ──
-// App runnable que monta o EditorShell coa fixture panadeiro cargada
-// como DATO (non como engine baked-in). Iso é o que pide o briefing
-// 7.5b-i: o canvas aparece pintando un documento real, para que se
-// poida verificar o render + pan/zoom + selección por clic.
+// App runnable que monta o EditorShell. Desde 7.10, o editor pasa de
+// demo (fixture cableada, morre co F5) a ferramenta real: Novo /
+// Importar / Exportar en JSON local, sen backend.
 //
 // **Principio A.6**: o editor é unha ferramenta sobre dato, non
 // contén dato. O paquete @yggdrasil-forge/editor-react non importa
 // fixture ningún; é a APP a que decide que documento abrir.
 //
-// **Cando exista un menú File → Open example** (decisión de
-// Arquitecto), esta inicialización substituirase por unha pantalla
-// de bienvenida ou un cargador de exemplos. Mentres tanto, panadeiro
-// é o exemplo por defecto para o desenvolvedor ver a UI funcionando.
+// **7.10**: o motor xa non se crea a nivel de módulo — vive en
+// estado de React (`useState`), porque substituír o documento
+// (Novo/Importar) require un `EditorEngine` novo. O remount
+// (`key={docEpoch}`) garante que selección, undo e sesión de proba
+// nacen limpos co documento novo; a disposición de paneis NON se
+// perde (persiste en localStorage por 7.7, independente do motor).
 
+import type { TreeDef } from '@yggdrasil-forge/core'
 import {
+  type EditorDocument,
   EditorEngine,
   createDefaultValidators,
   createEditorDocument,
+  deserializeDocument,
+  toJson,
 } from '@yggdrasil-forge/editor-core'
 import { EditorShell } from '@yggdrasil-forge/editor-react'
 import 'dockview-react/dist/styles/dockview.css'
 import '@yggdrasil-forge/editor-react/styles.css'
 import type { SerializedDockview } from 'dockview-react'
-import { type JSX, StrictMode, useCallback, useEffect, useMemo, useState } from 'react'
+import { type JSX, StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { panadeiroDocumentMeta, panadeiroTree } from './fixtures/panadeiro.js'
 
@@ -74,17 +79,41 @@ function loadTheme(): EditorTheme {
   }
 }
 
-// Carga panadeiro como dato + coordinateBounds para que a status bar
-// amose "World W×H" e o SkillTree fit-on-mount encadre ben, e o
-// tema por defecto (7.5e §5) que aplica preset "tintado" + rexión pan.
-const doc = createEditorDocument(panadeiroTree, panadeiroDocumentMeta)
-// ★ 7.5c-ii: rexistrar os soft validators para que o ProblemsPanel
-// reciba warnings (asymmetricExclusion, prerequisiteCycle,
-// layoutOverflow, unsupportedFeature). Os duros (structural,
-// uniqueIds, referentialIntegrity) xa están incluídos polo engine.
-const engine = new EditorEngine(doc, {
-  validators: createDefaultValidators(),
-})
+// ── 7.10 — motor + I/O de documento ──
+
+/** Documento panadeiro por defecto (o mesmo que antes de 7.10). */
+function loadDefaultDocument(): EditorDocument {
+  // Carga panadeiro como dato + coordinateBounds para que a status bar
+  // amose "World W×H" e o SkillTree fit-on-mount encadre ben, e o
+  // tema por defecto (7.5e §5) que aplica preset "tintado" + rexión pan.
+  return createEditorDocument(panadeiroTree, panadeiroDocumentMeta)
+}
+
+/**
+ * Árbore baleira para "Novo". Campos mínimos confirmados polo probe
+ * A.6.42 (briefing 7.10, Cambio 3): `nodes`/`edges` sen mínimo no
+ * schema, pero `id`/`schemaVersion`/`version`/`label`/`layout.type`
+ * son obrigatorios.
+ */
+function emptyTreeDef(): TreeDef {
+  return {
+    id: 'nova-arbore',
+    schemaVersion: '1.0.0',
+    version: '1.0.0',
+    label: { gl: 'Nova árbore' },
+    nodes: [],
+    edges: [],
+    layout: { type: 'custom' },
+  } as TreeDef
+}
+
+function buildEngine(doc: EditorDocument): EditorEngine {
+  // ★ 7.5c-ii: rexistrar os soft validators para que o ProblemsPanel
+  // reciba warnings (asymmetricExclusion, prerequisiteCycle,
+  // layoutOverflow, unsupportedFeature). Os duros (structural,
+  // uniqueIds, referentialIntegrity) xa están incluídos polo engine.
+  return new EditorEngine(doc, { validators: createDefaultValidators() })
+}
 
 function App(): JSX.Element {
   const initialLayout = useMemo(() => loadLayout(), [])
@@ -103,15 +132,94 @@ function App(): JSX.Element {
   }, [theme])
   const onThemeChange = useCallback((t: EditorTheme) => setTheme(t), [])
 
+  // ── 7.10 — motor en estado + remount por docEpoch ──
+  const [engine, setEngine] = useState<EditorEngine>(() => buildEngine(loadDefaultDocument()))
+  const [docEpoch, setDocEpoch] = useState(0)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  const replaceDocument = useCallback((doc: EditorDocument) => {
+    setEngine(buildEngine(doc))
+    setDocEpoch((n) => n + 1)
+  }, [])
+
+  const handleNew = useCallback(() => {
+    if (!window.confirm('Substituír o documento actual? O que non exportaras perderase.')) {
+      return
+    }
+    replaceDocument(createEditorDocument(emptyTreeDef()))
+  }, [replaceDocument])
+
+  const handleExport = useCallback(() => {
+    const doc = engine.getDocument()
+    const json = toJson(doc)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${doc.tree.id || 'arbore'}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [engine])
+
+  const handleImportClick = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      // Sempre limpar o input, para poder re-importar o MESMO ficheiro
+      // dúas veces seguidas (o navegador non dispara 'change' se o
+      // valor non cambia).
+      e.target.value = ''
+      if (file === undefined) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        const text = typeof reader.result === 'string' ? reader.result : ''
+        const restored = deserializeDocument(text)
+        if (!restored.ok) {
+          window.alert(`Non se puido importar: ${restored.error.message}`)
+          return
+        }
+        if (!window.confirm('Substituír o documento actual? O que non exportaras perderase.')) {
+          return
+        }
+        replaceDocument(restored.value)
+      }
+      reader.onerror = () => {
+        window.alert('Non se puido importar: erro lendo o ficheiro.')
+      }
+      reader.readAsText(file)
+    },
+    [replaceDocument],
+  )
+
   return (
-    <EditorShell
-      engine={engine}
-      {...(initialLayout !== undefined && { initialLayout })}
-      onLayoutChange={onLayoutChange}
-      onLayoutInvalid={onLayoutInvalid}
-      theme={theme}
-      onThemeChange={onThemeChange}
-    />
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+      <EditorShell
+        key={docEpoch}
+        engine={engine}
+        {...(initialLayout !== undefined && { initialLayout })}
+        onLayoutChange={onLayoutChange}
+        onLayoutInvalid={onLayoutInvalid}
+        theme={theme}
+        onThemeChange={onThemeChange}
+        documentActions={{
+          onNew: handleNew,
+          onImport: handleImportClick,
+          onExport: handleExport,
+        }}
+      />
+    </>
   )
 }
 

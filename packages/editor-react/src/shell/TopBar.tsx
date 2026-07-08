@@ -13,6 +13,7 @@ import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useCallback, useSyncExternalStore } from 'react'
 import type { PanelDef } from '../panels/PanelHost.js'
 import { PROBA_STRINGS, pickLoc } from '../proba/probaStrings.js'
+import { FileMenu } from './FileMenu.js'
 import { PanelsMenu } from './PanelsMenu.js'
 import type { EditorMode } from './useEditorMode.js'
 
@@ -35,6 +36,16 @@ export interface TopBarProps {
   readonly theme?: 'light' | 'dark'
   /** Chamado co tema oposto ao actual cando o usuario clica o switch. */
   readonly onThemeChange?: (theme: 'light' | 'dark') => void
+  /**
+   * Accións de documento (7.10): Novo/Importar/Exportar. Controlado
+   * desde a app — a biblioteca non fai I/O. Se non se pasa (ou non
+   * ten ningunha entrada definida), o menú Ficheiro non se renderiza.
+   */
+  readonly documentActions?: {
+    readonly onNew?: () => void
+    readonly onImport?: () => void
+    readonly onExport?: () => void
+  }
 }
 
 export function TopBar({
@@ -47,6 +58,7 @@ export function TopBar({
   onResetLayout,
   theme,
   onThemeChange,
+  documentActions,
 }: TopBarProps): JSX.Element {
   // Re-render en cada commit (canUndo/canRedo cambian).
   useSyncExternalStore(
@@ -72,6 +84,27 @@ export function TopBar({
       </div>
 
       <div className="editor-topbar__divider" />
+
+      {/* Menú Ficheiro (7.10): Novo/Importar/Exportar, antes de Paneis. */}
+      {documentActions !== undefined &&
+        (documentActions.onNew !== undefined ||
+          documentActions.onImport !== undefined ||
+          documentActions.onExport !== undefined) && (
+          <>
+            <div className="editor-topbar__section" aria-label="ficheiro">
+              <FileMenu
+                {...(documentActions.onNew !== undefined && { onNew: documentActions.onNew })}
+                {...(documentActions.onImport !== undefined && {
+                  onImport: documentActions.onImport,
+                })}
+                {...(documentActions.onExport !== undefined && {
+                  onExport: documentActions.onExport,
+                })}
+              />
+            </div>
+            <div className="editor-topbar__divider" />
+          </>
+        )}
 
       {/* Menú Paneis (7.7 §1): dropdown con visibilidade + Restaurar. */}
       <div className="editor-topbar__section" aria-label="paneis">
