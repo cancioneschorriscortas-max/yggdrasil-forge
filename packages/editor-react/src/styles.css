@@ -1320,6 +1320,14 @@
   position: relative;
   display: inline-block;
 }
+/* ── FileMenu (7.10) — mesmo ancoraxe que PanelsMenu; reutiliza a
+   lista despregable (.editor-topbar__panels-menu-list) que xa é
+   `position: absolute`, así que precisa este `position: relative`
+   propio para non ancorarse a un ancestro afastado. ── */
+.editor-topbar__file-menu {
+  position: relative;
+  display: inline-block;
+}
 .editor-topbar__panels-menu-list {
   position: absolute;
   top: calc(100% + 4px);
