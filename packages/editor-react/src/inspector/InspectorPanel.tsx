@@ -18,6 +18,7 @@ import {
 } from '@yggdrasil-forge/editor-core'
 import { type JSX, useCallback, useRef, useSyncExternalStore } from 'react'
 import { AdvancedSection } from './AdvancedSection.js'
+import { TreeInspector } from './TreeInspector.js'
 import { StructuredEditor } from './structured/StructuredEditor.js'
 import { CheckboxWidget } from './widgets/CheckboxWidget.js'
 import { ColorWidget } from './widgets/ColorWidget.js'
@@ -68,13 +69,7 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
   const nodeRefs = selectedRefs.filter((r) => r.kind === 'node')
 
   if (nodeRefs.length === 0) {
-    return (
-      <div className="editor-inspector editor-inspector--empty">
-        <p className="editor-inspector__hint">
-          Selecciona un nodo para editar as súas propiedades.
-        </p>
-      </div>
-    )
+    return <TreeInspector editorEngine={editorEngine} />
   }
 
   if (nodeRefs.length > 1) {

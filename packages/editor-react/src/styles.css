@@ -433,6 +433,15 @@
   font-size: var(--editor-font-size-md);
   color: var(--editor-accent);
 }
+.editor-inspector__header--tree {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.editor-inspector__tree-subtitle {
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+}
 .editor-inspector__group {
   display: flex;
   flex-direction: column;
@@ -621,6 +630,53 @@
   align-items: center;
   font-size: var(--editor-font-size-xs);
   color: var(--editor-text-secondary);
+}
+
+/* ── ResourcesEditor (7.12) — filas-tarxeta, máis altas ca as filas
+   planas de CostEditor (varios campos apilados por recurso). ── */
+.editor-resources-editor__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.editor-resources-editor__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--editor-bg-elevated);
+  border: var(--editor-border-width) solid var(--editor-border-subtle);
+  border-radius: var(--editor-radius-sm);
+}
+.editor-resources-editor__row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.editor-resources-editor__row-id {
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+}
+.editor-resources-editor__row-numbers {
+  display: flex;
+  gap: 8px;
+}
+.editor-resources-editor__row-numbers .editor-inspector__field {
+  flex: 1;
+}
+.editor-resources-editor__row-remove {
+  background: transparent;
+  border: var(--editor-border-width) solid var(--editor-border);
+  color: var(--editor-text-secondary);
+  border-radius: var(--editor-radius-sm);
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: var(--editor-font-size-xs);
+}
+.editor-resources-editor__row-remove:hover {
+  border-color: var(--editor-accent);
+  color: var(--editor-accent);
 }
 
 /* ── ProblemsPanel real (7.5c-ii) ── */

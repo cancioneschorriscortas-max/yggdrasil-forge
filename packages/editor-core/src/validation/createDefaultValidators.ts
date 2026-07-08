@@ -1,5 +1,5 @@
 // ── INICIO: createDefaultValidators ──
-// Set por defecto = os 3 duros (error, bloquean) + os 4 soft
+// Set por defecto = os 3 duros (error, bloquean) + os 5 soft
 // (warning/info, non bloquean). O EditorEngine pode arrancar con:
 //
 //   new EditorEngine(doc, { validators: createDefaultValidators() })
@@ -14,12 +14,13 @@
 
 import type { Validator } from './Validator.js'
 import { asymmetricExclusionValidator } from './soft/asymmetricExclusionValidator.js'
+import { danglingResourceRefsValidator } from './soft/danglingResourceRefsValidator.js'
 import { layoutOverflowValidator } from './soft/layoutOverflowValidator.js'
 import { prerequisiteCycleValidator } from './soft/prerequisiteCycleValidator.js'
 import { unsupportedFeatureValidator } from './soft/unsupportedFeatureValidator.js'
 
 /**
- * Devolve os 4 validadores soft por defecto. **Os 3 duros engádeos
+ * Devolve os 5 validadores soft por defecto. **Os 3 duros engádeos
  * o EditorEngine automaticamente** — non os incluas tamén aquí ou
  * correrían dúas veces.
  */
@@ -29,6 +30,7 @@ export function createDefaultValidators(): readonly Validator[] {
     prerequisiteCycleValidator,
     layoutOverflowValidator,
     unsupportedFeatureValidator,
+    danglingResourceRefsValidator,
   ]
 }
 // ── FIN: createDefaultValidators ──

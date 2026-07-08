@@ -35,10 +35,11 @@ function buildEngine(): EditorEngine {
 }
 
 describe('InspectorPanel — modos de selección', () => {
-  it('amosa hint cando non hai nada seleccionado', () => {
+  it('★ 7.12: amosa o Inspector de árbore (non un hint) cando non hai nada seleccionado', () => {
     const engine = buildEngine()
     render(<InspectorPanel editorEngine={engine} />)
-    expect(screen.getByText(/Selecciona un nodo/i)).toBeDefined()
+    expect(screen.getByText('Propiedades da árbore')).toBeDefined()
+    expect(screen.queryByText(/Selecciona un nodo/i)).toBeNull()
   })
 
   it('renderiza widgets do nodo seleccionado tras replace', () => {

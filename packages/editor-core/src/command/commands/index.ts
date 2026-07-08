@@ -10,7 +10,7 @@
 // Mutar o draft é o **único** efecto permitido.
 
 import type { LocalizedString } from '@yggdrasil-forge/common'
-import type { EdgeDef, NodeDef, Position } from '@yggdrasil-forge/core'
+import type { EdgeDef, NodeDef, Position, TreeDef } from '@yggdrasil-forge/core'
 import { castDraft } from 'immer'
 import type { DocumentMeta } from '../../document/EditorDocument.js'
 import type { Command } from '../Command.js'
@@ -131,6 +131,37 @@ export function setMetaField<K extends keyof DocumentMeta>(
       // O cast é necesario por exactOptionalPropertyTypes + readonly;
       // queda interno ao Command (mesmo padrón que setNodeField).
       ;(draft.meta as Record<string, unknown>)[field as string] = castDraft(value) as unknown
+    },
+  }
+}
+/**
+ * Cambia un campo de `tree` do documento (7.12).
+ *
+ * **Espello tipado de `setMetaField`/`setNodeField`** pero para
+ * `TreeDef`. Cobre identidade (label/description/author/version) E
+ * `resources` — arrays inmutables novos por commit, undo natural.
+ * A UI decide que expón (Inspector de árbore); `nodes`/`edges` quedan
+ * tecnicamente accesibles (mesmo precedente que `id` en
+ * `setNodeField`) pero teñen os seus propios comandos e a UI non os
+ * expón por aquí.
+ *
+ * O `field: K extends keyof TreeDef` **exclúe** propiedades opcionais
+ * sen valor (se `K` non se pode "asignar" a un opcional, TS falla en
+ * compile). Para setear a `undefined` (equivalente a "quitar" o
+ * campo, ex. `description`), pasar `undefined` explícito no `value`.
+ */
+export function setTreeField<K extends keyof TreeDef>(
+  field: K,
+  value: TreeDef[K],
+  label?: LocalizedString,
+): Command {
+  return {
+    type: 'setTreeField',
+    ...(label !== undefined && { label }),
+    mutate(draft) {
+      // O cast é necesario por exactOptionalPropertyTypes + readonly;
+      // queda interno ao Command (mesmo padrón que setNodeField/setMetaField).
+      ;(draft.tree as Record<string, unknown>)[field as string] = castDraft(value) as unknown
     },
   }
 }

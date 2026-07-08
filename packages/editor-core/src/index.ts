@@ -37,6 +37,7 @@ export {
   removeNode,
   setMetaField,
   setNodeField,
+  setTreeField,
 } from './command/commands/index.js'
 // Composites de creación/borrado (7.11)
 export {
@@ -57,6 +58,7 @@ export { uniqueIdsValidator } from './validation/uniqueIdsValidator.js'
 export { referentialIntegrityValidator } from './validation/referentialIntegrityValidator.js'
 // Soft validators (7.4): non-bloqueantes (warning/info).
 export { asymmetricExclusionValidator } from './validation/soft/asymmetricExclusionValidator.js'
+export { danglingResourceRefsValidator } from './validation/soft/danglingResourceRefsValidator.js'
 export { layoutOverflowValidator } from './validation/soft/layoutOverflowValidator.js'
 export { prerequisiteCycleValidator } from './validation/soft/prerequisiteCycleValidator.js'
 export { unsupportedFeatureValidator } from './validation/soft/unsupportedFeatureValidator.js'
@@ -102,6 +104,9 @@ export {
   NODE_TYPE_OPTIONS,
   NODE_SHAPE_OPTIONS,
 } from './property/nodePropertyRegistry.js'
+// ── Property Registry de árbore (7.12) ──
+export type { TreePropertyDescriptor } from './property/treePropertyRegistry.js'
+export { treePropertyRegistry } from './property/treePropertyRegistry.js'
 // ── Gate manifesto ↔ descriptor (7.5c-ii) ──
 export {
   authorableEffectTypes,

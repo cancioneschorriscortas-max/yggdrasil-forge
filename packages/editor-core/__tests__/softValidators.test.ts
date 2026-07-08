@@ -188,9 +188,9 @@ describe('unsupportedFeatureValidator', () => {
 })
 
 describe('createDefaultValidators — integración co EditorEngine', () => {
-  it('devolve os 4 soft validators (non duplica os duros)', () => {
+  it('devolve os 5 soft validators (non duplica os duros)', () => {
     const validators = createDefaultValidators()
-    expect(validators.length).toBe(4)
+    expect(validators.length).toBe(5)
   })
 
   it('commit con dato asimétrico: ok (non bloquea), warning en getIssues()', () => {
