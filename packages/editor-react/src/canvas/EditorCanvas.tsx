@@ -36,6 +36,10 @@ import {
   type Operation,
   type SelectionRef,
   type ThemeSpec,
+  addNode,
+  buildConnect,
+  buildNewNode,
+  buildRemoveCascade,
   createMoveOperation,
 } from '@yggdrasil-forge/editor-core'
 import {
@@ -59,6 +63,7 @@ import {
 } from 'react'
 import type { ProbaSession } from '../proba/useProbaSession.js'
 import { CanvasOverlay, type OverlayRectPx } from './CanvasOverlay.js'
+import { type CanvasTool, CanvasToolbar } from './CanvasToolbar.js'
 import { hitTestNode, nodesInRect } from './internals/hitTest.js'
 import {
   IDLE,
@@ -219,6 +224,17 @@ export function EditorCanvas({
   >(undefined)
   const [marqueeRectPx, setMarqueeRectPx] = useState<OverlayRectPx | undefined>(undefined)
 
+  // ── 7.11 — barra de ferramentas ──
+  const [tool, setTool] = useState<CanvasTool>('select')
+  // Persiste durante a sesión (non se reinicia ao trocar de tool nin
+  // ao conectar); por defecto marcado, tal como pide o briefing.
+  const [createPrerequisite, setCreatePrerequisite] = useState(true)
+  // Posición do cursor (doc-space) mentres a tool Conectar ten un
+  // primeiro clic feito. undefined = sen conexión en curso.
+  const [connectCursorDoc, setConnectCursorDoc] = useState<{ x: number; y: number } | undefined>(
+    undefined,
+  )
+
   // ── Conversión: positions canónicas dos nodos (para o Overlay) ──
   const nodePositions = useMemo(() => {
     const m = new Map<string, { x: number; y: number }>()
@@ -266,6 +282,58 @@ export function EditorCanvas({
         return
       }
 
+      // ── 7.11 — tool Engadir nodo ──
+      // Clic sobre nodo existente: só selecciona (evita solapado
+      // accidental). Clic en baleiro: crea o nodo aí mesmo.
+      if (tool === 'add') {
+        e.stopPropagation()
+        if (hit !== null) {
+          editorEngine.getSession().selection.replace([hit])
+          return
+        }
+        const newNode = buildNewNode(editorEngine.getDocument(), docPoint)
+        const result = editorEngine.transaction({ en: 'Add node', gl: 'Engadir nodo' }, (tx) =>
+          tx.apply(addNode(newNode)),
+        )
+        if (result.ok) {
+          editorEngine.getSession().selection.replace([{ kind: 'node', id: newNode.id }])
+        }
+        return
+      }
+
+      // ── 7.11 — tool Conectar ──
+      // Primeiro clic (nun nodo): arranca a fantasma. Segundo clic
+      // (noutro nodo): despacha buildConnect e remata. Clic en
+      // baleiro mentres conecta: cancela.
+      if (tool === 'connect') {
+        const state = pointerStateRef.current
+        if (state.kind === 'connecting') {
+          e.stopPropagation()
+          if (hit !== null) {
+            const cmds = buildConnect(editorEngine.getDocument(), state.sourceId, hit.id, {
+              withPrerequisite: createPrerequisite,
+            })
+            if (cmds.length > 0) {
+              editorEngine.transaction({ en: 'Connect', gl: 'Conectar' }, (tx) => {
+                for (const c of cmds) tx.apply(c)
+              })
+            }
+          }
+          pointerStateRef.current = IDLE
+          setConnectCursorDoc(undefined)
+          return
+        }
+        if (hit !== null) {
+          e.stopPropagation()
+          pointerStateRef.current = { kind: 'connecting', sourceId: hit.id }
+          setConnectCursorDoc(docPoint)
+          return
+        }
+        // Clic en baleiro sen conexión en curso: nada especial.
+        return
+      }
+
+      // ── tool Seleccionar (comportamento orixinal 7.5b-ii) ──
       if (hit !== null) {
         // Sobre un nodo: o editor xestiona. Bloqueamos a propagación para
         // que o SkillTree NON inicie pan.
@@ -308,7 +376,7 @@ export function EditorCanvas({
       editorEngine.getSession().selection.clear()
       // NON stopPropagation: deixa que o SkillTree inicie pan.
     },
-    [ctmEl, doc, containerRect, editorEngine, inProba],
+    [ctmEl, doc, containerRect, editorEngine, inProba, tool, createPrerequisite],
   )
 
   const handlePointerMove = useCallback(
@@ -316,6 +384,13 @@ export function EditorCanvas({
       if (ctmEl === null) return
       if (inProba) return
       const state = pointerStateRef.current
+
+      if (state.kind === 'connecting') {
+        const docPoint = screenToDoc(ctmEl, { x: e.clientX, y: e.clientY })
+        if (docPoint === null) return
+        setConnectCursorDoc(docPoint)
+        return
+      }
 
       if (state.kind === 'pressed-node') {
         if (!exceededDragThreshold(state.startScreenX, state.startScreenY, e.clientX, e.clientY)) {
@@ -435,25 +510,88 @@ export function EditorCanvas({
     [editorEngine, doc, commitOperation, inProba],
   )
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      const state = pointerStateRef.current
-      // Calquera estado activo (pressed-node / dragging / marquee) →
-      // restablece a idle. Antes só se cubrían dragging e marquee, o que
-      // deixaba o pipeline en pressed-node se o usuario premía Escape
-      // tras pointerdown sen mover; o seguinte pointermove tentaría
-      // iniciar drag desde un startDoc xa irrelevante. Agora limpamos sempre.
-      if (state.kind === 'dragging') {
-        state.operation.cancel()
-        setGhostPositions(undefined)
-      } else if (state.kind === 'marquee') {
-        setMarqueeRectPx(undefined)
-      }
-      if (state.kind !== 'idle') {
-        pointerStateRef.current = IDLE
-      }
+  // ── 7.11 — reset do estado de punteiro + cambio de tool ──
+  // Compartido entre Esc, atallos de teclado e clics na toolbar: trocar
+  // de tool a media xesto (drag/marquee/connecting) debe cancelar ese
+  // xesto sempre, ou queda "pillado" (ex. liña fantasma que non
+  // desaparece se saltas de Conectar a Seleccionar por atallo sen
+  // pasar por Esc).
+  const resetPointerState = useCallback(() => {
+    const state = pointerStateRef.current
+    if (state.kind === 'dragging') {
+      state.operation.cancel()
+      setGhostPositions(undefined)
+    } else if (state.kind === 'marquee') {
+      setMarqueeRectPx(undefined)
+    } else if (state.kind === 'connecting') {
+      setConnectCursorDoc(undefined)
+    }
+    if (state.kind !== 'idle') {
+      pointerStateRef.current = IDLE
     }
   }, [])
+  const changeTool = useCallback(
+    (t: CanvasTool) => {
+      resetPointerState()
+      setTool(t)
+    },
+    [resetPointerState],
+  )
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      // Non interceptar mentres se escribe nun campo de texto (ex.
+      // nome do nodo no Inspector, cor de tema): "n"/"c"/"v" son
+      // letras normais aí.
+      const target = e.target as HTMLElement | null
+      const isTyping =
+        target !== null &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+
+      if (e.key === 'Escape') {
+        resetPointerState()
+        // 7.11: Esc volve sempre a Seleccionar (só ten sentido en
+        // Autoría — a toolbar nin sequera se renderiza en Proba).
+        if (!inProba) setTool('select')
+        return
+      }
+
+      if (inProba || isTyping) return
+
+      // 7.11: atallos de tool.
+      if (e.key === 'v' || e.key === 'V') {
+        changeTool('select')
+        return
+      }
+      if (e.key === 'n' || e.key === 'N') {
+        changeTool('add')
+        return
+      }
+      if (e.key === 'c' || e.key === 'C') {
+        changeTool('connect')
+        return
+      }
+
+      // 7.11: Supr/Delete — borrado con cascada da selección actual
+      // (só con tool Seleccionar; noutras tools non hai selección de
+      // arestas nin sentido de "borrar" no medio dun xesto).
+      if (e.key === 'Delete' && tool === 'select') {
+        const selection = editorEngine.getSession().selection
+        const refs = selection.current()
+        const nodeIds = refs.filter((r) => r.kind === 'node').map((r) => r.id)
+        const edgeIds = refs.filter((r) => r.kind === 'edge').map((r) => r.id)
+        if (nodeIds.length === 0 && edgeIds.length === 0) return
+        const cmds = buildRemoveCascade(editorEngine.getDocument(), nodeIds, edgeIds)
+        if (cmds.length > 0) {
+          editorEngine.transaction({ en: 'Delete', gl: 'Eliminar' }, (tx) => {
+            for (const c of cmds) tx.apply(c)
+          })
+          selection.clear()
+        }
+      }
+    },
+    [inProba, tool, editorEngine, resetPointerState, changeTool],
+  )
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -513,6 +651,18 @@ export function EditorCanvas({
   // consuma (banked).
   const backgroundImage: string | undefined = background?.src
 
+  // ── 7.11 — liña fantasma da tool Conectar (doc-space) ──
+  const connectLine = useMemo(() => {
+    const state = pointerStateRef.current
+    if (state.kind !== 'connecting' || connectCursorDoc === undefined) return undefined
+    const sourcePos = nodePositions.get(state.sourceId)
+    if (sourcePos === undefined) return undefined
+    return { from: sourcePos, to: connectCursorDoc }
+    // pointerStateRef non dispara re-render por si só; connectCursorDoc
+    // SI (é o que muda en cada pointermove mentres se conecta), así que
+    // vale como dep para recalcular isto en cada frame relevante.
+  }, [connectCursorDoc, nodePositions])
+
   return (
     <div
       ref={containerRef}
@@ -540,7 +690,16 @@ export function EditorCanvas({
         viewportVersion={viewportVersion}
         {...(ghostPositions !== undefined && { ghosts: ghostPositions })}
         {...(marqueeRectPx !== undefined && { marqueeRect: marqueeRectPx })}
+        {...(connectLine !== undefined && { connectLine })}
       />
+      {!inProba && (
+        <CanvasToolbar
+          tool={tool}
+          onToolChange={changeTool}
+          createPrerequisite={createPrerequisite}
+          onCreatePrerequisiteChange={setCreatePrerequisite}
+        />
+      )}
     </div>
   )
 }

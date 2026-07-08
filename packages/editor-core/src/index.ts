@@ -38,6 +38,13 @@ export {
   setMetaField,
   setNodeField,
 } from './command/commands/index.js'
+// Composites de creación/borrado (7.11)
+export {
+  buildConnect,
+  buildNewNode,
+  buildRemoveCascade,
+  nextFreeId,
+} from './command/composites.js'
 export {
   type Severity,
   type ValidationIssue,

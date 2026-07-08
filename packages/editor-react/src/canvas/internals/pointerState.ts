@@ -39,6 +39,12 @@ export interface Modifiers {
  * - `dragging`: drag confirmado; hai Operation activa que se actualiza
  *   en cada pointermove.
  * - `marquee`: shift-drag sobre baleiro; rect sendo construído.
+ * - `connecting` (7.11): tool Conectar, primeiro clic feito (nun
+ *   nodo orixe); agardando o segundo clic (destino) ou Esc/clic en
+ *   baleiro para cancelar. A posición do cursor (para a liña
+ *   fantasma) vive en estado de React separado (non aquí), coma
+ *   ghosts/marqueeRect — este ref só garda o que os handlers
+ *   precisan saber SINCRONAMENTE.
  */
 export type PointerState =
   | { readonly kind: 'idle' }
@@ -59,6 +65,10 @@ export type PointerState =
       readonly startDoc: Position
       readonly currentDoc: Position
       readonly additive: boolean
+    }
+  | {
+      readonly kind: 'connecting'
+      readonly sourceId: string
     }
 
 export const IDLE: PointerState = { kind: 'idle' }

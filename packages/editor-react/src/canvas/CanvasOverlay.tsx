@@ -52,6 +52,12 @@ export interface CanvasOverlayProps {
   /** Marquee rect en screen-space (relativo ao contedor). */
   readonly marqueeRect?: OverlayRectPx
   /**
+   * **7.11**: liña fantasma da tool Conectar, en doc-space. `from` é
+   * a posición do nodo orixe (fixa); `to` segue o cursor. Undefined
+   * mentres non hai conexión en curso.
+   */
+  readonly connectLine?: { readonly from: Position; readonly to: Position }
+  /**
    * Versión do viewport (incrementa en cada onViewportChange). Forza
    * re-medida do CTM cando o usuario pan/zoom.
    */
@@ -74,6 +80,7 @@ export function CanvasOverlay({
   nodePositions,
   ghosts,
   marqueeRect,
+  connectLine,
   viewportVersion,
 }: CanvasOverlayProps): JSX.Element | null {
   // viewportVersion utilízase implícitamente como dep visual: o seu
@@ -169,6 +176,25 @@ export function CanvasOverlay({
           strokeDasharray="4 2"
         />
       )}
+      {/* Liña fantasma da tool Conectar (7.11). */}
+      {connectLine !== undefined &&
+        (() => {
+          const from = project(connectLine.from)
+          const to = project(connectLine.to)
+          if (from === null || to === null) return null
+          return (
+            <line
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke="var(--editor-accent)"
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              opacity={0.85}
+            />
+          )
+        })()}
     </svg>
   )
 }

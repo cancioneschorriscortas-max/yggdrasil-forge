@@ -255,6 +255,60 @@
   overflow: hidden;
 }
 
+/* ── CanvasToolbar (7.11) — overlay dentro do panel Canvas.
+   O pai (.editor-canvas en EditorCanvas.tsx) xa é position:relative
+   (inline style); esta regra propia evita a lección do FileMenu
+   (7.10 fix): un dropdown/overlay novo sempre leva o SEU
+   position:absolute explícito, non abonda con reutilizar clases. ── */
+.editor-canvas-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--editor-bg-panel);
+  border: var(--editor-border-width) solid var(--editor-border);
+  border-radius: var(--editor-radius-sm);
+  box-shadow: var(--editor-shadow-elev1);
+}
+.editor-canvas-toolbar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: var(--editor-border-width) solid transparent;
+  border-radius: var(--editor-radius-sm);
+  background: transparent;
+  color: var(--editor-text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.editor-canvas-toolbar__btn:hover {
+  background: var(--editor-bg-hover);
+}
+.editor-canvas-toolbar__btn--active {
+  background: var(--editor-accent-soft);
+  color: var(--editor-accent);
+  border-color: var(--editor-accent);
+}
+.editor-canvas-toolbar__chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 2px 8px 2px 10px;
+  border-left: var(--editor-border-width) solid var(--editor-border-subtle);
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 /* ── Barra de estado (7.5d: un chisco de aire) ── */
 .editor-statusbar {
   display: flex;
