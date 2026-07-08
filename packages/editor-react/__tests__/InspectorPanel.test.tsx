@@ -179,20 +179,63 @@ describe('InspectorPanel — edición despacha Commands', () => {
 })
 
 describe('InspectorPanel — LocalizedText (Record vs string)', () => {
-  it('foo.label é Record: edita a entrada en, conserva gl', () => {
+  it('★ foo.label é Record: edita a entrada gl (o que ve o canvas), conserva en', () => {
     const engine = buildEngine()
     render(<InspectorPanel editorEngine={engine} />)
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
     const labelInput = screen.getByLabelText(/Etiqueta/i) as HTMLInputElement
-    expect(labelInput.value).toBe('Foo en')
+    expect(labelInput.value).toBe('Foo gl')
     act(() => {
-      fireEvent.change(labelInput, { target: { value: 'Foo en NOVO' } })
+      fireEvent.change(labelInput, { target: { value: 'Foo gl NOVO' } })
       fireEvent.blur(labelInput)
     })
     const fooAfter = engine.getDocument().tree.nodes.find((n) => n.id === 'foo')
-    expect(fooAfter?.label).toEqual({ en: 'Foo en NOVO', gl: 'Foo gl' })
+    expect(fooAfter?.label).toEqual({ en: 'Foo en', gl: 'Foo gl NOVO' })
+  })
+})
+
+describe('★ regresión: nodo novo (buildNewNode) — editar a etiqueta reflíctese no que ve o canvas', () => {
+  it('label con gl+en (como nace un nodo novo): editar actualiza gl, non en', () => {
+    // Mesmo shape que buildNewNode (7.11): { gl: 'Novo nodo', en: 'New node' }.
+    // O canvas (SkillTree via computeLayout) usa locale 'gl' por defecto
+    // cando o consumidor non especifica ningunha (EditorCanvas non o
+    // fai) — así que 'gl' é a clave que realmente se ve.
+    const tree: TreeDef = {
+      id: 'regresion-locale',
+      schemaVersion: '1.0.0',
+      version: '0.1.0',
+      label: { en: 'T' },
+      nodes: [
+        {
+          id: 'nodo-1',
+          type: 'small',
+          label: { gl: 'Novo nodo', en: 'New node' },
+          position: { x: 0, y: 0 },
+        },
+      ],
+      edges: [],
+      layout: { type: 'custom' },
+    } as TreeDef
+    const engine = new EditorEngine(createEditorDocument(tree))
+    render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'nodo-1' }]))
+
+    const labelInput = screen.getByLabelText(/Etiqueta/i) as HTMLInputElement
+    // Se isto amosase "New node", estaríamos editando a clave errada outra vez.
+    expect(labelInput.value).toBe('Novo nodo')
+
+    act(() => {
+      fireEvent.change(labelInput, { target: { value: 'caca' } })
+      fireEvent.blur(labelInput)
+    })
+
+    const node = engine.getDocument().tree.nodes.find((n) => n.id === 'nodo-1')
+    // A clave que realmente renderiza o canvas por defecto (gl) ten
+    // que levar o valor novo. Se isto fallase con 'gl' aínda en
+    // 'Novo nodo', o bug reportado polo dono volveu.
+    expect(node?.label).toEqual({ gl: 'caca', en: 'New node' })
   })
 })
 // ── FIN: tests InspectorPanel ──

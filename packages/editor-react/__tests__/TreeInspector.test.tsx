@@ -57,7 +57,7 @@ describe('★ 7.12 — TreeInspector: identidade', () => {
     act(() => fireEvent.change(input, { target: { value: 'A miña árbore' } }))
     act(() => fireEvent.blur(input))
     const label = engine.getDocument().tree.label
-    expect(typeof label === 'string' ? label : label.en).toBe('A miña árbore')
+    expect(typeof label === 'string' ? label : label.gl).toBe('A miña árbore')
   })
 
   it('editar a versión dispara setTreeField(version)', () => {
