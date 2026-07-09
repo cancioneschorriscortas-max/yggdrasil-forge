@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge-examples/cyberware-ripperdoc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Cyberware ripperdoc showcase (action-RPG: cost + exclusions + costPerTier + resource_min)",
   "type": "module",
