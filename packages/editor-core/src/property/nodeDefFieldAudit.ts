@@ -48,6 +48,7 @@ export const USED_NODEDEF_FIELDS = [
   'content',
   'color',
   'icon',
+  'iconScale',
   'shape',
   'size',
   'position',

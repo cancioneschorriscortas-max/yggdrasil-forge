@@ -125,6 +125,13 @@ export interface NodeDef {
   /** Identificador de icona (URL, emoji, etc.). */
   readonly icon?: string
 
+  /**
+   * Zoom da imaxe dentro da forma do nodo (só ten efecto se `icon` é
+   * unha URL de imaxe). 1 = cobre a forma enteira sen recorte extra
+   * (por defecto); ata 3 = achega moito máis.
+   */
+  readonly iconScale?: number
+
   /** Cor visual asociada ao nodo. */
   readonly color?: string
 

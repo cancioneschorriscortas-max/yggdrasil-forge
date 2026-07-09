@@ -25,8 +25,8 @@ const sampleNodeMinimal: NodeDef = {
 }
 
 describe('nodePropertyRegistry — cobertura', () => {
-  it('inclúe os 9 escalares + 5 estruturados (=14, tras retirar `tier` en 7.5c-T e `tiers` en 7.5c-T2)', () => {
-    expect(nodePropertyRegistry.length).toBe(14)
+  it('inclúe os 10 escalares + 5 estruturados (=15, tras engadir `iconScale`)', () => {
+    expect(nodePropertyRegistry.length).toBe(15)
   })
 
   it('inclúe os campos escalares esperados', () => {
@@ -38,6 +38,7 @@ describe('nodePropertyRegistry — cobertura', () => {
       'description',
       'color',
       'icon',
+      'iconScale',
       'shape',
       'size',
       'maxTier',

@@ -102,9 +102,11 @@ describe('★ Sección Avanzado (pregada por defecto)', () => {
     act(() => {
       engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }])
     })
-    // O contador amosa 7 (7.5c-T2: retirado `tiers` UNIMPLEMENTED):
-    // type, maxTier, cost, costPerTier, effects, prerequisites, exclusions.
-    const count = screen.getByText('7', { selector: '.editor-inspector__advanced-count' })
+    // O contador amosa 8 (7.5c-T2: retirado `tiers` UNIMPLEMENTED;
+    // briefing de iconScale engadiu 1 máis):
+    // type, maxTier, cost, costPerTier, effects, prerequisites,
+    // exclusions, iconScale.
+    const count = screen.getByText('8', { selector: '.editor-inspector__advanced-count' })
     expect(count).toBeDefined()
   })
 })

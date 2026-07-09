@@ -353,6 +353,11 @@ const nodeDefSchema = z
     description: localizedStringSchema.optional(),
     content: nodeContentSchema.optional(),
     icon: z.string().optional(),
+    // Zoom da imaxe dentro da forma do nodo (só ten efecto se `icon`
+    // é unha URL de imaxe, non un glifo/emoji). 1 = a imaxe cobre a
+    // forma enteira sen recorte extra (comportamento por defecto);
+    // >1 achega (recorta máis) para encadrar a parte interesante.
+    iconScale: z.number().min(1).max(3).optional(),
     color: z.string().optional(),
     shape: nodeShapeSchema.optional(),
     size: z.number().positive('size debe ser maior que 0').optional(),

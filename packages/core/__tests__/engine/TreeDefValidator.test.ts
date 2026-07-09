@@ -878,6 +878,56 @@ describe('TreeDefValidator.validateTreeDef', () => {
   })
   // ── FIN: F10.2 ──
 
+  describe('NodeDef.iconScale (imaxe dentro da forma)', () => {
+    it('acepta iconScale=1 (defecto: cobre sen recorte extra) → ok e preserva', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'i1', type: 'small', label: 'I', icon: 'https://x/y.png', iconScale: 1 }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(true)
+      if (result.ok) expect(result.value.nodes[0]?.iconScale).toBe(1)
+    })
+
+    it('acepta iconScale=2.5 (zoom intermedio) → ok', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'i2', type: 'small', label: 'I', iconScale: 2.5 }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(true)
+    })
+
+    it('acepta nodo sen iconScale (opcional) → ok', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'i3', type: 'small', label: 'I' }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(true)
+      if (result.ok) expect(result.value.nodes[0]?.iconScale).toBeUndefined()
+    })
+
+    it('rexeita iconScale < 1 (encollería, deixaría ocos) → erro de validación', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'i4', type: 'small', label: 'I', iconScale: 0.5 }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+      }
+    })
+
+    it('rexeita iconScale > 3 (fóra do rango soportado) → erro de validación', () => {
+      const treeDef = makeValidTreeDef({
+        nodes: [{ id: 'i5', type: 'small', label: 'I', iconScale: 4 }],
+      })
+      const result = validateTreeDef(treeDef)
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe(ErrorCode.INVALID_TREE_DEF)
+      }
+    })
+  })
+
   // ── FIN: tests da sub-fase 2.5 ──
 })
 // ── FIN: tests de TreeDefValidator (1.17) ──

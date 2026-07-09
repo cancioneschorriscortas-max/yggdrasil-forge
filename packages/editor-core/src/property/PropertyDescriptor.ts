@@ -35,6 +35,16 @@ export type PropertyType =
       readonly max?: number
       readonly step?: number
     }
+  /**
+   * Barra de axuste continuo (slider). Mesmos límites que 'number'
+   * pero sempre obrigatorios — un slider sen min/max non ten sentido.
+   */
+  | {
+      readonly kind: 'range'
+      readonly min: number
+      readonly max: number
+      readonly step?: number
+    }
   /** Lista pechada de valores. As opcións dáas o descriptor (deriva da unión do tipo de @core). */
   | { readonly kind: 'enum'; readonly options: readonly string[] }
   | { readonly kind: 'color' }

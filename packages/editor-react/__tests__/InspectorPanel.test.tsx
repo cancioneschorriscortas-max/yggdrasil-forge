@@ -313,4 +313,58 @@ describe('★ 7.13 — Inspector de nodo: sección Rexións', () => {
     ])
   })
 })
+
+describe('★ iconScale — barra de axuste da imaxe (Inspector de nodo)', () => {
+  function buildEngineWithImageIcon(): EditorEngine {
+    const tree: TreeDef = {
+      id: 'icon-scale-test',
+      schemaVersion: '1.0.0',
+      version: '0.1.0',
+      label: { en: 'T' },
+      nodes: [
+        {
+          id: 'foo',
+          type: 'small',
+          label: { en: 'Foo' },
+          icon: 'https://example.com/badge.webp',
+          position: { x: 0, y: 0 },
+        },
+      ],
+      edges: [],
+      layout: { type: 'custom' },
+    } as TreeDef
+    return new EditorEngine(createEditorDocument(tree))
+  }
+
+  it('renderiza a barra en Avanzado, valor por defecto 1', () => {
+    const engine = buildEngineWithImageIcon()
+    const { container } = render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    act(() => fireEvent.click(screen.getByText('Avanzado')))
+    const slider = container.querySelector('#inspector-iconScale') as HTMLInputElement
+    expect(slider).not.toBeNull()
+    expect(slider.type).toBe('range')
+    expect(Number(slider.value)).toBe(1)
+  })
+
+  it('★ mover a barra dispatchea setNodeField(iconScale) inmediatamente', () => {
+    const engine = buildEngineWithImageIcon()
+    const { container } = render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    act(() => fireEvent.click(screen.getByText('Avanzado')))
+    const slider = container.querySelector('#inspector-iconScale') as HTMLInputElement
+    act(() => fireEvent.change(slider, { target: { value: '2' } }))
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.iconScale).toBe(2)
+  })
+
+  it('límites min=1/max=3 no input', () => {
+    const engine = buildEngineWithImageIcon()
+    const { container } = render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    act(() => fireEvent.click(screen.getByText('Avanzado')))
+    const slider = container.querySelector('#inspector-iconScale') as HTMLInputElement
+    expect(slider.min).toBe('1')
+    expect(slider.max).toBe('3')
+  })
+})
 // ── FIN: tests InspectorPanel ──

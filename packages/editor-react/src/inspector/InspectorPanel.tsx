@@ -29,6 +29,7 @@ import { EnumWidget } from './widgets/EnumWidget.js'
 import { FieldHelp, FieldLabel } from './widgets/FieldLabel.js'
 import { LocalizedTextWidget } from './widgets/LocalizedTextWidget.js'
 import { NumberWidget } from './widgets/NumberWidget.js'
+import { RangeWidget } from './widgets/RangeWidget.js'
 import { TextWidget } from './widgets/TextWidget.js'
 
 export interface InspectorPanelProps {
@@ -219,6 +220,20 @@ function renderWidget(
           disabled={disabled}
           {...(t.min !== undefined && { min: t.min })}
           {...(t.max !== undefined && { max: t.max })}
+          {...(t.step !== undefined && { step: t.step })}
+          onCommit={(v) => commit(d, v)}
+        />
+      )
+    }
+    case 'range': {
+      const t = d.type
+      return (
+        <RangeWidget
+          id={widgetId}
+          value={value as number | undefined}
+          min={t.min}
+          max={t.max}
+          disabled={disabled}
           {...(t.step !== undefined && { step: t.step })}
           onCommit={(v) => commit(d, v)}
         />

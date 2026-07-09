@@ -171,10 +171,72 @@ describe('SkillNode icon — tamaño separado para badges raster (F11.3b)', () =
     expect(Number(img?.getAttribute('y'))).toBeCloseTo(-EXPECTED_IMAGE_SIZE / 2, 6)
   })
 
-  it('<image> declara preserveAspectRatio="xMidYMid meet" para badges non-cadrados', () => {
+  it('★ <image> declara preserveAspectRatio="xMidYMid slice" (cobre e recorta á forma do nodo)', () => {
     const { container } = renderNode(makeNode('/badges/sword-basics.webp'))
     const img = container.querySelector('image.yf-skill-node__icon')
-    expect(img?.getAttribute('preserveAspectRatio')).toBe('xMidYMid meet')
+    expect(img?.getAttribute('preserveAspectRatio')).toBe('xMidYMid slice')
+  })
+
+  it('★ <image> ten clip-path referenciando un <clipPath> propio do nodo', () => {
+    const { container } = renderNode(makeNode('/badges/sword-basics.webp'))
+    const img = container.querySelector('image.yf-skill-node__icon')
+    const clipAttr = img?.getAttribute('clip-path')
+    expect(clipAttr).toMatch(/^url\(#yf-icon-clip-/)
+    const clipId = clipAttr?.match(/url\(#([^)]+)\)/)?.[1]
+    expect(clipId).toBeDefined()
+    const clipPathEl = container.querySelector(`clipPath#${clipId}`)
+    expect(clipPathEl).not.toBeNull()
+  })
+
+  describe('★ iconScale — zoom manual da imaxe dentro da forma', () => {
+    function makeNodeWithScale(icon: string, iconScale: number | undefined): NodeDef {
+      return { ...makeNode(icon), ...(iconScale !== undefined && { iconScale }) } as NodeDef
+    }
+
+    it('sen iconScale (undefined): tamaño base, igual que antes (cero regresión)', () => {
+      const { container } = renderNode(makeNodeWithScale('/badges/x.webp', undefined))
+      const img = container.querySelector('image.yf-skill-node__icon')
+      expect(Number(img?.getAttribute('width'))).toBeCloseTo(EXPECTED_IMAGE_SIZE, 6)
+    })
+
+    it('iconScale=1 explícito: mesmo tamaño base', () => {
+      const { container } = renderNode(makeNodeWithScale('/badges/x.webp', 1))
+      const img = container.querySelector('image.yf-skill-node__icon')
+      expect(Number(img?.getAttribute('width'))).toBeCloseTo(EXPECTED_IMAGE_SIZE, 6)
+    })
+
+    it('★ iconScale=2: dobra o tamaño base (máis zoom = máis recorte)', () => {
+      const { container } = renderNode(makeNodeWithScale('/badges/x.webp', 2))
+      const img = container.querySelector('image.yf-skill-node__icon')
+      expect(Number(img?.getAttribute('width'))).toBeCloseTo(EXPECTED_IMAGE_SIZE * 2, 6)
+      expect(Number(img?.getAttribute('x'))).toBeCloseTo((-EXPECTED_IMAGE_SIZE * 2) / 2, 6)
+    })
+
+    it('★ iconScale > 3 clamea a 3 (defensivo, aínda que o schema xa o impide)', () => {
+      const { container } = renderNode(makeNodeWithScale('/badges/x.webp', 10))
+      const img = container.querySelector('image.yf-skill-node__icon')
+      expect(Number(img?.getAttribute('width'))).toBeCloseTo(EXPECTED_IMAGE_SIZE * 3, 6)
+    })
+
+    it('★ iconScale < 1 clamea a 1 (defensivo)', () => {
+      const { container } = renderNode(makeNodeWithScale('/badges/x.webp', 0.2))
+      const img = container.querySelector('image.yf-skill-node__icon')
+      expect(Number(img?.getAttribute('width'))).toBeCloseTo(EXPECTED_IMAGE_SIZE, 6)
+    })
+
+    it('iconScale non afecta a glyphs vector rexistrados (IconGlyph ignora o campo)', () => {
+      const node = { ...makeNode('test-svg-icon'), iconScale: 2 } as NodeDef
+      const { container } = renderNode(node)
+      const svg = container.querySelector('svg[width]')
+      expect(Number(svg?.getAttribute('width'))).toBeCloseTo(EXPECTED_ICON_SIZE, 6)
+    })
+
+    it('iconScale non afecta ao fallback <text> (emoji)', () => {
+      const node = { ...makeNode('⚔️'), iconScale: 2 } as NodeDef
+      const { container } = renderNode(node)
+      expect(container.querySelector('text.yf-skill-node__icon')).not.toBeNull()
+      expect(container.querySelector('image.yf-skill-node__icon')).toBeNull()
+    })
   })
 
   it('IconGlyph (glyph vector) mantén tamaño iconSize = radius * 1.0 (regresión)', () => {

@@ -176,6 +176,20 @@ export function SkillNode({
   // debe tapalo de todo — de aí o `1.8` e non `2.0` (deixa ~10% de marxe
   // ao bordo). Glyphs vector seguen a `iconSize` (sen cambio).
   const imageSize = radius * 1.8
+  // ★ Zoom manual do autor (Inspector, barra de axuste). Só ten
+  // sentido para badges raster (iconIsUrl); glyphs vector ignórano.
+  // 1 = tamaño base (imageSize); ata 3 = achega moito máis. Clamp
+  // defensivo aquí tamén (o schema xa o fai, pero un dato importado
+  // á man podería saltalo).
+  const iconScale = Math.min(3, Math.max(1, node.iconScale ?? 1))
+  const effectiveImageSize = imageSize * iconScale
+  // ★ Recorte á forma real do nodo (círculo/hexágono/...): sen isto,
+  // unha imaxe non-cadrada deixaba marxes baleiras dentro do
+  // `preserveAspectRatio="meet"` orixinal, e nunca se axustaba de
+  // verdade "dentro" da forma. O clip usa `radius` (a forma real),
+  // non `effectiveImageSize` — así a imaxe NUNCA escapa do contorno
+  // do nodo por moito zoom que se lle poña.
+  const iconClipId = `yf-icon-clip-${node.id}`
   // F11.3c: nodos locked → badge raster atenuado (grayscale + escurecido) para
   // que o estado salte á vista cos badges grandes e vívidos. Só afecta á imaxe;
   // o anel conserva a cor de estado, e glyph/<text> tampouco se tocan. O union
@@ -368,16 +382,22 @@ export function SkillNode({
         />
       )}
       {iconDef === undefined && iconIsUrl && icon !== undefined && (
-        <image
-          className="yf-skill-node__icon"
-          href={icon}
-          x={-imageSize / 2}
-          y={-imageSize / 2}
-          width={imageSize}
-          height={imageSize}
-          preserveAspectRatio="xMidYMid meet"
-          {...(dimBadge ? { style: { filter: 'grayscale(1) brightness(0.5)' } } : {})}
-        />
+        <>
+          <defs>
+            <clipPath id={iconClipId}>{renderNodeShape(shape, radius)}</clipPath>
+          </defs>
+          <image
+            className="yf-skill-node__icon"
+            href={icon}
+            x={-effectiveImageSize / 2}
+            y={-effectiveImageSize / 2}
+            width={effectiveImageSize}
+            height={effectiveImageSize}
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#${iconClipId})`}
+            {...(dimBadge ? { style: { filter: 'grayscale(1) brightness(0.5)' } } : {})}
+          />
+        </>
       )}
       {iconDef === undefined && !iconIsUrl && icon !== undefined && (
         <text

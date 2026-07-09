@@ -153,6 +153,17 @@ export const nodePropertyRegistry: readonly PropertyDescriptor[] = [
     group: 'appearance',
   }),
   fieldDescriptor({
+    key: 'iconScale',
+    label: { en: 'Image zoom', gl: 'Zoom da imaxe' },
+    describe: {
+      en: 'Only applies to image icons (URL). Adjusts how much the photo is cropped inside the node shape.',
+      gl: 'Só ten efecto en iconas de imaxe (URL). Axusta canto se recorta a foto dentro da forma do nodo.',
+    },
+    type: { kind: 'range', min: 1, max: 3, step: 0.1 },
+    group: 'appearance',
+    advanced: true,
+  }),
+  fieldDescriptor({
     key: 'shape',
     label: { en: 'Shape', gl: 'Forma' },
     describe: { en: 'Circle, hexagon, diamond…', gl: 'Círculo, hexágono, rombo…' },
