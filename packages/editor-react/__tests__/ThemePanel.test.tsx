@@ -7,7 +7,7 @@
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { TreeDef } from '@yggdrasil-forge/core'
-import { EditorEngine, createEditorDocument } from '@yggdrasil-forge/editor-core'
+import { EditorEngine, createEditorDocument, setNodeField } from '@yggdrasil-forge/editor-core'
 import { afterEach, describe, expect, it } from 'vitest'
 import { PRESET_TINTADO, ThemePanel } from '../src/panels/ThemePanel.js'
 
@@ -87,11 +87,13 @@ describe('ThemePanel — Recheo por estado', () => {
   })
 })
 
-describe('ThemePanel — Rexións (só cor editable v1)', () => {
-  it('con rexión preloaded → aparece na lista', () => {
+describe('★ 7.13 — ThemePanel: Rexións v2', () => {
+  it('con rexión preloaded → aparece na lista (label como TextWidget)', () => {
     const engine = buildEngine(true)
-    render(<ThemePanel editorEngine={engine} />)
-    expect(screen.getByText('R1')).toBeDefined()
+    const { container } = render(<ThemePanel editorEngine={engine} />)
+    const labelInput = container.querySelector('#theme-region-r1-label') as HTMLInputElement
+    expect(labelInput).not.toBeNull()
+    expect(labelInput.value).toBe('R1')
     expect(screen.getByText(/tag: t1/i)).toBeDefined()
   })
 
@@ -113,10 +115,78 @@ describe('ThemePanel — Rexións (só cor editable v1)', () => {
     expect(region?.tag).toBe('t1')
   })
 
+  it('★ editar a etiqueta dunha rexión dispatchea o novo label', () => {
+    const engine = buildEngine(true)
+    const { container } = render(<ThemePanel editorEngine={engine} />)
+    const labelInput = container.querySelector('#theme-region-r1-label') as HTMLInputElement
+    act(() => fireEvent.change(labelInput, { target: { value: 'Guerreiro' } }))
+    act(() => fireEvent.blur(labelInput))
+    expect(engine.getDocument().meta.theme?.regions?.[0]?.label).toBe('Guerreiro')
+  })
+
   it('sen rexións definidas → hint informativo', () => {
     const engine = buildEngine()
     render(<ThemePanel editorEngine={engine} />)
     expect(screen.getByText(/Sen rexións definidas/i)).toBeDefined()
+  })
+
+  it('★ "Engadir rexión" crea unha fila nova con id libre e etiqueta "Nova rexión"', () => {
+    const engine = buildEngine()
+    render(<ThemePanel editorEngine={engine} />)
+    act(() => fireEvent.click(screen.getByText('Engadir rexión')))
+    const regions = engine.getDocument().meta.theme?.regions
+    expect(regions).toHaveLength(1)
+    expect(regions?.[0]?.id).toBe('rexion-1')
+    expect(regions?.[0]?.label).toBe('Nova rexión')
+    expect(regions?.[0]?.tag).toBe('rexion-1')
+  })
+
+  it('engadir dúas rexións seguidas xera ids libres distintos', () => {
+    const engine = buildEngine()
+    render(<ThemePanel editorEngine={engine} />)
+    act(() => fireEvent.click(screen.getByText('Engadir rexión')))
+    act(() => fireEvent.click(screen.getByText('Engadir rexión')))
+    const regions = engine.getDocument().meta.theme?.regions
+    expect(regions?.map((r) => r.id)).toEqual(['rexion-1', 'rexion-2'])
+  })
+
+  it('★ "Eliminar" quita SÓ o tinte — non toca tags dos nodos', () => {
+    const engine = buildEngine(true)
+    engine.dispatch(setNodeField('foo', 'tags', ['t1']))
+    render(<ThemePanel editorEngine={engine} />)
+    act(() => fireEvent.click(screen.getByRole('button', { name: /Eliminar rexión/ })))
+    expect(engine.getDocument().meta.theme?.regions).toEqual([])
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toEqual(['t1'])
+  })
+
+  it('★ botóns "Asignar/Quitar da selección" só aparecen con selección ≥1', () => {
+    const engine = buildEngine(true)
+    render(<ThemePanel editorEngine={engine} />)
+    expect(screen.queryByText('Asignar á selección')).toBeNull()
+    expect(screen.queryByText('Quitar da selección')).toBeNull()
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    expect(screen.getByText('Asignar á selección')).toBeDefined()
+    expect(screen.getByText('Quitar da selección')).toBeDefined()
+  })
+
+  it('★ "Asignar á selección" engade o tag aos nodos seleccionados, un só undo', () => {
+    const engine = buildEngine(true)
+    render(<ThemePanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    act(() => fireEvent.click(screen.getByText('Asignar á selección')))
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toEqual(['t1'])
+    expect(engine.canUndo()).toBe(true)
+    engine.undo()
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toBeUndefined()
+  })
+
+  it('"Quitar da selección" quita o tag dos nodos seleccionados', () => {
+    const engine = buildEngine(true)
+    render(<ThemePanel editorEngine={engine} />)
+    act(() => engine.dispatch(setNodeField('foo', 'tags', ['t1'])))
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    act(() => fireEvent.click(screen.getByText('Quitar da selección')))
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toBeUndefined()
   })
 })
 

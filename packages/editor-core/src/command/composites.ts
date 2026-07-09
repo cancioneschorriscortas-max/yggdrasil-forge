@@ -196,4 +196,24 @@ export function buildRemoveCascade(
 
   return commands
 }
+/**
+ * Engade/quita `tag` de `tags`, preservando o resto e a orde. Sen
+ * duplicados (idempotente: engadir un tag xa presente non fai nada).
+ * `[]` resultante → `undefined` (non deixar arrays baleiros no
+ * schema — mesma doutrina que `exclusions` na cascada de 7.11).
+ */
+export function toggleTag(
+  tags: readonly string[] | undefined,
+  tag: string,
+  present: boolean,
+): readonly string[] | undefined {
+  const current = tags ?? []
+  if (present) {
+    if (current.includes(tag)) return tags
+    return [...current, tag]
+  }
+  if (!current.includes(tag)) return tags
+  const next = current.filter((t) => t !== tag)
+  return next.length > 0 ? next : undefined
+}
 // ── FIN: composites ──

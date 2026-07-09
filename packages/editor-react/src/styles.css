@@ -512,6 +512,38 @@
 .editor-inspector-checkbox {
   cursor: pointer;
 }
+
+/* ── NodeRegionsEditor (7.13) — checkboxes de pertenza a rexións ── */
+.editor-node-regions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.editor-node-regions__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.editor-node-regions__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: var(--editor-font-size-sm);
+  color: var(--editor-text-primary);
+}
+.editor-node-regions__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: var(--editor-border-width) solid var(--editor-border);
+  flex-shrink: 0;
+}
+
 .editor-inspector-structured-summary {
   display: flex;
   gap: 6px;
@@ -1064,8 +1096,8 @@
 }
 .editor-theme-panel__region-row {
   display: flex !important;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   padding: 8px 10px !important;
   background: var(--editor-bg-panel);
   border: 1px solid var(--editor-border-subtle);
@@ -1074,19 +1106,32 @@
   font-family: inherit !important;
   font-size: var(--editor-font-size-sm) !important;
 }
+.editor-theme-panel__region-row-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .editor-theme-panel__region-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-.editor-theme-panel__region-label {
-  font-weight: 500;
-  color: var(--editor-text-primary);
+  flex: 1;
+  min-width: 0;
 }
 .editor-theme-panel__region-tag {
   font-size: var(--editor-font-size-xs);
   color: var(--editor-text-muted);
   font-family: var(--editor-font-mono);
+}
+.editor-theme-panel__region-selection-actions {
+  display: flex;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: var(--editor-border-width) solid var(--editor-border-subtle);
+}
+.editor-theme-panel__region-selection-actions .editor-button {
+  font-size: var(--editor-font-size-xs);
+  padding: 2px 8px;
 }
 .editor-theme-panel__clear-bg {
   margin-top: 6px;

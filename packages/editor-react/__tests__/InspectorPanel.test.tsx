@@ -5,7 +5,7 @@
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { TreeDef } from '@yggdrasil-forge/core'
-import { EditorEngine, createEditorDocument } from '@yggdrasil-forge/editor-core'
+import { EditorEngine, createEditorDocument, setNodeField } from '@yggdrasil-forge/editor-core'
 import { afterEach, describe, expect, it } from 'vitest'
 import { InspectorPanel } from '../src/inspector/InspectorPanel.js'
 
@@ -236,6 +236,81 @@ describe('★ regresión: nodo novo (buildNewNode) — editar a etiqueta reflíc
     // que levar o valor novo. Se isto fallase con 'gl' aínda en
     // 'Novo nodo', o bug reportado polo dono volveu.
     expect(node?.label).toEqual({ gl: 'caca', en: 'New node' })
+  })
+})
+
+describe('★ 7.13 — Inspector de nodo: sección Rexións', () => {
+  function buildEngineWithRegions(): EditorEngine {
+    const tree: TreeDef = {
+      id: 'regions-node-test',
+      schemaVersion: '1.0.0',
+      version: '0.1.0',
+      label: { en: 'T' },
+      nodes: [{ id: 'foo', type: 'small', label: { en: 'Foo' }, position: { x: 0, y: 0 } }],
+      edges: [],
+      layout: { type: 'custom' },
+    } as TreeDef
+    return new EditorEngine(
+      createEditorDocument(tree, {
+        theme: {
+          regions: [
+            { id: 'rexion-1', label: 'Guerreiro', tag: 'guerreiro', color: '#c8875f' },
+            { id: 'rexion-2', label: 'Sur', tag: 'sur', color: '#5f9ec8' },
+          ],
+        },
+      }),
+    )
+  }
+
+  it('sen rexións definidas: mensaxe cruzada á pestana Tema', () => {
+    const engine = buildEngine()
+    render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    expect(screen.getByText('Sen rexións. Créaas na pestana Tema.')).toBeDefined()
+  })
+
+  it('con rexións definidas: unha checkbox por rexión, sen marcar por defecto', () => {
+    const engine = buildEngineWithRegions()
+    render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    const guerreiro = screen.getByLabelText('Guerreiro') as HTMLInputElement
+    const sur = screen.getByLabelText('Sur') as HTMLInputElement
+    expect(guerreiro.checked).toBe(false)
+    expect(sur.checked).toBe(false)
+  })
+
+  it('★ marcar unha checkbox dispatchea setNodeField(tags) co tag correcto', () => {
+    const engine = buildEngineWithRegions()
+    render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    const guerreiro = screen.getByLabelText('Guerreiro') as HTMLInputElement
+    act(() => fireEvent.click(guerreiro))
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toEqual(['guerreiro'])
+  })
+
+  it('★ desmarcar quita SÓ ese tag, preserva outros tags alleos', () => {
+    const engine = buildEngineWithRegions()
+    engine.dispatch(setNodeField('foo', 'tags', ['guerreiro', 'outra-cousa']))
+    render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    const guerreiro = screen.getByLabelText('Guerreiro') as HTMLInputElement
+    expect(guerreiro.checked).toBe(true)
+    act(() => fireEvent.click(guerreiro))
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toEqual([
+      'outra-cousa',
+    ])
+  })
+
+  it('marcar dúas rexións distintas preserva ambas', () => {
+    const engine = buildEngineWithRegions()
+    render(<InspectorPanel editorEngine={engine} />)
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
+    act(() => fireEvent.click(screen.getByLabelText('Guerreiro')))
+    act(() => fireEvent.click(screen.getByLabelText('Sur')))
+    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.tags).toEqual([
+      'guerreiro',
+      'sur',
+    ])
   })
 })
 // ── FIN: tests InspectorPanel ──

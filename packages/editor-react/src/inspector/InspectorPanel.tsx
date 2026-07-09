@@ -13,13 +13,16 @@ import type { NodeDef, Resource, StatDef } from '@yggdrasil-forge/core'
 import {
   type EditorEngine,
   type PropertyDescriptor,
-  type SelectionRef,
   nodePropertyRegistry,
+  setNodeField,
+  toggleTag,
 } from '@yggdrasil-forge/editor-core'
-import { type JSX, useCallback, useRef, useSyncExternalStore } from 'react'
+import { type JSX, useSyncExternalStore } from 'react'
 import { AdvancedSection } from './AdvancedSection.js'
 import { TreeInspector } from './TreeInspector.js'
+import { NodeRegionsEditor } from './structured/NodeRegionsEditor.js'
 import { StructuredEditor } from './structured/StructuredEditor.js'
+import { useSelectedRefs } from './useSelectedRefs.js'
 import { CheckboxWidget } from './widgets/CheckboxWidget.js'
 import { ColorWidget } from './widgets/ColorWidget.js'
 import { EnumWidget } from './widgets/EnumWidget.js'
@@ -30,26 +33,6 @@ import { TextWidget } from './widgets/TextWidget.js'
 
 export interface InspectorPanelProps {
   readonly editorEngine: EditorEngine
-}
-
-/** Cache estable para current() (patrón documentado). */
-function useSelectedRefs(editorEngine: EditorEngine): readonly SelectionRef[] {
-  const selection = editorEngine.getSession().selection
-  const cacheRef = useRef<readonly SelectionRef[]>([])
-  const subscribe = useCallback(
-    (cb: () => void) => {
-      const unsubscribe = selection.subscribe(() => {
-        cacheRef.current = selection.current()
-        cb()
-      })
-      cacheRef.current = selection.current()
-      return unsubscribe
-    },
-    [selection],
-  )
-  const getSnapshot = useCallback(() => cacheRef.current, [])
-  const getServerSnapshot = useCallback(() => cacheRef.current, [])
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
 
 /** Extrae string localizada priorizando gl. */
@@ -107,6 +90,12 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
     }
   }
 
+  // 7.13: pertenza a rexións (UI cruzada nodo↔meta).
+  const regions = doc.meta.theme?.regions ?? []
+  const toggleNodeRegion = (tag: string, present: boolean): void => {
+    editorEngine.dispatch(setNodeField(node.id, 'tags', toggleTag(node.tags, tag, present)))
+  }
+
   // Partición: readonly / básico / avanzado.
   const readonlyFields = nodePropertyRegistry.filter((d) => d.readonly === true)
   const basicFields = nodePropertyRegistry.filter((d) => d.readonly !== true && d.advanced !== true)
@@ -128,6 +117,9 @@ export function InspectorPanel({ editorEngine }: InspectorPanelProps): JSX.Eleme
           renderField(d, node, doc.tree.nodes, doc.tree.resources, doc.tree.stats, commitField),
         )}
       </section>
+
+      {/* 7.13: Rexións — tras os grupos do registry. */}
+      <NodeRegionsEditor regions={regions} node={node} onToggle={toggleNodeRegion} />
 
       {/* Avanzado: pregado por defecto */}
       {advancedFields.length > 0 && (

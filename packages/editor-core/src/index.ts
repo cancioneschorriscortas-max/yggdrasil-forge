@@ -45,6 +45,7 @@ export {
   buildNewNode,
   buildRemoveCascade,
   nextFreeId,
+  toggleTag,
 } from './command/composites.js'
 export {
   type Severity,
@@ -164,4 +165,16 @@ export {
 // LocalizedString re-exportada para consumidores (editor-react) que non
 // teñen @common como dep directa.
 export type { LocalizedString } from '@yggdrasil-forge/common'
+
+/**
+ * @internal
+ * Fixture de probas (briefing 7.13): dato deseñado para forzar
+ * camiños pouco transitados (sen coordinateBounds, labels bilingües,
+ * grupos any/none, etc.). NON é API de produto — só para tests.
+ */
+export {
+  adversarialDocument,
+  adversarialResources,
+  adversarialTreeDef,
+} from './testing/adversarialFixture.js'
 // ── FIN: barrel ──

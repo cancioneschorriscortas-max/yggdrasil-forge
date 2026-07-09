@@ -22,12 +22,26 @@ import {
   type EditorEngine,
   type ThemeRegionTint,
   type ThemeSpec,
+  nextFreeId,
   setMetaField,
+  setNodeField,
+  toggleTag,
 } from '@yggdrasil-forge/editor-core'
 import { type JSX, useSyncExternalStore } from 'react'
+import { useSelectedRefs } from '../inspector/useSelectedRefs.js'
 import { ColorWidget } from '../inspector/widgets/ColorWidget.js'
 import { FieldHelp, FieldLabel } from '../inspector/widgets/FieldLabel.js'
 import { TextWidget } from '../inspector/widgets/TextWidget.js'
+
+// ── Rotación de paleta distinguible para rexións novas (7.13) ──
+const REGION_COLOR_ROTATION: readonly string[] = [
+  '#c8875f',
+  '#5f9ec8',
+  '#7cb37c',
+  '#c85f8e',
+  '#c8b85f',
+  '#8e5fc8',
+]
 
 // ── Presets de arranque (7.5e §4 #1) ──
 //
@@ -101,6 +115,56 @@ export function ThemePanel({ editorEngine }: ThemePanelProps): JSX.Element {
       (r): ThemeRegionTint => (r.id === regionId ? { ...r, color } : r),
     )
     dispatchTheme({ ...theme, regions })
+  }
+
+  const setRegionLabel = (regionId: string, label: string): void => {
+    const regions = (theme.regions ?? []).map(
+      (r): ThemeRegionTint => (r.id === regionId ? { ...r, label } : r),
+    )
+    dispatchTheme({ ...theme, regions })
+  }
+
+  const addRegion = (): void => {
+    const existingRegions = theme.regions ?? []
+    const existingIds = new Set(existingRegions.map((r) => r.id))
+    const id = nextFreeId(existingIds, 'rexion')
+    const color =
+      REGION_COLOR_ROTATION[existingRegions.length % REGION_COLOR_ROTATION.length] ?? '#c8875f'
+    const newRegion: ThemeRegionTint = { id, label: 'Nova rexión', tag: id, color }
+    dispatchTheme({ ...theme, regions: [...existingRegions, newRegion] })
+  }
+
+  // **Eliminar rexión = quitar SÓ o tinte.** Os `tags` dos nodos NON se
+  // tocan — poden servir a condicións `tag_count`; borrar presentación
+  // non debe mutar regras (mesma doutrina que co recurso, 7.12: nada de
+  // cascadas silenciosas sobre semántica).
+  const removeRegion = (regionId: string): void => {
+    const regions = (theme.regions ?? []).filter((r) => r.id !== regionId)
+    dispatchTheme({ ...theme, regions })
+  }
+
+  // ── Selección (7.13): "Asignar/Quitar da selección" ──
+  const selectedRefs = useSelectedRefs(editorEngine)
+  const selectedNodeIds = selectedRefs.filter((r) => r.kind === 'node').map((r) => r.id)
+
+  const assignRegionToSelection = (tag: string): void => {
+    if (selectedNodeIds.length === 0) return
+    editorEngine.transaction({ en: 'Assign region', gl: 'Asignar rexión' }, (tx) => {
+      for (const nodeId of selectedNodeIds) {
+        const node = doc.tree.nodes.find((n) => n.id === nodeId)
+        tx.apply(setNodeField(nodeId, 'tags', toggleTag(node?.tags, tag, true)))
+      }
+    })
+  }
+
+  const removeRegionFromSelection = (tag: string): void => {
+    if (selectedNodeIds.length === 0) return
+    editorEngine.transaction({ en: 'Remove region', gl: 'Quitar rexión' }, (tx) => {
+      for (const nodeId of selectedNodeIds) {
+        const node = doc.tree.nodes.find((n) => n.id === nodeId)
+        tx.apply(setNodeField(nodeId, 'tags', toggleTag(node?.tags, tag, false)))
+      }
+    })
   }
 
   const setBackgroundSrc = (src: string): void => {
@@ -219,29 +283,65 @@ export function ThemePanel({ editorEngine }: ThemePanelProps): JSX.Element {
         <section className="editor-theme-panel__section">
           <h3 className="editor-theme-panel__section-title">Rexións</h3>
           <p className="editor-theme-panel__section-help">
-            Tinte de fondo dos grupos de nodos por etiqueta.
+            Tinte de fondo dos grupos de nodos por etiqueta. Eliminar unha rexión quita só o tinte —
+            as pertenzas dos nodos non se tocan.
           </p>
           {theme.regions === undefined || theme.regions.length === 0 ? (
-            <p className="editor-inspector__hint">
-              Sen rexións definidas. Crear rexións chegará coa ferramenta de rexións.
-            </p>
+            <p className="editor-inspector__hint">Sen rexións definidas.</p>
           ) : (
             <ul className="editor-panel__list editor-theme-panel__regions">
               {theme.regions.map((r) => (
                 <li key={r.id} className="editor-theme-panel__region-row">
-                  <div className="editor-theme-panel__region-info">
-                    <span className="editor-theme-panel__region-label">{r.label}</span>
-                    <span className="editor-theme-panel__region-tag">tag: {r.tag}</span>
+                  <div className="editor-theme-panel__region-row-main">
+                    <ColorWidget
+                      id={`theme-region-${r.id}`}
+                      value={r.color}
+                      onCommit={(c) => setRegionColor(r.id, c)}
+                    />
+                    <div className="editor-theme-panel__region-info">
+                      <TextWidget
+                        id={`theme-region-${r.id}-label`}
+                        value={r.label}
+                        onCommit={(v) => setRegionLabel(r.id, v)}
+                      />
+                      <span className="editor-theme-panel__region-tag">tag: {r.tag}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="editor-resources-editor__row-remove"
+                      onClick={() => removeRegion(r.id)}
+                      aria-label={`Eliminar rexión ${r.label}`}
+                    >
+                      Eliminar
+                    </button>
                   </div>
-                  <ColorWidget
-                    id={`theme-region-${r.id}`}
-                    value={r.color}
-                    onCommit={(c) => setRegionColor(r.id, c)}
-                  />
+                  {selectedNodeIds.length > 0 && (
+                    <div className="editor-theme-panel__region-selection-actions">
+                      <button
+                        type="button"
+                        className="editor-button"
+                        onClick={() => assignRegionToSelection(r.tag)}
+                      >
+                        Asignar á selección
+                      </button>
+                      <button
+                        type="button"
+                        className="editor-button"
+                        onClick={() => removeRegionFromSelection(r.tag)}
+                      >
+                        Quitar da selección
+                      </button>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
           )}
+          <div className="editor-inspector-struct__add">
+            <button type="button" className="editor-button" onClick={addRegion}>
+              Engadir rexión
+            </button>
+          </div>
         </section>
 
         {/* ── §4: Fondo ── */}
