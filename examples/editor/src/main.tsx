@@ -154,7 +154,22 @@ function App(): JSX.Element {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const replaceDocument = useCallback((doc: EditorDocument) => {
-    setEngine(buildEngine(doc))
+    // ── 7.14-B: cinto de seguridade ──
+    // Nunca substituír o motor/documento actual antes de ter o novo
+    // SAN. `deserializeDocument` xa corre os validadores duros (o
+    // camiño normal non trae docs malos), pero se algo escapa igual e
+    // `buildEngine` lanza, avisamos e conservamos o documento actual —
+    // en vez de deixar a app a medias e perder o traballo (informe 05).
+    let nextEngine: EditorEngine
+    try {
+      nextEngine = buildEngine(doc)
+    } catch (error) {
+      window.alert(
+        `Non se puido abrir o documento: ${error instanceof Error ? error.message : String(error)}`,
+      )
+      return
+    }
+    setEngine(nextEngine)
     setDocEpoch((n) => n + 1)
   }, [])
 

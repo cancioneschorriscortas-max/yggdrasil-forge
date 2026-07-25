@@ -75,4 +75,66 @@ describe('deserializeDocument — validación', () => {
     expect(restored.ok).toBe(false)
   })
 })
+
+// ── 7.14-B: blindaxe do import (informe 05) ──
+// deserializeDocument corre os validadores DUROS
+// (structural/uniqueIds/referentialIntegrity) sobre o doc parseado.
+// Contrato: se devolve `ok`, o documento é cargable (o motor non
+// lanzará ao construírse) — sen isto, ids duplicados pasaban o schema
+// Zod e crasheaban ao renderizar o canvas, perdendo o documento.
+describe('deserializeDocument — validadores duros (blindaxe do import)', () => {
+  const base = {
+    id: 't',
+    schemaVersion: '1.0.0',
+    version: '1.0.0',
+    label: { gl: 'x' },
+    nodes: [] as unknown[],
+    edges: [] as unknown[],
+    layout: { type: 'custom' },
+  }
+  const node = (id: string, x: number) => ({
+    id,
+    type: 'small',
+    label: { gl: id },
+    position: { x, y: 0 },
+  })
+
+  it('ids de nodo duplicados → err (sen throw)', () => {
+    const json = JSON.stringify({ ...base, nodes: [node('dup', 0), node('dup', 50)] })
+    const r = deserializeDocument(json)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.error.message).toMatch(/dup/i)
+  })
+
+  it('ids de aresta duplicados → err', () => {
+    const json = JSON.stringify({
+      ...base,
+      nodes: [node('a', 0), node('b', 50)],
+      edges: [
+        { id: 'e', source: 'a', target: 'b', type: 'dependency' },
+        { id: 'e', source: 'b', target: 'a', type: 'dependency' },
+      ],
+    })
+    expect(deserializeDocument(json).ok).toBe(false)
+  })
+
+  it('aresta a nodo inexistente → err', () => {
+    const json = JSON.stringify({
+      ...base,
+      nodes: [node('a', 0)],
+      edges: [{ id: 'e', source: 'a', target: 'fantasma', type: 'dependency' }],
+    })
+    expect(deserializeDocument(json).ok).toBe(false)
+  })
+
+  it('happy-path: árbore válida → ok', () => {
+    const json = JSON.stringify({
+      ...base,
+      nodes: [node('a', 0), node('b', 50)],
+      edges: [{ id: 'e', source: 'a', target: 'b', type: 'dependency' }],
+    })
+    expect(deserializeDocument(json).ok).toBe(true)
+  })
+})
 // ── FIN: tests serialize ──

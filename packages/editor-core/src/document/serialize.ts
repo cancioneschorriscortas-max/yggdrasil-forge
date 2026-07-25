@@ -16,6 +16,7 @@
 // defecto. Iso permite abrir as trees existentes (panadeiro,
 // cyberware) sin conversión previa.
 
+import { getErrorMessage } from '@yggdrasil-forge/common'
 import {
   ErrorCode,
   type Result,
@@ -25,6 +26,10 @@ import {
   ok,
   validateTreeDef,
 } from '@yggdrasil-forge/core'
+import { ValidatorRegistry } from '../validation/Validator.js'
+import { referentialIntegrityValidator } from '../validation/referentialIntegrityValidator.js'
+import { structuralValidator } from '../validation/structuralValidator.js'
+import { uniqueIdsValidator } from '../validation/uniqueIdsValidator.js'
 import {
   DEFAULT_DOCUMENT_META,
   type DocumentMeta,
@@ -95,6 +100,36 @@ export function deserializeDocument(jsonText: string): Result<EditorDocument> {
   // O cast a TreeDef é seguro: InferredTreeDef (z.infer) é
   // estruturalmente equivalente a TreeDef (gateado polo type-test
   // treeDefSchema.type-test.ts en @core).
-  return ok(createEditorDocument(validated.value as TreeDef, metaPartial))
+  const doc = createEditorDocument(validated.value as TreeDef, metaPartial)
+
+  // 5. Validadores DUROS (mesma garantía que EditorEngine).
+  //    O schema Zod non pilla ids de nodo/aresta DUPLICADOS. Sen esta
+  //    garda, un doc con ids duplicados cargaríase e o
+  //    `new TreeEngine(doc.tree)` do canvas lanzaría AO RENDERIZAR,
+  //    tumbando a UI e perdendo o documento (informe 05, GRAVE).
+  //    Contrato reforzado: se `deserializeDocument` devolve `ok`, o
+  //    documento é cargable (o motor non lanzará ao construírse).
+  const registry = new ValidatorRegistry()
+  registry.register(structuralValidator)
+  registry.register(uniqueIdsValidator)
+  registry.register(referentialIntegrityValidator)
+  const blocking = registry.run(doc).filter((issue) => issue.severity === 'error')
+  if (blocking.length > 0) {
+    const details = blocking
+      .map((issue) =>
+        typeof issue.message === 'string'
+          ? issue.message
+          : (issue.message.gl ?? issue.message.en ?? issue.code),
+      )
+      .join('; ')
+    return err(
+      new YggdrasilError(
+        ErrorCode.INVALID_TREE_DEF,
+        getErrorMessage(ErrorCode.INVALID_TREE_DEF, 'gl', { details }),
+      ),
+    )
+  }
+
+  return ok(doc)
 }
 // ── FIN: serialize ──
