@@ -31,9 +31,37 @@ import { ProblemsPanel } from './panels/ProblemsPanel.js'
 import { ThemePanel } from './panels/ThemePanel.js'
 import { ProbaPanel } from './proba/ProbaPanel.js'
 import { useProbaSession } from './proba/useProbaSession.js'
+import {
+  type ShellRuntime,
+  ShellRuntimeProvider,
+  useShellRuntime,
+} from './shell/ShellRuntimeContext.js'
 import { StatusBar } from './shell/StatusBar.js'
 import { TopBar } from './shell/TopBar.js'
 import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
+
+// ── Fix 7.14-A: paneis do canvas/proba leen o estado volátil do
+// contexto, non do closure (que dockview captura unha soa vez). Ver
+// ShellRuntimeContext.tsx para a autopsia. `engine` si vén por prop
+// (capturado no closure) porque só cambia con remount do shell. ──
+function CanvasPanelView({ engine }: { engine: EditorEngine }): JSX.Element {
+  const { probaSession, chromeTheme } = useShellRuntime()
+  return (
+    <EditorCanvas
+      editorEngine={engine}
+      probaSession={probaSession}
+      {...(chromeTheme !== undefined && { chromeTheme })}
+    />
+  )
+}
+
+function ProbaPanelView({ engine }: { engine: EditorEngine }): JSX.Element | null {
+  const { probaSession } = useShellRuntime()
+  // Só se monta en modo Proba, onde a sesión é sempre non-nula; a garda
+  // é defensiva.
+  if (probaSession === null) return null
+  return <ProbaPanel editorEngine={engine} session={probaSession} />
+}
 
 export interface EditorShellProps {
   readonly engine: EditorEngine
@@ -110,21 +138,15 @@ export function EditorShell({
       {
         id: 'canvas',
         title: 'Canvas',
-        component: () => (
-          <EditorCanvas
-            editorEngine={engine}
-            probaSession={probaSession}
-            {...(theme !== undefined && { chromeTheme: theme })}
-          />
-        ),
+        component: () => <CanvasPanelView engine={engine} />,
         defaultLocation: 'center',
       },
-      ...(mode === 'preview' && probaSession !== null
+      ...(mode === 'preview'
         ? [
             {
               id: 'proba',
               title: 'Proba',
-              component: () => <ProbaPanel editorEngine={engine} session={probaSession} />,
+              component: () => <ProbaPanelView engine={engine} />,
               defaultLocation: 'right' as const,
             },
           ]
@@ -150,7 +172,16 @@ export function EditorShell({
         defaultLocation: 'bottom',
       },
     ],
-    [engine, mode, probaSession, theme],
+    // Só depende de engine e mode: a sesión e o tema xa non se capturan
+    // nos closures (van polo ShellRuntimeContext), así que non precisan
+    // reconstruír os paneis (menos churn de reconciliación en dockview).
+    [engine, mode],
+  )
+
+  // Estado volátil que os paneis leen en vivo desde o contexto.
+  const runtime = useMemo<ShellRuntime>(
+    () => ({ probaSession, ...(theme !== undefined && { chromeTheme: theme }) }),
+    [probaSession, theme],
   )
 
   const handleTogglePanel = useCallback((id: string) => {
@@ -180,14 +211,16 @@ export function EditorShell({
         {...(documentActions !== undefined && { documentActions })}
       />
       <div className="editor-workspace">
-        <PanelHost
-          panels={panels}
-          handleRef={handleRef}
-          onVisiblePanelsChange={setVisiblePanelIds}
-          {...(initialLayout !== undefined && { initialLayout })}
-          {...(onLayoutChange !== undefined && { onLayoutChange: handleLayoutChange })}
-          {...(onLayoutInvalid !== undefined && { onLayoutInvalid })}
-        />
+        <ShellRuntimeProvider value={runtime}>
+          <PanelHost
+            panels={panels}
+            handleRef={handleRef}
+            onVisiblePanelsChange={setVisiblePanelIds}
+            {...(initialLayout !== undefined && { initialLayout })}
+            {...(onLayoutChange !== undefined && { onLayoutChange: handleLayoutChange })}
+            {...(onLayoutInvalid !== undefined && { onLayoutInvalid })}
+          />
+        </ShellRuntimeProvider>
       </div>
       <StatusBar engine={engine} mode={mode} />
     </div>
