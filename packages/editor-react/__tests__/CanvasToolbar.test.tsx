@@ -166,5 +166,34 @@ describe('★ 7.11 — Supr/Delete (non precisa CTM: opera sobre a selección xa
     expect(engine.canUndo()).toBe(false)
     expect(engine.getDocument().tree.nodes).toHaveLength(2)
   })
+
+  // ── 7.14-O6 (informe 02): Undo/Redo por teclado ──
+  it('★ 7.14-O6: Ctrl+Z desfai e Ctrl+Y refai; foco en input non intercepta', () => {
+    const engine = buildEngine()
+    render(
+      <div>
+        <input type="text" aria-label="campo O6" />
+        <EditorCanvas editorEngine={engine} />
+      </div>,
+    )
+    const nodes = () => engine.getDocument().tree.nodes.length
+    // Acción undoable: seleccionar 'a' e borrala (cascada).
+    act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'a' }]))
+    act(() => fireEvent.keyDown(window, { key: 'Delete' }))
+    expect(nodes()).toBe(1)
+
+    // Garda de foco: Ctrl+Z cun INPUT enfocado NON desfai (respéctase o
+    // undo nativo do campo de texto).
+    act(() => fireEvent.keyDown(screen.getByLabelText('campo O6'), { key: 'z', ctrlKey: true }))
+    expect(nodes()).toBe(1)
+
+    // Ctrl+Z no canvas: desfai (restaura o nodo).
+    act(() => fireEvent.keyDown(window, { key: 'z', ctrlKey: true }))
+    expect(nodes()).toBe(2)
+
+    // Ctrl+Y: refai (volve a borrar).
+    act(() => fireEvent.keyDown(window, { key: 'y', ctrlKey: true }))
+    expect(nodes()).toBe(1)
+  })
 })
 // ── FIN: tests toolbar ──

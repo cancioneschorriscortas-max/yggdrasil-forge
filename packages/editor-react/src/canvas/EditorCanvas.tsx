@@ -558,6 +558,25 @@ export function EditorCanvas({
 
       if (inProba || isTyping) return
 
+      // ── 7.14-O6 (informe 02): Undo/Redo por teclado ──
+      // Ctrl/Cmd+Z = desfacer; Ctrl/Cmd+Y ou Ctrl/Cmd+Shift+Z = refacer.
+      // A garda de arriba (isTyping) evita roubar o undo NATIVO dos
+      // campos de texto; a garda inProba evita tocar o documento en
+      // Proba (alí o "undo" é Reiniciar). O Result de undo/redo
+      // ignórase a propósito: se non hai que desfacer, é un no-op.
+      const mod = e.ctrlKey || e.metaKey
+      if (mod && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault()
+        if (e.shiftKey) editorEngine.redo()
+        else editorEngine.undo()
+        return
+      }
+      if (mod && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault()
+        editorEngine.redo()
+        return
+      }
+
       // 7.11: atallos de tool.
       if (e.key === 'v' || e.key === 'V') {
         changeTool('select')
