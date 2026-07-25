@@ -347,14 +347,22 @@ describe('★ iconScale — barra de axuste da imaxe (Inspector de nodo)', () =>
     expect(Number(slider.value)).toBe(1)
   })
 
-  it('★ mover a barra dispatchea setNodeField(iconScale) inmediatamente', () => {
+  it('★ a barra commitea iconScale ao rematar o xesto (non en cada change → undo limpo)', () => {
     const engine = buildEngineWithImageIcon()
     const { container } = render(<InspectorPanel editorEngine={engine} />)
     act(() => engine.getSession().selection.replace([{ kind: 'node', id: 'foo' }]))
     act(() => fireEvent.click(screen.getByText('Avanzado')))
     const slider = container.querySelector('#inspector-iconScale') as HTMLInputElement
+    const iconScaleOf = () => engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.iconScale
+
+    // Cambio en vivo (arrastre): AÍNDA non se persiste no documento
+    // (senón cada paso do arrastre sería unha entrada de undo).
     act(() => fireEvent.change(slider, { target: { value: '2' } }))
-    expect(engine.getDocument().tree.nodes.find((n) => n.id === 'foo')?.iconScale).toBe(2)
+    expect(iconScaleOf()).toBeUndefined()
+
+    // Fin do xesto (blur/pointerup/keyup): persiste unha soa vez.
+    act(() => fireEvent.blur(slider))
+    expect(iconScaleOf()).toBe(2)
   })
 
   it('límites min=1/max=3 no input', () => {
