@@ -671,7 +671,11 @@ export function EditorCanvas({
       onPointerMoveCapture={handlePointerMove}
       onPointerUpCapture={handlePointerUp}
       onPointerCancelCapture={handlePointerUp}
-      style={{ position: 'relative' }}
+      // 7.14-M4 (informe 01): encher o panel dockview. Sen height/width
+      // explícitos, o SVG (que é width/height:100%) colapsaba ao seu
+      // tamaño intrínseco cadrado (viewBox) e desbordábase o panel,
+      // tapándose ~40% detrás de Problemas. Igual que fai `.editor-panel`.
+      style={{ position: 'relative', width: '100%', height: '100%' }}
     >
       <ThemeProvider theme={theme}>
         <SkillTree
