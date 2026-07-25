@@ -123,11 +123,36 @@ export class StateStore {
     return this.listeners.size
   }
 
+  /**
+   * Constrúe o TreeState inicial.
+   *
+   * **Orzamento (7.14-C, fix informe 06):** cada recurso arranca no seu
+   * `Resource.initial` (0 por defecto), clampeado a `[0, Resource.max]`.
+   * O contrato do tipo xa o dicía ("Valor inicial cando se crea un novo
+   * TreeState"), pero antes ignorábase e o orzamento nacía sempre a 0
+   * (ou só co que trouxera `startingBudget`).
+   *
+   * **Precedencia:** `startingBudget.resources` SOBREESCRIBE por recurso
+   * ao `initial` — é un override explícito a nivel de árbore e gaña
+   * sobre o valor por defecto do recurso (aplícase tal cal, sen re-clamp,
+   * para conservar a semántica previa de `startingBudget`).
+   */
   private createInitialState(treeDef: TreeDef): TreeState {
-    const initialResources = treeDef.startingBudget?.resources ?? {}
+    const resources: Record<string, number> = {}
+    // 1) Semente por recurso: initial ?? 0, clampeado a [0, max].
+    for (const res of treeDef.resources ?? []) {
+      const seed = res.initial ?? 0
+      const capped = res.max !== undefined ? Math.min(seed, res.max) : seed
+      resources[res.id] = Math.max(0, capped)
+    }
+    // 2) Override explícito da árbore (gaña sobre o initial por defecto).
+    const overrides = treeDef.startingBudget?.resources ?? {}
+    for (const [id, amount] of Object.entries(overrides)) {
+      resources[id] = amount
+    }
     return {
       nodes: {},
-      budget: { resources: { ...initialResources } },
+      budget: { resources },
       computedStats: {},
       metadata: {},
     }

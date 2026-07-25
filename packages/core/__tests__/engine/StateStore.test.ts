@@ -36,6 +36,35 @@ describe('StateStore', () => {
       expect(store.getState().budget.resources.sp).toBe(5)
     })
 
+    // ── 7.14-C (fix informe 06): Resource.initial semea o orzamento ──
+    it('7.14-C: seeds budget from Resource.initial', () => {
+      const tree = makeTreeDef({ resources: [{ id: 'ouro', label: 'Ouro', initial: 7 }] })
+      expect(new StateStore(tree).getState().budget.resources.ouro).toBe(7)
+    })
+
+    it('7.14-C: resource without initial defaults to 0', () => {
+      const tree = makeTreeDef({ resources: [{ id: 'r', label: 'R' }] })
+      expect(new StateStore(tree).getState().budget.resources.r).toBe(0)
+    })
+
+    it('7.14-C: clamps initial to max', () => {
+      const tree = makeTreeDef({ resources: [{ id: 'r', label: 'R', initial: 10, max: 5 }] })
+      expect(new StateStore(tree).getState().budget.resources.r).toBe(5)
+    })
+
+    it('7.14-C: clamps negative initial to 0', () => {
+      const tree = makeTreeDef({ resources: [{ id: 'r', label: 'R', initial: -3 }] })
+      expect(new StateStore(tree).getState().budget.resources.r).toBe(0)
+    })
+
+    it('7.14-C: startingBudget overrides Resource.initial (explicit wins)', () => {
+      const tree = makeTreeDef({
+        resources: [{ id: 'r', label: 'R', initial: 5 }],
+        startingBudget: { resources: { r: 20 } },
+      })
+      expect(new StateStore(tree).getState().budget.resources.r).toBe(20)
+    })
+
     it('accepts custom initialState', () => {
       const initialState: TreeState = {
         nodes: { forno: { id: 'forno', state: 'unlocked', currentTier: 1 } },
