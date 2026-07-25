@@ -11,6 +11,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
+  useId,
   useRef,
   useState,
 } from 'react'
@@ -150,6 +151,10 @@ export function SkillNode({
   // consumidor) é independente — engadímolo cando o pointer entra/sae,
   // independentemente do estado local.
   const [isHovering, setHovering] = useState(false)
+  // Id único POR INSTANCIA para o clipPath da icona (mesmo precedente
+  // que `useId()` no SVGRenderer). Sen os `:` que React mete (non son
+  // válidos dentro de `url(#…)`).
+  const instanceId = useId().replace(/:/g, '')
   const [isFocused, setFocused] = useState(false)
 
   // F10.5: resolución do icono — (a) ID rexistrado → IconGlyph;
@@ -175,6 +180,12 @@ export function SkillNode({
   // do `<image>`. O estado do nodo amósase co anel, polo que o badge non
   // debe tapalo de todo — de aí o `1.8` e non `2.0` (deixa ~10% de marxe
   // ao bordo). Glyphs vector seguen a `iconSize` (sen cambio).
+  //
+  // Nota de deseño (adendo iconScale, Decisión 3 · opción A): ese ~10%
+  // de anel visible con `iconScale === 1` é INTENCIONADO, non un bug —
+  // garante que o estado do nodo (bloqueado/desbloqueado/maxed…) segue
+  // lexible por defecto nos nodos con icona-imaxe. Quen queira que a
+  // imaxe cubra máis pode subir `iconScale` (ata 3) desde o Inspector.
   const imageSize = radius * 1.8
   // ★ Zoom manual do autor (Inspector, barra de axuste). Só ten
   // sentido para badges raster (iconIsUrl); glyphs vector ignórano.
@@ -189,7 +200,14 @@ export function SkillNode({
   // verdade "dentro" da forma. O clip usa `radius` (a forma real),
   // non `effectiveImageSize` — así a imaxe NUNCA escapa do contorno
   // do nodo por moito zoom que se lle poña.
-  const iconClipId = `yf-icon-clip-${node.id}`
+  //
+  // O id do clipPath vai prefixado por `instanceId` (useId) para
+  // evitar colisións cando hai VARIOS `SkillTree` na mesma páxina co
+  // mesmo `node.id` (ids DOM duplicados → `url(#…)` apunta ao clip
+  // doutra árbore). Ademais saneamos o `node.id` (só [A-Za-z0-9_-])
+  // para que ids con espazos/comiñas/unicode non rompan a referencia.
+  const safeNodeId = node.id.replace(/[^A-Za-z0-9_-]/g, '_')
+  const iconClipId = `yf-icon-clip-${instanceId}-${safeNodeId}`
   // F11.3c: nodos locked → badge raster atenuado (grayscale + escurecido) para
   // que o estado salte á vista cos badges grandes e vívidos. Só afecta á imaxe;
   // o anel conserva a cor de estado, e glyph/<text> tampouco se tocan. O union
