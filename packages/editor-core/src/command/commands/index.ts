@@ -12,7 +12,7 @@
 import type { LocalizedString } from '@yggdrasil-forge/common'
 import type { EdgeDef, NodeDef, Position, TreeDef } from '@yggdrasil-forge/core'
 import { castDraft } from 'immer'
-import type { DocumentMeta } from '../../document/EditorDocument.js'
+import type { DocumentMeta, EditorDocument } from '../../document/EditorDocument.js'
 import type { Command } from '../Command.js'
 
 /** Move un nodo a `position`. No-op se o nodo non existe. */
@@ -162,6 +162,33 @@ export function setTreeField<K extends keyof TreeDef>(
       // O cast é necesario por exactOptionalPropertyTypes + readonly;
       // queda interno ao Command (mesmo padrón que setNodeField/setMetaField).
       ;(draft.tree as Record<string, unknown>)[field as string] = castDraft(value) as unknown
+    },
+  }
+}
+
+/**
+ * Substitúe o documento ENTEIRO (`tree` E `meta`) dun golpe (7.15b,
+ * Decisión 4). Un commit → **un undo devolve o documento anterior
+ * completo**. É a base do «Aplicar» do panel Código: pegar un JSON
+ * (dunha IA, dun compañeiro) e convertelo en árbore como UN paso de
+ * historial.
+ *
+ * O chamador é responsable de que `next` sexa SAN (o camiño previsto:
+ * `deserializeDocument` devolveu `ok` — 7.14-B/7.15 garanten que
+ * entón árbore e meta son cargables). Os validadores da transacción
+ * re-avalíanse igualmente sobre o candidato (rede de seguridade).
+ *
+ * Nota: a SELECCIÓN non é asunto deste comando (os Commands mutan só
+ * o documento). O chamador debe limpala tras aplicar — os ids
+ * seleccionados poden non existir no documento novo.
+ */
+export function replaceDocument(next: EditorDocument, label?: LocalizedString): Command {
+  return {
+    type: 'replaceDocument',
+    label: label ?? { en: 'Replace document', gl: 'Substituír o documento' },
+    mutate(draft) {
+      draft.tree = castDraft(next.tree)
+      draft.meta = castDraft(next.meta)
     },
   }
 }

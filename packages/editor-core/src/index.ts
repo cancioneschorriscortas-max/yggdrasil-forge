@@ -44,6 +44,7 @@ export {
   moveNode,
   removeEdge,
   removeNode,
+  replaceDocument,
   setMetaField,
   setNodeField,
   setTreeField,
