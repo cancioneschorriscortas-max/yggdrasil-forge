@@ -1,0 +1,1376 @@
+{
+  "type": "object",
+  "properties": {
+    "tree": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "description": {
+          "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+        },
+        "author": {
+          "type": "string"
+        },
+        "rootNodeId": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "small",
+                  "notable",
+                  "keystone",
+                  "mastery",
+                  "ascendancy",
+                  "root",
+                  "cluster",
+                  "gateway",
+                  "milestone",
+                  "subtree_anchor",
+                  "custom"
+                ]
+              },
+              "label": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+              },
+              "description": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+              },
+              "content": {
+                "type": "object",
+                "properties": {
+                  "tooltip": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "text"
+                          },
+                          "value": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                          }
+                        },
+                        "required": ["type", "value"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "markdown"
+                          },
+                          "value": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                          }
+                        },
+                        "required": ["type", "value"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "html"
+                          },
+                          "value": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                          },
+                          "sanitized": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": ["type", "value"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "image"
+                          },
+                          "src": {
+                            "type": "string"
+                          },
+                          "alt": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                          },
+                          "width": {
+                            "type": "number"
+                          },
+                          "height": {
+                            "type": "number"
+                          }
+                        },
+                        "required": ["type", "src"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "video"
+                          },
+                          "src": {
+                            "type": "string"
+                          },
+                          "poster": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "type": "string",
+                            "enum": ["youtube", "vimeo", "mp4"]
+                          }
+                        },
+                        "required": ["type", "src"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "audio"
+                          },
+                          "src": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["type", "src"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "link"
+                          },
+                          "href": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                          },
+                          "external": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": ["type", "href", "label"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "composite"
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/content/properties/tooltip"
+                            }
+                          }
+                        },
+                        "required": ["type", "items"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "const": "custom"
+                          },
+                          "componentId": {
+                            "type": "string"
+                          },
+                          "props": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        },
+                        "required": ["type", "componentId"],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  "detail": {
+                    "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/content/properties/tooltip"
+                  },
+                  "preview": {
+                    "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/content/properties/tooltip"
+                  },
+                  "unlocked": {
+                    "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/content/properties/tooltip"
+                  },
+                  "flavor": {
+                    "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "icon": {
+                "type": "string"
+              },
+              "iconScale": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 3
+              },
+              "color": {
+                "type": "string"
+              },
+              "shape": {
+                "type": "string",
+                "enum": ["circle", "square", "diamond", "hexagon", "octagon"]
+              },
+              "size": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "tier": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "maxTier": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cost": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "resourceId": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["resourceId", "amount"],
+                  "additionalProperties": false
+                }
+              },
+              "costPerTier": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/cost/items"
+                  }
+                }
+              },
+              "tiers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "label": {
+                      "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                    },
+                    "description": {
+                      "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "effects": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "modify_resource"
+                        },
+                        "resourceId": {
+                          "type": "string"
+                        },
+                        "op": {
+                          "type": "string",
+                          "enum": ["+", "-", "*"]
+                        },
+                        "amount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["type", "resourceId", "op", "amount"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "modify_stat"
+                        },
+                        "statId": {
+                          "type": "string"
+                        },
+                        "op": {
+                          "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/0/properties/op"
+                        },
+                        "amount": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["type", "statId", "op", "amount"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "modify_node_state"
+                        },
+                        "nodeId": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "locked",
+                            "unlockable",
+                            "in_progress",
+                            "unlocked",
+                            "maxed",
+                            "disabled",
+                            "expired"
+                          ]
+                        }
+                      },
+                      "required": ["type", "nodeId", "state"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "set_node_visibility"
+                        },
+                        "nodeId": {
+                          "type": "string"
+                        },
+                        "visible": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["type", "nodeId", "visible"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "unlock_node"
+                        },
+                        "nodeId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["type", "nodeId"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "set_progress"
+                        },
+                        "nodeId": {
+                          "type": "string"
+                        },
+                        "percent": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["type", "nodeId", "percent"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "trigger_event"
+                        },
+                        "eventName": {
+                          "type": "string"
+                        },
+                        "payload": {},
+                        "irreversible": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["type", "eventName"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "conditional"
+                        },
+                        "condition": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "node_unlocked"
+                                },
+                                "nodeId": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": ["type", "nodeId"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "node_maxed"
+                                },
+                                "nodeId": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": ["type", "nodeId"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "node_state"
+                                },
+                                "nodeId": {
+                                  "type": "string"
+                                },
+                                "state": {
+                                  "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/2/properties/state"
+                                }
+                              },
+                              "required": ["type", "nodeId", "state"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "nodes_count"
+                                },
+                                "count": {
+                                  "type": "number"
+                                },
+                                "scope": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": ["type", "count"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "resource_min"
+                                },
+                                "resourceId": {
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "resourceId", "amount"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "tier_min"
+                                },
+                                "nodeId": {
+                                  "type": "string"
+                                },
+                                "tier": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "nodeId", "tier"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "distance_max"
+                                },
+                                "fromNodeId": {
+                                  "type": "string"
+                                },
+                                "maxSteps": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "fromNodeId", "maxSteps"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "tag_count"
+                                },
+                                "tag": {
+                                  "type": "string"
+                                },
+                                "count": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "tag", "count"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "progress_min"
+                                },
+                                "nodeId": {
+                                  "type": "string"
+                                },
+                                "percent": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "nodeId", "percent"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "subtree_completion"
+                                },
+                                "subtreeId": {
+                                  "type": "string"
+                                },
+                                "percent": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "subtreeId", "percent"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "stat_min"
+                                },
+                                "statId": {
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "statId", "amount"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "time_after"
+                                },
+                                "timestamp": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "timestamp"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "time_before"
+                                },
+                                "timestamp": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": ["type", "timestamp"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "custom"
+                                },
+                                "evaluator": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": ["type", "evaluator"],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "then": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items"
+                          }
+                        },
+                        "else": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items"
+                          }
+                        }
+                      },
+                      "required": ["type", "condition", "then"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "composite"
+                        },
+                        "effects": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items"
+                          }
+                        }
+                      },
+                      "required": ["type", "effects"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "plugin"
+                        },
+                        "pluginId": {
+                          "type": "string"
+                        },
+                        "params": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": ["type", "pluginId"],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "prerequisites": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "all"
+                      },
+                      "conditions": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/7/properties/condition"
+                        }
+                      }
+                    },
+                    "required": ["type", "conditions"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "any"
+                      },
+                      "conditions": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/7/properties/condition"
+                        }
+                      }
+                    },
+                    "required": ["type", "conditions"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "none"
+                      },
+                      "conditions": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/7/properties/condition"
+                        }
+                      }
+                    },
+                    "required": ["type", "conditions"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/7/properties/condition"
+                  }
+                ]
+              },
+              "exclusions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "searchKeywords": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "metadata": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "position": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "required": ["x", "y"],
+                "additionalProperties": false
+              },
+              "group": {
+                "type": "string"
+              },
+              "supportsProgress": {
+                "type": "boolean"
+              },
+              "progressMilestones": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "progressSource": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "manual"
+                      }
+                    },
+                    "required": ["type"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "remote"
+                      },
+                      "endpoint": {
+                        "type": "string"
+                      },
+                      "intervalMs": {
+                        "type": "number"
+                      },
+                      "headers": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "auth": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    },
+                    "required": ["type", "endpoint"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "callback"
+                      },
+                      "handlerId": {
+                        "type": "string"
+                      },
+                      "intervalMs": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["type", "handlerId"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "event"
+                      },
+                      "eventName": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["type", "eventName"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "const": "computed"
+                      },
+                      "dependsOn": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "formula": {
+                        "type": "string",
+                        "enum": ["sum", "avg", "min", "max"]
+                      }
+                    },
+                    "required": ["type", "dependsOn", "formula"],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "subtreeId": {
+                "type": "string"
+              },
+              "timeConstraints": {
+                "type": "object",
+                "properties": {
+                  "startsAt": {
+                    "type": "number"
+                  },
+                  "expiresAt": {
+                    "type": "number"
+                  },
+                  "expiresAtCalendar": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string"
+                      },
+                      "time": {
+                        "type": "string"
+                      },
+                      "timezone": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["date", "time", "timezone"],
+                    "additionalProperties": false
+                  },
+                  "validForMs": {
+                    "type": "number"
+                  },
+                  "cooldownMs": {
+                    "type": "number"
+                  },
+                  "reCertifyAfterMs": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "statContributions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "statId": {
+                      "type": "string"
+                    },
+                    "op": {
+                      "type": "string",
+                      "enum": ["+", "-", "*", "/", "min", "max", "set"]
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "perTier": {
+                      "type": "boolean"
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/effects/items/anyOf/7/properties/condition"
+                      }
+                    }
+                  },
+                  "required": ["statId", "op", "value"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["id", "type", "label"],
+            "additionalProperties": false
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              },
+              "target": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "dependency",
+                  "soft_dependency",
+                  "exclusion",
+                  "enhancement",
+                  "path",
+                  "cluster",
+                  "subtree_link"
+                ]
+              },
+              "bidirectional": {
+                "type": "boolean"
+              },
+              "label": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+              },
+              "weight": {
+                "type": "number"
+              },
+              "style": {
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "dashPattern": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "glow": {
+                    "type": "boolean"
+                  },
+                  "animated": {
+                    "type": "boolean"
+                  },
+                  "directed": {
+                    "type": "boolean"
+                  },
+                  "routing": {
+                    "type": "string",
+                    "enum": [
+                      "straight",
+                      "diagonal-vertical",
+                      "diagonal-horizontal",
+                      "radial",
+                      "orthogonal",
+                      "octilinear"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": ["id", "source", "target", "type"],
+            "additionalProperties": false
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+              },
+              "color": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "nodeIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "position": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/nodes/items/properties/position"
+              }
+            },
+            "required": ["id", "label"],
+            "additionalProperties": false
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "initial": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "refundable": {
+                "type": "boolean"
+              },
+              "refundPercent": {
+                "type": "number"
+              }
+            },
+            "required": ["id", "label"],
+            "additionalProperties": false
+          }
+        },
+        "stats": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/label"
+              },
+              "initial": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "format": {
+                "type": "string",
+                "enum": ["number", "percent", "currency"]
+              }
+            },
+            "required": ["id", "label"],
+            "additionalProperties": false
+          }
+        },
+        "startingBudget": {
+          "type": "object",
+          "properties": {
+            "resources": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          },
+          "required": ["resources"],
+          "additionalProperties": false
+        },
+        "layout": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "curve": {
+              "$ref": "#/definitions/YggdrasilDocument/properties/tree/properties/edges/items/properties/style/properties/routing"
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": {}
+        },
+        "theme": {
+          "type": "string"
+        },
+        "i18n": {
+          "type": "object",
+          "properties": {
+            "defaultLocale": {
+              "type": "string"
+            },
+            "fallbackLocale": {
+              "type": "string"
+            }
+          },
+          "required": ["defaultLocale", "fallbackLocale"],
+          "additionalProperties": false
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "subtrees": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/YggdrasilDocument/properties/tree"
+          }
+        }
+      },
+      "required": ["id", "schemaVersion", "version", "label", "nodes", "edges", "layout"],
+      "additionalProperties": false,
+      "description": "The skill tree definition. The engine reads only this namespace."
+    },
+    "editor": {
+      "type": "object",
+      "properties": {
+        "formatVersion": {
+          "type": "string",
+          "description": "File format version (semver). Used for future migrations."
+        },
+        "background": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string",
+              "description": "URL, path or asset id of the background image."
+            },
+            "opacity": {
+              "type": "number",
+              "description": "0..1 opacity applied to the image."
+            },
+            "contrast": {
+              "type": "number",
+              "description": "Contrast treatment applied by the consumer."
+            },
+            "desaturate": {
+              "type": "number",
+              "description": "Desaturation treatment applied by the consumer."
+            },
+            "locked": {
+              "type": "boolean",
+              "description": "If true, consumers must not move or replace this background."
+            }
+          },
+          "required": ["src"],
+          "additionalProperties": false,
+          "description": "Reference to a background image plus its visual treatment."
+        },
+        "coordinateBounds": {
+          "type": "object",
+          "properties": {
+            "minX": {
+              "type": "number",
+              "description": "Left edge of the coordinate space."
+            },
+            "minY": {
+              "type": "number",
+              "description": "Top edge of the coordinate space."
+            },
+            "maxX": {
+              "type": "number",
+              "description": "Right edge of the coordinate space."
+            },
+            "maxY": {
+              "type": "number",
+              "description": "Bottom edge of the coordinate space."
+            }
+          },
+          "required": ["minX", "minY", "maxX", "maxY"],
+          "additionalProperties": false,
+          "description": "Fixed coordinate space for the canvas (world box)."
+        },
+        "thumbnail": {
+          "type": "string",
+          "description": "PNG/SVG capture as base64 data URI or URL (optional)."
+        },
+        "imports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Other referenced documents (reserved for future composition)."
+        },
+        "theme": {
+          "type": "object",
+          "properties": {
+            "nodeFills": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "enum": ["locked", "unlockable", "unlocked", "maxed", "inProgress"]
+              },
+              "description": "Node body fill per visual state (CSS color strings). Partial: missing states fall back to the base theme."
+            },
+            "textColor": {
+              "type": "string",
+              "description": "Color for node labels, progress text, icons and region labels. Omit for an automatic legible default."
+            },
+            "regions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Unique region id."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Human-readable region label."
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "Nodes whose NodeDef.tags include this tag belong to the region."
+                  },
+                  "color": {
+                    "type": "string",
+                    "description": "CSS color string; the renderer applies it at low opacity."
+                  }
+                },
+                "required": ["id", "label", "tag", "color"],
+                "additionalProperties": false,
+                "description": "Background tint for one region (membership is by node tag)."
+              },
+              "description": "Region tints. Region membership is by node tag."
+            },
+            "preset": {
+              "type": "string",
+              "description": "Id of the preset this theme started from (informative, for UIs)."
+            }
+          },
+          "additionalProperties": false,
+          "description": "Document theme: presentation layer, separate from the TreeDef."
+        }
+      },
+      "additionalProperties": true,
+      "description": "Editor-level metadata (background, coordinate bounds, theme…). Engines ignore this namespace; editors read it. Unknown keys are preserved (forward compatibility)."
+    }
+  },
+  "required": ["tree"],
+  "additionalProperties": false,
+  "description": "Skill-tree document for Yggdrasil Forge: `tree` is the engine data (nodes, edges, resources, unlock rules), `editor` is editor-level presentation metadata (theme, background, coordinate bounds). Generated from the Zod schemas in @yggdrasil-forge/core and @yggdrasil-forge/editor-core — do not edit by hand; regenerate with `pnpm --filter @yggdrasil-forge/cli run gen:schema`.",
+  "title": "Yggdrasil Forge document",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/cancioneschorriscortas-max/yggdrasil-forge/main/schema/yggdrasil-document.schema.json"
+}
