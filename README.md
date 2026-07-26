@@ -60,6 +60,35 @@ pitfalls to avoid along the way:
 - 📖 **[Walkthrough — build the Paladin (English)](docs/guide/paladin-walkthrough.en.md)**
 - 📖 **[Tutorial — construye El Paladín (Español)](docs/guide/paladin-walkthrough.es.md)**
 
+## AI-assisted authoring — the data path
+
+Yggdrasil Forge is built so that **an AI (or any pipeline) can author a
+complete, playable skill tree without ever clicking the editor**. The tree
+below — *"The Winter Wolf Path"*: 18 nodes, 3 tinted regions, embedded SVG
+icons, a night-sky background, per-state theme fills, two resources, ranks,
+`all`/`any` prerequisites and a mutually-exclusive keystone pair — was
+generated as a single JSON document by an AI assistant and imported in one
+paste, valid on the first try:
+
+![Winter Wolf Path — authoring view with the live Code panel](docs/assets/showcase-lobo-autoria.png)
+
+The workflow:
+
+1. **Generate** — give the AI the published
+   [JSON Schema](schema/yggdrasil-document.schema.json) and the
+   [gold gallery](examples/gallery/) as few-shot examples, and ask for a tree
+   on any theme. The full document lives in the gallery:
+   [`lobo-de-inverno.json`](examples/gallery/lobo-de-inverno.json).
+2. **Validate** — `ygg validate tree.json` (from `@yggdrasil-forge/cli`) runs
+   the exact same validation as the editor's import and reports errors *as
+   data* (`--json`), so the AI can fix its own output in a tight loop.
+3. **Paste** — drop the JSON into the editor's live **Code panel** → *Validar*
+   → *Aplicar*. The whole document replaces the canvas as a single undo step.
+4. **Play** — switch to *Proba* mode and play the tree: grant resources,
+   unlock nodes, watch the state fills light up.
+
+![Winter Wolf Path — played in Proba mode, War branch unlocked](docs/assets/showcase-lobo-proba.png)
+
 ## Why Yggdrasil Forge?
 
 If you're building a skill tree, progression system, or branching

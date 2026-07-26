@@ -33,6 +33,25 @@ Generated from the canonical baker fixture (`examples/editor`) with
   and a region tint bound to a node tag.
 - `editor.coordinateBounds` + document `background` reference.
 
+### `lobo-de-inverno.json` — the AI-authored showcase
+*"The Winter Wolf Path"* — generated end-to-end by an AI assistant from the
+published schema plus this gallery, valid on the first try. The most complete
+example: use it as the reference for what a finished, game-ready document
+looks like. Exercises:
+- 18 nodes in 3 branches with a shared trunk and a summit keystone reachable
+  via an `any` group over three branch keystones.
+- Embedded **SVG icons as data URIs** (self-contained, no network) on
+  keystones/notables; Unicode runes as text icons on minor nodes.
+- A **background image** (`editor.background.src`, data-URI SVG night sky).
+- Full **theme**: per-state `nodeFills`, `textColor`, 3 tinted regions bound
+  to node tags; hexagon/diamond/circle shapes; per-node `color` + `size`
+  override on the summit.
+- Two resources with `icon`, `color`, `initial` and `max`; multi-rank nodes
+  with escalating `costPerTier`; `node_maxed` prerequisites; symmetric
+  `exclusions` between two keystones ("choose your path").
+- Screenshots in [`docs/assets/`](../../docs/assets/) (see the root README's
+  *AI-assisted authoring* section).
+
 ### `adversarial.json` — the deliberately awkward tree
 Generated from `adversarialDocument()` (`@yggdrasil-forge/editor-core`)
 with `serializeDocument` — never edited by hand. Exercises the paths

@@ -1,0 +1,891 @@
+{
+  "tree": {
+    "id": "senda-lobo-inverno",
+    "schemaVersion": "1.0.0",
+    "version": "1.0.0",
+    "label": {
+      "gl": "A Senda do Lobo de Inverno",
+      "en": "The Winter Wolf Path"
+    },
+    "description": {
+      "gl": "Tres pólas medran do mesmo corazón: Guerra, Espírito e Saga. Escolle a túa — Ragnarök agarda igual.",
+      "en": "Three branches grow from the same heart: War, Spirit and Saga. Choose yours — Ragnarök waits all the same."
+    },
+    "author": "Yggdrasil Forge (demo)",
+    "groups": [
+      {
+        "id": "guerra",
+        "label": {
+          "gl": "Guerra",
+          "en": "War"
+        }
+      },
+      {
+        "id": "espirito",
+        "label": {
+          "gl": "Espírito",
+          "en": "Spirit"
+        }
+      },
+      {
+        "id": "saga",
+        "label": {
+          "gl": "Saga",
+          "en": "Saga"
+        }
+      }
+    ],
+    "resources": [
+      {
+        "id": "saga",
+        "label": {
+          "gl": "Puntos de Saga",
+          "en": "Saga Points"
+        },
+        "icon": "❄",
+        "color": "#7aa7e8",
+        "initial": 12,
+        "max": 20
+      },
+      {
+        "id": "sangue",
+        "label": {
+          "gl": "Sangue de Lobo",
+          "en": "Wolf Blood"
+        },
+        "icon": "🩸",
+        "color": "#8c2f1b",
+        "initial": 3,
+        "max": 5
+      }
+    ],
+    "nodes": [
+      {
+        "id": "espertar",
+        "type": "keystone",
+        "label": {
+          "gl": "O Espertar",
+          "en": "The Awakening"
+        },
+        "position": {
+          "x": 0,
+          "y": 180
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDU2VjIyTTMyIDMwbC0xMy0xMU0zMiAzMGwxMy0xMU0zMiA0MGwtOS04TTMyIDQwbDktOE0zMiA1NmwtOSA2TTMyIDU2bDkgNiIvPjxjaXJjbGUgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY3g9IjMyIiBjeT0iMTQiIHI9IjciLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "description": {
+          "gl": "Todo lobo esperta unha vez. A senda comeza baixo a árbore.",
+          "en": "Every wolf wakes once. The path begins beneath the tree."
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "corazon",
+        "type": "notable",
+        "label": {
+          "gl": "Corazón do Lobo",
+          "en": "Wolfheart"
+        },
+        "position": {
+          "x": 0,
+          "y": 100
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDZsMjAgNnYxNmMwIDE0LTggMjQtMjAgMzBDMjAgNTIgMTIgNDIgMTIgMjhWMTJ6Ii8+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDE0djM2TTE4IDI2aDI4Ii8+PC9zdmc+",
+        "shape": "diamond",
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "espertar"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ],
+        "description": {
+          "gl": "O tronco do que nacen as tres pólas.",
+          "en": "The trunk from which three branches grow."
+        }
+      },
+      {
+        "id": "furia",
+        "type": "small",
+        "label": {
+          "gl": "Furia ᚢ",
+          "en": "Fury ᚢ"
+        },
+        "position": {
+          "x": -130,
+          "y": 60
+        },
+        "icon": "ᚢ",
+        "tags": ["guerra"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "corazon"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "pel-de-oso",
+        "type": "small",
+        "label": {
+          "gl": "Pel de Oso ᚦ",
+          "en": "Bearhide ᚦ"
+        },
+        "position": {
+          "x": -215,
+          "y": 5
+        },
+        "icon": "ᚦ",
+        "tags": ["guerra"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "furia"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "machado",
+        "type": "notable",
+        "label": {
+          "gl": "Machado Xélido",
+          "en": "Rimeaxe"
+        },
+        "position": {
+          "x": -295,
+          "y": -60
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTIwIDUyTDQ0IDIwIi8+PHBhdGggZmlsbD0iI2U4ZGNjMCIgZD0iTTM2IDEwYzggMiAxNiAwIDE4IDhzLTQgMTQtMTIgMTZjMi0xMC0xLTE4LTYtMjR6Ii8+PC9zdmc+",
+        "shape": "diamond",
+        "tags": ["guerra"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "pel-de-oso"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "saga",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "saga",
+              "amount": 3
+            }
+          ]
+        ],
+        "description": {
+          "gl": "Cada rango afía o fío do inverno.",
+          "en": "Each rank hones winter’s edge."
+        }
+      },
+      {
+        "id": "ouveo",
+        "type": "small",
+        "label": {
+          "gl": "Ouveo de Guerra ᛉ",
+          "en": "War Howl ᛉ"
+        },
+        "position": {
+          "x": -215,
+          "y": -140
+        },
+        "icon": "ᛉ",
+        "tags": ["guerra"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "machado"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "berserkr",
+        "type": "keystone",
+        "label": {
+          "gl": "Berserkr",
+          "en": "Berserkr"
+        },
+        "position": {
+          "x": -295,
+          "y": -225
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iI2U4ZGNjMCIgZD0iTTMyIDZjNCAxMCAxNCAxNCAxNCAyNmExNCAxNCAwIDExLTI4IDBjMC03IDQtMTAgNi0xNiAzIDQgNiA2IDggNS0yLTUtMi0xMCAwLTE1eiIvPjxwYXRoIGZpbGw9IiMxNDFhMjYiIGQ9Ik0zMiAzMGMyIDUgNiA2IDYgMTJhNiA2IDAgMTEtMTIgMGMwLTQgMi02IDMtOSAxIDIgMiAzIDMgMy0xLTItMS00IDAtNnoiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "tags": ["guerra"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "ouveo"
+            },
+            {
+              "type": "node_maxed",
+              "nodeId": "machado"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 3
+            },
+            {
+              "resourceId": "sangue",
+              "amount": 1
+            }
+          ]
+        ],
+        "exclusions": ["voz-skald"],
+        "description": {
+          "gl": "A furia total. Quen a abraza non pode ser tamén voz da mesura.",
+          "en": "Total fury. Who embraces it cannot also be the voice of measure."
+        }
+      },
+      {
+        "id": "alento",
+        "type": "small",
+        "label": {
+          "gl": "Alento ᚨ",
+          "en": "Breath ᚨ"
+        },
+        "position": {
+          "x": 0,
+          "y": 20
+        },
+        "icon": "ᚨ",
+        "tags": ["espirito"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "corazon"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "bordon",
+        "type": "notable",
+        "label": {
+          "gl": "Bordón de Freixo",
+          "en": "Ashwood Staff"
+        },
+        "position": {
+          "x": 0,
+          "y": -65
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDU4VjIyIi8+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9IiNlOGRjYzAiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjeD0iMzIiIGN5PSIxNCIgcj0iOCIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4ZGNjMCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0zMiA2djRNMjQgMTRoLTRNNDQgMTRoLTQiLz48L3N2Zz4=",
+        "shape": "diamond",
+        "tags": ["espirito"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "alento"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "saga",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "saga",
+              "amount": 3
+            }
+          ]
+        ]
+      },
+      {
+        "id": "vision",
+        "type": "small",
+        "label": {
+          "gl": "Visión ᛏ",
+          "en": "Sight ᛏ"
+        },
+        "position": {
+          "x": -75,
+          "y": -145
+        },
+        "icon": "ᛏ",
+        "tags": ["espirito"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "bordon"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "presaxio",
+        "type": "small",
+        "label": {
+          "gl": "Presaxio ᛗ",
+          "en": "Omen ᛗ"
+        },
+        "position": {
+          "x": 75,
+          "y": -145
+        },
+        "icon": "ᛗ",
+        "tags": ["espirito"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "bordon"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "ollo-odin",
+        "type": "keystone",
+        "label": {
+          "gl": "O Ollo que Ve",
+          "en": "The Seeing Eye"
+        },
+        "position": {
+          "x": 0,
+          "y": -230
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTggMzJjOC0xMSAxNi0xNiAyNC0xNnMxNiA1IDI0IDE2Yy04IDExLTE2IDE2LTI0IDE2UzE2IDQzIDggMzJ6Ii8+PGNpcmNsZSBmaWxsPSIjZThkY2MwIiBjeD0iMzIiIGN5PSIzMiIgcj0iNyIvPjwvc3ZnPg==",
+        "shape": "hexagon",
+        "tags": ["espirito"],
+        "prerequisites": {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "vision"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "presaxio"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 3
+            },
+            {
+              "resourceId": "sangue",
+              "amount": 1
+            }
+          ]
+        ],
+        "description": {
+          "gl": "Un ollo pagouse. O outro ve o que aínda non pasou.",
+          "en": "One eye was the price. The other sees what has not yet come."
+        }
+      },
+      {
+        "id": "verba",
+        "type": "small",
+        "label": {
+          "gl": "Verba ᚹ",
+          "en": "Word ᚹ"
+        },
+        "position": {
+          "x": 130,
+          "y": 60
+        },
+        "icon": "ᚹ",
+        "tags": ["saga"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "corazon"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "memoria",
+        "type": "small",
+        "label": {
+          "gl": "Memoria ᛚ",
+          "en": "Memory ᛚ"
+        },
+        "position": {
+          "x": 215,
+          "y": 5
+        },
+        "icon": "ᛚ",
+        "tags": ["saga"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "verba"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "corno",
+        "type": "notable",
+        "label": {
+          "gl": "Corno de Chamada",
+          "en": "Calling Horn"
+        },
+        "position": {
+          "x": 295,
+          "y": -60
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZThkY2MwIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTE0IDIyYzQgMTIgMTQgMjIgMjggMjRsOC04Yy00LTEyLTE0LTIwLTI4LTI0eiIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4ZGNjMCIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0yMiAxOGwtNC02TTQyIDQ0bDYgNiIvPjwvc3ZnPg==",
+        "shape": "diamond",
+        "tags": ["saga"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "memoria"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "saga",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "saga",
+              "amount": 3
+            }
+          ]
+        ]
+      },
+      {
+        "id": "xuramento",
+        "type": "small",
+        "label": {
+          "gl": "Xuramento ᛒ",
+          "en": "Oath ᛒ"
+        },
+        "position": {
+          "x": 215,
+          "y": -140
+        },
+        "icon": "ᛒ",
+        "tags": ["saga"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "corno"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "voz-skald",
+        "type": "keystone",
+        "label": {
+          "gl": "Voz do Skald",
+          "en": "Skald’s Voice"
+        },
+        "position": {
+          "x": 295,
+          "y": -225
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iI2U4ZGNjMCIgZD0iTTE0IDQwYzEwIDIgMTYtMiAyMC0xMCAzLTYgOC05IDE0LThsNiAzLTUgMmMtMiA2LTUgMTAtMTAgMTMtNyA0LTEwIDEwLTkgMTZsLTQtMWMtMS00IDAtOCAyLTExLTYgMi0xMSAwLTE0LTR6Ii8+PGNpcmNsZSBmaWxsPSIjMTQxYTI2IiBjeD0iNDMiIGN5PSIyNiIgcj0iMS42Ii8+PC9zdmc+",
+        "shape": "hexagon",
+        "tags": ["saga"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "xuramento"
+            },
+            {
+              "type": "node_maxed",
+              "nodeId": "corno"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "saga",
+              "amount": 3
+            },
+            {
+              "resourceId": "sangue",
+              "amount": 1
+            }
+          ]
+        ],
+        "exclusions": ["berserkr"],
+        "description": {
+          "gl": "A palabra que fai historia. Incompatible coa furia cega.",
+          "en": "The word that makes history. Incompatible with blind fury."
+        }
+      },
+      {
+        "id": "ragnarok",
+        "type": "keystone",
+        "label": {
+          "gl": "Ragnarök",
+          "en": "Ragnarök"
+        },
+        "position": {
+          "x": 0,
+          "y": -330
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iI2U4ZGNjMCIgZD0iTTMyIDZjNCAxMCAxNCAxNCAxNCAyNmExNCAxNCAwIDExLTI4IDBjMC03IDQtMTAgNi0xNiAzIDQgNiA2IDggNS0yLTUtMi0xMCAwLTE1eiIvPjxwYXRoIGZpbGw9IiMxNDFhMjYiIGQ9Ik0zMiAzMGMyIDUgNiA2IDYgMTJhNiA2IDAgMTEtMTIgMGMwLTQgMi02IDMtOSAxIDIgMiAzIDMgMy0xLTItMS00IDAtNnoiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "size": 44,
+        "color": "#8c2f1b",
+        "prerequisites": {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "berserkr"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "ollo-odin"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "voz-skald"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "sangue",
+              "amount": 2
+            }
+          ]
+        ],
+        "description": {
+          "gl": "O final de todas as sendas. Só unha póla chega — calquera delas.",
+          "en": "The end of all paths. Only one branch arrives — any of them."
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-espertar-corazon",
+        "source": "espertar",
+        "target": "corazon",
+        "type": "dependency"
+      },
+      {
+        "id": "e-corazon-furia",
+        "source": "corazon",
+        "target": "furia",
+        "type": "dependency"
+      },
+      {
+        "id": "e-furia-pel-de-oso",
+        "source": "furia",
+        "target": "pel-de-oso",
+        "type": "dependency"
+      },
+      {
+        "id": "e-pel-de-oso-machado",
+        "source": "pel-de-oso",
+        "target": "machado",
+        "type": "dependency"
+      },
+      {
+        "id": "e-machado-ouveo",
+        "source": "machado",
+        "target": "ouveo",
+        "type": "dependency"
+      },
+      {
+        "id": "e-ouveo-berserkr",
+        "source": "ouveo",
+        "target": "berserkr",
+        "type": "dependency"
+      },
+      {
+        "id": "e-corazon-alento",
+        "source": "corazon",
+        "target": "alento",
+        "type": "dependency"
+      },
+      {
+        "id": "e-alento-bordon",
+        "source": "alento",
+        "target": "bordon",
+        "type": "dependency"
+      },
+      {
+        "id": "e-bordon-vision",
+        "source": "bordon",
+        "target": "vision",
+        "type": "dependency"
+      },
+      {
+        "id": "e-bordon-presaxio",
+        "source": "bordon",
+        "target": "presaxio",
+        "type": "dependency"
+      },
+      {
+        "id": "e-vision-ollo-odin",
+        "source": "vision",
+        "target": "ollo-odin",
+        "type": "dependency"
+      },
+      {
+        "id": "e-presaxio-ollo-odin",
+        "source": "presaxio",
+        "target": "ollo-odin",
+        "type": "dependency"
+      },
+      {
+        "id": "e-corazon-verba",
+        "source": "corazon",
+        "target": "verba",
+        "type": "dependency"
+      },
+      {
+        "id": "e-verba-memoria",
+        "source": "verba",
+        "target": "memoria",
+        "type": "dependency"
+      },
+      {
+        "id": "e-memoria-corno",
+        "source": "memoria",
+        "target": "corno",
+        "type": "dependency"
+      },
+      {
+        "id": "e-corno-xuramento",
+        "source": "corno",
+        "target": "xuramento",
+        "type": "dependency"
+      },
+      {
+        "id": "e-xuramento-voz-skald",
+        "source": "xuramento",
+        "target": "voz-skald",
+        "type": "dependency"
+      },
+      {
+        "id": "e-berserkr-ragnarok",
+        "source": "berserkr",
+        "target": "ragnarok",
+        "type": "dependency"
+      },
+      {
+        "id": "e-ollo-odin-ragnarok",
+        "source": "ollo-odin",
+        "target": "ragnarok",
+        "type": "dependency"
+      },
+      {
+        "id": "e-voz-skald-ragnarok",
+        "source": "voz-skald",
+        "target": "ragnarok",
+        "type": "dependency"
+      }
+    ],
+    "layout": {
+      "type": "custom"
+    }
+  },
+  "editor": {
+    "formatVersion": "1.0.0",
+    "coordinateBounds": {
+      "minX": -420,
+      "minY": -400,
+      "maxX": 420,
+      "maxY": 260
+    },
+    "background": {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4NDAgNjYwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iY2VvIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzBhMGQxNCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjAuNjUiIHN0b3AtY29sb3I9IiMxMjE4MjYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMWEyMjMzIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJicmlsbyIgY3g9IjAuNSIgY3k9IjAuOTIiIHI9IjAuNjUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNjOWEyNGIiIHN0b3Atb3BhY2l0eT0iMC4xMCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNjOWEyNGIiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9Ijg0MCIgaGVpZ2h0PSI2NjAiIGZpbGw9InVybCgjY2VvKSIvPgogIDxjaXJjbGUgY3g9IjQwIiBjeT0iNjAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjMwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSIyMTAiIGN5PSI5MCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iMzAwIiBjeT0iNDAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjQyMCIgY3k9IjcwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSI1MjAiIGN5PSIyNSIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iNjEwIiBjeT0iODAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjcwMCIgY3k9IjQ1IiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSI3OTAiIGN5PSI5NSIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSIxNTAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjI2MCIgY3k9IjE2MCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iMzgwIiBjeT0iMTIwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSI1NjAiIGN5PSIxNDAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjY4MCIgY3k9IjE3MCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iNzcwIiBjeT0iMTMwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjI2MCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iMTgwIiBjeT0iMjQwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSIzMzAiIGN5PSIyODAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjY0MCIgY3k9IjI2MCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iNzQwIiBjeT0iMjMwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSIxMTAiIGN5PSIzODAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9IjcyMCIgY3k9IjM5MCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iNjAiIGN5PSI1MDAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPjxjaXJjbGUgY3g9Ijc4MCIgY3k9IjUyMCIgcj0iMS40IiBmaWxsPSIjZThkY2MwIiBvcGFjaXR5PSIwLjIwIi8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iNTYwIiByPSIxLjQiIGZpbGw9IiNlOGRjYzAiIG9wYWNpdHk9IjAuMjAiLz48Y2lyY2xlIGN4PSI2MDAiIGN5PSI1NzAiIHI9IjEuNCIgZmlsbD0iI2U4ZGNjMCIgb3BhY2l0eT0iMC4yMCIvPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2U4ZGNjMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDU1IiBzdHJva2Utd2lkdGg9IjEwIiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTQyMCA2NDBWMzAwIi8+CiAgICA8cGF0aCBkPSJNNDIwIDQzMGMtNzAtNDAtMTIwLTkwLTE1MC0xNzBNNDIwIDQzMGM3MC00MCAxMjAtOTAgMTUwLTE3MCIvPgogICAgPHBhdGggZD0iTTQyMCAzNDBjLTQ1LTM1LTcwLTgwLTgwLTE0ME00MjAgMzQwYzQ1LTM1IDcwLTgwIDgwLTE0MCIvPgogICAgPHBhdGggZD0iTTQyMCA2NDBjLTUwIDEwLTkwIDMwLTEyMCA2ME00MjAgNjQwYzUwIDEwIDkwIDMwIDEyMCA2MCIvPgogIDwvZz4KICA8cmVjdCB3aWR0aD0iODQwIiBoZWlnaHQ9IjY2MCIgZmlsbD0idXJsKCNicmlsbykiLz4KPC9zdmc+"
+    },
+    "theme": {
+      "preset": "lobo-de-inverno",
+      "textColor": "#e8dcc0",
+      "nodeFills": {
+        "locked": "#232935",
+        "unlockable": "#3d5a80",
+        "inProgress": "#5b7ea8",
+        "unlocked": "#c9a24b",
+        "maxed": "#e6c96d"
+      },
+      "regions": [
+        {
+          "id": "r-guerra",
+          "label": "Guerra",
+          "tag": "guerra",
+          "color": "#a34242"
+        },
+        {
+          "id": "r-espirito",
+          "label": "Espírito",
+          "tag": "espirito",
+          "color": "#4f8cba"
+        },
+        {
+          "id": "r-saga",
+          "label": "Saga",
+          "tag": "saga",
+          "color": "#c9a24b"
+        }
+      ]
+    }
+  }
+}
