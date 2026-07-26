@@ -37,7 +37,8 @@ import { panadeiroDocumentMeta, panadeiroTree } from './fixtures/panadeiro.js'
 // os ids/conxunto de paneis, para invalidar layouts vellos sen
 // pegarse a bugs de "pestanas orfas". Con versión distinta, fromJSON
 // simplemente non atopa o gardado, cae ao default. Cero risco.
-const LAYOUT_VERSION = 1
+// v2: 7.15b engade o panel «Código» ao conxunto.
+const LAYOUT_VERSION = 2
 const LAYOUT_STORAGE_KEY = `ygg-editor-layout@v${LAYOUT_VERSION}`
 
 function loadLayout(): SerializedDockview | undefined {
