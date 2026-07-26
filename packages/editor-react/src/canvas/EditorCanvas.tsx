@@ -62,6 +62,8 @@ import {
   useSyncExternalStore,
 } from 'react'
 import type { ProbaSession } from '../proba/useProbaSession.js'
+import type { CanvasView } from '../shell/ShellRuntimeContext.js'
+import { CanvasCardsView } from './CanvasCardsView.js'
 import { CanvasOverlay, type OverlayRectPx } from './CanvasOverlay.js'
 import { type CanvasTool, CanvasToolbar } from './CanvasToolbar.js'
 import { hitTestNode, nodesInRect } from './internals/hitTest.js'
@@ -96,6 +98,14 @@ export interface EditorCanvasProps {
    * (`minimal`) — cero regresión.
    */
   readonly chromeTheme?: 'light' | 'dark'
+  /**
+   * **7.15c**: vista activa do canvas — `graph` (SkillTree clásico) ou
+   * `cards` (ClusterCardsView). O toggle renderízase aquí (esquina do
+   * panel) pero o ESTADO vive en EditorShell e chega en vivo polo
+   * ShellRuntimeContext (lección 7.14-A: o panel persiste en dockview).
+   */
+  readonly view?: CanvasView
+  readonly onViewChange?: (view: CanvasView) => void
 }
 
 /**
@@ -133,6 +143,8 @@ export function EditorCanvas({
   editorEngine,
   probaSession = null,
   chromeTheme,
+  view = 'graph',
+  onViewChange,
 }: EditorCanvasProps): JSX.Element {
   // Re-render en commits do EditorEngine.
   const doc = useSyncExternalStore(
@@ -147,6 +159,8 @@ export function EditorCanvas({
   const treeEngine = probaSession?.treeEngine ?? renderTreeEngine
   const selectedRefs = useSelectedRefs(editorEngine)
   const inProba = probaSession !== null
+  // 7.15c: primeiro nodo seleccionado (realce de fila na vista tarxetas).
+  const firstSelectedNodeId = selectedRefs.find((r) => r.kind === 'node')?.id
 
   // Container do canvas e versión do viewport (para forzar overlay redraw).
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -163,6 +177,13 @@ export function EditorCanvas({
   // ata o segundo render).
   const [ctmEl, setCtmEl] = useState<SVGGraphicsElement | null>(null)
   useEffect(() => {
+    // 7.15c: en vista tarxetas o SkillTree NON está montado — o ctmEl
+    // vello apuntaría a un <g> desmontado (CTM roto ao volver a grafo).
+    // Depender de `view` re-executa a busca cando o grafo remonta.
+    if (view !== 'graph') {
+      setCtmEl(null)
+      return
+    }
     if (containerRef.current === null) return
     const el = containerRef.current
     // 1. Comprobación inmediata (caso normal: <svg><g/> xa montado).
@@ -181,7 +202,7 @@ export function EditorCanvas({
     })
     mo.observe(el, { childList: true, subtree: true })
     return () => mo.disconnect()
-  }, [])
+  }, [view])
 
   // Container rect (para converter screen-clientX a relative-X no overlay).
   //
@@ -538,6 +559,19 @@ export function EditorCanvas({
     [resetPointerState],
   )
 
+  // ── 7.15c — cambio de vista (grafo | tarxetas) ──
+  // Cambiar de vista a medio xesto cancela o xesto; ao entrar en
+  // tarxetas a tool volve a Seleccionar (as tools de creación non
+  // existen alí, e así Supr segue operativo sobre a selección).
+  const changeView = useCallback(
+    (next: CanvasView) => {
+      resetPointerState()
+      setTool('select')
+      onViewChange?.(next)
+    },
+    [resetPointerState, onViewChange],
+  )
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Non interceptar mentres se escribe nun campo de texto (ex.
@@ -558,6 +592,11 @@ export function EditorCanvas({
 
       if (inProba || isTyping) return
 
+      // 7.15c: en vista tarxetas non hai tools de creación — os
+      // atallos v/n/c apáganse; Supr (borrar selección) e Ctrl+Z/Y
+      // seguen funcionando.
+      const inCards = view === 'cards'
+
       // ── 7.14-O6 (informe 02): Undo/Redo por teclado ──
       // Ctrl/Cmd+Z = desfacer; Ctrl/Cmd+Y ou Ctrl/Cmd+Shift+Z = refacer.
       // A garda de arriba (isTyping) evita roubar o undo NATIVO dos
@@ -577,24 +616,25 @@ export function EditorCanvas({
         return
       }
 
-      // 7.11: atallos de tool.
-      if (e.key === 'v' || e.key === 'V') {
+      // 7.11: atallos de tool (7.15c: só na vista grafo).
+      if (!inCards && (e.key === 'v' || e.key === 'V')) {
         changeTool('select')
         return
       }
-      if (e.key === 'n' || e.key === 'N') {
+      if (!inCards && (e.key === 'n' || e.key === 'N')) {
         changeTool('add')
         return
       }
-      if (e.key === 'c' || e.key === 'C') {
+      if (!inCards && (e.key === 'c' || e.key === 'C')) {
         changeTool('connect')
         return
       }
 
       // 7.11: Supr/Delete — borrado con cascada da selección actual
       // (só con tool Seleccionar; noutras tools non hai selección de
-      // arestas nin sentido de "borrar" no medio dun xesto).
-      if (e.key === 'Delete' && tool === 'select') {
+      // arestas nin sentido de "borrar" no medio dun xesto). 7.15c: en
+      // tarxetas Supr SI funciona (a tool fórzase a select ao entrar).
+      if (e.key === 'Delete' && (tool === 'select' || inCards)) {
         const selection = editorEngine.getSession().selection
         const refs = selection.current()
         const nodeIds = refs.filter((r) => r.kind === 'node').map((r) => r.id)
@@ -609,7 +649,7 @@ export function EditorCanvas({
         }
       }
     },
-    [inProba, tool, editorEngine, resetPointerState, changeTool],
+    [inProba, tool, view, editorEngine, resetPointerState, changeTool],
   )
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -696,33 +736,73 @@ export function EditorCanvas({
       // tapándose ~40% detrás de Problemas. Igual que fai `.editor-panel`.
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      <ThemeProvider theme={theme}>
-        <SkillTree
-          engine={treeEngine}
-          onViewportChange={handleViewportChange}
-          {...(coordinateBounds !== undefined && { coordinateBounds })}
-          {...(regions.length > 0 && { regions })}
-          {...(backgroundImage !== undefined && { backgroundImage })}
-        />
-      </ThemeProvider>
-      <CanvasOverlay
-        ctmEl={ctmEl}
-        containerRect={containerRect}
-        selectedRefs={selectedRefs}
-        nodePositions={nodePositions}
-        viewportVersion={viewportVersion}
-        {...(ghostPositions !== undefined && { ghosts: ghostPositions })}
-        {...(marqueeRectPx !== undefined && { marqueeRect: marqueeRectPx })}
-        {...(connectLine !== undefined && { connectLine })}
-      />
-      {!inProba && (
-        <CanvasToolbar
-          tool={tool}
-          onToolChange={changeTool}
-          createPrerequisite={createPrerequisite}
-          onCreatePrerequisiteChange={setCreatePrerequisite}
+      {view === 'graph' ? (
+        <>
+          <ThemeProvider theme={theme}>
+            <SkillTree
+              engine={treeEngine}
+              onViewportChange={handleViewportChange}
+              {...(coordinateBounds !== undefined && { coordinateBounds })}
+              {...(regions.length > 0 && { regions })}
+              {...(backgroundImage !== undefined && { backgroundImage })}
+            />
+          </ThemeProvider>
+          <CanvasOverlay
+            ctmEl={ctmEl}
+            containerRect={containerRect}
+            selectedRefs={selectedRefs}
+            nodePositions={nodePositions}
+            viewportVersion={viewportVersion}
+            {...(ghostPositions !== undefined && { ghosts: ghostPositions })}
+            {...(marqueeRectPx !== undefined && { marqueeRect: marqueeRectPx })}
+            {...(connectLine !== undefined && { connectLine })}
+          />
+          {!inProba && (
+            <CanvasToolbar
+              tool={tool}
+              onToolChange={changeTool}
+              createPrerequisite={createPrerequisite}
+              onCreatePrerequisiteChange={setCreatePrerequisite}
+            />
+          )}
+        </>
+      ) : (
+        // 7.15c — vista tarxetas: mesma árbore, outra forma de vela.
+        // Sen tools de creación (mover/conectar/marquee son do grafo);
+        // clic en fila selecciona (Inspector/ficha de Proba funcionan).
+        <CanvasCardsView
+          editorEngine={editorEngine}
+          treeEngine={treeEngine}
+          doc={doc}
+          {...(firstSelectedNodeId !== undefined && { selectedNodeId: firstSelectedNodeId })}
         />
       )}
+      {/* 7.15c — toggle de vista, nos DOUS modos (Autoría e Proba).
+          fieldset = agrupación semántica nativa (o CSS resetea o chrome
+          de formulario). */}
+      <fieldset
+        className="editor-canvas-viewtoggle"
+        aria-label="Vista do canvas"
+        title="Grafo: mover e conectar. Tarxetas: grupos como listas — o progreso vese en Proba."
+      >
+        <button
+          type="button"
+          className={`editor-canvas-viewtoggle__btn${view === 'graph' ? ' editor-canvas-viewtoggle__btn--active' : ''}`}
+          aria-pressed={view === 'graph'}
+          onClick={() => changeView('graph')}
+        >
+          grafo
+        </button>
+        <button
+          type="button"
+          className={`editor-canvas-viewtoggle__btn${view === 'cards' ? ' editor-canvas-viewtoggle__btn--active' : ''}`}
+          aria-pressed={view === 'cards'}
+          title="Para mover e conectar, vista grafo"
+          onClick={() => changeView('cards')}
+        >
+          tarxetas
+        </button>
+      </fieldset>
     </div>
   )
 }

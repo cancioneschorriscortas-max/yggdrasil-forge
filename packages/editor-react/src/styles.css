@@ -1753,3 +1753,45 @@
   background: color-mix(in srgb, var(--editor-severity-error) 12%, transparent);
   box-shadow: inset 3px 0 0 var(--editor-severity-error);
 }
+
+/* ── Toggle de vista do canvas (7.15c): grafo | tarxetas ── */
+.editor-canvas-viewtoggle {
+  /* reset do chrome de <fieldset> */
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+  display: inline-flex;
+  background: var(--editor-bg-panel);
+  border: var(--editor-border-width) solid var(--editor-border-default);
+  border-radius: var(--editor-radius-md);
+  box-shadow: var(--editor-shadow-elev1);
+  overflow: hidden;
+}
+.editor-canvas-viewtoggle__btn {
+  border: none;
+  background: transparent;
+  padding: 5px 12px;
+  font-size: var(--editor-font-size-xs);
+  font-family: var(--editor-font-ui);
+  color: var(--editor-text-secondary);
+  cursor: pointer;
+}
+.editor-canvas-viewtoggle__btn:hover {
+  background: var(--editor-bg-hover);
+}
+.editor-canvas-viewtoggle__btn--active {
+  background: var(--editor-bg-selected);
+  color: var(--editor-accent);
+  font-weight: 600;
+}
+
+/* Contedor da vista tarxetas: enche o panel (a ClusterCardsView trae
+ * o seu propio pan/zoom e fondo). */
+.editor-canvas-cards {
+  position: absolute;
+  inset: 0;
+}

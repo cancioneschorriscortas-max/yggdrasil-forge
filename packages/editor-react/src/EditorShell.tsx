@@ -33,6 +33,7 @@ import { CodePanel } from './panels/code/CodePanel.js'
 import { ProbaPanel } from './proba/ProbaPanel.js'
 import { useProbaSession } from './proba/useProbaSession.js'
 import {
+  type CanvasView,
   type ShellRuntime,
   ShellRuntimeProvider,
   useShellRuntime,
@@ -46,12 +47,14 @@ import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
 // ShellRuntimeContext.tsx para a autopsia. `engine` si vén por prop
 // (capturado no closure) porque só cambia con remount do shell. ──
 function CanvasPanelView({ engine }: { engine: EditorEngine }): JSX.Element {
-  const { probaSession, chromeTheme } = useShellRuntime()
+  const { probaSession, chromeTheme, canvasView, onCanvasViewChange } = useShellRuntime()
   return (
     <EditorCanvas
       editorEngine={engine}
       probaSession={probaSession}
       {...(chromeTheme !== undefined && { chromeTheme })}
+      view={canvasView}
+      onViewChange={onCanvasViewChange}
     />
   )
 }
@@ -116,6 +119,9 @@ export function EditorShell({
   const probaSession = useProbaSession(engine, mode)
   const handleRef = useRef<PanelHostHandle | null>(null)
   const [visiblePanelIds, setVisiblePanelIds] = useState<readonly string[]>([])
+  // 7.15c: vista do canvas (grafo | tarxetas), nos DOUS modos.
+  // Persistencia da escolla: bancada (v1 arranca en grafo).
+  const [canvasView, setCanvasView] = useState<CanvasView>('graph')
 
   // **7.7 §3**: só se persiste a disposición de Autoría. En Proba non
   // autogardamos, e o arranque é sempre en Autoría (initialMode). O
@@ -190,8 +196,13 @@ export function EditorShell({
 
   // Estado volátil que os paneis leen en vivo desde o contexto.
   const runtime = useMemo<ShellRuntime>(
-    () => ({ probaSession, ...(theme !== undefined && { chromeTheme: theme }) }),
-    [probaSession, theme],
+    () => ({
+      probaSession,
+      ...(theme !== undefined && { chromeTheme: theme }),
+      canvasView,
+      onCanvasViewChange: setCanvasView,
+    }),
+    [probaSession, theme, canvasView],
   )
 
   const handleTogglePanel = useCallback((id: string) => {

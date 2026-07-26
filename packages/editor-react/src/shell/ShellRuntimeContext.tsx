@@ -27,14 +27,24 @@
 import { createContext, useContext } from 'react'
 import type { ProbaSession } from '../proba/useProbaSession.js'
 
+/** Vista activa do panel Canvas (7.15c): grafo clásico ou tarxetas. */
+export type CanvasView = 'graph' | 'cards'
+
 export interface ShellRuntime {
   /** Sesión de Proba activa (null en Autoría). */
   readonly probaSession: ProbaSession | null
   /** Tema do chrome (claro/escuro). undefined = comportamento por defecto. */
   readonly chromeTheme?: 'light' | 'dark'
+  /** Vista do canvas (7.15c). O estado vive en EditorShell. */
+  readonly canvasView: CanvasView
+  readonly onCanvasViewChange: (view: CanvasView) => void
 }
 
-const ShellRuntimeContext = createContext<ShellRuntime>({ probaSession: null })
+const ShellRuntimeContext = createContext<ShellRuntime>({
+  probaSession: null,
+  canvasView: 'graph',
+  onCanvasViewChange: () => undefined,
+})
 
 export const ShellRuntimeProvider = ShellRuntimeContext.Provider
 

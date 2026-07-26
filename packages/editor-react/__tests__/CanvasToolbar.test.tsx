@@ -45,7 +45,8 @@ describe('★ 7.11 — CanvasToolbar: render, cambio de tool, Proba', () => {
     render(<EditorCanvas editorEngine={buildEngine()} />)
     const toolbar = screen.getByRole('toolbar', { name: 'Ferramentas do canvas' })
     expect(toolbar).not.toBeNull()
-    const radios = screen.getAllByRole('button')
+    // Só os botóns DA TOOLBAR (7.15c engadiu o toggle de vista fóra dela).
+    const radios = Array.from(toolbar.querySelectorAll('button'))
     expect(radios).toHaveLength(3)
     const select = radios.find((r) => r.getAttribute('title')?.startsWith('Seleccionar'))
     expect(select?.getAttribute('aria-pressed')).toBe('true')
