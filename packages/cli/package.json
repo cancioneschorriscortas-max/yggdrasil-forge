@@ -14,6 +14,9 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "ygg": "./dist/bin.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -30,9 +33,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "gen:schema": "tsup --silent && node ./dist/bin.js schema --out ../../schema/yggdrasil-document.schema.json",
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
+  "dependencies": {
+    "@yggdrasil-forge/core": "workspace:*",
+    "@yggdrasil-forge/editor-core": "workspace:*",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.24.6"
+  },
   "devDependencies": {
+    "@types/node": "^22.10.0",
     "tsup": "catalog:",
     "vitest": "catalog:",
     "@vitest/coverage-v8": "catalog:",
