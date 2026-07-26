@@ -52,6 +52,26 @@ looks like. Exercises:
 - Screenshots in [`docs/assets/`](../../docs/assets/) (see the root README's
   *AI-assisted authoring* section).
 
+### `congoxa-netrunner.json` — the neon mesh (AI-authored)
+*"The Netrunner's Dread"* — cyberpunk theme on near-black with a neon grid
+background. Structurally the opposite of the wolf tree: a **mesh with
+cross-branch links** instead of symmetric fans. Exercises:
+- Cross-links between branches (a node reachable from two branches via an
+  `any` group); two mutually-exclusive capstones feeding a shared summit.
+- Dark neon theme: cyan state fills, magenta/cyan/amber region tints, and a
+  per-node `color` override (magenta summit).
+- Embedded SVG icon set (chip, skull, ghost, storm…) as data URIs.
+
+### `escola-de-gaita.json` — the learning path (AI-authored)
+*"Gaita School"* — a **Galician bagpipe course**, proving the engine works
+for education, not just games. Exercises:
+- A **light parchment theme** (the other two showcases are dark): warm
+  fills, ink text, music-staff background — "Same Data, Different Themes".
+- Left-to-right course layout (progression as a timeline, not a fan).
+- A single resource (practice hours); a final keystone gated by an `all`
+  group across the three tracks (breath / fingering / repertoire), with a
+  `node_maxed` condition on the technique node.
+
 ### `adversarial.json` — the deliberately awkward tree
 Generated from `adversarialDocument()` (`@yggdrasil-forge/editor-core`)
 with `serializeDocument` — never edited by hand. Exercises the paths

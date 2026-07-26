@@ -1,0 +1,691 @@
+{
+  "tree": {
+    "id": "congoxa-netrunner",
+    "schemaVersion": "1.0.0",
+    "version": "1.0.0",
+    "label": {
+      "gl": "A Congoxa do Netrunner",
+      "en": "The Netrunner’s Dread"
+    },
+    "description": {
+      "gl": "Hardware, Software, Wetware. Dous camiños ao final — Espectro ou Treboada — e ninguén volve enteiro.",
+      "en": "Hardware, Software, Wetware. Two roads to the end — Wraith or Stormsurge — and nobody comes back whole."
+    },
+    "author": "Yggdrasil Forge (demo)",
+    "groups": [
+      {
+        "id": "hw",
+        "label": {
+          "gl": "Hardware",
+          "en": "Hardware"
+        }
+      },
+      {
+        "id": "sw",
+        "label": {
+          "gl": "Software",
+          "en": "Software"
+        }
+      },
+      {
+        "id": "wet",
+        "label": {
+          "gl": "Wetware",
+          "en": "Wetware"
+        }
+      }
+    ],
+    "resources": [
+      {
+        "id": "ram",
+        "label": {
+          "gl": "RAM",
+          "en": "RAM"
+        },
+        "icon": "⚡",
+        "color": "#37e0d8",
+        "initial": 10,
+        "max": 16
+      },
+      {
+        "id": "cred",
+        "label": {
+          "gl": "Creto",
+          "en": "Cred"
+        },
+        "icon": "¤",
+        "color": "#c9a24b",
+        "initial": 5,
+        "max": 9
+      }
+    ],
+    "nodes": [
+      {
+        "id": "conexion",
+        "type": "keystone",
+        "label": {
+          "gl": "Conexión",
+          "en": "Jack In"
+        },
+        "position": {
+          "x": 0,
+          "y": 210
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjeD0iMzIiIGN5PSIyNiIgcj0iMTIiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMzIgMzh2MTRNMjQgNTJoMTZNMzIgMTR2LTRNMjAgMjZoLTZNNTAgMjZoLTYiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ]
+        ],
+        "description": {
+          "gl": "O primeiro mergullo. Despois disto, a carne é opcional.",
+          "en": "The first dive. After this, meat is optional."
+        }
+      },
+      {
+        "id": "cortadeixas",
+        "type": "small",
+        "label": {
+          "gl": "Cortadeixas",
+          "en": "Deckcutter"
+        },
+        "position": {
+          "x": -160,
+          "y": 150
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgeD0iMTgiIHk9IjE4IiB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHJ4PSIzIi8+PHJlY3QgZmlsbD0iIzlmZmNmNCIgeD0iMjciIHk9IjI3IiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMjQgMTh2LThNMzIgMTh2LThNNDAgMTh2LThNMjQgNTR2LThNMzIgNTR2LThNNDAgNTR2LThNMTggMjRoLThNMTggMzJoLThNMTggNDBoLThNNTQgMjRoLThNNTQgMzJoLThNNTQgNDBoLTgiLz48L3N2Zz4=",
+        "tags": ["hw"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "conexion"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "brazo-ciber",
+        "type": "notable",
+        "label": {
+          "gl": "Brazo Ciber",
+          "en": "Cyberarm"
+        },
+        "position": {
+          "x": -260,
+          "y": 70
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTE0IDUwbDEyLTEyIDYgMiA4LTgtMi02IDEwLTEwIDggOC0xMCAxMC02LTItOCA4IDIgNi0xMiAxMnoiLz48Y2lyY2xlIGZpbGw9IiM5ZmZjZjQiIGN4PSI0OCIgY3k9IjE2IiByPSIzIi8+PC9zdmc+",
+        "shape": "diamond",
+        "tags": ["hw"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "cortadeixas"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "sobrecarga",
+        "type": "small",
+        "label": {
+          "gl": "Sobrecarga",
+          "en": "Overclock"
+        },
+        "position": {
+          "x": -300,
+          "y": -40
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzlmZmNmNCIgZD0iTTM2IDRMMTQgMzZoMTJsLTQgMjQgMjQtMzRIMzJ6Ii8+PC9zdmc+",
+        "tags": ["hw"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "brazo-ciber"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "rompexeos",
+        "type": "small",
+        "label": {
+          "gl": "Rompexeos",
+          "en": "Icebreaker"
+        },
+        "position": {
+          "x": 0,
+          "y": 110
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzlmZmNmNCIgZD0iTTMyIDhjLTEyIDAtMjAgOC0yMCAxOSAwIDcgMyAxMiA4IDE1djhoNnYtNmg0djZoNHYtNmg0djZoNnYtOGM1LTMgOC04IDgtMTUgMC0xMS04LTE5LTIwLTE5eiIvPjxjaXJjbGUgZmlsbD0iIzBhMGUxNiIgY3g9IjI0IiBjeT0iMjgiIHI9IjUiLz48Y2lyY2xlIGZpbGw9IiMwYTBlMTYiIGN4PSI0MCIgY3k9IjI4IiByPSI1Ii8+PC9zdmc+",
+        "tags": ["sw"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "conexion"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "demo-troia",
+        "type": "notable",
+        "label": {
+          "gl": "Demo de Troia",
+          "en": "Trojan Daemon"
+        },
+        "position": {
+          "x": 0,
+          "y": 10
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgeD0iMTgiIHk9IjE4IiB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHJ4PSIzIi8+PHJlY3QgZmlsbD0iIzlmZmNmNCIgeD0iMjciIHk9IjI3IiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMjQgMTh2LThNMzIgMTh2LThNNDAgMTh2LThNMjQgNTR2LThNMzIgNTR2LThNNDAgNTR2LThNMTggMjRoLThNMTggMzJoLThNMTggNDBoLThNNTQgMjRoLThNNTQgMzJoLThNNTQgNDBoLTgiLz48L3N2Zz4=",
+        "shape": "diamond",
+        "tags": ["sw"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "rompexeos"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "verme-negro",
+        "type": "small",
+        "label": {
+          "gl": "Verme Negro",
+          "en": "Blackworm"
+        },
+        "position": {
+          "x": 0,
+          "y": -90
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzlmZmNmNCIgZD0iTTMyIDhjLTEyIDAtMjAgOC0yMCAxOSAwIDcgMyAxMiA4IDE1djhoNnYtNmg0djZoNHYtNmg0djZoNnYtOGM1LTMgOC04IDgtMTUgMC0xMS04LTE5LTIwLTE5eiIvPjxjaXJjbGUgZmlsbD0iIzBhMGUxNiIgY3g9IjI0IiBjeT0iMjgiIHI9IjUiLz48Y2lyY2xlIGZpbGw9IiMwYTBlMTYiIGN4PSI0MCIgY3k9IjI4IiByPSI1Ii8+PC9zdmc+",
+        "tags": ["sw"],
+        "prerequisites": {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "demo-troia"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "sobrecarga"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "ollo-espia",
+        "type": "small",
+        "label": {
+          "gl": "Ollo Espía",
+          "en": "Spy Eye"
+        },
+        "position": {
+          "x": 160,
+          "y": 150
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3QgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgeD0iMTAiIHk9IjE4IiB3aWR0aD0iMzYiIGhlaWdodD0iMjYiIHJ4PSI2Ii8+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjeD0iMjgiIGN5PSIzMSIgcj0iOCIvPjxjaXJjbGUgZmlsbD0iIzlmZmNmNCIgY3g9IjI4IiBjeT0iMzEiIHI9IjMiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNNDYgMjZsMTAtNnYyNGwtMTAtNnoiLz48L3N2Zz4=",
+        "tags": ["wet"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "conexion"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "sinapse",
+        "type": "notable",
+        "label": {
+          "gl": "Sinapse Rápida",
+          "en": "Fast Synapse"
+        },
+        "position": {
+          "x": 260,
+          "y": 70
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzlmZmNmNCIgZD0iTTM2IDRMMTQgMzZoMTJsLTQgMjQgMjQtMzRIMzJ6Ii8+PC9zdmc+",
+        "shape": "diamond",
+        "tags": ["wet"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "ollo-espia"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "reflexos",
+        "type": "small",
+        "label": {
+          "gl": "Reflexos Fantasma",
+          "en": "Ghost Reflexes"
+        },
+        "position": {
+          "x": 300,
+          "y": -40
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDhjLTEwIDAtMTYgOC0xNiAxOHYyOGw2LTUgNSA1IDUtNSA1IDUgNS01IDYgNVYyNmMwLTEwLTYtMTgtMTYtMTh6Ii8+PGNpcmNsZSBmaWxsPSIjOWZmY2Y0IiBjeD0iMjYiIGN5PSIyNiIgcj0iMyIvPjxjaXJjbGUgZmlsbD0iIzlmZmNmNCIgY3g9IjM4IiBjeT0iMjYiIHI9IjMiLz48L3N2Zz4=",
+        "tags": ["wet"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "sinapse"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "espectro",
+        "type": "keystone",
+        "label": {
+          "gl": "Espectro",
+          "en": "Wraith"
+        },
+        "position": {
+          "x": -170,
+          "y": -170
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDhjLTEwIDAtMTYgOC0xNiAxOHYyOGw2LTUgNSA1IDUtNSA1IDUgNS01IDYgNVYyNmMwLTEwLTYtMTgtMTYtMTh6Ii8+PGNpcmNsZSBmaWxsPSIjOWZmY2Y0IiBjeD0iMjYiIGN5PSIyNiIgcj0iMyIvPjxjaXJjbGUgZmlsbD0iIzlmZmNmNCIgY3g9IjM4IiBjeT0iMjYiIHI9IjMiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "tags": ["hw"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "sobrecarga"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "verme-negro"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            },
+            {
+              "resourceId": "cred",
+              "amount": 2
+            }
+          ]
+        ],
+        "exclusions": ["treboada"],
+        "description": {
+          "gl": "Ninguén te ve. Nin sequera ti.",
+          "en": "No one sees you. Not even you."
+        }
+      },
+      {
+        "id": "treboada",
+        "type": "keystone",
+        "label": {
+          "gl": "Treboada",
+          "en": "Stormsurge"
+        },
+        "position": {
+          "x": 170,
+          "y": -170
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOWZmY2Y0IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTIwIDM0YTEyIDEyIDAgMTExMi0xNiAxMCAxMCAwIDAxMTAgMTQiLz48cGF0aCBmaWxsPSIjOWZmY2Y0IiBkPSJNMzQgMzBsLTEyIDE4aDhsLTMgMTIgMTMtMThoLTh6Ii8+PC9zdmc+",
+        "shape": "hexagon",
+        "tags": ["wet"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "reflexos"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "verme-negro"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "ram",
+              "amount": 2
+            },
+            {
+              "resourceId": "cred",
+              "amount": 2
+            }
+          ]
+        ],
+        "exclusions": ["espectro"],
+        "description": {
+          "gl": "Que te vexan. Que non o esquezan.",
+          "en": "Let them see you. Let them never forget."
+        }
+      },
+      {
+        "id": "deus-ex",
+        "type": "keystone",
+        "label": {
+          "gl": "Deus Ex",
+          "en": "Deus Ex"
+        },
+        "position": {
+          "x": 0,
+          "y": -260
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjeD0iMzIiIGN5PSIyNiIgcj0iMTIiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM5ZmZjZjQiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMzIgMzh2MTRNMjQgNTJoMTZNMzIgMTR2LTRNMjAgMjZoLTZNNTAgMjZoLTYiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "size": 42,
+        "color": "#c937b4",
+        "prerequisites": {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "espectro"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "treboada"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "cred",
+              "amount": 3
+            }
+          ]
+        ],
+        "description": {
+          "gl": "A rede sonha contigo agora.",
+          "en": "The net dreams of you now."
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-conexion-cortadeixas",
+        "source": "conexion",
+        "target": "cortadeixas",
+        "type": "dependency"
+      },
+      {
+        "id": "e-cortadeixas-brazo-ciber",
+        "source": "cortadeixas",
+        "target": "brazo-ciber",
+        "type": "dependency"
+      },
+      {
+        "id": "e-brazo-ciber-sobrecarga",
+        "source": "brazo-ciber",
+        "target": "sobrecarga",
+        "type": "dependency"
+      },
+      {
+        "id": "e-conexion-rompexeos",
+        "source": "conexion",
+        "target": "rompexeos",
+        "type": "dependency"
+      },
+      {
+        "id": "e-rompexeos-demo-troia",
+        "source": "rompexeos",
+        "target": "demo-troia",
+        "type": "dependency"
+      },
+      {
+        "id": "e-demo-troia-verme-negro",
+        "source": "demo-troia",
+        "target": "verme-negro",
+        "type": "dependency"
+      },
+      {
+        "id": "e-conexion-ollo-espia",
+        "source": "conexion",
+        "target": "ollo-espia",
+        "type": "dependency"
+      },
+      {
+        "id": "e-ollo-espia-sinapse",
+        "source": "ollo-espia",
+        "target": "sinapse",
+        "type": "dependency"
+      },
+      {
+        "id": "e-sinapse-reflexos",
+        "source": "sinapse",
+        "target": "reflexos",
+        "type": "dependency"
+      },
+      {
+        "id": "e-sobrecarga-verme-negro",
+        "source": "sobrecarga",
+        "target": "verme-negro",
+        "type": "dependency"
+      },
+      {
+        "id": "e-sobrecarga-espectro",
+        "source": "sobrecarga",
+        "target": "espectro",
+        "type": "dependency"
+      },
+      {
+        "id": "e-verme-negro-espectro",
+        "source": "verme-negro",
+        "target": "espectro",
+        "type": "dependency"
+      },
+      {
+        "id": "e-verme-negro-treboada",
+        "source": "verme-negro",
+        "target": "treboada",
+        "type": "dependency"
+      },
+      {
+        "id": "e-reflexos-treboada",
+        "source": "reflexos",
+        "target": "treboada",
+        "type": "dependency"
+      },
+      {
+        "id": "e-espectro-deus-ex",
+        "source": "espectro",
+        "target": "deus-ex",
+        "type": "dependency"
+      },
+      {
+        "id": "e-treboada-deus-ex",
+        "source": "treboada",
+        "target": "deus-ex",
+        "type": "dependency"
+      }
+    ],
+    "layout": {
+      "type": "custom"
+    }
+  },
+  "editor": {
+    "formatVersion": "1.0.0",
+    "coordinateBounds": {
+      "minX": -420,
+      "minY": -330,
+      "maxX": 420,
+      "maxY": 330
+    },
+    "background": {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4NDAgNjYwIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ20iIGN4PSIwLjg1IiBjeT0iMC4xIiByPSIwLjciPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNjOTM3YjQiIHN0b3Atb3BhY2l0eT0iMC4xNiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2M5MzdiNCIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJnYyIgY3g9IjAuMTIiIGN5PSIwLjg1IiByPSIwLjciPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMzN2UwZDgiIHN0b3Atb3BhY2l0eT0iMC4xMyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzM3ZTBkOCIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iODQwIiBoZWlnaHQ9IjY2MCIgZmlsbD0iIzA3MDkwZiIvPgogIDxnIHN0cm9rZT0iIzM3ZTBkOCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDYiIHN0cm9rZS13aWR0aD0iMSI+PHBhdGggZD0iTTYwIDBWNjYwIi8+PHBhdGggZD0iTTEyMCAwVjY2MCIvPjxwYXRoIGQ9Ik0xODAgMFY2NjAiLz48cGF0aCBkPSJNMjQwIDBWNjYwIi8+PHBhdGggZD0iTTMwMCAwVjY2MCIvPjxwYXRoIGQ9Ik0zNjAgMFY2NjAiLz48cGF0aCBkPSJNNDIwIDBWNjYwIi8+PHBhdGggZD0iTTQ4MCAwVjY2MCIvPjxwYXRoIGQ9Ik01NDAgMFY2NjAiLz48cGF0aCBkPSJNNjAwIDBWNjYwIi8+PHBhdGggZD0iTTY2MCAwVjY2MCIvPjxwYXRoIGQ9Ik03MjAgMFY2NjAiLz48cGF0aCBkPSJNNzgwIDBWNjYwIi8+PHBhdGggZD0iTTAgNjBIODQwIi8+PHBhdGggZD0iTTAgMTIwSDg0MCIvPjxwYXRoIGQ9Ik0wIDE4MEg4NDAiLz48cGF0aCBkPSJNMCAyNDBIODQwIi8+PHBhdGggZD0iTTAgMzAwSDg0MCIvPjxwYXRoIGQ9Ik0wIDM2MEg4NDAiLz48cGF0aCBkPSJNMCA0MjBIODQwIi8+PHBhdGggZD0iTTAgNDgwSDg0MCIvPjxwYXRoIGQ9Ik0wIDU0MEg4NDAiLz48cGF0aCBkPSJNMCA2MDBIODQwIi8+PC9nPgogIDxyZWN0IHdpZHRoPSI4NDAiIGhlaWdodD0iNjYwIiBmaWxsPSJ1cmwoI2dtKSIvPjxyZWN0IHdpZHRoPSI4NDAiIGhlaWdodD0iNjYwIiBmaWxsPSJ1cmwoI2djKSIvPgo8L3N2Zz4="
+    },
+    "theme": {
+      "preset": "neon-noite",
+      "textColor": "#c8f7f2",
+      "nodeFills": {
+        "locked": "#141926",
+        "unlockable": "#0e5b63",
+        "inProgress": "#1e8a8f",
+        "unlocked": "#37e0d8",
+        "maxed": "#8ff5ee"
+      },
+      "regions": [
+        {
+          "id": "r-hw",
+          "label": "Hardware",
+          "tag": "hw",
+          "color": "#c937b4"
+        },
+        {
+          "id": "r-sw",
+          "label": "Software",
+          "tag": "sw",
+          "color": "#37e0d8"
+        },
+        {
+          "id": "r-wet",
+          "label": "Wetware",
+          "tag": "wet",
+          "color": "#c9a24b"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,617 @@
+{
+  "tree": {
+    "id": "escola-de-gaita",
+    "schemaVersion": "1.0.0",
+    "version": "1.0.0",
+    "label": {
+      "gl": "Escola de Gaita",
+      "en": "Gaita School"
+    },
+    "description": {
+      "gl": "Da postura á foliada: sopro, dedos e repertorio nun mesmo camiño. Unha árbore de progresión para aprender, non para loitar.",
+      "en": "From posture to the foliada: breath, fingers and repertoire on one path. A progression tree for learning, not fighting."
+    },
+    "author": "Yggdrasil Forge (demo)",
+    "groups": [
+      {
+        "id": "sopro",
+        "label": {
+          "gl": "Sopro",
+          "en": "Breath"
+        }
+      },
+      {
+        "id": "dedos",
+        "label": {
+          "gl": "Dixitación",
+          "en": "Fingering"
+        }
+      },
+      {
+        "id": "repertorio",
+        "label": {
+          "gl": "Repertorio",
+          "en": "Repertoire"
+        }
+      }
+    ],
+    "resources": [
+      {
+        "id": "horas",
+        "label": {
+          "gl": "Horas de Estudo",
+          "en": "Practice Hours"
+        },
+        "icon": "⏱",
+        "color": "#8a6f45",
+        "initial": 14,
+        "max": 24
+      }
+    ],
+    "nodes": [
+      {
+        "id": "postura",
+        "type": "keystone",
+        "label": {
+          "gl": "A Postura",
+          "en": "Posture"
+        },
+        "position": {
+          "x": -330,
+          "y": 0
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGVsbGlwc2UgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY3g9IjI2IiBjeT0iMzQiIHJ4PSIxMiIgcnk9IjE2Ii8+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDIybDE0LTE0TTQwIDI2bDE2LThNMjAgNTB2OE0yOCA1MGw0IDhNNDYgOGw2LTIiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ],
+        "description": {
+          "gl": "Como se abraza unha gaita: co ombreiro, co brazo e con respecto.",
+          "en": "How to hold a gaita: with shoulder, arm, and respect."
+        }
+      },
+      {
+        "id": "fol",
+        "type": "small",
+        "label": {
+          "gl": "O Fol",
+          "en": "The Bag"
+        },
+        "position": {
+          "x": -200,
+          "y": -110
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMwIDEydjE2TTMwIDIwYy00LTYtMTItNi0xNiAwLTQgOC0yIDIyIDQgMjYgNiAyIDEwLTIgMTAtMTB6TTM0IDIwYzQtNiAxMi02IDE2IDAgNCA4IDIgMjItNCAyNi02IDItMTAtMi0xMC0xMHoiLz48L3N2Zz4=",
+        "tags": ["sopro"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "postura"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "soplo-continuo",
+        "type": "notable",
+        "label": {
+          "gl": "Sopro Continuo",
+          "en": "Steady Blowing"
+        },
+        "position": {
+          "x": -70,
+          "y": -160
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMwIDEydjE2TTMwIDIwYy00LTYtMTItNi0xNiAwLTQgOC0yIDIyIDQgMjYgNiAyIDEwLTIgMTAtMTB6TTM0IDIwYzQtNiAxMi02IDE2IDAgNCA4IDIgMjItNCAyNi02IDItMTAtMi0xMC0xMHoiLz48L3N2Zz4=",
+        "shape": "diamond",
+        "tags": ["sopro"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "fol"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "horas",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "horas",
+              "amount": 2
+            }
+          ]
+        ],
+        "description": {
+          "gl": "O ronco non pode calar. Nunca.",
+          "en": "The drone must never fall silent."
+        }
+      },
+      {
+        "id": "afinado",
+        "type": "small",
+        "label": {
+          "gl": "Afinado do Ronco",
+          "en": "Drone Tuning"
+        },
+        "position": {
+          "x": 70,
+          "y": -160
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTI0IDhoMTZsOCA0NEgxNnpNMzIgNDRWMjBNMzIgNDRsMTAtMTYiLz48Y2lyY2xlIGZpbGw9IiM0YTM4MjYiIGN4PSI0MiIgY3k9IjI2IiByPSIzIi8+PC9zdmc+",
+        "tags": ["sopro"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "soplo-continuo"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "escala",
+        "type": "small",
+        "label": {
+          "gl": "A Escala",
+          "en": "The Scale"
+        },
+        "position": {
+          "x": -200,
+          "y": 0
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTIwIDM0VjE2YTQgNCAwIDAxOCAwdjE0TTI4IDMwVjEyYTQgNCAwIDAxOCAwdjE4TTM2IDMwVjE2YTQgNCAwIDAxOCAwdjE2TTQ0IDM0YzYtMiAxMCAyIDggOGwtNCAxMGMtMiA1LTYgOC0xMiA4aC02Yy04IDAtMTItNi0xMi0xNFYyNmE0IDQgMCAwMTggMHY4Ii8+PC9zdmc+",
+        "tags": ["dedos"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "postura"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "picados",
+        "type": "notable",
+        "label": {
+          "gl": "Picados e Batidos",
+          "en": "Cuts & Strikes"
+        },
+        "position": {
+          "x": -70,
+          "y": 0
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTIwIDM0VjE2YTQgNCAwIDAxOCAwdjE0TTI4IDMwVjEyYTQgNCAwIDAxOCAwdjE4TTM2IDMwVjE2YTQgNCAwIDAxOCAwdjE2TTQ0IDM0YzYtMiAxMCAyIDggOGwtNCAxMGMtMiA1LTYgOC0xMiA4aC02Yy04IDAtMTItNi0xMi0xNFYyNmE0IDQgMCAwMTggMHY4Ii8+PC9zdmc+",
+        "shape": "diamond",
+        "tags": ["dedos"],
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "escala"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "horas",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "horas",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "requinta",
+        "type": "small",
+        "label": {
+          "gl": "Requinteos",
+          "en": "Gracenotes"
+        },
+        "position": {
+          "x": 70,
+          "y": 0
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTMyIDMyYTQgNCAwIDAxOCAwIDEwIDEwIDAgMDEtMjAgMCAxNiAxNiAwIDAxMzIgMCAyMiAyMiAwIDAxLTQ0IDAiLz48L3N2Zz4=",
+        "tags": ["dedos"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "picados"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "muineira",
+        "type": "small",
+        "label": {
+          "gl": "Muiñeira de Chantada",
+          "en": "Muiñeira"
+        },
+        "position": {
+          "x": -200,
+          "y": 110
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzRhMzgyNiIgZD0iTTQwIDh2MzBhOCA2IDAgMTEtNC01VjE2bC0xNCA0djIyYTggNiAwIDExLTQtNVYxNHoiLz48L3N2Zz4=",
+        "tags": ["repertorio"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "postura"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "alborada",
+        "type": "small",
+        "label": {
+          "gl": "Alborada de Veiga",
+          "en": "Alborada"
+        },
+        "position": {
+          "x": -70,
+          "y": 160
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzRhMzgyNiIgZD0iTTQwIDh2MzBhOCA2IDAgMTEtNC01VjE2bC0xNCA0djIyYTggNiAwIDExLTQtNVYxNHoiLz48L3N2Zz4=",
+        "tags": ["repertorio"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "muineira"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "escala"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "pasodobre",
+        "type": "small",
+        "label": {
+          "gl": "Pasodobre",
+          "en": "Pasodobre"
+        },
+        "position": {
+          "x": 70,
+          "y": 160
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0iIzRhMzgyNiIgZD0iTTQwIDh2MzBhOCA2IDAgMTEtNC01VjE2bC0xNCA0djIyYTggNiAwIDExLTQtNVYxNHoiLz48L3N2Zz4=",
+        "tags": ["repertorio"],
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "alborada"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "romaria",
+        "type": "notable",
+        "label": {
+          "gl": "Tocar na Romaría",
+          "en": "Play the Romaría"
+        },
+        "position": {
+          "x": 210,
+          "y": 80
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTE0IDEwaDMwbDYgNnYzOEgxNHoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM0YTM4MjYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBkPSJNMjIgMjRoMjBNMjIgMzJoMjBNMjIgNDBoMTIiLz48L3N2Zz4=",
+        "shape": "diamond",
+        "tags": ["repertorio"],
+        "prerequisites": {
+          "type": "any",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "pasodobre"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "requinta"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 2
+            }
+          ]
+        ],
+        "description": {
+          "gl": "A primeira vez diante de xente. As pernas tremen; os dedos non.",
+          "en": "First time before a crowd. Legs shake; fingers don’t."
+        }
+      },
+      {
+        "id": "foliada",
+        "type": "keystone",
+        "label": {
+          "gl": "A Foliada",
+          "en": "The Foliada"
+        },
+        "position": {
+          "x": 330,
+          "y": 0
+        },
+        "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGNpcmNsZSBmaWxsPSJub25lIiBzdHJva2U9IiM0YTM4MjYiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjeD0iMzIiIGN5PSIzMiIgcj0iMjAiLz48cGF0aCBmaWxsPSIjNGEzODI2IiBkPSJNMzIgMTZsNCAxMGgxMGwtOCA3IDMgMTEtOS02LTkgNiAzLTExLTgtN2gxMHoiLz48L3N2Zz4=",
+        "shape": "hexagon",
+        "size": 40,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "afinado"
+            },
+            {
+              "type": "node_maxed",
+              "nodeId": "picados"
+            },
+            {
+              "type": "node_unlocked",
+              "nodeId": "romaria"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "horas",
+              "amount": 3
+            }
+          ]
+        ],
+        "description": {
+          "gl": "Xa non estudas: agora tocas. E a festa é túa.",
+          "en": "You no longer study: now you play. And the party is yours."
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-postura-fol",
+        "source": "postura",
+        "target": "fol",
+        "type": "dependency"
+      },
+      {
+        "id": "e-fol-soplo-continuo",
+        "source": "fol",
+        "target": "soplo-continuo",
+        "type": "dependency"
+      },
+      {
+        "id": "e-soplo-continuo-afinado",
+        "source": "soplo-continuo",
+        "target": "afinado",
+        "type": "dependency"
+      },
+      {
+        "id": "e-postura-escala",
+        "source": "postura",
+        "target": "escala",
+        "type": "dependency"
+      },
+      {
+        "id": "e-escala-picados",
+        "source": "escala",
+        "target": "picados",
+        "type": "dependency"
+      },
+      {
+        "id": "e-picados-requinta",
+        "source": "picados",
+        "target": "requinta",
+        "type": "dependency"
+      },
+      {
+        "id": "e-postura-muineira",
+        "source": "postura",
+        "target": "muineira",
+        "type": "dependency"
+      },
+      {
+        "id": "e-muineira-alborada",
+        "source": "muineira",
+        "target": "alborada",
+        "type": "dependency"
+      },
+      {
+        "id": "e-alborada-pasodobre",
+        "source": "alborada",
+        "target": "pasodobre",
+        "type": "dependency"
+      },
+      {
+        "id": "e-escala-alborada",
+        "source": "escala",
+        "target": "alborada",
+        "type": "dependency"
+      },
+      {
+        "id": "e-pasodobre-romaria",
+        "source": "pasodobre",
+        "target": "romaria",
+        "type": "dependency"
+      },
+      {
+        "id": "e-requinta-romaria",
+        "source": "requinta",
+        "target": "romaria",
+        "type": "dependency"
+      },
+      {
+        "id": "e-afinado-foliada",
+        "source": "afinado",
+        "target": "foliada",
+        "type": "dependency"
+      },
+      {
+        "id": "e-picados-foliada",
+        "source": "picados",
+        "target": "foliada",
+        "type": "dependency"
+      },
+      {
+        "id": "e-romaria-foliada",
+        "source": "romaria",
+        "target": "foliada",
+        "type": "dependency"
+      }
+    ],
+    "layout": {
+      "type": "custom"
+    }
+  },
+  "editor": {
+    "formatVersion": "1.0.0",
+    "coordinateBounds": {
+      "minX": -420,
+      "minY": -260,
+      "maxX": 420,
+      "maxY": 260
+    },
+    "background": {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4NDAgNjYwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0icGVyZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmNWVkZDkiLz48c3RvcCBvZmZzZXQ9IjAuNSIgc3RvcC1jb2xvcj0iI2VmZTRjYiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2U3ZDliYSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYm9yZGUiIGN4PSIwLjUiIGN5PSIwLjUiIHI9IjAuNzUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAuNzUiIHN0b3AtY29sb3I9IiM4YTZmNDUiIHN0b3Atb3BhY2l0eT0iMCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhhNmY0NSIgc3RvcC1vcGFjaXR5PSIwLjE4Ii8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iODQwIiBoZWlnaHQ9IjY2MCIgZmlsbD0idXJsKCNwZXJnKSIvPgogIDxnIHN0cm9rZT0iIzRhMzgyNiIgc3Ryb2tlLW9wYWNpdHk9IjAuMDciIHN0cm9rZS13aWR0aD0iMS41Ij48cGF0aCBkPSJNNjAgMTQwSDc4MCIvPjxwYXRoIGQ9Ik02MCAxNDlINzgwIi8+PHBhdGggZD0iTTYwIDE1OEg3ODAiLz48cGF0aCBkPSJNNjAgMTY3SDc4MCIvPjxwYXRoIGQ9Ik02MCAxNzZINzgwIi8+PHBhdGggZD0iTTYwIDM4MEg3ODAiLz48cGF0aCBkPSJNNjAgMzg5SDc4MCIvPjxwYXRoIGQ9Ik02MCAzOThINzgwIi8+PHBhdGggZD0iTTYwIDQwN0g3ODAiLz48cGF0aCBkPSJNNjAgNDE2SDc4MCIvPjxwYXRoIGQ9Ik02MCA1NjBINzgwIi8+PHBhdGggZD0iTTYwIDU2OUg3ODAiLz48cGF0aCBkPSJNNjAgNTc4SDc4MCIvPjxwYXRoIGQ9Ik02MCA1ODdINzgwIi8+PHBhdGggZD0iTTYwIDU5Nkg3ODAiLz48L2c+CiAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGEzODI2IiBzdHJva2Utb3BhY2l0eT0iMC4wOCIgc3Ryb2tlLXdpZHRoPSIxMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIgogICAgZD0iTTcwIDcwYTI2IDI2IDAgMTEyOCAyNk03NzAgNTkwYTI2IDI2IDAgMTAtMjgtMjYiLz4KICA8cmVjdCB3aWR0aD0iODQwIiBoZWlnaHQ9IjY2MCIgZmlsbD0idXJsKCNib3JkZSkiLz4KPC9zdmc+"
+    },
+    "theme": {
+      "preset": "pergamino",
+      "textColor": "#3c2f1e",
+      "nodeFills": {
+        "locked": "#ddd0b4",
+        "unlockable": "#c9b98e",
+        "inProgress": "#a8c49a",
+        "unlocked": "#7ba86f",
+        "maxed": "#4f8a4f"
+      },
+      "regions": [
+        {
+          "id": "r-sopro",
+          "label": "Sopro",
+          "tag": "sopro",
+          "color": "#7f9fc0"
+        },
+        {
+          "id": "r-dedos",
+          "label": "Dixitación",
+          "tag": "dedos",
+          "color": "#b0885a"
+        },
+        {
+          "id": "r-repertorio",
+          "label": "Repertorio",
+          "tag": "repertorio",
+          "color": "#8fae77"
+        }
+      ]
+    }
+  }
+}
