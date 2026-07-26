@@ -12,6 +12,26 @@
       "en": "Test fixture designed to force rarely-exercised paths."
     },
     "author": "Yggdrasil Forge",
+    "groups": [
+      {
+        "id": "fronte",
+        "label": {
+          "gl": "A Fronte",
+          "en": "The Front"
+        },
+        "color": "#c8875f",
+        "icon": "shield",
+        "nodeIds": ["raiz", "con-tier"]
+      },
+      {
+        "id": "sombra",
+        "label": {
+          "gl": "A Sombra",
+          "en": "The Shadow"
+        },
+        "nodeIds": ["grupo-none", "exclusivo-a"]
+      }
+    ],
     "resources": [
       {
         "id": "ouro",
@@ -93,6 +113,7 @@
           "x": 240,
           "y": 0
         },
+        "group": "sombra",
         "exclusions": ["con-tier"]
       },
       {
@@ -106,6 +127,7 @@
           "x": 0,
           "y": 120
         },
+        "group": "sombra",
         "prerequisites": {
           "type": "any",
           "conditions": [

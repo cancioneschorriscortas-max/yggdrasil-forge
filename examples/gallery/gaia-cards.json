@@ -1,0 +1,477 @@
+{
+  "tree": {
+    "id": "atlas-constelacions",
+    "schemaVersion": "1.0.0",
+    "version": "1.0.0",
+    "label": {
+      "gl": "Atlas de Constelacións",
+      "en": "Constellation Atlas"
+    },
+    "description": {
+      "gl": "Cada constelación é unha tarxeta; cada estrela, unha fila. Pensada para a vista de tarxetas (grafo | tarxetas).",
+      "en": "Each constellation is a card; each star, a row. Designed for the cards view (graph | cards)."
+    },
+    "author": "Yggdrasil Forge (demo)",
+    "groups": [
+      {
+        "id": "osa",
+        "label": {
+          "gl": "A Osa Maior",
+          "en": "The Great Bear"
+        },
+        "color": "#5f9ec8",
+        "icon": "sparkle",
+        "nodeIds": ["dubhe", "merak", "alioth"],
+        "position": {
+          "x": -300,
+          "y": -180
+        }
+      },
+      {
+        "id": "cazador",
+        "label": {
+          "gl": "O Cazador",
+          "en": "The Hunter"
+        },
+        "color": "#c8875f",
+        "icon": "arrow",
+        "position": {
+          "x": 300,
+          "y": -180
+        }
+      },
+      {
+        "id": "dragon",
+        "label": {
+          "gl": "O Dragón",
+          "en": "The Dragon"
+        },
+        "color": "#8e5fc8",
+        "icon": "bolt",
+        "nodeIds": ["thuban"]
+      },
+      {
+        "id": "coroa",
+        "label": {
+          "gl": "A Coroa Boreal",
+          "en": "The Northern Crown"
+        },
+        "icon": "gem",
+        "nodeIds": ["alphecca", "nusakan"]
+      }
+    ],
+    "resources": [
+      {
+        "id": "luz",
+        "label": {
+          "gl": "Luz Estelar",
+          "en": "Starlight"
+        },
+        "icon": "✦",
+        "color": "#c8b85f",
+        "initial": 10,
+        "max": 20
+      }
+    ],
+    "nodes": [
+      {
+        "id": "dubhe",
+        "type": "small",
+        "label": {
+          "gl": "Dubhe",
+          "en": "Dubhe"
+        },
+        "position": {
+          "x": -320,
+          "y": -220
+        },
+        "icon": "sparkle",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "merak",
+        "type": "small",
+        "label": {
+          "gl": "Merak",
+          "en": "Merak"
+        },
+        "position": {
+          "x": -280,
+          "y": -160
+        },
+        "icon": "sparkle",
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "dubhe"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "alioth",
+        "type": "small",
+        "label": {
+          "gl": "Alioth",
+          "en": "Alioth"
+        },
+        "position": {
+          "x": -240,
+          "y": -100
+        },
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "merak"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "luz",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "betelxeuse",
+        "type": "small",
+        "label": {
+          "gl": "Betelxeuse",
+          "en": "Betelgeuse"
+        },
+        "position": {
+          "x": 280,
+          "y": -220
+        },
+        "group": "cazador",
+        "icon": "bolt",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "rigel",
+        "type": "small",
+        "label": {
+          "gl": "Rigel",
+          "en": "Rigel"
+        },
+        "position": {
+          "x": 320,
+          "y": -150
+        },
+        "group": "cazador",
+        "icon": "gem",
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "betelxeuse"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "cinto",
+        "type": "small",
+        "label": {
+          "gl": "O Cinto",
+          "en": "The Belt"
+        },
+        "position": {
+          "x": 260,
+          "y": -90
+        },
+        "group": "cazador",
+        "maxTier": 3,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "rigel"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "luz",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "thuban",
+        "type": "small",
+        "label": {
+          "gl": "Thuban",
+          "en": "Thuban"
+        },
+        "position": {
+          "x": -60,
+          "y": 60
+        },
+        "icon": "shield",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "eltanin",
+        "type": "small",
+        "label": {
+          "gl": "Eltanin",
+          "en": "Eltanin"
+        },
+        "position": {
+          "x": 60,
+          "y": 60
+        },
+        "group": "dragon",
+        "maxTier": 2,
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "thuban"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "luz",
+              "amount": 2
+            }
+          ]
+        ]
+      },
+      {
+        "id": "alphecca",
+        "type": "small",
+        "label": {
+          "gl": "Alphecca",
+          "en": "Alphecca"
+        },
+        "position": {
+          "x": -40,
+          "y": 200
+        },
+        "icon": "gem",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "nusakan",
+        "type": "small",
+        "label": {
+          "gl": "Nusakan",
+          "en": "Nusakan"
+        },
+        "position": {
+          "x": 60,
+          "y": 200
+        },
+        "prerequisites": {
+          "type": "all",
+          "conditions": [
+            {
+              "type": "node_unlocked",
+              "nodeId": "alphecca"
+            }
+          ]
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "estrela-fugaz",
+        "type": "small",
+        "label": {
+          "gl": "Estrela Fugaz",
+          "en": "Shooting Star"
+        },
+        "position": {
+          "x": 0,
+          "y": -40
+        },
+        "icon": "sparkle",
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      },
+      {
+        "id": "nebulosa",
+        "type": "small",
+        "label": {
+          "gl": "Nebulosa Anónima",
+          "en": "Nameless Nebula"
+        },
+        "position": {
+          "x": 120,
+          "y": 140
+        },
+        "costPerTier": [
+          [
+            {
+              "resourceId": "luz",
+              "amount": 1
+            }
+          ]
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "dubhe",
+        "target": "merak",
+        "type": "dependency"
+      },
+      {
+        "id": "e2",
+        "source": "merak",
+        "target": "alioth",
+        "type": "dependency"
+      },
+      {
+        "id": "e3",
+        "source": "betelxeuse",
+        "target": "rigel",
+        "type": "dependency"
+      },
+      {
+        "id": "e4",
+        "source": "rigel",
+        "target": "cinto",
+        "type": "dependency"
+      },
+      {
+        "id": "e5",
+        "source": "thuban",
+        "target": "eltanin",
+        "type": "dependency"
+      },
+      {
+        "id": "e6",
+        "source": "alphecca",
+        "target": "nusakan",
+        "type": "dependency"
+      }
+    ],
+    "layout": {
+      "type": "custom"
+    }
+  },
+  "editor": {
+    "formatVersion": "1.0.0",
+    "coordinateBounds": {
+      "minX": -400,
+      "minY": -300,
+      "maxX": 400,
+      "maxY": 300
+    },
+    "theme": {
+      "preset": "noite-estelar",
+      "textColor": "#2b2b28",
+      "nodeFills": {
+        "locked": "#d8d5cc",
+        "unlockable": "#a8bfd8",
+        "unlocked": "#e0c56d",
+        "maxed": "#c9a24b"
+      }
+    }
+  }
+}

@@ -72,6 +72,23 @@ for education, not just games. Exercises:
   group across the three tracks (breath / fingering / repertoire), with a
   `node_maxed` condition on the technique node.
 
+### `gaia-cards.json` — the card-ready pattern
+*"Constellation Atlas"* — **the reference pattern for generating trees meant
+for the cards view** (the `graph | cards` toggle in the editor canvas): each
+group renders as a card, each member node as an icon+label+badge row.
+Exercises:
+- 4 groups with bilingual `label`, `color`, `icon` (built-in registry ids:
+  `sparkle`/`arrow`/`bolt`/`gem`) — one group without `color` (deterministic
+  palette rotation) and two with `position` (explicit card placement; the
+  rest fall back to the automatic ring).
+- **Dual membership, deliberately mixed**: some nodes join via
+  `GroupDef.nodeIds`, others declare `node.group`, one group uses both.
+  Either way works; generators can pick whichever is convenient.
+- Two nodes with **no group at all** → they appear under a synthetic
+  *"Ungrouped"* card (the view never hides tree content).
+- Varied `maxTier` (1/2/3) so card badges show `0/1`, `0/3`… and fill up
+  as you play in Proba mode.
+
 ### `adversarial.json` — the deliberately awkward tree
 Generated from `adversarialDocument()` (`@yggdrasil-forge/editor-core`)
 with `serializeDocument` — never edited by hand. Exercises the paths
