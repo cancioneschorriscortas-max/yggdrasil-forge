@@ -20,6 +20,15 @@ catalog:
   '@testing-library/react': ^16.0.0
   '@vitejs/plugin-react': ^4.3.0
   dockview-react: ^6.6.1
+  # Panel Código (7.15b). Un só ficheiro importa CodeMirror
+  # (packages/editor-react/src/panels/code/CodeEditor.tsx).
+  '@codemirror/state': ^6.5.0
+  '@codemirror/view': ^6.36.0
+  '@codemirror/commands': ^6.8.0
+  '@codemirror/language': ^6.10.0
+  '@codemirror/lang-json': ^6.0.1
+  '@lezer/highlight': ^1.2.0
+  jsonc-parser: ^3.3.1
 
 # Build scripts aprobados (pnpm 11 require aprobación explícita).
 allowBuilds:

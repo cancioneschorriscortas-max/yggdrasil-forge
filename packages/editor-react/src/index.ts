@@ -25,6 +25,7 @@ export {
 export { OutlinerPanel, type OutlinerPanelProps } from './panels/OutlinerPanel.js'
 export { InspectorPanel } from './inspector/InspectorPanel.js'
 export { ProblemsPanel } from './panels/ProblemsPanel.js'
+export { CodePanel, type CodePanelProps, SYNC_SIZE_LIMIT } from './panels/code/CodePanel.js'
 
 // Canvas (7.5b-i): render do documento + pan/zoom + selección por clic.
 export { EditorCanvas, type EditorCanvasProps } from './canvas/EditorCanvas.js'

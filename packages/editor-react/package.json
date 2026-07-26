@@ -29,10 +29,17 @@
     "clean": "rm -rf dist .turbo *.tsbuildinfo"
   },
   "dependencies": {
+    "@codemirror/commands": "catalog:",
+    "@codemirror/lang-json": "catalog:",
+    "@codemirror/language": "catalog:",
+    "@codemirror/state": "catalog:",
+    "@codemirror/view": "catalog:",
+    "@lezer/highlight": "catalog:",
     "@yggdrasil-forge/core": "workspace:*",
     "@yggdrasil-forge/editor-core": "workspace:*",
     "@yggdrasil-forge/react": "workspace:*",
-    "dockview-react": "catalog:"
+    "dockview-react": "catalog:",
+    "jsonc-parser": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.2.7",

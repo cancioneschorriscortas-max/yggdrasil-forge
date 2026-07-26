@@ -1556,3 +1556,176 @@
 .editor-topbar__panels-menu-reset:hover {
   color: var(--editor-text-primary);
 }
+
+/* ── Panel Código (7.15b) ─────────────────────────────────────────
+ * Cores SEMPRE por tokens --editor-code-* (definidos nos dous temas,
+ * A.6.39). As clases .cm-* son as que emite CodeEditor.tsx (o único
+ * ficheiro que coñece CodeMirror). */
+.editor-code {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--editor-bg-panel);
+  color: var(--editor-text-primary);
+  font-size: var(--editor-font-size-sm);
+}
+.editor-code__header {
+  border-bottom: var(--editor-border-width) solid var(--editor-border-default);
+}
+.editor-code__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 10px;
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-secondary);
+}
+.editor-code__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.editor-code__legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.editor-code__legend-swatch--identity {
+  background: var(--editor-code-sec-identity);
+}
+.editor-code__legend-swatch--nodes {
+  background: var(--editor-code-sec-nodes);
+}
+.editor-code__legend-swatch--edges {
+  background: var(--editor-code-sec-edges);
+}
+.editor-code__legend-swatch--resources {
+  background: var(--editor-code-sec-resources);
+}
+.editor-code__legend-swatch--editor {
+  background: var(--editor-code-sec-editor);
+}
+.editor-code__banner,
+.editor-code__stale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+  background: var(--editor-bg-elevated);
+  border-top: var(--editor-border-width) solid var(--editor-border-default);
+  font-size: var(--editor-font-size-xs);
+}
+.editor-code__banner-behind {
+  color: var(--editor-severity-warning);
+  font-style: normal;
+}
+.editor-code__banner-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+.editor-code__validation {
+  padding: 4px 10px 8px;
+  border-top: var(--editor-border-width) solid var(--editor-border-default);
+}
+.editor-code__validation-ok {
+  margin: 0;
+  color: var(--editor-accent-preview);
+  font-size: var(--editor-font-size-xs);
+}
+.editor-code__issues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 120px;
+  overflow: auto;
+}
+.editor-code__issue {
+  padding: 2px 0;
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-xs);
+}
+.editor-code__issue-sev {
+  color: var(--editor-severity-error);
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* O contedor do CodeMirror enche o resto do panel. */
+.editor-code-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.editor-code-editor .cm-editor {
+  height: 100%;
+  background: var(--editor-bg-panel);
+  color: var(--editor-text-primary);
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-sm);
+}
+.editor-code-editor .cm-editor.cm-focused {
+  outline: none;
+}
+.editor-code-editor .cm-scroller {
+  overflow: auto;
+}
+.editor-code-editor .cm-gutters {
+  background: var(--editor-bg-shell);
+  color: var(--editor-text-muted);
+  border-right: var(--editor-border-width) solid var(--editor-border-default);
+}
+.editor-code-editor .cm-activeLine {
+  background: var(--editor-bg-hover);
+}
+.editor-code-editor .cm-cursor {
+  border-left-color: var(--editor-text-primary);
+}
+.editor-code-editor .cm-selectionBackground,
+.editor-code-editor .cm-editor ::selection {
+  background: var(--editor-bg-selected);
+}
+
+/* a) Sintaxe por tokens. */
+.editor-code-editor .cm-json-key {
+  color: var(--editor-code-key);
+}
+.editor-code-editor .cm-json-string {
+  color: var(--editor-code-string);
+}
+.editor-code-editor .cm-json-number {
+  color: var(--editor-code-number);
+}
+.editor-code-editor .cm-json-punct {
+  color: var(--editor-code-punct);
+}
+
+/* b) Dominio: franxa de 3px no gutter de sección. */
+.editor-code-editor .cm-section-gutter {
+  width: 5px;
+}
+.editor-code-editor .cm-section-gutter .cm-gutterElement {
+  height: 100%;
+}
+.editor-code-editor .cm-sec-identity {
+  box-shadow: inset 3px 0 0 var(--editor-code-sec-identity);
+}
+.editor-code-editor .cm-sec-nodes {
+  box-shadow: inset 3px 0 0 var(--editor-code-sec-nodes);
+}
+.editor-code-editor .cm-sec-edges {
+  box-shadow: inset 3px 0 0 var(--editor-code-sec-edges);
+}
+.editor-code-editor .cm-sec-resources {
+  box-shadow: inset 3px 0 0 var(--editor-code-sec-resources);
+}
+.editor-code-editor .cm-sec-editor {
+  box-shadow: inset 3px 0 0 var(--editor-code-sec-editor);
+}
+
+/* Marca de erro de sintaxe por liña. */
+.editor-code-editor .cm-error-line {
+  background: color-mix(in srgb, var(--editor-severity-error) 12%, transparent);
+  box-shadow: inset 3px 0 0 var(--editor-severity-error);
+}

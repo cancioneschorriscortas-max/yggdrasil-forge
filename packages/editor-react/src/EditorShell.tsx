@@ -29,6 +29,7 @@ import { OutlinerPanel } from './panels/OutlinerPanel.js'
 import { type PanelDef, PanelHost, type PanelHostHandle } from './panels/PanelHost.js'
 import { ProblemsPanel } from './panels/ProblemsPanel.js'
 import { ThemePanel } from './panels/ThemePanel.js'
+import { CodePanel } from './panels/code/CodePanel.js'
 import { ProbaPanel } from './proba/ProbaPanel.js'
 import { useProbaSession } from './proba/useProbaSession.js'
 import {
@@ -161,6 +162,15 @@ export function EditorShell({
               id: 'theme',
               title: 'Tema',
               component: () => <ThemePanel editorEngine={engine} />,
+              defaultLocation: 'right' as const,
+              withinPanel: 'inspector',
+            },
+            // 7.15b: o JSON en vivo. Só en Autoría (fóra en Proba,
+            // como as irmás Inspector/Tema).
+            {
+              id: 'code',
+              title: 'Código',
+              component: () => <CodePanel editorEngine={engine} />,
               defaultLocation: 'right' as const,
               withinPanel: 'inspector',
             },

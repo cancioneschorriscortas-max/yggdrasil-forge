@@ -45,8 +45,8 @@ describe('★ 7.7 §1 — Menú Paneis', () => {
     act(() => fireEvent.click(menuBtn))
     // Cada panel de Autoría aparece como menuitemcheckbox.
     const items = screen.getAllByRole('menuitemcheckbox')
-    // outliner + canvas + inspector + tema + problems = 5 en Autoría.
-    expect(items.length).toBe(5)
+    // outliner + canvas + inspector + tema + código (7.15b) + problems = 6 en Autoría.
+    expect(items.length).toBe(6)
     // Todos comezan con aria-checked=true (visibles no arranque).
     for (const it of items) {
       expect(it.getAttribute('aria-checked')).toBe('true')
@@ -119,7 +119,7 @@ describe('★★ 7.7 §2 — Cambio de modo conserva xeometría', () => {
       return ids
     }
     const before = collectVisible()
-    expect(before.length).toBe(5)
+    expect(before.length).toBe(6)
 
     // Autoría → Proba.
     act(() => fireEvent.click(screen.getByRole('button', { name: /^Proba$/i })))
@@ -199,7 +199,7 @@ describe('★ 7.7 §3 — Persistencia', () => {
     // O fallback debe amosar os paneis por defecto.
     act(() => fireEvent.click(screen.getByRole('button', { name: /^Paneis$/i })))
     const items = screen.getAllByRole('menuitemcheckbox')
-    expect(items.length).toBe(5)
+    expect(items.length).toBe(6)
   })
 
   it('non persiste en modo Proba (só en Autoría)', async () => {
