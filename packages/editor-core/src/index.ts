@@ -23,6 +23,15 @@ export type {
 export type { DocumentAdapter } from './document/DocumentAdapter.js'
 export { JsonDocumentAdapter, toJson } from './document/JsonDocumentAdapter.js'
 export { deserializeDocument, serializeDocument } from './document/serialize.js'
+export {
+  backgroundRefSchema,
+  boundsSchema,
+  documentMetaSchema,
+  type InferredDocumentMeta,
+  themeNodeStateSchema,
+  themeRegionTintSchema,
+  themeSpecSchema,
+} from './document/documentMetaSchema.js'
 
 // Sesión (efímera, estendida con selection+fsm+activeOperation en 7.3)
 export { type EditorSession, createSession } from './session/EditorSession.js'

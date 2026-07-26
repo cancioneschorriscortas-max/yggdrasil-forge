@@ -137,4 +137,96 @@ describe('deserializeDocument — validadores duros (blindaxe do import)', () =>
     expect(deserializeDocument(json).ok).toBe(true)
   })
 })
+
+// ── 7.15-C1: validación Zod do namespace `editor` ──
+// O tree xa se validaba (7.14-B); agora o meta tamén. Contrato: se
+// deserializeDocument devolve `ok`, o documento ENTEIRO é san. Claves
+// descoñecidas do futuro consérvanse tal cal (passthrough).
+describe('deserializeDocument — namespace editor (documentMetaSchema, 7.15)', () => {
+  const validTree = {
+    id: 't',
+    schemaVersion: '1.0.0',
+    version: '1.0.0',
+    label: { gl: 'x' },
+    nodes: [{ id: 'a', type: 'small', label: { gl: 'a' }, position: { x: 0, y: 0 } }],
+    edges: [],
+    layout: { type: 'custom' },
+  }
+
+  it('theme con tipo errado → err que sinala o campo', () => {
+    const json = JSON.stringify({
+      tree: validTree,
+      editor: { theme: { nodeFills: { locked: 123 } } },
+    })
+    const r = deserializeDocument(json)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.error.message).toMatch(/editor\.theme\.nodeFills/)
+  })
+
+  it('background.opacity como string → err co campo', () => {
+    const json = JSON.stringify({
+      tree: validTree,
+      editor: { background: { src: '/x.png', opacity: 'moita' } },
+    })
+    const r = deserializeDocument(json)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.error.message).toMatch(/editor\.background\.opacity/)
+  })
+
+  it('coordinateBounds incompleto → err co campo', () => {
+    const json = JSON.stringify({
+      tree: validTree,
+      editor: { coordinateBounds: { minX: 0, minY: 0, maxX: 100 } },
+    })
+    const r = deserializeDocument(json)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.error.message).toMatch(/editor\.coordinateBounds\.maxY/)
+  })
+
+  it('★ clave descoñecida no meta → ok e CONSÉRVASE no round-trip', () => {
+    const json = JSON.stringify({
+      tree: validTree,
+      editor: { formatVersion: '1.0.0', chaveDoFuturo: { misterio: true } },
+    })
+    const r = deserializeDocument(json)
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    // Consérvase no doc...
+    expect((r.value.meta as Record<string, unknown>).chaveDoFuturo).toEqual({ misterio: true })
+    // ...e sobrevive ao round-trip completo.
+    const reparsed = JSON.parse(serializeDocument(r.value)) as {
+      editor: Record<string, unknown>
+    }
+    expect(reparsed.editor.chaveDoFuturo).toEqual({ misterio: true })
+  })
+
+  it('theme válido completo → ok e chega ao doc', () => {
+    const json = JSON.stringify({
+      tree: validTree,
+      editor: {
+        theme: {
+          preset: 'tintado',
+          textColor: '#333333',
+          nodeFills: { locked: '#c8c4bb', unlocked: '#7cb37c' },
+          regions: [{ id: 'r1', label: 'Pan', tag: 'pan', color: '#c8875f' }],
+        },
+      },
+    })
+    const r = deserializeDocument(json)
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.meta.theme?.nodeFills?.locked).toBe('#c8c4bb')
+    expect(r.value.meta.theme?.regions?.[0]?.tag).toBe('pan')
+  })
+
+  it('compat: TreeDef pelado (sen namespace editor) segue cargando', () => {
+    const r = deserializeDocument(JSON.stringify(validTree))
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.value.meta.formatVersion).toBe('1.0.0')
+  })
+})
 // ── FIN: tests serialize ──

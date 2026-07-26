@@ -36,6 +36,21 @@ import {
   type EditorDocument,
   createEditorDocument,
 } from './EditorDocument.js'
+import { documentMetaSchema } from './documentMetaSchema.js'
+
+/**
+ * Claves de `DocumentMeta` que `createEditorDocument` coñece e copia.
+ * Todo o demais no namespace `editor` é "descoñecido do futuro" e
+ * consérvase tal cal (forward-compat, 7.15).
+ */
+const KNOWN_META_KEYS: ReadonlySet<string> = new Set([
+  'formatVersion',
+  'background',
+  'coordinateBounds',
+  'thumbnail',
+  'imports',
+  'theme',
+])
 
 /** Serializa o documento como JSON namespaced `{ tree, editor }`. */
 export function serializeDocument(doc: EditorDocument): string {
@@ -43,7 +58,7 @@ export function serializeDocument(doc: EditorDocument): string {
 }
 
 /**
- * Parse JSON defensivo + valida `tree` con `validateTreeDef`.
+ * Parse JSON defensivo + validación COMPLETA do documento.
  *
  * Aceita dúas formas de entrada:
  *   1. `{ tree, editor }` namespaced (formato canónico do editor).
@@ -51,7 +66,15 @@ export function serializeDocument(doc: EditorDocument): string {
  *
  * Devolve `Result` de erro (non lanza) se:
  *   - O JSON é inválido (parse falla).
- *   - O `tree` non pasa `validateTreeDef`.
+ *   - O `tree` non pasa `validateTreeDef` nin os validadores duros
+ *     (structural / uniqueIds / referentialIntegrity — 7.14-B).
+ *   - O namespace `editor` ten tipos errados nos campos coñecidos
+ *     (`documentMetaSchema` — 7.15). Claves descoñecidas NON son erro:
+ *     consérvanse tal cal (forward-compat).
+ *
+ * **Contrato (7.14-B, ampliado en 7.15)**: se devolve `ok`, o documento
+ * ENTEIRO é san — árbore E meta. O motor non lanzará ao construírse e o
+ * renderer non recibirá tipos imposibles do tema.
  */
 export function deserializeDocument(jsonText: string): Result<EditorDocument> {
   // 1. Parse defensivo: JSON.parse pode lanzar; convertimos a Result.
@@ -91,16 +114,53 @@ export function deserializeDocument(jsonText: string): Result<EditorDocument> {
   const validated = validateTreeDef(treeInput)
   if (!validated.ok) return validated as Result<EditorDocument>
 
-  // 4. Reconstruír meta (default-merge se falta ou non é object).
-  const metaPartial =
-    metaInput !== null && typeof metaInput === 'object'
-      ? (metaInput as Partial<DocumentMeta>)
-      : DEFAULT_DOCUMENT_META
+  // 4. Validar e reconstruír o namespace `editor` (7.15, Cambio 1).
+  //    - Ausente ou null → defaults (compat con TreeDef pelado).
+  //    - Presente → documentMetaSchema: tipos errados nos campos
+  //      coñecidos rexéitanse con err (que campo, que problema);
+  //      claves DESCOÑECIDAS pasan (passthrough) e consérvanse tal
+  //      cal no doc final (forward-compat).
+  let metaPartial: Partial<DocumentMeta> = DEFAULT_DOCUMENT_META
+  const metaExtras: Record<string, unknown> = {}
+  if (metaInput !== undefined && metaInput !== null) {
+    const parsedMeta = documentMetaSchema.safeParse(metaInput)
+    if (!parsedMeta.success) {
+      const details = parsedMeta.error.issues
+        .map((issue) => {
+          const path = issue.path.length > 0 ? `editor.${issue.path.join('.')}` : 'editor'
+          return `${path}: ${issue.message}`
+        })
+        .join('; ')
+      return err(
+        new YggdrasilError(
+          ErrorCode.INVALID_TREE_DEF,
+          getErrorMessage(ErrorCode.INVALID_TREE_DEF, 'gl', { details }),
+        ),
+      )
+    }
+    // O output do passthrough trae coñecidas (tipadas) + descoñecidas.
+    // O cast é seguro: acabamos de validar a forma en runtime; o
+    // artefacto `?: T | undefined` de Zod 3 vs exactOptionalPropertyTypes
+    // non existe en runtime (as claves ausentes non están no obxecto).
+    const parsed = parsedMeta.data as Record<string, unknown>
+    const known: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(parsed)) {
+      if (KNOWN_META_KEYS.has(key)) known[key] = value
+      else metaExtras[key] = value
+    }
+    metaPartial = known as Partial<DocumentMeta>
+  }
 
   // O cast a TreeDef é seguro: InferredTreeDef (z.infer) é
   // estruturalmente equivalente a TreeDef (gateado polo type-test
   // treeDefSchema.type-test.ts en @core).
-  const doc = createEditorDocument(validated.value as TreeDef, metaPartial)
+  const built = createEditorDocument(validated.value as TreeDef, metaPartial)
+  // Reanexar as claves descoñecidas (createEditorDocument só copia as
+  // coñecidas): así serializeDocument devólveas intactas no round-trip.
+  const doc: EditorDocument =
+    Object.keys(metaExtras).length > 0
+      ? { tree: built.tree, meta: { ...metaExtras, ...built.meta } as DocumentMeta }
+      : built
 
   // 5. Validadores DUROS (mesma garantía que EditorEngine).
   //    O schema Zod non pilla ids de nodo/aresta DUPLICADOS. Sen esta

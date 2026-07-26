@@ -30,7 +30,8 @@
   "dependencies": {
     "@yggdrasil-forge/common": "workspace:*",
     "@yggdrasil-forge/core": "workspace:*",
-    "immer": "^10.1.1"
+    "immer": "^10.1.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "tsup": "catalog:",
