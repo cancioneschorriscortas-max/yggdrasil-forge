@@ -53,6 +53,28 @@ export function adversarialTreeDef(): TreeDef {
       en: 'Test fixture designed to force rarely-exercised paths.',
     },
     author: 'Yggdrasil Forge',
+    // 7.15c: grupos coa PERTENZA DUAL deliberadamente mesturada, para a
+    // derivación da vista de tarxetas:
+    //   - 'fronte': só por nodeIds (con color explícito).
+    //   - 'sombra': nodeIds + node.group, incluíndo un nodo reclamado
+    //     polas DÚAS vías (exclusivo-a → dedup) — e SEN color (exercita
+    //     a rotación de paleta).
+    //   - 'con-cor' e 'sen-posicion' quedan SEN grupo a propósito
+    //     (exercitan o «Sen grupo» sintético).
+    groups: [
+      {
+        id: 'fronte',
+        label: { gl: 'A Fronte', en: 'The Front' },
+        color: '#c8875f',
+        icon: 'shield',
+        nodeIds: ['raiz', 'con-tier'],
+      },
+      {
+        id: 'sombra',
+        label: { gl: 'A Sombra', en: 'The Shadow' },
+        nodeIds: ['grupo-none', 'exclusivo-a'],
+      },
+    ],
     resources: [
       { id: 'ouro', label: { gl: 'Ouro', en: 'Gold' }, initial: 10, max: 99 },
       {
@@ -90,6 +112,8 @@ export function adversarialTreeDef(): TreeDef {
         type: 'small',
         label: { gl: 'Exclusivo A', en: 'Exclusive A' },
         position: { x: 240, y: 0 },
+        // 7.15c: reclamado por nodeIds de 'sombra' E por group → dedup.
+        group: 'sombra',
         exclusions: ['con-tier'],
       },
       {
@@ -97,6 +121,7 @@ export function adversarialTreeDef(): TreeDef {
         type: 'small',
         label: { gl: 'Grupo Any', en: 'Group Any' },
         position: { x: 0, y: 120 },
+        group: 'sombra',
         prerequisites: {
           type: 'any',
           conditions: [

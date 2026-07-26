@@ -24,6 +24,13 @@ export type { DocumentAdapter } from './document/DocumentAdapter.js'
 export { JsonDocumentAdapter, toJson } from './document/JsonDocumentAdapter.js'
 export { deserializeDocument, serializeDocument } from './document/serialize.js'
 export {
+  type DeriveClusterGroupsOptions,
+  type DerivedClusterGroup,
+  type DerivedClusterMember,
+  UNGROUPED_GROUP_ID,
+  deriveClusterGroups,
+} from './view/deriveClusterGroups.js'
+export {
   backgroundRefSchema,
   boundsSchema,
   documentMetaSchema,
