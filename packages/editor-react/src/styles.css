@@ -66,6 +66,19 @@
   --editor-font-size-sm: 12px;
   --editor-font-size-md: 13px;
   --editor-font-size-lg: 15px;
+
+  /* ── Panel Código (7.15b) ──
+   * a) Sintaxe JSON (CodeMirror mapea a estes tokens).
+   * b) Dominio: franxa de gutter por sección + lenda. */
+  --editor-code-key: #2b2b28;
+  --editor-code-string: #7a5a2e;
+  --editor-code-number: #1c4f9c;
+  --editor-code-punct: #9a9a90;
+  --editor-code-sec-identity: #9a9a90;
+  --editor-code-sec-nodes: #2f6fd6;
+  --editor-code-sec-edges: #7c5cd6;
+  --editor-code-sec-resources: #c08a1e;
+  --editor-code-sec-editor: #2e8a5c;
 }
 
 /* Escuro grafito (opt-in tras 7.5d) — SEN cambios respecto a versión anterior. */
@@ -105,6 +118,17 @@
 
   /* Sombra máis forte (grafito). Os radii son comúns (viven no bloque light). */
   --editor-shadow-elev1: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+  /* ── Panel Código (7.15b) — variante escura (A.6.39: cero orfos) ── */
+  --editor-code-key: #e8e9ea;
+  --editor-code-string: #d4a259;
+  --editor-code-number: #7aa7e8;
+  --editor-code-punct: #6b6e78;
+  --editor-code-sec-identity: #6b6e78;
+  --editor-code-sec-nodes: #5b9ee8;
+  --editor-code-sec-edges: #a08ae8;
+  --editor-code-sec-resources: #d4a259;
+  --editor-code-sec-editor: #5cc28a;
 }
 /* ── FIN: tokens.css ── */
 /* ── INICIO: shell.css — layout do EditorShell ── */
