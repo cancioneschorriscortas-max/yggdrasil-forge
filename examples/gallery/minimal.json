@@ -1,0 +1,34 @@
+{
+  "tree": {
+    "id": "minimal",
+    "schemaVersion": "1.0.0",
+    "version": "1.0.0",
+    "label": { "gl": "Árbore mínima", "en": "Minimal tree" },
+    "resources": [{ "id": "punto", "label": { "gl": "Punto", "en": "Point" }, "initial": 1 }],
+    "nodes": [
+      {
+        "id": "raiz",
+        "type": "small",
+        "label": { "gl": "Raíz", "en": "Root" },
+        "position": { "x": 0, "y": 0 }
+      },
+      {
+        "id": "folla",
+        "type": "keystone",
+        "label": { "gl": "Folla", "en": "Leaf" },
+        "position": { "x": 120, "y": 0 },
+        "prerequisites": {
+          "type": "all",
+          "conditions": [{ "type": "node_unlocked", "nodeId": "raiz" }]
+        },
+        "costPerTier": [[{ "resourceId": "punto", "amount": 1 }]]
+      }
+    ],
+    "edges": [{ "id": "e1", "source": "raiz", "target": "folla", "type": "dependency" }],
+    "layout": { "type": "custom" }
+  },
+  "editor": {
+    "formatVersion": "1.0.0",
+    "coordinateBounds": { "minX": -60, "minY": -60, "maxX": 180, "maxY": 60 }
+  }
+}

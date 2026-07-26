@@ -1,0 +1,174 @@
+{
+  "tree": {
+    "id": "oberon-panadeiro-shell",
+    "schemaVersion": "1.0.0",
+    "version": "0.1.0",
+    "label": {
+      "en": "Oberón (panadeiro)",
+      "gl": "Oberón (panadeiro)"
+    },
+    "groups": [
+      {
+        "id": "pan",
+        "label": {
+          "en": "Bread"
+        }
+      },
+      {
+        "id": "docería",
+        "label": {
+          "en": "Pastry"
+        }
+      }
+    ],
+    "resources": [
+      {
+        "id": "fariña",
+        "label": {
+          "en": "Flour",
+          "gl": "Fariña"
+        },
+        "initial": 0
+      }
+    ],
+    "nodes": [
+      {
+        "id": "fariña",
+        "type": "small",
+        "label": {
+          "en": "Flour"
+        },
+        "group": "pan",
+        "position": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": "levadura",
+        "type": "small",
+        "label": {
+          "en": "Yeast"
+        },
+        "group": "pan",
+        "position": {
+          "x": 100,
+          "y": 0
+        }
+      },
+      {
+        "id": "pan_básico",
+        "type": "keystone",
+        "label": {
+          "en": "Basic bread"
+        },
+        "group": "pan",
+        "position": {
+          "x": 200,
+          "y": 0
+        }
+      },
+      {
+        "id": "masa_dulce",
+        "type": "small",
+        "label": {
+          "en": "Sweet dough"
+        },
+        "group": "docería",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "maxTier": 3,
+        "costPerTier": [
+          [
+            {
+              "resourceId": "fariña",
+              "amount": 1
+            }
+          ],
+          [
+            {
+              "resourceId": "fariña",
+              "amount": 2
+            }
+          ],
+          [
+            {
+              "resourceId": "fariña",
+              "amount": 3
+            }
+          ]
+        ]
+      },
+      {
+        "id": "churros",
+        "type": "keystone",
+        "label": {
+          "en": "Churros"
+        },
+        "group": "docería",
+        "position": {
+          "x": 100,
+          "y": 200
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "source": "fariña",
+        "target": "pan_básico",
+        "type": "dependency"
+      },
+      {
+        "id": "e2",
+        "source": "levadura",
+        "target": "pan_básico",
+        "type": "dependency"
+      },
+      {
+        "id": "e3",
+        "source": "fariña",
+        "target": "masa_dulce",
+        "type": "dependency"
+      },
+      {
+        "id": "e4",
+        "source": "masa_dulce",
+        "target": "churros",
+        "type": "dependency"
+      }
+    ],
+    "layout": {
+      "type": "custom"
+    }
+  },
+  "editor": {
+    "formatVersion": "1.0.0",
+    "coordinateBounds": {
+      "minX": -50,
+      "minY": -50,
+      "maxX": 300,
+      "maxY": 300
+    },
+    "theme": {
+      "preset": "tintado",
+      "nodeFills": {
+        "locked": "#c8c4bb",
+        "unlockable": "#e6b8a2",
+        "unlocked": "#7cb37c",
+        "maxed": "#4a8f4a",
+        "inProgress": "#e6c98a"
+      },
+      "regions": [
+        {
+          "id": "pan-region",
+          "label": "Pan",
+          "tag": "pan",
+          "color": "#c8875f"
+        }
+      ]
+    }
+  }
+}

@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gen:gallery": "node --experimental-strip-types scripts/gen-gallery.mts"
   },
   "dependencies": {
     "@yggdrasil-forge/core": "workspace:*",
