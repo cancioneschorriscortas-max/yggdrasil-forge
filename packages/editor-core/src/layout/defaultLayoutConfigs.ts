@@ -12,11 +12,12 @@
 import type { TreeDef } from '@yggdrasil-forge/core'
 
 /** Algoritmos expostos por «Dispor» (identity/custom quedan fóra: non colocan). */
-export type AutoLayoutAlgo = 'radial' | 'tree' | 'clustered-radial' | 'constellation'
+export type AutoLayoutAlgo = 'radial' | 'tree' | 'layered' | 'clustered-radial' | 'constellation'
 
 export const AUTO_LAYOUT_ALGOS: readonly AutoLayoutAlgo[] = [
   'radial',
   'tree',
+  'layered',
   'clustered-radial',
   'constellation',
 ]
@@ -50,6 +51,10 @@ export function defaultLayoutConfig(algo: AutoLayoutAlgo, tree: TreeDef): TreeDe
       // Espazados fixos sensatos: o motor por niveis xa reparte o ancho;
       // 90/130 dan aire aos labels sen estratosfera nas árbores fondas.
       return { type: 'tree', nodeSpacing: 90, levelSpacing: 130 }
+    case 'layered':
+      // Mesmos espazados ca tree (briefing 7.18): a diferenza é o
+      // algoritmo (capas para DAGs), non a densidade do debuxo.
+      return { type: 'layered', nodeSpacing: 90, levelSpacing: 130 }
     case 'clustered-radial':
       // Anel de grupos: ~110px de arco por grupo. Chan 120 (afinado
       // 7.16c: con 2 grupos o chan vello de 240 poñíaos a 480px de

@@ -119,6 +119,47 @@ describe('applyAutoLayout — determinismo e cocido', () => {
     expect(engine.getDocument().meta.coordinateBounds).toEqual(boundsBefore)
   })
 
+  it('★ 7.18 layered × panadeiro (regra P4): magnitudes exactas — ambos pais na capa 0', () => {
+    const doc = galleryDoc('panadeiro.json')
+    const { positions } = positionsAfter(doc, 'layered')
+    // Defaults 90/130 de defaultLayoutConfigs. Capa 0 [fariña,
+    // levadura] → ±45 (levadura XA NON é unha raíz apartada como en
+    // tree); capa 1 tras baricentro [masa_dulce, pan_básico] → ∓45;
+    // churros centrado na capa 2. As dúas arestas de pan_básico baixan.
+    expect(positions.get('fariña')).toEqual({ x: -45, y: 0 })
+    expect(positions.get('levadura')).toEqual({ x: 45, y: 0 })
+    expect(positions.get('masa_dulce')).toEqual({ x: -45, y: 130 })
+    expect(positions.get('pan_básico')).toEqual({ x: 45, y: 130 })
+    expect(positions.get('churros')).toEqual({ x: 0, y: 260 })
+  })
+
+  it('★ 7.18 layered con ciclo: err(CYCLE_DETECTED) do motor propágase, non se coloca lixo', () => {
+    const cyclic = deserializeDocument(
+      JSON.stringify({
+        id: 'ciclo',
+        schemaVersion: '1.0.0',
+        version: '1.0.0',
+        label: { gl: 'Ciclo' },
+        nodes: [
+          { id: 'a', type: 'small', label: { gl: 'A' } },
+          { id: 'b', type: 'small', label: { gl: 'B' } },
+        ],
+        edges: [
+          { id: 'e1', source: 'a', target: 'b', type: 'dependency' },
+          { id: 'e2', source: 'b', target: 'a', type: 'dependency' },
+        ],
+        layout: { type: 'custom' },
+      }),
+    )
+    expect(cyclic.ok).toBe(true)
+    if (!cyclic.ok) return
+    const commands = applyAutoLayout(cyclic.value, 'layered')
+    expect(commands.ok).toBe(false)
+    if (!commands.ok) {
+      expect((commands.error as { code?: string }).code).toBe('YGG_E006')
+    }
+  })
+
   it('árbore baleira → ok con cero comandos', () => {
     const empty = deserializeDocument(
       JSON.stringify({

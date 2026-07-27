@@ -85,6 +85,31 @@ describe('ygg layout — exit codes e gramática', () => {
     // O resultado pasa a validación completa.
     expect(validateDocumentText(output).ok).toBe(true)
   })
+
+  it('★ 7.18 layered con ciclo → exit 1 con erro claro, nunca lixo no stdout', async () => {
+    const cyclic = JSON.stringify({
+      tree: {
+        id: 'ciclo',
+        schemaVersion: '1.0.0',
+        version: '1.0.0',
+        label: { gl: 'Ciclo' },
+        nodes: [
+          { id: 'a', type: 'small', label: { gl: 'a' } },
+          { id: 'b', type: 'small', label: { gl: 'b' } },
+        ],
+        edges: [
+          { id: 'e1', source: 'a', target: 'b', type: 'dependency' },
+          { id: 'e2', source: 'b', target: 'a', type: 'dependency' },
+        ],
+        layout: { type: 'custom' },
+      },
+      editor: { formatVersion: '1.0.0' },
+    })
+    const io = makeIO(cyclic)
+    expect(await run(['layout', '-', '--algo', 'layered'], io)).toBe(1)
+    expect(io.out()).toBe('')
+    expect(io.err()).toContain('ciclo')
+  })
 })
 
 describe('ygg layout — determinismo e galería', () => {
@@ -98,7 +123,7 @@ describe('ygg layout — determinismo e galería', () => {
 
   it('cada algoritmo × panadeiro.json → ok e validate verde (sonda A.6.9)', () => {
     const text = readFileSync(join(GALLERY, 'panadeiro.json'), 'utf8')
-    for (const algo of ['radial', 'tree', 'clustered-radial', 'constellation'] as const) {
+    for (const algo of ['radial', 'tree', 'layered', 'clustered-radial', 'constellation'] as const) {
       const result = layoutDocumentText(text, algo)
       expect(result.ok, `${algo}: ${result.error ?? ''}`).toBe(true)
       expect(validateDocumentText(result.output ?? '').ok).toBe(true)

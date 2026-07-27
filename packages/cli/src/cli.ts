@@ -31,7 +31,8 @@ Uso:
                                        --json emite {ok, issues[]} como dato accionable.
   ygg layout <ficheiro|-> --algo <a>   Coloca TODOS os nodos co algoritmo indicado e emite o
        [--out ficheiro]                documento resultante (stdout ou --out). Algoritmos:
-                                       radial | tree | clustered-radial | constellation.
+                                       radial | tree | layered | clustered-radial |
+                                       constellation (layered: para DAGs con multi-pai).
   ygg render <ficheiro|-> --out <f.svg>  Renderiza a árbore a un SVG autocontido.
        [--dark] [--locale gl] [--width N]
   ygg schema [--out ficheiro]          Emite o JSON Schema do documento.
@@ -103,7 +104,9 @@ async function cmdLayout(args: readonly string[], io: CliIO): Promise<number> {
   const [out, rest2] = takeOption(rest1, '--out')
   const positional = rest2.filter((a) => !a.startsWith('--'))
   if (algo === undefined || !isAutoLayoutAlgo(algo)) {
-    io.stderr('ygg layout: falta --algo (radial | tree | clustered-radial | constellation)\n')
+    io.stderr(
+      'ygg layout: falta --algo (radial | tree | layered | clustered-radial | constellation)\n',
+    )
     return 2
   }
   if (positional.length > 1) {

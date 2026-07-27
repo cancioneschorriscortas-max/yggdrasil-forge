@@ -7,30 +7,6 @@
       "en": "Oberón (panadeiro)",
       "gl": "Oberón (panadeiro)"
     },
-    "groups": [
-      {
-        "id": "pan",
-        "label": {
-          "en": "Bread"
-        }
-      },
-      {
-        "id": "docería",
-        "label": {
-          "en": "Pastry"
-        }
-      }
-    ],
-    "resources": [
-      {
-        "id": "fariña",
-        "label": {
-          "en": "Flour",
-          "gl": "Fariña"
-        },
-        "initial": 0
-      }
-    ],
     "nodes": [
       {
         "id": "fariña",
@@ -38,11 +14,11 @@
         "label": {
           "en": "Flour"
         },
-        "group": "pan",
         "position": {
-          "x": 0,
+          "x": -45,
           "y": 0
-        }
+        },
+        "group": "pan"
       },
       {
         "id": "levadura",
@@ -50,11 +26,11 @@
         "label": {
           "en": "Yeast"
         },
-        "group": "pan",
         "position": {
-          "x": 100,
+          "x": 45,
           "y": 0
-        }
+        },
+        "group": "pan"
       },
       {
         "id": "pan_básico",
@@ -62,22 +38,17 @@
         "label": {
           "en": "Basic bread"
         },
-        "group": "pan",
         "position": {
-          "x": 200,
-          "y": 0
-        }
+          "x": 45,
+          "y": 130
+        },
+        "group": "pan"
       },
       {
         "id": "masa_dulce",
         "type": "small",
         "label": {
           "en": "Sweet dough"
-        },
-        "group": "docería",
-        "position": {
-          "x": 0,
-          "y": 200
         },
         "maxTier": 3,
         "costPerTier": [
@@ -99,7 +70,12 @@
               "amount": 3
             }
           ]
-        ]
+        ],
+        "position": {
+          "x": -45,
+          "y": 130
+        },
+        "group": "docería"
       },
       {
         "id": "churros",
@@ -107,11 +83,11 @@
         "label": {
           "en": "Churros"
         },
-        "group": "docería",
         "position": {
-          "x": 100,
-          "y": 200
-        }
+          "x": 0,
+          "y": 260
+        },
+        "group": "docería"
       }
     ],
     "edges": [
@@ -140,6 +116,30 @@
         "type": "dependency"
       }
     ],
+    "groups": [
+      {
+        "id": "pan",
+        "label": {
+          "en": "Bread"
+        }
+      },
+      {
+        "id": "docería",
+        "label": {
+          "en": "Pastry"
+        }
+      }
+    ],
+    "resources": [
+      {
+        "id": "fariña",
+        "label": {
+          "en": "Flour",
+          "gl": "Fariña"
+        },
+        "initial": 0
+      }
+    ],
     "layout": {
       "type": "custom"
     }
@@ -147,13 +147,12 @@
   "editor": {
     "formatVersion": "1.0.0",
     "coordinateBounds": {
-      "minX": -50,
-      "minY": -50,
-      "maxX": 300,
-      "maxY": 300
+      "minX": -93,
+      "minY": -48,
+      "maxX": 93,
+      "maxY": 308
     },
     "theme": {
-      "preset": "tintado",
       "nodeFills": {
         "locked": "#c8c4bb",
         "unlockable": "#e6b8a2",
@@ -168,7 +167,8 @@
           "tag": "pan",
           "color": "#c8875f"
         }
-      ]
+      ],
+      "preset": "tintado"
     }
   }
 }

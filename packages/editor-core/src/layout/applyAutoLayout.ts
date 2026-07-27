@@ -16,6 +16,7 @@ import {
   ClusteredRadialLayout,
   ConstellationLayout,
   ErrorCode,
+  LayeredLayout,
   LayoutEngineRegistry,
   RadialLayout,
   type Result,
@@ -47,6 +48,7 @@ function createEditorLayoutRegistry(): LayoutEngineRegistry {
   return new LayoutEngineRegistry()
     .register(new RadialLayout())
     .register(new TreeLayout())
+    .register(new LayeredLayout())
     .register(new ClusteredRadialLayout())
     .register(new ConstellationLayout())
 }
