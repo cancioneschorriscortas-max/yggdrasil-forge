@@ -45,7 +45,11 @@ export interface TopBarProps {
     readonly onNew?: () => void
     readonly onImport?: () => void
     readonly onExport?: () => void
+    readonly onExportSvg?: () => void
+    readonly onExportPng?: () => void
   }
+  /** 7.17: desactiva as entradas de imaxe (vista tarxetas). */
+  readonly imageExportDisabled?: boolean
 }
 
 export function TopBar({
@@ -59,6 +63,7 @@ export function TopBar({
   theme,
   onThemeChange,
   documentActions,
+  imageExportDisabled = false,
 }: TopBarProps): JSX.Element {
   // Re-render en cada commit (canUndo/canRedo cambian).
   useSyncExternalStore(
@@ -100,6 +105,13 @@ export function TopBar({
                 {...(documentActions.onExport !== undefined && {
                   onExport: documentActions.onExport,
                 })}
+                {...(documentActions.onExportSvg !== undefined && {
+                  onExportSvg: documentActions.onExportSvg,
+                })}
+                {...(documentActions.onExportPng !== undefined && {
+                  onExportPng: documentActions.onExportPng,
+                })}
+                imageExportDisabled={imageExportDisabled}
               />
             </div>
             <div className="editor-topbar__divider" />

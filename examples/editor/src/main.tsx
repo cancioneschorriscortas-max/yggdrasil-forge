@@ -22,6 +22,7 @@ import {
   createDefaultValidators,
   createEditorDocument,
   deserializeDocument,
+  standaloneSvg,
   toJson,
 } from '@yggdrasil-forge/editor-core'
 import { EditorShell } from '@yggdrasil-forge/editor-react'
@@ -195,6 +196,86 @@ function App(): JSX.Element {
     URL.revokeObjectURL(url)
   }, [engine])
 
+  // ── 7.17 — Exportar imaxe (SVG autocontido / PNG 2x) ──
+  // Serializa o <svg> VIVO do canvas (en Proba leva os estados da
+  // sesión) e faino autocontido con standaloneSvg (@editor-core, a
+  // mesma utilidade que usa `ygg render`). O pan/zoom resetéase no
+  // clon: o export é a árbore ENTEIRA encadrada, determinista — non
+  // "o que casualmente vías".
+  const buildImageSvg = useCallback((): { text: string; name: string } | null => {
+    const live = document.querySelector('svg.yf-skill-tree')
+    if (!(live instanceof SVGSVGElement)) {
+      window.alert('Non hai canvas de grafo á vista para exportar.')
+      return null
+    }
+    const clone = live.cloneNode(true) as SVGSVGElement
+    const viewport = clone.querySelector(':scope > g')
+    viewport?.setAttribute('transform', 'translate(0 0) scale(1)')
+    const markup = new XMLSerializer().serializeToString(clone)
+    const background =
+      getComputedStyle(document.documentElement).getPropertyValue('--editor-bg-canvas').trim() ||
+      '#f4f4f1'
+    const result = standaloneSvg(markup, { background })
+    if (!result.ok) {
+      window.alert(`Non se puido exportar a imaxe: ${result.error.message}`)
+      return null
+    }
+    const name = engine.getDocument().tree.id || 'arbore'
+    return { text: result.value, name }
+  }, [engine])
+
+  const downloadBlob = useCallback((blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [])
+
+  const handleExportSvg = useCallback(() => {
+    const built = buildImageSvg()
+    if (built === null) return
+    downloadBlob(new Blob([built.text], { type: 'image/svg+xml' }), `${built.name}.svg`)
+  }, [buildImageSvg, downloadBlob])
+
+  const handleExportPng = useCallback(() => {
+    const built = buildImageSvg()
+    if (built === null) return
+    // Rasterizado no navegador (por iso o PNG vive aquí e non no CLI):
+    // Image + canvas a 2x para nitidez.
+    const svgUrl = URL.createObjectURL(new Blob([built.text], { type: 'image/svg+xml' }))
+    const img = new Image()
+    img.onload = () => {
+      const scale = 2
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth * scale
+      canvas.height = img.naturalHeight * scale
+      const ctx = canvas.getContext('2d')
+      if (ctx === null) {
+        URL.revokeObjectURL(svgUrl)
+        window.alert('Non se puido crear o lenzo de rasterizado.')
+        return
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(svgUrl)
+      canvas.toBlob((blob) => {
+        if (blob === null) {
+          window.alert('Non se puido xerar o PNG.')
+          return
+        }
+        downloadBlob(blob, `${built.name}.png`)
+      }, 'image/png')
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(svgUrl)
+      window.alert('Non se puido cargar o SVG para rasterizar.')
+    }
+    img.src = svgUrl
+  }, [buildImageSvg, downloadBlob])
+
   const handleImportClick = useCallback(() => {
     fileInputRef.current?.click()
   }, [])
@@ -249,6 +330,8 @@ function App(): JSX.Element {
           onNew: handleNew,
           onImport: handleImportClick,
           onExport: handleExport,
+          onExportSvg: handleExportSvg,
+          onExportPng: handleExportPng,
         }}
       />
     </>
