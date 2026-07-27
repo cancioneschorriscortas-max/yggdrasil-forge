@@ -18,9 +18,21 @@ export interface FileMenuProps {
   readonly onNew?: () => void
   readonly onImport?: () => void
   readonly onExport?: () => void
+  /** 7.17: exportar a árbore como imaxe (SVG autocontido / PNG 2x). */
+  readonly onExportSvg?: () => void
+  readonly onExportPng?: () => void
+  /** 7.17: en vista tarxetas a exportación de imaxe desactívase. */
+  readonly imageExportDisabled?: boolean
 }
 
-export function FileMenu({ onNew, onImport, onExport }: FileMenuProps): JSX.Element {
+export function FileMenu({
+  onNew,
+  onImport,
+  onExport,
+  onExportSvg,
+  onExportPng,
+  imageExportDisabled = false,
+}: FileMenuProps): JSX.Element {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
@@ -53,6 +65,9 @@ export function FileMenu({ onNew, onImport, onExport }: FileMenuProps): JSX.Elem
   const handleNew = wrap(onNew)
   const handleImport = wrap(onImport)
   const handleExport = wrap(onExport)
+  const handleExportSvg = wrap(onExportSvg)
+  const handleExportPng = wrap(onExportPng)
+  const imageTitle = imageExportDisabled ? 'Exportación de imaxe: vista grafo' : undefined
 
   return (
     <div className="editor-topbar__file-menu" ref={menuRef}>
@@ -104,6 +119,36 @@ export function FileMenu({ onNew, onImport, onExport }: FileMenuProps): JSX.Elem
               >
                 <span className="editor-topbar__panels-menu-mark" aria-hidden="true" />
                 <span>Exportar JSON</span>
+              </button>
+            </li>
+          )}
+          {handleExportSvg !== undefined && (
+            <li>
+              <button
+                type="button"
+                role="menuitem"
+                className="editor-topbar__panels-menu-item"
+                disabled={imageExportDisabled}
+                {...(imageTitle !== undefined && { title: imageTitle })}
+                onClick={handleExportSvg}
+              >
+                <span className="editor-topbar__panels-menu-mark" aria-hidden="true" />
+                <span>Exportar imaxe (SVG)</span>
+              </button>
+            </li>
+          )}
+          {handleExportPng !== undefined && (
+            <li>
+              <button
+                type="button"
+                role="menuitem"
+                className="editor-topbar__panels-menu-item"
+                disabled={imageExportDisabled}
+                {...(imageTitle !== undefined && { title: imageTitle })}
+                onClick={handleExportPng}
+              >
+                <span className="editor-topbar__panels-menu-mark" aria-hidden="true" />
+                <span>Exportar imaxe (PNG)</span>
               </button>
             </li>
           )}

@@ -102,6 +102,9 @@ export interface EditorShellProps {
     readonly onNew?: () => void
     readonly onImport?: () => void
     readonly onExport?: () => void
+    /** 7.17: exportación de imaxe (SVG/PNG) — a app fai o I/O. */
+    readonly onExportSvg?: () => void
+    readonly onExportPng?: () => void
   }
 }
 
@@ -230,6 +233,7 @@ export function EditorShell({
         {...(theme !== undefined && { theme })}
         {...(onThemeChange !== undefined && { onThemeChange })}
         {...(documentActions !== undefined && { documentActions })}
+        imageExportDisabled={canvasView === 'cards'}
       />
       <div className="editor-workspace">
         <ShellRuntimeProvider value={runtime}>

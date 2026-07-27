@@ -36,6 +36,8 @@ export {
   type AutoLayoutAlgo,
   applyAutoLayout,
 } from './layout/applyAutoLayout.js'
+export { themeOverridesFromSpec } from './theme/themeOverridesFromSpec.js'
+export { type StandaloneSvgOptions, standaloneSvg } from './svg/standaloneSvg.js'
 export {
   backgroundRefSchema,
   boundsSchema,

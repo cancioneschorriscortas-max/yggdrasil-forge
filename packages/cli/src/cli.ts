@@ -14,6 +14,7 @@ import { resolve } from 'node:path'
 import { renderDocumentJsonSchema } from './documentSchema.js'
 import { isAutoLayoutAlgo, layoutDocumentText } from './layoutCmd.js'
 import { newDocumentJson } from './newDocument.js'
+import { renderDocumentText } from './renderCmd.js'
 import { validateDocumentText } from './validate.js'
 
 export interface CliIO {
@@ -31,6 +32,8 @@ Uso:
   ygg layout <ficheiro|-> --algo <a>   Coloca TODOS os nodos co algoritmo indicado e emite o
        [--out ficheiro]                documento resultante (stdout ou --out). Algoritmos:
                                        radial | tree | clustered-radial | constellation.
+  ygg render <ficheiro|-> --out <f.svg>  Renderiza a árbore a un SVG autocontido.
+       [--dark] [--locale gl] [--width N]
   ygg schema [--out ficheiro]          Emite o JSON Schema do documento.
   ygg new [--id x] [--label "..."]     Emite un documento baleiro válido polo stdout.
 
@@ -132,6 +135,49 @@ async function cmdLayout(args: readonly string[], io: CliIO): Promise<number> {
   return 0
 }
 
+async function cmdRender(args: readonly string[], io: CliIO): Promise<number> {
+  const [out, rest1] = takeOption(args, '--out')
+  const [locale, rest2] = takeOption(rest1, '--locale')
+  const [width, rest3] = takeOption(rest2, '--width')
+  const dark = rest3.includes('--dark')
+  const positional = rest3.filter((a) => !a.startsWith('--'))
+  if (out === undefined) {
+    io.stderr('ygg render: falta --out <saida.svg>\n')
+    return 2
+  }
+  if (positional.length > 1) {
+    io.stderr(`ygg render: agardaba un só ficheiro, recibín ${positional.length}\n`)
+    return 2
+  }
+  const source = positional[0]
+  let text: string
+  try {
+    text =
+      source === undefined || source === '-'
+        ? await io.readStdin()
+        : readFileSync(resolve(source), 'utf8')
+  } catch (e) {
+    io.stderr(`✗ non se puido ler: ${e instanceof Error ? e.message : String(e)}
+`)
+    return 1
+  }
+  const parsedWidth = width !== undefined ? Number.parseInt(width, 10) : undefined
+  const result = renderDocumentText(text, {
+    dark,
+    ...(locale !== undefined && { locale: locale as never }),
+    ...(parsedWidth !== undefined && Number.isFinite(parsedWidth) && { width: parsedWidth }),
+  })
+  if (!result.ok || result.output === undefined) {
+    io.stderr(`✗ non se puido renderizar: ${result.error ?? 'erro descoñecido'}
+`)
+    return 1
+  }
+  writeFileSync(resolve(out), result.output, 'utf8')
+  io.stdout(`svg escrito en ${resolve(out)}
+`)
+  return 0
+}
+
 function cmdSchema(args: readonly string[], io: CliIO): number {
   const [out, rest] = takeOption(args, '--out')
   if (rest.length > 0) {
@@ -172,6 +218,8 @@ export async function run(argv: readonly string[], io: CliIO): Promise<number> {
       return cmdValidate(rest, io)
     case 'layout':
       return cmdLayout(rest, io)
+    case 'render':
+      return cmdRender(rest, io)
     case 'schema':
       return cmdSchema(rest, io)
     case 'new':

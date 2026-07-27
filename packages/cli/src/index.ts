@@ -18,6 +18,11 @@ export {
 export { type LayoutTextResult, isAutoLayoutAlgo, layoutDocumentText } from './layoutCmd.js'
 export { type NewDocumentOptions, newDocumentJson } from './newDocument.js'
 export {
+  type RenderTextOptions,
+  type RenderTextResult,
+  renderDocumentText,
+} from './renderCmd.js'
+export {
   type ValidationIssueJson,
   type ValidationReport,
   validateDocumentText,

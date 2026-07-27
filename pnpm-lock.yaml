@@ -360,12 +360,24 @@ importers:
 
   packages/cli:
     dependencies:
+      '@yggdrasil-forge/common':
+        specifier: workspace:*
+        version: link:../common
       '@yggdrasil-forge/core':
         specifier: workspace:*
         version: link:../core
       '@yggdrasil-forge/editor-core':
         specifier: workspace:*
         version: link:../editor-core
+      '@yggdrasil-forge/react':
+        specifier: workspace:*
+        version: link:../react
+      react:
+        specifier: 'catalog:'
+        version: 19.2.7
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.7(react@19.2.7)
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -376,6 +388,12 @@ importers:
       '@types/node':
         specifier: ^22.10.0
         version: 22.19.21
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.17)
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.9(vitest@4.1.9)
