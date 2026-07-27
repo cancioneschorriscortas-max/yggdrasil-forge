@@ -99,6 +99,9 @@ export type {
   TreeDirection,
 } from './layouts/TreeLayoutConfig.js'
 export { parseTreeConfig } from './layouts/TreeLayoutConfig.js'
+export { LayeredLayout } from './layouts/LayeredLayout.js'
+export type { LayeredLayoutConfig } from './layouts/LayeredLayoutConfig.js'
+export { parseLayeredConfig } from './layouts/LayeredLayoutConfig.js'
 export { ClusteredRadialLayout } from './layouts/ClusteredRadialLayout.js'
 export type {
   ClusteredRadialConfig,

@@ -10,6 +10,7 @@ import {
   ClusteredRadialLayout,
   ConstellationLayout,
   IdentityLayout,
+  LayeredLayout,
   LayoutEngineRegistry,
   RadialLayout,
   TreeLayout,
@@ -24,6 +25,7 @@ export function createDefaultLayoutRegistry(): LayoutEngineRegistry {
     .register(new IdentityLayout())
     .register(new RadialLayout())
     .register(new TreeLayout())
+    .register(new LayeredLayout())
     .register(new ClusteredRadialLayout())
     .register(new ConstellationLayout())
 }
