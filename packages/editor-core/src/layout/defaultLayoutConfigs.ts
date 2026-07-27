@@ -24,15 +24,21 @@ export const AUTO_LAYOUT_ALGOS: readonly AutoLayoutAlgo[] = [
 /** Config de layout por defecto para `algo`, derivada da forma da árbore. */
 export function defaultLayoutConfig(algo: AutoLayoutAlgo, tree: TreeDef): TreeDef['layout'] {
   const nodeCount = Math.max(1, tree.nodes.length)
-  // Grupos efectivos: os declarados + 1 polo __ungrouped__ que o motor
-  // clustered xa modela (os nodos orfos van sempre a algún sitio).
-  const groupCount = Math.max(1, (tree.groups?.length ?? 0) + 1)
+  // Grupos efectivos: os declarados + 1 polo __ungrouped__ SÓ SE HAI
+  // orfos de verdade (afinado 7.16c: contar un oco baleiro estiraba o
+  // anel sen necesidade — gate visual do dono co panadeiro).
+  const claimed = new Set<string>()
+  for (const g of tree.groups ?? []) {
+    for (const id of g.nodeIds ?? []) claimed.add(id)
+  }
+  const orphanCount = tree.nodes.filter((n) => n.group === undefined && !claimed.has(n.id)).length
+  const groupCount = Math.max(1, (tree.groups?.length ?? 0) + (orphanCount > 0 ? 1 : 0))
   const maxGroupSize = Math.max(
     1,
     ...(tree.groups ?? []).map(
       (g) => (g.nodeIds?.length ?? 0) + tree.nodes.filter((n) => n.group === g.id).length,
     ),
-    tree.nodes.filter((n) => n.group === undefined).length,
+    orphanCount,
   )
 
   switch (algo) {
@@ -45,12 +51,15 @@ export function defaultLayoutConfig(algo: AutoLayoutAlgo, tree: TreeDef): TreeDe
       // 90/130 dan aire aos labels sen estratosfera nas árbores fondas.
       return { type: 'tree', nodeSpacing: 90, levelSpacing: 130 }
     case 'clustered-radial':
-      // Anel de grupos: ~110px de arco por grupo (chan 240 para que 2-3
-      // grupos non se solapen coa coroa); órbita segundo o grupo maior.
+      // Anel de grupos: ~110px de arco por grupo. Chan 120 (afinado
+      // 7.16c: con 2 grupos o chan vello de 240 poñíaos a 480px de
+      // distancia con nada no medio — Mundo 220×678 no panadeiro).
+      // Órbita segundo o grupo maior, con teito 180 para que un grupo
+      // xigante non trague o anel.
       return {
         type: 'clustered-radial',
-        groupRadius: Math.max(240, Math.round(groupCount * 55)),
-        orbitRadius: Math.max(70, Math.round(maxGroupSize * 16)),
+        groupRadius: Math.max(120, Math.round(groupCount * 55)),
+        orbitRadius: Math.min(180, Math.max(70, Math.round(maxGroupSize * 16))),
       }
     case 'constellation':
       // Aneis interior/exterior proporcionais ao tamaño; 0.45 de ratio
