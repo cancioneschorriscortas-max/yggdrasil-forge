@@ -36,13 +36,13 @@ import {
   type EditorEngine,
   type Operation,
   type SelectionRef,
-  type ThemeSpec,
   addNode,
   applyAutoLayout,
   buildConnect,
   buildNewNode,
   buildRemoveCascade,
   createMoveOperation,
+  themeOverridesFromSpec,
 } from '@yggdrasil-forge/editor-core'
 import {
   type RegionSpec,
@@ -726,19 +726,17 @@ export function EditorCanvas({
   // descendente do `<svg>`) segue intacta. Aínda así, verificable
   // visualmente con drag + zoom.
   const theme: Theme = useMemo(() => {
-    const spec: ThemeSpec = themeSpec ?? {}
-    const fills = spec.nodeFills ?? {}
-    const base = chromeTheme === 'dark' ? minimalDark : minimal
+    // 7.17-C0: o mapeo spec→overrides vive en @editor-core
+    // (themeOverridesFromSpec) para que o CLI de render o comparta.
+    // Mesmo comportamento que antes: base enteira por chromeTheme,
+    // overrides do documento gañan sempre.
+    const dark = chromeTheme === 'dark'
+    const base = dark ? minimalDark : minimal
     return {
       ...base,
       colors: {
         ...base.colors,
-        ...(spec.textColor !== undefined && { text: spec.textColor }),
-        ...(fills.locked !== undefined && { nodeFillLocked: fills.locked }),
-        ...(fills.unlockable !== undefined && { nodeFillUnlockable: fills.unlockable }),
-        ...(fills.unlocked !== undefined && { nodeFillUnlocked: fills.unlocked }),
-        ...(fills.maxed !== undefined && { nodeFillMaxed: fills.maxed }),
-        ...(fills.inProgress !== undefined && { nodeFillInProgress: fills.inProgress }),
+        ...(themeOverridesFromSpec(themeSpec, dark) as Partial<Theme['colors']>),
       },
     }
   }, [themeSpec, chromeTheme])
