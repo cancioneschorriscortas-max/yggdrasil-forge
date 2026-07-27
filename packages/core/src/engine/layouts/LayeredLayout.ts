@@ -1,11 +1,18 @@
 // ── INICIO: LayeredLayout (Sugiyama-lite) ──
-import { ErrorCode, type Result, YggdrasilError, err, getErrorMessage, ok } from '@yggdrasil-forge/common'
+import {
+  ErrorCode,
+  type Result,
+  YggdrasilError,
+  err,
+  getErrorMessage,
+  ok,
+} from '@yggdrasil-forge/common'
 import type { Position } from '../../types/node.js'
 import type { TreeDef } from '../../types/tree.js'
 import { DependencyGraph } from '../DependencyGraph.js'
+import { parseLayeredConfig } from './LayeredLayoutConfig.js'
 import type { LayoutEngine } from './LayoutEngine.js'
 import type { Bounds, EdgePath, LayoutResult } from './LayoutResult.js'
-import { parseLayeredConfig } from './LayeredLayoutConfig.js'
 import type { TreeDirection } from './TreeLayoutConfig.js'
 
 /**

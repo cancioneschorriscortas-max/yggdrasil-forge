@@ -58,7 +58,8 @@ describe('7.16 — menú Dispor', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Dispor' }))
     })
     act(() => {
-      fireEvent.click(screen.getByRole('menuitem', { name: 'Radial' }))
+      // 7.18: o nome accesible inclúe a liña de axuda → match por prefixo.
+      fireEvent.click(screen.getByRole('menuitem', { name: /^Radial Aneis/ }))
     })
 
     const after = positions(engine)
@@ -72,13 +73,26 @@ describe('7.16 — menú Dispor', () => {
     expect(positions(engine)).toEqual(before)
   })
 
-  it('o menú lista os catro algoritmos', () => {
+  it('o menú lista os cinco algoritmos, cada un coa súa axuda (7.18)', () => {
     render(<EditorCanvas editorEngine={buildEngine()} />)
     act(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Dispor' }))
     })
-    for (const label of ['Radial', 'Árbore (por niveis)', 'Radial por grupos', 'Constelación']) {
-      expect(screen.getByRole('menuitem', { name: label })).toBeDefined()
+    // Etiqueta + condición de uso xuntas no nome accesible: a axuda é
+    // contido real (doutrina «explícase só»), tamén para lectores de
+    // pantalla.
+    const expected: readonly [RegExp, string][] = [
+      [/^Radial Aneis/, 'Aneis por profundidade desde a raíz.'],
+      [/^Árbore \(por niveis\)/, 'Ideal cando cada nodo ten UN só pai'],
+      [/^Capas \(para DAGs\)/, 'Para nodos con varios pais ou requisitos múltiples.'],
+      [/^Radial por grupos/, 'Precisa grupos definidos'],
+      [/^Constelación/, 'Para grafos soltos sen xerarquía clara.'],
+    ]
+    const items = screen.getAllByRole('menuitem')
+    expect(items).toHaveLength(expected.length)
+    for (const [name, help] of expected) {
+      const item = screen.getByRole('menuitem', { name })
+      expect(item.textContent).toContain(help)
     }
   })
 
@@ -105,7 +119,7 @@ describe('7.16 — convite tras importar (≥30% sen posición)', () => {
     expect(screen.getByText(/nodos sen posición — ¿Dispor\?/)).toBeDefined()
 
     act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'Árbore (por niveis)' }))
+      fireEvent.click(screen.getByRole('button', { name: /^Árbore \(por niveis\)/ }))
     })
     // Colocados todos → o convite desaparece só (condición falsa).
     for (const [, pos] of positions(engine)) expect(pos).toBeDefined()

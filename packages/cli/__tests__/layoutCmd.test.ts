@@ -123,7 +123,13 @@ describe('ygg layout — determinismo e galería', () => {
 
   it('cada algoritmo × panadeiro.json → ok e validate verde (sonda A.6.9)', () => {
     const text = readFileSync(join(GALLERY, 'panadeiro.json'), 'utf8')
-    for (const algo of ['radial', 'tree', 'layered', 'clustered-radial', 'constellation'] as const) {
+    for (const algo of [
+      'radial',
+      'tree',
+      'layered',
+      'clustered-radial',
+      'constellation',
+    ] as const) {
       const result = layoutDocumentText(text, algo)
       expect(result.ok, `${algo}: ${result.error ?? ''}`).toBe(true)
       expect(validateDocumentText(result.output ?? '').ok).toBe(true)
