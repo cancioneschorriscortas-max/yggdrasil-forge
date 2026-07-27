@@ -14,8 +14,22 @@ import { type JSX, useEffect, useRef, useState } from 'react'
 export const ALGO_LABELS: Readonly<Record<AutoLayoutAlgo, string>> = {
   radial: 'Radial',
   tree: 'Árbore (por niveis)',
+  layered: 'Capas (para DAGs)',
   'clustered-radial': 'Radial por grupos',
   constellation: 'Constelación',
+}
+
+/**
+ * 7.18 (Cambio 3): cada algoritmo TEN condicións de uso, e a UI dío —
+ * doutrina «explícase só». Redacción aprobada no briefing (o «parece
+ * raro» do dono co tree sobre un DAG era a condición sen contar).
+ */
+export const ALGO_HELP: Readonly<Record<AutoLayoutAlgo, string>> = {
+  radial: 'Aneis por profundidade desde a raíz.',
+  tree: 'Ideal cando cada nodo ten UN só pai; con varios pais crúzanse arestas.',
+  layered: 'Para nodos con varios pais ou requisitos múltiples.',
+  'clustered-radial': 'Precisa grupos definidos; os soltos van a un oco propio.',
+  constellation: 'Para grafos soltos sen xerarquía clara.',
 }
 
 export interface DisporMenuProps {
@@ -70,6 +84,7 @@ export function DisporMenu({ onDispor }: DisporMenuProps): JSX.Element {
                 }}
               >
                 {label}
+                <span className="editor-dispor__item-help">{ALGO_HELP[algo]}</span>
               </button>
             </li>
           ))}

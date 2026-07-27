@@ -69,7 +69,7 @@ import type { CanvasView } from '../shell/ShellRuntimeContext.js'
 import { CanvasCardsView } from './CanvasCardsView.js'
 import { CanvasOverlay, type OverlayRectPx } from './CanvasOverlay.js'
 import { type CanvasTool, CanvasToolbar } from './CanvasToolbar.js'
-import { ALGO_LABELS, DisporMenu } from './DisporMenu.js'
+import { ALGO_HELP, ALGO_LABELS, DisporMenu } from './DisporMenu.js'
 import { hitTestNode, nodesInRect } from './internals/hitTest.js'
 import {
   IDLE,
@@ -816,10 +816,12 @@ export function EditorCanvas({
                 <button
                   key={algo}
                   type="button"
-                  className="editor-button"
+                  className="editor-button editor-dispor-convite__algo"
                   onClick={() => handleDispor(algo)}
                 >
                   {label}
+                  {/* 7.18: a mesma axuda có menú — o convite tamén se explica só. */}
+                  <span className="editor-dispor__item-help">{ALGO_HELP[algo]}</span>
                 </button>
               ))}
               <button

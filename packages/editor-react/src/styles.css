@@ -1833,6 +1833,18 @@
 .editor-dispor__item:hover {
   background: var(--editor-bg-hover);
 }
+/* 7.18: liña de axuda por algoritmo — cada opción di a súa condición
+   de uso (doutrina «explícase só»). No menú e no convite. */
+.editor-dispor__item-help {
+  display: block;
+  font-size: var(--editor-font-size-xs);
+  color: var(--editor-text-muted);
+  max-width: 220px;
+  white-space: normal;
+}
+.editor-dispor-convite__algo {
+  text-align: left;
+}
 .editor-dispor-convite {
   position: absolute;
   bottom: 12px;
