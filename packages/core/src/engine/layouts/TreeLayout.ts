@@ -106,13 +106,22 @@ export class TreeLayout implements LayoutEngine {
     }
 
     // 7. Shift múltiples roots horizontalmente
+    //
+    // ★ Fix 7.16b (bug reportado polo dono co Dispor do editor): este
+    // paso opera en coordenadas LÓXICAS (slots de Buchheim; o paso 8
+    // multiplica por nodeSpacing), pero sumaba `nodeSpacing * 2` —
+    // unidades FÍSICAS — ao offset. Tras a multiplicación do paso 8,
+    // cada root desprazábase nodeSpacing² * 2 px (~16.200 con
+    // nodeSpacing=90) en vez de 2 slots (~180 px): árbores con varios
+    // roots saían quilométricas. A separación correcta entre roots é
+    // de 2 SLOTS lóxicos.
     let xOffset = 0
     for (const { root, bounds } of rootResults) {
       const localShift = xOffset - bounds.minX
       this.forEachNode(root, (n) => {
         n.x += localShift
       })
-      xOffset += bounds.maxX - bounds.minX + nodeSpacing * 2
+      xOffset += bounds.maxX - bounds.minX + 2
     }
 
     // 8. Transformación de dirección + escalas + centro

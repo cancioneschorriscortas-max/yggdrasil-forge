@@ -263,6 +263,11 @@ describe('TreeLayout', () => {
     const r1X = lr.nodes.get('r1')?.x ?? 0
     const r2X = lr.nodes.get('r2')?.x ?? 0
     expect(r2X).toBeGreaterThan(r1X)
+    // ★ Regresión 7.16b: a separación entre roots é de 2 SLOTS lóxicos
+    // × nodeSpacing (default 80) — o bug de mestura de unidades sumaba
+    // nodeSpacing² × 2 (12.800 px!) por root. MAGNITUDE asertada: os
+    // tests previos só comprobaban a orde e o bug viviu meses.
+    expect(r2X - r1X).toBeLessThanOrEqual(80 * 3)
   })
 
   it('3 roots: shift acumulado', () => {
@@ -273,6 +278,10 @@ describe('TreeLayout', () => {
     const xC = lr.nodes.get('c')?.x ?? 0
     expect(xB).toBeGreaterThan(xA)
     expect(xC).toBeGreaterThan(xB)
+    // ★ Regresión 7.16b: magnitude — roots-folla consecutivos sepáranse
+    // exactamente 2 slots (160 px co default 80), non milleiros.
+    expect(xB - xA).toBeCloseTo(160, 5)
+    expect(xC - xB).toBeCloseTo(160, 5)
   })
 
   // === CONFIGURACIÓN ===
