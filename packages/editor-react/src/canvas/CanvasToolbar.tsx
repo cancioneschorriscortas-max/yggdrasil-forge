@@ -10,7 +10,7 @@
 // "Crear requisito" cando Conectar está activa. Só en Autoría — o
 // caller (`EditorCanvas`) decide non renderizar en Proba.
 
-import type { JSX } from 'react'
+import type { JSX, ReactNode } from 'react'
 
 export type CanvasTool = 'select' | 'add' | 'connect'
 
@@ -19,6 +19,8 @@ export interface CanvasToolbarProps {
   readonly onToolChange: (tool: CanvasTool) => void
   readonly createPrerequisite: boolean
   readonly onCreatePrerequisiteChange: (value: boolean) => void
+  /** Accións extra (7.16: o menú «Dispor») renderizadas tras as tools. */
+  readonly children?: ReactNode
 }
 
 interface ToolButtonDef {
@@ -39,6 +41,7 @@ export function CanvasToolbar({
   onToolChange,
   createPrerequisite,
   onCreatePrerequisiteChange,
+  children,
 }: CanvasToolbarProps): JSX.Element {
   return (
     <div className="editor-canvas-toolbar" role="toolbar" aria-label="Ferramentas do canvas">
@@ -67,6 +70,7 @@ export function CanvasToolbar({
           <span>Crear requisito</span>
         </label>
       )}
+      {children}
     </div>
   )
 }

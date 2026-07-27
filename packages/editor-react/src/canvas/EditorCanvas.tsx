@@ -32,11 +32,13 @@
 
 import { TreeEngine } from '@yggdrasil-forge/core'
 import {
+  type AutoLayoutAlgo,
   type EditorEngine,
   type Operation,
   type SelectionRef,
   type ThemeSpec,
   addNode,
+  applyAutoLayout,
   buildConnect,
   buildNewNode,
   buildRemoveCascade,
@@ -45,6 +47,7 @@ import {
 import {
   type RegionSpec,
   SkillTree,
+  type SkillTreeHandle,
   type Theme,
   ThemeProvider,
   type ViewportState,
@@ -66,6 +69,7 @@ import type { CanvasView } from '../shell/ShellRuntimeContext.js'
 import { CanvasCardsView } from './CanvasCardsView.js'
 import { CanvasOverlay, type OverlayRectPx } from './CanvasOverlay.js'
 import { type CanvasTool, CanvasToolbar } from './CanvasToolbar.js'
+import { ALGO_LABELS, DisporMenu } from './DisporMenu.js'
 import { hitTestNode, nodesInRect } from './internals/hitTest.js'
 import {
   IDLE,
@@ -165,6 +169,8 @@ export function EditorCanvas({
   // Container do canvas e versión do viewport (para forzar overlay redraw).
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [viewportVersion, setViewportVersion] = useState(0)
+  // 7.16: handle do SkillTree para encadrar (fit) tras «Dispor».
+  const skillTreeRef = useRef<SkillTreeHandle | null>(null)
 
   // O CTM do `<g>` co transform pan/zoom (dentro do <svg> do SkillTree)
   // é a fonte de verdade screen↔doc. ★ Importante: NON o <svg> raíz —
@@ -559,6 +565,40 @@ export function EditorCanvas({
     [resetPointerState],
   )
 
+  // ── 7.16 — «Dispor»: cocer un auto-layout como UNHA transacción ──
+  // Un undo devolve TODAS as posicións previas dun golpe. Tras aplicar,
+  // fit() encadra o resultado. Erros do motor: alerta honesta (nunca
+  // silenciar — A.6.9).
+  const [conviteDismissed, setConviteDismissed] = useState(false)
+  const handleDispor = useCallback(
+    (algo: AutoLayoutAlgo) => {
+      const commands = applyAutoLayout(editorEngine.getDocument(), algo)
+      if (!commands.ok) {
+        window.alert(`Non se puido dispor: ${commands.error.message}`)
+        return
+      }
+      const result = editorEngine.transaction(
+        { en: `Auto-layout: ${algo}`, gl: `Dispor: ${ALGO_LABELS[algo]}` },
+        (tx) => {
+          for (const c of commands.value) tx.apply(c)
+        },
+      )
+      if (result.ok) skillTreeRef.current?.fit()
+    },
+    [editorEngine],
+  )
+
+  // 7.16 — convite tras importar: se ≥30% dos nodos non teñen posición,
+  // barra discreta con «Dispor?» (sen modais; ✕ péchaa; ao dispor, a
+  // condición faise falsa e desaparece soa).
+  const senPosicion = doc.tree.nodes.filter((n) => n.position === undefined).length
+  const showConvite =
+    !conviteDismissed &&
+    view === 'graph' &&
+    !inProba &&
+    doc.tree.nodes.length > 0 &&
+    senPosicion / doc.tree.nodes.length >= 0.3
+
   // ── 7.15c — cambio de vista (grafo | tarxetas) ──
   // Cambiar de vista a medio xesto cancela o xesto; ao entrar en
   // tarxetas a tool volve a Seleccionar (as tools de creación non
@@ -740,6 +780,7 @@ export function EditorCanvas({
         <>
           <ThemeProvider theme={theme}>
             <SkillTree
+              ref={skillTreeRef}
               engine={treeEngine}
               onViewportChange={handleViewportChange}
               {...(coordinateBounds !== undefined && { coordinateBounds })}
@@ -763,7 +804,35 @@ export function EditorCanvas({
               onToolChange={changeTool}
               createPrerequisite={createPrerequisite}
               onCreatePrerequisiteChange={setCreatePrerequisite}
-            />
+            >
+              {/* 7.16: só en Autoría + vista grafo (a toolbar xa o garante). */}
+              <DisporMenu onDispor={handleDispor} />
+            </CanvasToolbar>
+          )}
+          {showConvite && (
+            <div className="editor-dispor-convite" aria-label="Convite para dispor">
+              <span>
+                Hai {senPosicion} nodo{senPosicion === 1 ? '' : 's'} sen posición — ¿Dispor?
+              </span>
+              {(Object.entries(ALGO_LABELS) as [AutoLayoutAlgo, string][]).map(([algo, label]) => (
+                <button
+                  key={algo}
+                  type="button"
+                  className="editor-button"
+                  onClick={() => handleDispor(algo)}
+                >
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="editor-dispor-convite__close"
+                aria-label="Pechar o convite"
+                onClick={() => setConviteDismissed(true)}
+              >
+                ✕
+              </button>
+            </div>
           )}
         </>
       ) : (

@@ -1795,3 +1795,70 @@
   position: absolute;
   inset: 0;
 }
+
+/* ── «Dispor» (7.16): dropdown na toolbar + barra-convite ── */
+.editor-dispor {
+  position: relative;
+  border-top: var(--editor-border-width) solid var(--editor-border-default);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.editor-dispor__menu {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 0;
+  min-width: 180px;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  background: var(--editor-bg-panel);
+  border: var(--editor-border-width) solid var(--editor-border-default);
+  border-radius: var(--editor-radius-md);
+  box-shadow: var(--editor-shadow-elev1);
+  z-index: 30;
+}
+.editor-dispor__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: var(--editor-radius-sm);
+  font-size: var(--editor-font-size-sm);
+  font-family: var(--editor-font-ui);
+  color: var(--editor-text-primary);
+  cursor: pointer;
+}
+.editor-dispor__item:hover {
+  background: var(--editor-bg-hover);
+}
+.editor-dispor-convite {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--editor-bg-elevated);
+  border: var(--editor-border-width) solid var(--editor-border-default);
+  border-radius: var(--editor-radius-md);
+  box-shadow: var(--editor-shadow-elev1);
+  font-size: var(--editor-font-size-sm);
+  color: var(--editor-text-primary);
+}
+.editor-dispor-convite__close {
+  border: none;
+  background: transparent;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+  font-size: var(--editor-font-size-sm);
+  padding: 2px 4px;
+}
+.editor-dispor-convite__close:hover {
+  color: var(--editor-text-primary);
+}
