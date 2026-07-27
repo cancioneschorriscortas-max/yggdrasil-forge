@@ -1,0 +1,121 @@
+// ── INICIO: tests applyAutoLayout (7.16, Cambio 1) ──
+// A sonda A.6.9 como test PERMANENTE: cada algoritmo × cada árbore da
+// galería debe dar `.ok` — un briefing vello asumiu `radius` opcional
+// e saíu SVG en branco; isto impide a reincidencia.
+
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import type { Position } from '@yggdrasil-forge/core'
+import { describe, expect, it } from 'vitest'
+import { EditorEngine } from '../src/EditorEngine.js'
+import type { EditorDocument } from '../src/document/EditorDocument.js'
+import { deserializeDocument } from '../src/document/serialize.js'
+import { AUTO_LAYOUT_ALGOS, applyAutoLayout } from '../src/layout/applyAutoLayout.js'
+import { adversarialDocument } from '../src/testing/adversarialFixture.js'
+
+const GALLERY = join(__dirname, '..', '..', '..', 'examples', 'gallery')
+
+function galleryDoc(file: string): EditorDocument {
+  const result = deserializeDocument(readFileSync(join(GALLERY, file), 'utf8'))
+  if (!result.ok) throw new Error(`galería rota: ${file}: ${result.error.message}`)
+  return result.value
+}
+
+/** Aplica os comandos nun engine e devolve as posicións resultantes. */
+function positionsAfter(doc: EditorDocument, algo: (typeof AUTO_LAYOUT_ALGOS)[number]) {
+  const commands = applyAutoLayout(doc, algo)
+  expect(commands.ok, `${algo} debe dar ok`).toBe(true)
+  if (!commands.ok) throw new Error('unreachable')
+  const engine = new EditorEngine(doc)
+  const result = engine.transaction({ gl: `Dispor: ${algo}` }, (tx) => {
+    for (const c of commands.value) tx.apply(c)
+  })
+  expect(result.ok).toBe(true)
+  return { engine, positions: mapPositions(engine.getDocument()) }
+}
+
+function mapPositions(doc: EditorDocument): ReadonlyMap<string, Position | undefined> {
+  return new Map(doc.tree.nodes.map((n) => [n.id, n.position]))
+}
+
+describe('applyAutoLayout — sonda A.6.9: cada algo × cada árbore → ok', () => {
+  const files = ['panadeiro.json', 'adversarial.json', 'gaia-cards.json']
+  for (const file of files) {
+    for (const algo of AUTO_LAYOUT_ALGOS) {
+      it(`${algo} × ${file} → ok e TODOS os nodos con posición`, () => {
+        const doc = galleryDoc(file)
+        const commands = applyAutoLayout(doc, algo)
+        expect(commands.ok, commands.ok ? '' : (commands as { error: Error }).error.message).toBe(
+          true,
+        )
+        if (!commands.ok) return
+        // Un moveNode por nodo (tamén os que xa tiñan posición).
+        expect(commands.value).toHaveLength(doc.tree.nodes.length)
+      })
+    }
+  }
+})
+
+describe('applyAutoLayout — determinismo e cocido', () => {
+  it('★ determinista: mesma entrada → mesmas posicións', () => {
+    const doc = galleryDoc('gaia-cards.json')
+    const a = positionsAfter(doc, 'clustered-radial').positions
+    const b = positionsAfter(galleryDoc('gaia-cards.json'), 'clustered-radial').positions
+    expect(a).toEqual(b)
+  })
+
+  it('as posicións cocidas CAMBIAN respecto ás orixinais e layout.type queda custom', () => {
+    const doc = galleryDoc('panadeiro.json')
+    const before = mapPositions(doc)
+    const { engine, positions: after } = positionsAfter(doc, 'radial')
+    expect(after).not.toEqual(before)
+    // Cocer, non vivir: o documento segue declarando layout custom.
+    expect(engine.getDocument().tree.layout.type).toBe('custom')
+  })
+
+  it('★ o nodo SEN posición da adversarial queda colocado; un undo restaura TODO', () => {
+    const doc = adversarialDocument()
+    const before = mapPositions(doc)
+    expect(before.get('sen-posicion')).toBeUndefined()
+
+    const commands = applyAutoLayout(doc, 'tree')
+    expect(commands.ok).toBe(true)
+    if (!commands.ok) return
+    const engine = new EditorEngine(doc)
+    engine.transaction({ gl: 'Dispor: tree' }, (tx) => {
+      for (const c of commands.value) tx.apply(c)
+    })
+    const after = mapPositions(engine.getDocument())
+    expect(after.get('sen-posicion')).toBeDefined()
+
+    // UN undo → todas as posicións previas dun golpe (incluído o
+    // sen-posicion, que volve a estar sen posición).
+    engine.undo()
+    expect(mapPositions(engine.getDocument())).toEqual(before)
+    expect(
+      engine.getDocument().tree.nodes.find((n) => n.id === 'sen-posicion')?.position,
+    ).toBeUndefined()
+  })
+
+  it('árbore baleira → ok con cero comandos', () => {
+    const empty = deserializeDocument(
+      JSON.stringify({
+        id: 'b',
+        schemaVersion: '1.0.0',
+        version: '1.0.0',
+        label: { gl: 'b' },
+        nodes: [],
+        edges: [],
+        layout: { type: 'custom' },
+      }),
+    )
+    expect(empty.ok).toBe(true)
+    if (!empty.ok) return
+    for (const algo of AUTO_LAYOUT_ALGOS) {
+      const commands = applyAutoLayout(empty.value, algo)
+      expect(commands.ok, `${algo} con árbore baleira`).toBe(true)
+      if (commands.ok) expect(commands.value).toHaveLength(0)
+    }
+  })
+})
+// ── FIN: tests applyAutoLayout ──

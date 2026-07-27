@@ -31,6 +31,12 @@ export {
   deriveClusterGroups,
 } from './view/deriveClusterGroups.js'
 export {
+  AUTO_LAYOUT_ALGOS,
+  type ApplyAutoLayoutOptions,
+  type AutoLayoutAlgo,
+  applyAutoLayout,
+} from './layout/applyAutoLayout.js'
+export {
   backgroundRefSchema,
   boundsSchema,
   documentMetaSchema,
