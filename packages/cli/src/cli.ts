@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { renderDocumentJsonSchema } from './documentSchema.js'
+import { isAutoLayoutAlgo, layoutDocumentText } from './layoutCmd.js'
 import { newDocumentJson } from './newDocument.js'
 import { validateDocumentText } from './validate.js'
 
@@ -27,6 +28,9 @@ const USAGE = `ygg — ferramentas de liña de comandos de Yggdrasil Forge
 Uso:
   ygg validate [ficheiro|-] [--json]   Valida un documento (sen ficheiro ou con "-": le stdin).
                                        --json emite {ok, issues[]} como dato accionable.
+  ygg layout <ficheiro|-> --algo <a>   Coloca TODOS os nodos co algoritmo indicado e emite o
+       [--out ficheiro]                documento resultante (stdout ou --out). Algoritmos:
+                                       radial | tree | clustered-radial | constellation.
   ygg schema [--out ficheiro]          Emite o JSON Schema do documento.
   ygg new [--id x] [--label "..."]     Emite un documento baleiro válido polo stdout.
 
@@ -91,6 +95,43 @@ async function cmdValidate(args: readonly string[], io: CliIO): Promise<number> 
   return report.ok ? 0 : 1
 }
 
+async function cmdLayout(args: readonly string[], io: CliIO): Promise<number> {
+  const [algo, rest1] = takeOption(args, '--algo')
+  const [out, rest2] = takeOption(rest1, '--out')
+  const positional = rest2.filter((a) => !a.startsWith('--'))
+  if (algo === undefined || !isAutoLayoutAlgo(algo)) {
+    io.stderr('ygg layout: falta --algo (radial | tree | clustered-radial | constellation)\n')
+    return 2
+  }
+  if (positional.length > 1) {
+    io.stderr(`ygg layout: agardaba un só ficheiro, recibín ${positional.length}\n`)
+    return 2
+  }
+  const source = positional[0]
+  let text: string
+  try {
+    text =
+      source === undefined || source === '-'
+        ? await io.readStdin()
+        : readFileSync(resolve(source), 'utf8')
+  } catch (e) {
+    io.stderr(`✗ non se puido ler: ${e instanceof Error ? e.message : String(e)}\n`)
+    return 1
+  }
+  const result = layoutDocumentText(text, algo)
+  if (!result.ok || result.output === undefined) {
+    io.stderr(`✗ non se puido dispor: ${result.error ?? 'erro descoñecido'}\n`)
+    return 1
+  }
+  if (out !== undefined) {
+    writeFileSync(resolve(out), result.output, 'utf8')
+    io.stdout(`documento colocado escrito en ${resolve(out)}\n`)
+  } else {
+    io.stdout(result.output)
+  }
+  return 0
+}
+
 function cmdSchema(args: readonly string[], io: CliIO): number {
   const [out, rest] = takeOption(args, '--out')
   if (rest.length > 0) {
@@ -129,6 +170,8 @@ export async function run(argv: readonly string[], io: CliIO): Promise<number> {
   switch (command) {
     case 'validate':
       return cmdValidate(rest, io)
+    case 'layout':
+      return cmdLayout(rest, io)
     case 'schema':
       return cmdSchema(rest, io)
     case 'new':

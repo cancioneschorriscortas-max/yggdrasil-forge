@@ -15,6 +15,7 @@ export {
   renderDocumentJsonSchema,
   yggdrasilDocumentSchema,
 } from './documentSchema.js'
+export { type LayoutTextResult, isAutoLayoutAlgo, layoutDocumentText } from './layoutCmd.js'
 export { type NewDocumentOptions, newDocumentJson } from './newDocument.js'
 export {
   type ValidationIssueJson,
