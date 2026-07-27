@@ -49,8 +49,8 @@ describe('applyAutoLayout — sonda A.6.9: cada algo × cada árbore → ok', ()
           true,
         )
         if (!commands.ok) return
-        // Un moveNode por nodo (tamén os que xa tiñan posición).
-        expect(commands.value).toHaveLength(doc.tree.nodes.length)
+        // Un moveNode por nodo + o setMetaField do encadre (7.16b).
+        expect(commands.value).toHaveLength(doc.tree.nodes.length + 1)
       })
     }
   }
@@ -97,6 +97,28 @@ describe('applyAutoLayout — determinismo e cocido', () => {
     ).toBeUndefined()
   })
 
+  it('★ 7.16b: coordinateBounds actualízase e CONTÉN todas as posicións; undo restáurao', () => {
+    const doc = galleryDoc('gaia-cards.json')
+    const boundsBefore = doc.meta.coordinateBounds
+    const { engine, positions } = positionsAfter(doc, 'clustered-radial')
+    const after = engine.getDocument().meta.coordinateBounds
+    expect(after).toBeDefined()
+    if (after === undefined) return
+    // Todos os nodos dentro do box novo (o síntoma do gate: nodos
+    // fóra do viewBox e do alcance do pan — inalcanzables).
+    for (const [id, pos] of positions) {
+      expect(pos, id).toBeDefined()
+      if (pos === undefined) continue
+      expect(pos.x, `${id}.x`).toBeGreaterThanOrEqual(after.minX)
+      expect(pos.x, `${id}.x`).toBeLessThanOrEqual(after.maxX)
+      expect(pos.y, `${id}.y`).toBeGreaterThanOrEqual(after.minY)
+      expect(pos.y, `${id}.y`).toBeLessThanOrEqual(after.maxY)
+    }
+    // Un undo devolve TAMÉN o encadre anterior (mesma transacción).
+    engine.undo()
+    expect(engine.getDocument().meta.coordinateBounds).toEqual(boundsBefore)
+  })
+
   it('árbore baleira → ok con cero comandos', () => {
     const empty = deserializeDocument(
       JSON.stringify({
@@ -114,6 +136,7 @@ describe('applyAutoLayout — determinismo e cocido', () => {
     for (const algo of AUTO_LAYOUT_ALGOS) {
       const commands = applyAutoLayout(empty.value, algo)
       expect(commands.ok, `${algo} con árbore baleira`).toBe(true)
+      // Sen nodos tampouco hai encadre que cocer.
       if (commands.ok) expect(commands.value).toHaveLength(0)
     }
   })

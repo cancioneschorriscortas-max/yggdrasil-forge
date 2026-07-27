@@ -27,7 +27,7 @@ import {
   ok,
 } from '@yggdrasil-forge/core'
 import type { Command } from '../command/Command.js'
-import { moveNode } from '../command/commands/index.js'
+import { moveNode, setMetaField } from '../command/commands/index.js'
 import type { EditorDocument } from '../document/EditorDocument.js'
 import { type AutoLayoutAlgo, defaultLayoutConfig } from './defaultLayoutConfigs.js'
 
@@ -52,9 +52,20 @@ function createEditorLayoutRegistry(): LayoutEngineRegistry {
 }
 
 /**
+ * Marxe engadida aos bounds do layout ao actualizar
+ * `coordinateBounds` (labels/aneis sobresaen do centro do nodo).
+ */
+const BOUNDS_MARGIN = 48
+
+/**
  * Calcula o layout `algo` para o documento e devolve un `moveNode`
  * por CADA nodo coa súa posición nova (tamén os que xa tiñan posición
- * — dispor é dispor). `err` propaga o erro do motor, nunca o silencia.
+ * — dispor é dispor), MÁIS un `setMetaField('coordinateBounds')` cos
+ * bounds do layout (7.16b, feedback do gate do dono): sen isto, un
+ * layout maior có box fixo do documento deixaba nodos FÓRA do viewBox
+ * e do alcance do pan (que está limitado aos bounds) — invisibles e
+ * inalcanzables. Todo na mesma transacción → un undo devolve posicións
+ * E encadre. `err` propaga o erro do motor, nunca o silencia.
  */
 export function applyAutoLayout(
   doc: EditorDocument,
@@ -83,6 +94,20 @@ export function applyAutoLayout(
       )
     }
     commands.push(moveNode(node.id, position))
+  }
+
+  // Encadre: coordinateBounds segue o layout (con marxe para labels).
+  // Só se hai nodos — un doc baleiro non ten nada que encadrar.
+  if (doc.tree.nodes.length > 0) {
+    const bounds = computed.value.bounds
+    commands.push(
+      setMetaField('coordinateBounds', {
+        minX: Math.round(bounds.minX - BOUNDS_MARGIN),
+        minY: Math.round(bounds.minY - BOUNDS_MARGIN),
+        maxX: Math.round(bounds.maxX + BOUNDS_MARGIN),
+        maxY: Math.round(bounds.maxY + BOUNDS_MARGIN),
+      }),
+    )
   }
   return ok(commands)
 }
