@@ -162,6 +162,37 @@ export function clampPan(
   return { ...state, panX, panY }
 }
 
+/**
+ * Calcula o transform que CENTRA o punto `(x, y)` (en coords de
+ * usuario, o espazo dos nodos) no viewport, a `zoom` dado. Helper puro
+ * (7.18b).
+ *
+ * O centro visual do viewport en coords de usuario é o centro do
+ * viewBox = centro de `bounds` (o padding cancela). Para que o punto
+ * quede aí tras o `<g transform>`:
+ *   centroX = panX + zoom * x  →  panX = centroX - zoom * x
+ *
+ * O resultado pásase por `clampPan` cos mesmos límites do pan manual
+ * (mesma utilidade, non duplicar a lóxica).
+ */
+export function centerOnTransform(
+  bounds: Bounds,
+  padding: number,
+  x: number,
+  y: number,
+  zoom: number,
+  minZoom: number = DEFAULT_MIN_ZOOM,
+  maxZoom: number = DEFAULT_MAX_ZOOM,
+): ViewportState {
+  const z = clampZoom(zoom, minZoom, maxZoom)
+  const centerX = (bounds.minX + bounds.maxX) / 2
+  const centerY = (bounds.minY + bounds.maxY) / 2
+  const state: ViewportState = { panX: centerX - z * x, panY: centerY - z * y, zoom: z }
+  const vbW = bounds.maxX - bounds.minX + padding * 2
+  const vbH = bounds.maxY - bounds.minY + padding * 2
+  return clampPan(state, bounds, vbW, vbH)
+}
+
 // ── Hook ──
 
 export interface UseViewportResult {
@@ -177,6 +208,12 @@ export interface UseViewportResult {
   readonly zoomOut: () => void
   readonly zoomBy: (factor: number) => void
   readonly getZoom: () => number
+  /**
+   * Centra o punto `(x, y)` (coords de usuario) no viewport (7.18b).
+   * Salto directo, coherente con `fit()` (que tampouco anima). Sen
+   * `zoom` explícito consérvase o actual.
+   */
+  readonly centerOn: (x: number, y: number, zoom?: number) => void
 }
 
 /**
@@ -271,6 +308,14 @@ export function useViewport(
   const zoomIn = useCallback(() => zoomBy(1.2), [zoomBy])
   const zoomOut = useCallback(() => zoomBy(1 / 1.2), [zoomBy])
   const getZoom = useCallback(() => state.zoom, [state.zoom])
+
+  const centerOn = useCallback(
+    (x: number, y: number, zoom?: number) => {
+      if (bounds === undefined) return
+      setState((s) => centerOnTransform(bounds, padding, x, y, zoom ?? s.zoom, minZoom, maxZoom))
+    },
+    [bounds, padding, minZoom, maxZoom],
+  )
 
   // ── Pan via pointer events ──
 
@@ -431,6 +476,7 @@ export function useViewport(
     zoomOut,
     zoomBy,
     getZoom,
+    centerOn,
   }
 }
 // ── FIN: useViewport ──

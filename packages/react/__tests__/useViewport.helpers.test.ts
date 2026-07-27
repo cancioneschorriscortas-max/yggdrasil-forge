@@ -1,6 +1,12 @@
 // ── INICIO: tests useViewport helpers (F10.6) ──
 import { describe, expect, it } from 'vitest'
-import { clampPan, clampZoom, fitTransform, zoomToward } from '../src/hooks/useViewport.js'
+import {
+  centerOnTransform,
+  clampPan,
+  clampZoom,
+  fitTransform,
+  zoomToward,
+} from '../src/hooks/useViewport.js'
 
 describe('clampZoom (F10.6)', () => {
   it('devolve o valor cando está dentro do rango', () => {
@@ -108,6 +114,46 @@ describe('zoomToward — punto do cursor fixo (F10.6)', () => {
     expect(back.zoom).toBeCloseTo(1, 10)
     expect(back.panX).toBeCloseTo(0, 10)
     expect(back.panY).toBeCloseTo(0, 10)
+  })
+})
+
+describe('centerOnTransform (7.18b) — regra P4: magnitudes, nunca só orde', () => {
+  const bounds = { minX: 0, minY: 0, maxX: 100, maxY: 100 }
+  const padding = 16
+
+  it('centra un punto arbitrario: pan = centroBounds − zoom·punto, exacto', () => {
+    // Centro de bounds = (50, 50); punto (80, 80) a zoom 1 → pan (−30, −30).
+    const state = centerOnTransform(bounds, padding, 80, 80, 1)
+    expect(state.panX).toBeCloseTo(-30, 10)
+    expect(state.panY).toBeCloseTo(-30, 10)
+    expect(state.zoom).toBe(1)
+  })
+
+  it('un punto xa no centro dos bounds → transform identidade de pan', () => {
+    const state = centerOnTransform(bounds, padding, 50, 50, 1)
+    expect(state.panX).toBeCloseTo(0, 10)
+    expect(state.panY).toBeCloseTo(0, 10)
+  })
+
+  it('con zoom explícito: pan escala co zoom, exacto', () => {
+    // pan = 50 − 2·80 = −110.
+    const state = centerOnTransform(bounds, padding, 80, 80, 2)
+    expect(state.panX).toBeCloseTo(-110, 10)
+    expect(state.panY).toBeCloseTo(-110, 10)
+    expect(state.zoom).toBe(2)
+  })
+
+  it('clamp nos bordos: un punto absurdamente lonxe queda no límite de clampPan', () => {
+    // Límite = bw·0.5 + vbW = 100·0.5 + 132 = 182 (mesma utilidade có
+    // pan manual — non se duplica a lóxica).
+    const state = centerOnTransform(bounds, padding, 10000, 50, 1)
+    expect(state.panX).toBeCloseTo(-182, 10)
+    expect(state.panY).toBeCloseTo(0, 10)
+  })
+
+  it('zoom fóra de rango: clamp de sempre (0.25–4)', () => {
+    expect(centerOnTransform(bounds, padding, 50, 50, 99).zoom).toBe(4)
+    expect(centerOnTransform(bounds, padding, 50, 50, 0.001).zoom).toBe(0.25)
   })
 })
 

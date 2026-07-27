@@ -37,6 +37,17 @@ export interface SkillTreeHandle {
   zoomIn(): void
   zoomOut(): void
   getZoom(): number
+  /**
+   * Centra a vista no nodo indicado (7.18b). Salto directo, coherente
+   * con `fit()` (que tampouco anima); `opts.zoom` fixa o zoom (co
+   * clamp de sempre), sen el consérvase o actual. O pan resultante
+   * pasa polo MESMO `clampPan` do pan manual.
+   *
+   * **No-op silencioso** se o `nodeId` non existe, o layout non
+   * produciu posición para el, ou o layout está en erro — o handle
+   * non lanza.
+   */
+  centerOn(nodeId: string, opts?: { readonly zoom?: number }): void
 }
 
 export interface SkillTreeProps {
@@ -263,8 +274,24 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
       getZoom: viewport.getZoom,
+      centerOn: (nodeId: string, opts?: { readonly zoom?: number }) => {
+        // No-op silencioso (contrato do handle): sen layout ok ou sen
+        // posición para o nodo non hai onde centrar.
+        if (!layoutResult.ok) return
+        const position = layoutResult.value.nodes.get(nodeId)
+        if (position === undefined) return
+        viewport.centerOn(position.x, position.y, opts?.zoom)
+      },
     }),
-    [viewport.fit, viewport.reset, viewport.zoomIn, viewport.zoomOut, viewport.getZoom],
+    [
+      viewport.fit,
+      viewport.reset,
+      viewport.zoomIn,
+      viewport.zoomOut,
+      viewport.getZoom,
+      viewport.centerOn,
+      layoutResult,
+    ],
   )
 
   // Caso de erro: delegar en SVGRenderer co modo erro.
