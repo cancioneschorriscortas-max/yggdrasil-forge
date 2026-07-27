@@ -13,6 +13,7 @@
 
 import type { EditorEngine, ValidationIssue } from '@yggdrasil-forge/editor-core'
 import { type JSX, useSyncExternalStore } from 'react'
+import { useShellRuntime } from '../shell/ShellRuntimeContext.js'
 
 export interface ProblemsPanelProps {
   readonly engine: EditorEngine
@@ -35,6 +36,7 @@ export function ProblemsPanel({ engine }: ProblemsPanelProps): JSX.Element {
     (cb) => engine.subscribe(cb),
     () => engine.getIssues(),
   )
+  const { onNavigateToNode } = useShellRuntime()
 
   if (issues.length === 0) {
     return (
@@ -45,9 +47,12 @@ export function ProblemsPanel({ engine }: ProblemsPanelProps): JSX.Element {
   }
 
   const handleClickIssue = (issue: ValidationIssue): void => {
-    // Clic selecciona o nodo afectado (se hai).
+    // Clic selecciona o nodo afectado (se hai) E centra a vista nel
+    // (7.18b — atopar o nodo problemático nunha árbore grande deixa de
+    // ser buscalo á man; mesma chamada có panel Estrutura).
     if (issue.nodeId !== undefined) {
       engine.getSession().selection.replace([{ kind: 'node', id: issue.nodeId }])
+      onNavigateToNode(issue.nodeId)
     }
     // (Para edgeId: en 7.5d quizais sumar selección de edge.)
   }

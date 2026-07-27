@@ -47,7 +47,8 @@ import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
 // ShellRuntimeContext.tsx para a autopsia. `engine` si vén por prop
 // (capturado no closure) porque só cambia con remount do shell. ──
 function CanvasPanelView({ engine }: { engine: EditorEngine }): JSX.Element {
-  const { probaSession, chromeTheme, canvasView, onCanvasViewChange } = useShellRuntime()
+  const { probaSession, chromeTheme, canvasView, onCanvasViewChange, registerNodeNavigator } =
+    useShellRuntime()
   return (
     <EditorCanvas
       editorEngine={engine}
@@ -55,6 +56,7 @@ function CanvasPanelView({ engine }: { engine: EditorEngine }): JSX.Element {
       {...(chromeTheme !== undefined && { chromeTheme })}
       view={canvasView}
       onViewChange={onCanvasViewChange}
+      registerNodeNavigator={registerNodeNavigator}
     />
   )
 }
@@ -197,6 +199,18 @@ export function EditorShell({
     [engine, mode],
   )
 
+  // 7.18b «Ir ao nodo»: taboleiro de anuncios entre paneis. O
+  // EditorCanvas rexistra o navegador real (centerOn do handle); os
+  // paneis chaman onNavigateToNode sen saber quen escoita. Ref, non
+  // estado: rexistrar non debe re-renderizar o shell.
+  const nodeNavigatorRef = useRef<((nodeId: string) => void) | null>(null)
+  const registerNodeNavigator = useCallback((navigator: ((nodeId: string) => void) | null) => {
+    nodeNavigatorRef.current = navigator
+  }, [])
+  const onNavigateToNode = useCallback((nodeId: string) => {
+    nodeNavigatorRef.current?.(nodeId)
+  }, [])
+
   // Estado volátil que os paneis leen en vivo desde o contexto.
   const runtime = useMemo<ShellRuntime>(
     () => ({
@@ -204,8 +218,10 @@ export function EditorShell({
       ...(theme !== undefined && { chromeTheme: theme }),
       canvasView,
       onCanvasViewChange: setCanvasView,
+      onNavigateToNode,
+      registerNodeNavigator,
     }),
-    [probaSession, theme, canvasView],
+    [probaSession, theme, canvasView, onNavigateToNode, registerNodeNavigator],
   )
 
   const handleTogglePanel = useCallback((id: string) => {

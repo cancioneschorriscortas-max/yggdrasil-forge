@@ -1,10 +1,16 @@
 // ── INICIO: OutlinerPanel ──
-// Panel placeholder do lado esquerdo. Proba a conexión engine↔UI sin
-// canvas: lista os grupos/nodos do documento. O Outliner "real" virá
-// na fase de UI completa; isto é só un sinal de vida.
+// Panel «Estrutura» do lado esquerdo. Lista grupos/nodos do documento.
+//
+// 7.18b «Ir ao nodo» (petición literal do dono): clic nun nodo →
+// selecciónao E centra a vista nel (via onNavigateToNode do shell,
+// que delega en SkillTreeHandle.centerOn). En vista tarxetas só
+// selecciona (non hai viewport de grafo; o navegador é no-op).
+// Os grupos quedan como filas informativas (§13: ninguén pediu
+// seleccionar membros).
 
 import type { EditorEngine } from '@yggdrasil-forge/editor-core'
 import { type JSX, useSyncExternalStore } from 'react'
+import { useShellRuntime } from '../shell/ShellRuntimeContext.js'
 
 export interface OutlinerPanelProps {
   readonly engine: EditorEngine
@@ -16,8 +22,14 @@ export function OutlinerPanel({ engine }: OutlinerPanelProps): JSX.Element {
     (cb) => engine.subscribe(cb),
     () => engine.getDocument(),
   )
+  const { onNavigateToNode } = useShellRuntime()
   const groups = doc.tree.groups ?? []
   const nodes = doc.tree.nodes
+
+  const handleClickNode = (nodeId: string): void => {
+    engine.getSession().selection.replace([{ kind: 'node', id: nodeId }])
+    onNavigateToNode(nodeId)
+  }
 
   return (
     <div className="editor-panel">
@@ -60,7 +72,16 @@ export function OutlinerPanel({ engine }: OutlinerPanelProps): JSX.Element {
             </div>
             <ul className="editor-panel__list">
               {nodes.map((n) => (
-                <li key={n.id}>{n.id}</li>
+                <li key={n.id}>
+                  <button
+                    type="button"
+                    className="editor-outliner__node"
+                    title="Ir ao nodo"
+                    onClick={() => handleClickNode(n.id)}
+                  >
+                    {n.id}
+                  </button>
+                </li>
               ))}
             </ul>
           </>

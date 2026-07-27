@@ -6,7 +6,7 @@ import { act, render, renderHook } from '@testing-library/react'
 import { type TreeDef, TreeEngine } from '@yggdrasil-forge/core'
 import { type RefObject, createRef, useRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { type SkillTreeHandle, SkillTree } from '../src/SkillTree.js'
+import { SkillTree, type SkillTreeHandle } from '../src/SkillTree.js'
 import { useViewport } from '../src/hooks/useViewport.js'
 
 const bounds = { minX: 0, minY: 0, maxX: 100, maxY: 100 }

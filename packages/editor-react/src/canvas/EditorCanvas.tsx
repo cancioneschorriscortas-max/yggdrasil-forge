@@ -110,6 +110,13 @@ export interface EditorCanvasProps {
    */
   readonly view?: CanvasView
   readonly onViewChange?: (view: CanvasView) => void
+  /**
+   * 7.18b «Ir ao nodo»: rexistro do navegador no taboleiro do shell.
+   * O canvas rexistra unha función que delega en
+   * `SkillTreeHandle.centerOn`; en vista tarxetas o SkillTree non está
+   * montado (ref null) e a chamada é un no-op natural, sen erro.
+   */
+  readonly registerNodeNavigator?: (navigator: ((nodeId: string) => void) | null) => void
 }
 
 /**
@@ -149,6 +156,7 @@ export function EditorCanvas({
   chromeTheme,
   view = 'graph',
   onViewChange,
+  registerNodeNavigator,
 }: EditorCanvasProps): JSX.Element {
   // Re-render en commits do EditorEngine.
   const doc = useSyncExternalStore(
@@ -171,6 +179,18 @@ export function EditorCanvas({
   const [viewportVersion, setViewportVersion] = useState(0)
   // 7.16: handle do SkillTree para encadrar (fit) tras «Dispor».
   const skillTreeRef = useRef<SkillTreeHandle | null>(null)
+
+  // 7.18b: rexistrar o navegador «Ir ao nodo» no taboleiro do shell.
+  // A función le o ref no MOMENTO da chamada: en tarxetas ou sen
+  // SkillTree montado é un no-op (centerOn tampouco lanza — contrato
+  // do handle).
+  useEffect(() => {
+    if (registerNodeNavigator === undefined) return undefined
+    registerNodeNavigator((nodeId: string) => {
+      skillTreeRef.current?.centerOn(nodeId)
+    })
+    return () => registerNodeNavigator(null)
+  }, [registerNodeNavigator])
 
   // O CTM do `<g>` co transform pan/zoom (dentro do <svg> do SkillTree)
   // é a fonte de verdade screen↔doc. ★ Importante: NON o <svg> raíz —

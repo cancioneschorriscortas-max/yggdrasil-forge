@@ -38,12 +38,27 @@ export interface ShellRuntime {
   /** Vista do canvas (7.15c). O estado vive en EditorShell. */
   readonly canvasView: CanvasView
   readonly onCanvasViewChange: (view: CanvasView) => void
+  /**
+   * 7.18b «Ir ao nodo»: centra a vista do canvas no nodo. Os paneis
+   * (Estrutura, Problemas) chámano tras seleccionar. No-op se o canvas
+   * non ten viewport de grafo nese momento (vista tarxetas, Proba sen
+   * canvas montado…) — nunca lanza.
+   */
+  readonly onNavigateToNode: (nodeId: string) => void
+  /**
+   * 7.18b: o EditorCanvas rexistra aquí a función que de verdade
+   * centra (delegando en SkillTreeHandle.centerOn); `null` ao
+   * desmontar. O EditorShell só fai de taboleiro de anuncios.
+   */
+  readonly registerNodeNavigator: (navigator: ((nodeId: string) => void) | null) => void
 }
 
 const ShellRuntimeContext = createContext<ShellRuntime>({
   probaSession: null,
   canvasView: 'graph',
   onCanvasViewChange: () => undefined,
+  onNavigateToNode: () => undefined,
+  registerNodeNavigator: () => undefined,
 })
 
 export const ShellRuntimeProvider = ShellRuntimeContext.Provider
