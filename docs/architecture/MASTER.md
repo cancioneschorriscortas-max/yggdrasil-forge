@@ -1607,7 +1607,8 @@ type MergeStrategy = 'namespace_all' | 'first_wins' | 'last_wins' | 'manual'
 | Layout | Descripción | Inspiración |
 |--------|-----------|-------------|
 | `radial` | Polígono + radios + malla | Oberón, Skyrim perks |
-| `tree` | Vertical/horizontal | Diablo, WoW talents |
+| `tree` | Vertical/horizontal (un pai por nodo; multi-pai → arestas cruzadas) | Diablo, WoW talents |
+| `layered` | Capas para DAGs (Sugiyama-lite, 7.18): capa por camiño máis longo, orde por baricentro, ciclos → err | Tech trees con requisitos múltiples |
 | `constellation` | Clusters libres | Skyrim |
 | `grid` | Grella regular ou hexagonal | Civilization |
 | `web` | Rede masiva | Path of Exile |
@@ -4813,3 +4814,41 @@ patrón fixo é:
 **Regra para o Director.** Ao escribir un briefing con interacción de canvas:
 especificar directamente o reparto headless-exhaustivo + nota + gate visual.
 Non pedir tests de clic a nivel de compoñente.
+
+### A.6.44 — Os tests de layout asertan MAGNITUDE, nunca só orde (regra P4, vinculante)
+
+**Contexto.** O bug multi-root de TreeLayout (7.16b) mesturaba unidades
+lóxicas (slots de Buchheim) con físicas (px): tras a multiplicación por
+`nodeSpacing`, cada root extra desprazábase ~16.200 px en vez de ~180.
+Sobreviviu meses porque os tests asertaban só ORDE (`r2X > r1X`) — certo
+tanto a 180 px coma a 16.000. Atopouno o gate visual do dono, non a suite.
+
+**Lección.** Un aserto de orde relativa non protexe a xeometría: calquera
+erro de escala (unidades mesturadas, dobre multiplicación, offset esquecido)
+consérvao. A suite dicía verde mentres o layout era inusable.
+
+**Regra (aprobada como vinculante no 7.18).** Toda posición asertada leva
+magnitude: `toBeCloseTo(valor, precisión)` calculado a man, ou unha cota
+superior XUSTIFICADA no comentario (`<= nodeSpacing * 3` co porqué). Aplícase
+a motores novos (precedente: tests de `LayeredLayout` e de `centerOn`, con
+posicións completas calculadas a man) e retroactivamente ao tocar un motor
+existente.
+
+### A.6.45 — `layout.type` é aberto por deseño: un motor novo NON toca o schema
+
+**Contexto.** O briefing 7.18 prevía que engadir `layered` faría disparar o
+gate de drift do JSON Schema publicado. Non disparou, e é correcto:
+`layoutConfigSchema` declara `type: z.string()` + `.catchall(z.unknown())`
+porque `LayoutConfig` mantén un index signature aberto — os consumidores
+poden rexistrar motores custom no `LayoutEngineRegistry` sen tocar @core.
+
+**Lección.** A extensibilidade xa pagada converte "engadir un motor" nun
+cambio de CÓDIGO, non de CONTRATO. A cadea real dun motor novo é: motor
+(@core) → registry/config (@editor-core) → menú (@editor-react) → CLI →
+galería. O schema só entra se o motor precisa campos novos TIPADOS no
+contrato común (e nese caso tipificaríanse en `LayoutConfig`, non no `type`).
+
+**Regra para o Director.** Ao briefar un motor novo, non prometer drift do
+schema: enumerar a cadea código→UI→CLI→galería e deixar o schema fóra salvo
+campos comúns novos. (O validador do CLI xa é dinámico sobre
+`AUTO_LAYOUT_ALGOS`: a gramática de `--algo` actualízase soa.)
