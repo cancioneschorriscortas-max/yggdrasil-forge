@@ -49,8 +49,7 @@ describe('LOGIC_ICONS — contido (7.19)', () => {
     const builtin = new Set(Object.keys(BUILTIN_ICONS))
     const norse = new Set(Object.keys(NORSE_ICONS))
     const logic = new Set(Object.keys(LOGIC_ICONS))
-    const intersect = (a: Set<string>, b: Set<string>): string[] =>
-      [...a].filter((id) => b.has(id))
+    const intersect = (a: Set<string>, b: Set<string>): string[] => [...a].filter((id) => b.has(id))
     expect(intersect(logic, builtin)).toEqual([])
     expect(intersect(logic, norse)).toEqual([])
     expect(intersect(norse, builtin)).toEqual([])
