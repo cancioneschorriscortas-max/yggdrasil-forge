@@ -404,11 +404,7 @@
         },
         "color": "#5f9ec8",
         "icon": "sparkle",
-        "nodeIds": [
-          "dubhe",
-          "merak",
-          "alioth"
-        ],
+        "nodeIds": ["dubhe", "merak", "alioth"],
         "position": {
           "x": -300,
           "y": -180
@@ -435,9 +431,7 @@
         },
         "color": "#8e5fc8",
         "icon": "bolt",
-        "nodeIds": [
-          "thuban"
-        ]
+        "nodeIds": ["thuban"]
       },
       {
         "id": "coroa",
@@ -446,10 +440,7 @@
           "en": "The Northern Crown"
         },
         "icon": "gem",
-        "nodeIds": [
-          "alphecca",
-          "nusakan"
-        ]
+        "nodeIds": ["alphecca", "nusakan"]
       }
     ],
     "resources": [
