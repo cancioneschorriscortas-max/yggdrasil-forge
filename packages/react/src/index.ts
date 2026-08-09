@@ -69,6 +69,12 @@ export { BUILTIN_ICONS } from './icons/registry.js'
 //   registerIcons(NORSE_ICONS)
 export { NORSE_ICONS } from './icons/norse.js'
 
+// 7.19: iconset Logic (opt-in, mesmo patrón). 19 iconos para a
+// semántica de prerequisitos e progresión (locked/key/AND/OR/NOT…).
+//   import { registerIcons, LOGIC_ICONS } from '@yggdrasil-forge/react'
+//   registerIcons(LOGIC_ICONS)
+export { LOGIC_ICONS } from './icons/logic.js'
+
 // F10.6: vistas alternativas + inspector (promovidas desde
 // examples/oberon-panadeiro tras ser pedidas por GAIA como segundo
 // consumidor real).

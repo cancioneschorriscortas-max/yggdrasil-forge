@@ -26,6 +26,7 @@ Ou simplemente arrástrao a unha pestaña do navegador.
 - **Builtin**: os 6 iconos do `BUILTIN_ICONS` auto-rexistrados polo paquete.
 - **Norse v1**: set de ~28 iconos con motivos nórdicos (yggdrasil, runas, animais místicos, armas, símbolos celestes...). Arte funcional, refinable.
 - **Norse v2**: variante alternativa do mesmo set.
+- **Logic**: 19 iconos de semántica de prerequisitos — **promovidos a set oficial no 7.19**. A fonte única é `packages/react/src/icons/logic.ts` (o `logic.ts` deste cartafol é un shim de re-export; os novos iconos engádense no paquete).
 
 ### Controis en vivo
 
