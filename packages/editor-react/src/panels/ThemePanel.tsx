@@ -20,8 +20,10 @@
 
 import {
   type EditorEngine,
+  THEME_PRESETS,
   type ThemeRegionTint,
   type ThemeSpec,
+  getThemePreset,
   nextFreeId,
   setMetaField,
   setNodeField,
@@ -43,28 +45,29 @@ const REGION_COLOR_ROTATION: readonly string[] = [
   '#8e5fc8',
 ]
 
-// ── Presets de arranque (7.5e §4 #1) ──
+// ── Presets (7.5e §4 #1 → 7.19 Cambio 2) ──
 //
-// **Tintado** ≈ paleta distinguible tipo panadeiro (validada visualmente).
-// **Neutro** ≈ recheos do `minimal` (base do renderer) — deixa cero override.
+// Os presets viven agora como DATO en `@editor-core/themePresets`
+// (rexistro con id + label + spec completo); o panel só os renderiza.
+// Aplicar un preset dispatcha o seu `ThemeSpec` COMPLETO co `preset`
+// anotado. Non fusiona co existente — substitúo.
 //
-// Aplicar un preset dispatcha un `ThemeSpec` COMPLETO cos seus
-// `nodeFills` + `preset` anotado. Non fusiona co existente — subsítuo.
+// Re-exports de compatibilidade (contrato dos tests do 7.5e; a fonte
+// única é o rexistro).
 
-export const PRESET_TINTADO: ThemeSpec = {
-  preset: 'tintado',
-  nodeFills: {
-    locked: '#c8c4bb',
-    unlockable: '#e6b8a2',
-    unlocked: '#7cb37c',
-    maxed: '#4a8f4a',
-    inProgress: '#e6c98a',
-  },
+const TINTADO_SPEC = getThemePreset('tintado')?.spec
+const NEUTRO_SPEC = getThemePreset('neutro')?.spec
+if (TINTADO_SPEC === undefined || NEUTRO_SPEC === undefined) {
+  // Contrato do rexistro: os dous históricos existen sempre.
+  throw new Error('themePresets: faltan os presets históricos tintado/neutro')
 }
+export const PRESET_TINTADO: ThemeSpec = TINTADO_SPEC
+export const PRESET_NEUTRO: ThemeSpec = NEUTRO_SPEC
 
-export const PRESET_NEUTRO: ThemeSpec = {
-  preset: 'neutro',
-  // Sen nodeFills → cae ao `minimal` de @react (por deseño).
+/** Extrae string localizada priorizando gl (patrón de FieldLabel). */
+function presetLabel(label: string | Record<string, string>, fallback: string): string {
+  if (typeof label === 'string') return label
+  return label.gl ?? label.en ?? Object.values(label)[0] ?? fallback
 }
 
 export interface ThemePanelProps {
@@ -191,21 +194,18 @@ export function ThemePanel({ editorEngine }: ThemePanelProps): JSX.Element {
         <section className="editor-theme-panel__section">
           <h3 className="editor-theme-panel__section-title">Preset</h3>
           <p className="editor-theme-panel__section-help">Aplica de golpe un tema base.</p>
+          {/* 7.19: fichas renderizadas DESDE o rexistro (fila desprazable). */}
           <div className="editor-theme-panel__chips">
-            <button
-              type="button"
-              className={`editor-theme-panel__chip${activePreset === 'tintado' ? ' editor-theme-panel__chip--active' : ''}`}
-              onClick={() => applyPreset(PRESET_TINTADO)}
-            >
-              Tintado
-            </button>
-            <button
-              type="button"
-              className={`editor-theme-panel__chip${activePreset === 'neutro' ? ' editor-theme-panel__chip--active' : ''}`}
-              onClick={() => applyPreset(PRESET_NEUTRO)}
-            >
-              Neutro
-            </button>
+            {THEME_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={`editor-theme-panel__chip${activePreset === preset.id ? ' editor-theme-panel__chip--active' : ''}`}
+                onClick={() => applyPreset(preset.spec)}
+              >
+                {presetLabel(preset.label, preset.id)}
+              </button>
+            ))}
           </div>
         </section>
 

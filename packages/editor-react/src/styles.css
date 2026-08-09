@@ -1111,6 +1111,12 @@
 .editor-theme-panel__chips {
   display: flex;
   gap: 6px;
+  /* 7.19: cinco fichas — fila desprazable se non caben no panel. */
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.editor-theme-panel__chip {
+  flex-shrink: 0;
 }
 .editor-theme-panel__chip {
   padding: 4px 12px;

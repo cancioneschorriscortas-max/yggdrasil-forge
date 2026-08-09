@@ -18,6 +18,9 @@ export type {
   ThemeRegionTint,
   ThemeSpec,
 } from './document/ThemeSpec.js'
+// 7.19: presets de tema con nome (o tema como dato reutilizable).
+export type { ThemePreset } from './document/themePresets.js'
+export { THEME_PRESETS, getThemePreset } from './document/themePresets.js'
 
 // Persistencia
 export type { DocumentAdapter } from './document/DocumentAdapter.js'

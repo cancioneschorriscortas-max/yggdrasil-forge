@@ -7,7 +7,12 @@
 
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { TreeDef } from '@yggdrasil-forge/core'
-import { EditorEngine, createEditorDocument, setNodeField } from '@yggdrasil-forge/editor-core'
+import {
+  EditorEngine,
+  createEditorDocument,
+  getThemePreset,
+  setNodeField,
+} from '@yggdrasil-forge/editor-core'
 import { afterEach, describe, expect, it } from 'vitest'
 import { PRESET_TINTADO, ThemePanel } from '../src/panels/ThemePanel.js'
 
@@ -260,6 +265,29 @@ describe('★ 7.8.2 — control directo de cor de texto', () => {
       fireEvent.click(resetBtn)
     })
     expect(engine.getDocument().meta.theme?.textColor).toBeUndefined()
+  })
+})
+
+describe('★ ThemePanel — fichas desde o rexistro (7.19)', () => {
+  it('renderiza as 5 fichas de THEME_PRESETS na súa orde', () => {
+    render(<ThemePanel editorEngine={buildEngine()} />)
+    for (const label of ['Tintado', 'Neutro', 'Pergamiño', 'Néon', 'Bosque']) {
+      expect(screen.getByRole('button', { name: label })).toBeDefined()
+    }
+  })
+
+  it('clic en «Pergamiño» → dispatch do spec completo do rexistro, chip activo', () => {
+    const engine = buildEngine()
+    render(<ThemePanel editorEngine={engine} />)
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Pergamiño' }))
+    })
+    const theme = engine.getDocument().meta.theme
+    expect(theme).toEqual(getThemePreset('pergamino')?.spec)
+    expect(theme?.preset).toBe('pergamino')
+    expect(theme?.textColor).toBe('#3b2f1d')
+    // As 5 cores de estado veñen co preset (spec completo).
+    expect(Object.keys(theme?.nodeFills ?? {})).toHaveLength(5)
   })
 })
 // ── FIN: tests ThemePanel ──
