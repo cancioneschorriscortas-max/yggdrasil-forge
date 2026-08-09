@@ -4852,3 +4852,38 @@ contrato común (e nese caso tipificaríanse en `LayoutConfig`, non no `type`).
 schema: enumerar a cadea código→UI→CLI→galería e deixar o schema fóra salvo
 campos comúns novos. (O validador do CLI xa é dinámico sobre
 `AUTO_LAYOUT_ALGOS`: a gramática de `--algo` actualízase soa.)
+
+### A.6.46 — A severidade dun validador é COMPORTAMENTO, non adxectivo
+
+**Contexto.** O briefing 7.12 pedía para o validador soft de recursos colgantes
+«severity: 'error', non bloquea — é soft», contradicíndose: `hasErrors()` da
+transacción non distingue a orixe do issue — calquera `severity: 'error'`
+rexeita a transacción enteira, veña de validador duro ou soft. Implementalo
+literal tería bloqueado o borrado de recursos que o propio briefing declaraba
+permitido. O Executor parou, verificou contra o código e escalou con opcións
+ANTES de escribir nada; confirmouse `'warning'`. Cero ciclos perdidos.
+
+**Regra.** Nos briefings e no código: `error` = bloquea transaccións, SEMPRE,
+veña de onde veña; `warning`/`info` = informan sen bloquear. Elixir severidade
+é elixir comportamento. E a lección de proceso: o protocolo "para e escala
+cando o briefing choca coa realidade" existe exactamente para isto.
+
+### A.6.47 — Dúas features correctas poden romperse pola costura (regresión emerxente)
+
+**Contexto.** A regresión do modo Proba (7.14-A): o canvas deixou de entrar en
+Proba sen que NINGUÉN tocase `EditorCanvas` nin `useProbaSession`. A causa foi
+a interacción emerxente de dúas features correctas: 7.7/7.7c fixeron que os
+paneis deixasen de remontarse ao cambiar de modo (para conservar a disposición
+do usuario) — e o canvas, montado unha soa vez, quedou coa `probaSession` nula
+do primeiro render conxelada nas props. Ningunha porta o cazou: os tests de
+cada feature pasaban; o roto era o contrato implícito entre elas ("os paneis
+remóntanse ao cambiar de modo") que ninguén escribira. Cazouno a suite E2E de
+navegador real na súa primeira rolda.
+
+**Regra.** Cando un cambio altera un INVARIANTE de ciclo de vida (remontaxe,
+reconciliación, identidade de instancias), auditar os consumidores que
+implicitamente dependían del — e preferir mecanismos que sobrevivan ao cambio
+de invariante (valores en vivo via contexto/subscrición) a props conxeladas no
+momento do montaxe. E a lección de sistema: os contratos implícitos entre
+features só os vixían os tests de INTEGRACIÓN real (E2E); as suites por
+feature son cegas a eles por construción.
