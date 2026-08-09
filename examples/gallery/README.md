@@ -100,6 +100,54 @@ the friendly data never touches:
 - Symmetric `exclusions` between two nodes.
 - `tags` + `editor.theme.regions` with two regions (one shared).
 - A node with its own `color` override; a node **without** `position`.
+- **The aesthetics-by-declaration showcase (7.19)**: every node carries a
+  `logic-*` icon (12 distinct ids) and the document applies the `neon`
+  theme preset — write two declarative fields, get a dressed tree.
+
+## Aesthetics by declaration
+
+Two orthogonal knobs make a generated tree look finished **without
+touching a single pixel**. Both are plain strings in the JSON.
+
+### Theme presets (`editor.theme`)
+
+Apply a named preset by copying its full spec (the editor's Theme panel
+does exactly this; the `preset` field is the id). Available presets, from
+`@yggdrasil-forge/editor-core` (`THEME_PRESETS`):
+
+| id | one-liner |
+|----|-----------|
+| `tintado` | Distinguishable tinted palette (the baker-tree classic). |
+| `neutro` | Zero overrides — falls back to the renderer's `minimal` base. |
+| `pergamino` | Warm earthy parchment lights, sepia-ink text. |
+| `neon` | Deep dark fills with saturated accents (made for dark chrome). |
+| `bosque` | Deep forest greens and muted golds, ivory text. |
+
+The easiest robust recipe for generators: set
+`"editor": { "theme": { "preset": "<id>", ...full spec... } }` by copying
+the spec from an example (see `gaia-cards.json` for `neon` applied), or
+just emit `{ "preset": "<id>" }` and let a human press the matching chip
+in the editor's Theme tab.
+
+### Icon sets (`node.icon`)
+
+`node.icon` accepts an emoji, an image URL, or a **registered icon id**.
+Two official opt-in sets ship with `@yggdrasil-forge/react`:
+
+- **`logic-*`** — 19 icons for prerequisite/progression semantics
+  (see them all on `gaia-cards.json`): `logic-lock`, `logic-unlock`,
+  `logic-key`, `logic-crown`, `logic-gate`, `logic-scroll`,
+  `logic-check`, `logic-cross`, `logic-compass`, `logic-map-marker`,
+  `logic-flame`, `logic-intersect`, `logic-fork`, `logic-forbidden`,
+  `logic-eye-closed`, `logic-sparkle`, `logic-star`, `logic-rune`,
+  `logic-seedling`.
+- **`norse-*`** — 26 norse-flavoured icons (world tree, runes, mythic
+  beasts…); full list in
+  [`packages/react/src/icons/norse.ts`](../../packages/react/src/icons/norse.ts).
+
+The bundled editor registers both sets at startup, so these ids work
+out of the box; other consumers opt in with
+`registerIcons(LOGIC_ICONS)` / `registerIcons(NORSE_ICONS)`.
 
 ## Regenerating
 

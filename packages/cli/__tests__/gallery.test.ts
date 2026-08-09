@@ -29,5 +29,22 @@ describe('7.15-C3 — galería de ouro: todo ficheiro é importable', () => {
       ).toBe(true)
     })
   }
+
+  it('★ 7.19 — gaia-cards é o escaparate da estética por declaración', () => {
+    // O README promete: TODOS os nodos con icona logic-* e o preset
+    // neon aplicado. Se unha rexeneración o perde, este test dío.
+    const result = deserializeDocument(readFileSync(join(GALLERY, 'gaia-cards.json'), 'utf8'))
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const doc = result.value
+    expect(doc.meta.theme?.preset).toBe('neon')
+    // Spec completo, non só o id (a vía robusta para xeradores).
+    expect(Object.keys(doc.meta.theme?.nodeFills ?? {})).toHaveLength(5)
+    for (const node of doc.tree.nodes) {
+      expect(node.icon, node.id).toMatch(/^logic-/)
+    }
+    // 12 iconas DISTINTAS — mostrario, non papel tapiz.
+    expect(new Set(doc.tree.nodes.map((n) => n.icon)).size).toBe(doc.tree.nodes.length)
+  })
 })
 // ── FIN: anti-podrecemento ──
