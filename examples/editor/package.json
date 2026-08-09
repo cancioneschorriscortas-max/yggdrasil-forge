@@ -15,6 +15,7 @@
     "@yggdrasil-forge/core": "workspace:*",
     "@yggdrasil-forge/editor-core": "workspace:*",
     "@yggdrasil-forge/editor-react": "workspace:*",
+    "@yggdrasil-forge/react": "workspace:*",
     "dockview-react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"

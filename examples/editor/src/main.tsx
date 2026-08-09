@@ -26,6 +26,7 @@ import {
   toJson,
 } from '@yggdrasil-forge/editor-core'
 import { EditorShell } from '@yggdrasil-forge/editor-react'
+import { LOGIC_ICONS, NORSE_ICONS, registerIcons } from '@yggdrasil-forge/react'
 import 'dockview-react/dist/styles/dockview.css'
 import '@yggdrasil-forge/editor-react/styles.css'
 import type { SerializedDockview } from 'dockview-react'
@@ -337,6 +338,12 @@ function App(): JSX.Element {
     </>
   )
 }
+
+// 7.19: sets de iconas opt-in dispoñibles no editor desde o arranque —
+// escribir `logic-key` ou `norse-wolf` no campo Icona simplemente
+// funciona (o rexistro é o singleton compartido co SkillTree).
+registerIcons(NORSE_ICONS)
+registerIcons(LOGIC_ICONS)
 
 const container = document.getElementById('root')
 if (container === null) throw new Error('#root not found')

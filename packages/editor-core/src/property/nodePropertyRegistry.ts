@@ -145,9 +145,11 @@ export const nodePropertyRegistry: readonly PropertyDescriptor[] = [
   fieldDescriptor({
     key: 'icon',
     label: { en: 'Icon', gl: 'Icona' },
+    // 7.19: descubribilidade barata dos sets incluídos (o picker
+    // visual queda bancado, §13 — cando o uso o pida).
     describe: {
-      en: 'An icon or emoji inside the node (optional).',
-      gl: 'Unha icona ou emoji dentro do nodo (opcional).',
+      en: 'An icon or emoji (optional). Bundled sets available: ids `logic-*` and `norse-*`.',
+      gl: 'Unha icona ou emoji (opcional). Podes usar os sets incluídos: ids `logic-*` e `norse-*`.',
     },
     type: { kind: 'text' },
     group: 'appearance',

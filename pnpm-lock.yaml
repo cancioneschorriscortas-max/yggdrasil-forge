@@ -187,6 +187,9 @@ importers:
       '@yggdrasil-forge/editor-react':
         specifier: workspace:*
         version: link:../../packages/editor-react
+      '@yggdrasil-forge/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       dockview-react:
         specifier: 'catalog:'
         version: 6.6.1(react@19.2.7)
