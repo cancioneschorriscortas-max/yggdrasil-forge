@@ -50,6 +50,14 @@ export interface TopBarProps {
   }
   /** 7.17: desactiva as entradas de imaxe (vista tarxetas). */
   readonly imageExportDisabled?: boolean
+  /**
+   * Zoom do canvas. Se non se pasan, os botóns renderízanse
+   * desactivados (o shell conéctaos aos controis do viewport).
+   */
+  readonly onZoomIn?: () => void
+  readonly onZoomOut?: () => void
+  /** Desactiva o zoom (vista tarxetas: non hai viewport de grafo). */
+  readonly zoomDisabled?: boolean
 }
 
 export function TopBar({
@@ -64,6 +72,9 @@ export function TopBar({
   onThemeChange,
   documentActions,
   imageExportDisabled = false,
+  onZoomIn,
+  onZoomOut,
+  zoomDisabled = false,
 }: TopBarProps): JSX.Element {
   // Re-render en cada commit (canUndo/canRedo cambian).
   useSyncExternalStore(
@@ -161,10 +172,24 @@ export function TopBar({
       <div className="editor-topbar__divider" />
 
       <div className="editor-topbar__section" aria-label="zoom">
-        <button type="button" className="editor-button" disabled title="Zoom out (TODO)">
+        <button
+          type="button"
+          className="editor-button"
+          disabled={zoomDisabled || onZoomOut === undefined}
+          aria-label="Afastar"
+          title="Afastar (zoom −)"
+          onClick={onZoomOut}
+        >
           −
         </button>
-        <button type="button" className="editor-button" disabled title="Zoom in (TODO)">
+        <button
+          type="button"
+          className="editor-button"
+          disabled={zoomDisabled || onZoomIn === undefined}
+          aria-label="Achegar"
+          title="Achegar (zoom +)"
+          onClick={onZoomIn}
+        >
           +
         </button>
       </div>

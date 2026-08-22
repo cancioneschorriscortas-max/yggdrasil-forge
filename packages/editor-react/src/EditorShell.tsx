@@ -36,6 +36,7 @@ import {
   type CanvasView,
   type ShellRuntime,
   ShellRuntimeProvider,
+  type ViewportControls,
   useShellRuntime,
 } from './shell/ShellRuntimeContext.js'
 import { StatusBar } from './shell/StatusBar.js'
@@ -47,8 +48,14 @@ import { type EditorMode, useEditorMode } from './shell/useEditorMode.js'
 // ShellRuntimeContext.tsx para a autopsia. `engine` si vén por prop
 // (capturado no closure) porque só cambia con remount do shell. ──
 function CanvasPanelView({ engine }: { engine: EditorEngine }): JSX.Element {
-  const { probaSession, chromeTheme, canvasView, onCanvasViewChange, registerNodeNavigator } =
-    useShellRuntime()
+  const {
+    probaSession,
+    chromeTheme,
+    canvasView,
+    onCanvasViewChange,
+    registerNodeNavigator,
+    registerViewportControls,
+  } = useShellRuntime()
   return (
     <EditorCanvas
       editorEngine={engine}
@@ -57,6 +64,7 @@ function CanvasPanelView({ engine }: { engine: EditorEngine }): JSX.Element {
       view={canvasView}
       onViewChange={onCanvasViewChange}
       registerNodeNavigator={registerNodeNavigator}
+      registerViewportControls={registerViewportControls}
     />
   )
 }
@@ -211,6 +219,16 @@ export function EditorShell({
     nodeNavigatorRef.current?.(nodeId)
   }, [])
 
+  // Zoom da TopBar: mesmo taboleiro. O canvas rexistra os controis; a
+  // TopBar (fóra do provider) chama ao shell, e o shell delega no que
+  // estea rexistrado (no-op se non hai viewport de grafo).
+  const viewportControlsRef = useRef<ViewportControls | null>(null)
+  const registerViewportControls = useCallback((controls: ViewportControls | null) => {
+    viewportControlsRef.current = controls
+  }, [])
+  const handleZoomIn = useCallback(() => viewportControlsRef.current?.zoomIn(), [])
+  const handleZoomOut = useCallback(() => viewportControlsRef.current?.zoomOut(), [])
+
   // Estado volátil que os paneis leen en vivo desde o contexto.
   const runtime = useMemo<ShellRuntime>(
     () => ({
@@ -220,8 +238,16 @@ export function EditorShell({
       onCanvasViewChange: setCanvasView,
       onNavigateToNode,
       registerNodeNavigator,
+      registerViewportControls,
     }),
-    [probaSession, theme, canvasView, onNavigateToNode, registerNodeNavigator],
+    [
+      probaSession,
+      theme,
+      canvasView,
+      onNavigateToNode,
+      registerNodeNavigator,
+      registerViewportControls,
+    ],
   )
 
   const handleTogglePanel = useCallback((id: string) => {
@@ -250,6 +276,9 @@ export function EditorShell({
         {...(onThemeChange !== undefined && { onThemeChange })}
         {...(documentActions !== undefined && { documentActions })}
         imageExportDisabled={canvasView === 'cards'}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        zoomDisabled={canvasView === 'cards'}
       />
       <div className="editor-workspace">
         <ShellRuntimeProvider value={runtime}>

@@ -47,6 +47,7 @@ function runtimeWith(overrides: Partial<ShellRuntime>): ShellRuntime {
     onCanvasViewChange: () => undefined,
     onNavigateToNode: () => undefined,
     registerNodeNavigator: () => undefined,
+    registerViewportControls: () => undefined,
     ...overrides,
   }
 }

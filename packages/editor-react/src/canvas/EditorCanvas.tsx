@@ -65,7 +65,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import type { ProbaSession } from '../proba/useProbaSession.js'
-import type { CanvasView } from '../shell/ShellRuntimeContext.js'
+import type { CanvasView, ViewportControls } from '../shell/ShellRuntimeContext.js'
 import { CanvasCardsView } from './CanvasCardsView.js'
 import { CanvasOverlay, type OverlayRectPx } from './CanvasOverlay.js'
 import { type CanvasTool, CanvasToolbar } from './CanvasToolbar.js'
@@ -117,6 +117,12 @@ export interface EditorCanvasProps {
    * montado (ref null) e a chamada é un no-op natural, sen erro.
    */
   readonly registerNodeNavigator?: (navigator: ((nodeId: string) => void) | null) => void
+  /**
+   * Controis de viewport (zoom da TopBar) no taboleiro do shell. Mesmo
+   * contrato có navegador: delega en SkillTreeHandle.zoomIn/zoomOut;
+   * en tarxetas o SkillTree non está montado → no-op natural.
+   */
+  readonly registerViewportControls?: (controls: ViewportControls | null) => void
 }
 
 /**
@@ -157,6 +163,7 @@ export function EditorCanvas({
   view = 'graph',
   onViewChange,
   registerNodeNavigator,
+  registerViewportControls,
 }: EditorCanvasProps): JSX.Element {
   // Re-render en commits do EditorEngine.
   const doc = useSyncExternalStore(
@@ -191,6 +198,17 @@ export function EditorCanvas({
     })
     return () => registerNodeNavigator(null)
   }, [registerNodeNavigator])
+
+  // Zoom da TopBar (pecha o «TODO» histórico dos botóns −/+): mesmo
+  // taboleiro; as funcións len o ref no momento da chamada.
+  useEffect(() => {
+    if (registerViewportControls === undefined) return undefined
+    registerViewportControls({
+      zoomIn: () => skillTreeRef.current?.zoomIn(),
+      zoomOut: () => skillTreeRef.current?.zoomOut(),
+    })
+    return () => registerViewportControls(null)
+  }, [registerViewportControls])
 
   // O CTM do `<g>` co transform pan/zoom (dentro do <svg> do SkillTree)
   // é a fonte de verdade screen↔doc. ★ Importante: NON o <svg> raíz —

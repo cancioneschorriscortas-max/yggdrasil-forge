@@ -51,6 +51,19 @@ export interface ShellRuntime {
    * desmontar. O EditorShell só fai de taboleiro de anuncios.
    */
   readonly registerNodeNavigator: (navigator: ((nodeId: string) => void) | null) => void
+  /**
+   * Controis de viewport do canvas (zoom da TopBar). Mesmo taboleiro
+   * ca o navegador: o EditorCanvas rexistra os seus (delegando en
+   * SkillTreeHandle.zoomIn/zoomOut); `null` ao desmontar. A TopBar
+   * vive FÓRA do provider, así que o shell reenvíaos por props.
+   */
+  readonly registerViewportControls: (controls: ViewportControls | null) => void
+}
+
+/** Controis de viewport que o canvas ofrece ao chrome do editor. */
+export interface ViewportControls {
+  readonly zoomIn: () => void
+  readonly zoomOut: () => void
 }
 
 const ShellRuntimeContext = createContext<ShellRuntime>({
@@ -59,6 +72,7 @@ const ShellRuntimeContext = createContext<ShellRuntime>({
   onCanvasViewChange: () => undefined,
   onNavigateToNode: () => undefined,
   registerNodeNavigator: () => undefined,
+  registerViewportControls: () => undefined,
 })
 
 export const ShellRuntimeProvider = ShellRuntimeContext.Provider
