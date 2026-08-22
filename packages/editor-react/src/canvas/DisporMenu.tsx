@@ -9,7 +9,8 @@
 // undo devolve todo).
 
 import type { AutoLayoutAlgo } from '@yggdrasil-forge/editor-core'
-import { type JSX, useEffect, useRef, useState } from 'react'
+import { type JSX, useCallback, useEffect, useRef, useState } from 'react'
+import { useMenuKeyboard } from '../shell/useMenuKeyboard.js'
 
 export const ALGO_LABELS: Readonly<Record<AutoLayoutAlgo, string>> = {
   radial: 'Radial',
@@ -39,6 +40,9 @@ export interface DisporMenuProps {
 export function DisporMenu({ onDispor }: DisporMenuProps): JSX.Element {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  // auto-2: navegación por teclado (WAI-ARIA menu button).
+  const closeMenu = useCallback(() => setOpen(false), [])
+  useMenuKeyboard(open, menuRef, closeMenu)
 
   useEffect(() => {
     if (!open) return

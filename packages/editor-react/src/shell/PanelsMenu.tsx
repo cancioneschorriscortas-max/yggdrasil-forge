@@ -9,6 +9,7 @@
 
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react'
 import type { PanelDef } from '../panels/PanelHost.js'
+import { useMenuKeyboard } from './useMenuKeyboard.js'
 
 export interface PanelsMenuProps {
   readonly panels: readonly PanelDef[]
@@ -25,6 +26,9 @@ export function PanelsMenu({
 }: PanelsMenuProps): JSX.Element {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  // auto-2: navegación por teclado (WAI-ARIA menu button).
+  const closeMenu = useCallback(() => setOpen(false), [])
+  useMenuKeyboard(open, menuRef, closeMenu)
 
   // Peche por clic fóra ou Escape.
   useEffect(() => {

@@ -13,6 +13,7 @@
 // (ver TopBar: renderízase só se `documentActions` está definido).
 
 import { type JSX, useCallback, useEffect, useRef, useState } from 'react'
+import { useMenuKeyboard } from './useMenuKeyboard.js'
 
 export interface FileMenuProps {
   readonly onNew?: () => void
@@ -35,6 +36,9 @@ export function FileMenu({
 }: FileMenuProps): JSX.Element {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  // auto-2: navegación por teclado (WAI-ARIA menu button).
+  const closeMenu = useCallback(() => setOpen(false), [])
+  useMenuKeyboard(open, menuRef, closeMenu)
 
   // Peche por clic fóra ou Escape (idéntico a PanelsMenu).
   useEffect(() => {
