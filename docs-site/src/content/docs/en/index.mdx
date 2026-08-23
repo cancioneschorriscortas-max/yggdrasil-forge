@@ -1,0 +1,44 @@
+---
+title: Home
+description: A progression-tree (skill tree) engine for educational apps and games. Data first, render second.
+template: splash
+hero:
+  title: Yggdrasil Forge
+  tagline: A progression-graph engine — skill trees, curricula, tech trees — where the data is the contract and the looks come by declaration.
+  actions:
+    - text: Start here
+      link: comeza/instalacion/
+      icon: right-arrow
+    - text: See the examples
+      link: exemplos/galeria/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/cancioneschorriscortas-max/yggdrasil-forge
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+import HeroRender from '../../../components/HeroRender.astro'
+
+<HeroRender
+  id="gaia-cards"
+  alt="Constellation atlas — 12 nodes with logic-* icons and the Neon preset, rendered with ygg render"
+/>
+
+*The constellation atlas from the gallery: two fields in the JSON (`icon: "logic-…"`, `preset: "neon"`) and one command (`ygg layout`) — not a single pixel touched by hand.*
+
+<CardGrid stagger>
+  <Card title="Data first" icon="document">
+    A tree is a JSON document with a published schema. The engine (`@yggdrasil-forge/core`) evaluates unlocks, resources, tiers and effects; everything else reads that data.
+  </Card>
+  <Card title="The editor" icon="pencil">
+    Visual authoring with an Inspector, live validation, auto-layout with five engines, a cards view, a Play mode and a synchronized code panel.
+  </Card>
+  <Card title="The data path" icon="rocket">
+    `ygg validate → layout → render`: an AI (or any pipeline) generates a complete, validated, dressed tree without opening the editor.
+  </Card>
+  <Card title="Galician first" icon="star">
+    Born in Galician, documented in Galician, with a complete English translation. Customer zero: Oberón, the professions section of the GAIA educational app.
+  </Card>
+</CardGrid>

@@ -713,13 +713,13 @@ Probable causa: `useSyncExternalStore` cunha snapshot que devolve obxecto novo c
 
 ```
 [ ] Lint + format pasa (HUSKY=0 pnpm lint:fix && pnpm format)
-[ ] Typecheck pasa (HUSKY=0 pnpm turbo run typecheck --force) → 36/36
-[ ] Tests pasan (HUSKY=0 pnpm turbo run test --force) → 29/29
-[ ] Build pasa (HUSKY=0 pnpm turbo run build --force) → 28/28
+[ ] Typecheck pasa (HUSKY=0 pnpm turbo run typecheck --force)
+[ ] Tests pasan (HUSKY=0 pnpm turbo run test --force)
+[ ] Build pasa (HUSKY=0 pnpm turbo run build --force)
 [ ] Engadiches tests cubrindo o caso novo (mín 2-3 it() por feature)
 [ ] Se tocaches @core ou @editor-core, considera changeset (`pnpm changeset`)
-[ ] Doc actualizada: se tocaches algo que cambia comportamento user-facing, actualiza Guía 01;
-    se cambias arquitectura, actualiza Guía 02; se cambias APIs públicas, actualiza Guía 03 (esta).
+[ ] Doc actualizada: se tocaches comportamento user-facing, actualiza a Guía do editor;
+    se cambias arquitectura, a Guía de arquitectura; se cambias APIs públicas, esta guía.
 ```
 
 ---

@@ -1,0 +1,16 @@
+---
+title: The gold gallery
+description: Every example document in the repository, rendered with ygg render in light and dark, with its JSON.
+sidebar:
+  order: 1
+---
+
+import GalleryGrid from '../../../../components/GalleryGrid.astro'
+
+These are the documents in **`examples/gallery/`**: known-good examples of the format, **guaranteed by test** (every file passes `deserializeDocument` on every CI run) and used as *few-shot* examples for generating trees with AI. The images **are not stored in the repository**: they are generated on every build of this documentation with `ygg render` (light and dark), so if an example ever stopped rendering, this page — and the build — would fail.
+
+Switch the site theme (☀/🌙 at the top) to see the light or dark version.
+
+<GalleryGrid locale="en" />
+
+To use them as a starting point: download the JSON, open it in the editor with **File → Import**, or feed it to `ygg validate` / `ygg layout` / `ygg render`. See [The data path](../../via-do-dato/).

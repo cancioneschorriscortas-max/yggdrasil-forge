@@ -8,8 +8,9 @@
     "dev": "astro dev",
     "render:gallery": "node scripts/render-gallery.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
-    "build": "node scripts/render-gallery.mjs && node scripts/check-i18n.mjs && astro build",
-    "preview": "astro preview"
+    "build": "node scripts/render-gallery.mjs && node scripts/check-i18n.mjs && astro build && node scripts/check-links.mjs",
+    "preview": "astro preview",
+    "check:links": "node scripts/check-links.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.34.0",

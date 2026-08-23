@@ -73,7 +73,7 @@ Tipos transversais sin lóxica. O máis usado: `LocalizedString = string | Recor
 - `SelectionEngine`: que nodos/arestas/grupos/regions están seleccionados.
 - `Operation` / `Tool`: abstraccións para interaccións con preview (drag-move, marquee).
 - **Validators duros** (structural, uniqueIds, referentialIntegrity) — bloquean commits inválidos.
-- **Soft validators** (asymmetricExclusion, prerequisiteCycle, layoutOverflow, unsupportedFeature) — non bloquean, emiten warnings (`ValidationIssue`).
+- **Soft validators** (asymmetricExclusion, prerequisiteCycle, layoutOverflow, unsupportedFeature, danglingResourceRefs) — non bloquean, emiten warnings (`ValidationIssue`).
 - **Property Registry** (descriptors do `NodeDef` editable).
 - **Gate manifesto-descriptor** (`authorableEffectTypes()`).
 
@@ -292,6 +292,7 @@ Non bloquean. Emiten `ValidationIssue` que o engine almacena en `currentIssues`.
 - `prerequisiteCycleValidator`: ciclo en prerequisites.
 - `layoutOverflowValidator`: nodos fóra dos bounds.
 - `unsupportedFeatureValidator`: a árbore usa un Effect type `modify_stat` ou `plugin`.
+- `danglingResourceRefsValidator`: custos que referencian recursos que a árbore non define.
 
 ### ⚠ Como rexistralos
 ```ts
@@ -372,7 +373,7 @@ Iso garante que a **boca** (Inspector) **non pode divirxir** da **conciencia** (
 - Se o engade como UNSUPPORTED → segue excluído.
 - Se non o clasifica → o type-test do manifesto falla en compile.
 
-O mesmo patrón aplicará a UnlockCondition na fase 2 de 7.5c-ii.
+O mesmo patrón aplícase a `UnlockCondition` desde a fase 2 de 7.5c-ii (`authorableConditionTypes()` alimenta o editor de prerrequisitos).
 
 ---
 
