@@ -82,10 +82,22 @@ The workflow:
 2. **Validate** — `ygg validate tree.json` (from `@yggdrasil-forge/cli`) runs
    the exact same validation as the editor's import and reports errors *as
    data* (`--json`), so the AI can fix its own output in a tight loop.
-3. **Paste** — drop the JSON into the editor's live **Code panel** → *Validar*
+3. **Lay out** — the AI doesn't need to invent coordinates:
+   `ygg layout tree.json --algo layered` places every node (five engines:
+   `radial`, `tree`, `layered` for DAGs with multi-parent nodes,
+   `clustered-radial`, `constellation`). The editor offers the same menu
+   (*Dispor*) and invites you to use it when a pasted tree has no positions.
+4. **Dress** — two plain strings make it look finished: a named theme
+   preset (`"preset": "neon"` — five curated presets) and bundled icon ids
+   (`"icon": "logic-key"`, 19 `logic-*` + 26 `norse-*`). See
+   [aesthetics by declaration](examples/gallery/README.md#aesthetics-by-declaration).
+5. **Paste** — drop the JSON into the editor's live **Code panel** → *Validar*
    → *Aplicar*. The whole document replaces the canvas as a single undo step.
-4. **Play** — switch to *Proba* mode and play the tree: grant resources,
+6. **Play** — switch to *Proba* mode and play the tree: grant resources,
    unlock nodes, watch the state fills light up.
+7. **Render** — `ygg render tree.json --out tree.svg` produces a
+   self-contained SVG headlessly (the editor exports SVG/PNG too), so the
+   AI can look at its own result and self-critique.
 
 ![Winter Wolf Path — played in Proba mode, War branch unlocked](docs/assets/showcase-lobo-proba.png)
 
@@ -213,12 +225,20 @@ This is a monorepo. The following packages are published to npm:
 | [`@yggdrasil-forge/plugins`](packages/plugins) | Official plugins: History, Debug. |
 | [`@yggdrasil-forge/search`](packages/search) | Search engine + SearchPlugin. |
 | [`@yggdrasil-forge/validators`](packages/validators) | 9 built-in pedagogical rules. |
+| [`@yggdrasil-forge/cli`](packages/cli) | `ygg` — `validate`, `layout`, `render`, `schema`, `new`: the headless data path for pipelines and AIs. |
+
+### In the repo, not yet published
+
+| Package | Description |
+|---------|-------------|
+| [`@yggdrasil-forge/editor-core`](packages/editor-core) | Headless editor engine: document, commands, undo/redo, validation, auto-layout, theme presets. Zero React. |
+| [`@yggdrasil-forge/editor-react`](packages/editor-react) | The editor UI (dockview shell, canvas, inspector, theme, code panel). Runnable via [`examples/editor`](examples/editor). |
 
 ### Scaffold (reserved for future phases)
 
-`@yggdrasil-forge/{analytics, cli, devtools, diff, exporters,
-heatmap, i18n, importers, multitenancy, neo4j, stats, themes,
-webhooks}` — see each package's README for planned scope.
+`@yggdrasil-forge/{analytics, devtools, diff, exporters, heatmap, i18n,
+importers, multitenancy, neo4j, stats, themes, webhooks}` — see each
+package's README for planned scope.
 
 ## Documentation
 
