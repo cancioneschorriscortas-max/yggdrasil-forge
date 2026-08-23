@@ -372,11 +372,12 @@ aberto e extensible, ao nivel (ou mellor) das imaxes 13/14.
 - **16.1 — Docs site (Astro/Starlight)** *(L)*.
   Getting started, o contrato `TreeDef`, guía de theming, de layouts, do
   importador e do editor.
-- **16.2 — `examples/game-rpg`** *(M)*.
-  Árbore estilo xogo (Diablo-ish). **Proba que o renderer serve a xogos.**
-- **16.3 — `examples/learning-path`** *(M)*.
-  Camiño de aprendizaxe lineal/ramificado estilo Duolingo. **Proba o caso
-  educativo non-Oberón.**
+- **16.2 — `examples/game-rpg`** *(M)*. **SATISFEITO** por
+  `examples/cyberware-ripperdoc` (action-RPG: custo, exclusións, costPerTier,
+  resource_min). Non se crea outro (decisión do Director tras auto-5).
+- **16.3 — `examples/learning-path`** *(M)*. **SATISFEITO** por
+  `examples/learn-yggdrasil` (curso aniñado) + `escola-de-gaita.json` na
+  galería. Ídem.
 - **16.4 — Pase de a11y + perf** *(M)*.
   Teclado/ARIA (moito vén de Fase 7) + reduced-motion; perf para ~centos
   de nodos (escala atlas = post-1.0 canvas).

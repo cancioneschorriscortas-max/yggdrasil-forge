@@ -4887,3 +4887,44 @@ de invariante (valores en vivo via contexto/subscrición) a props conxeladas no
 momento do montaxe. E a lección de sistema: os contratos implícitos entre
 features só os vixían os tests de INTEGRACIÓN real (E2E); as suites por
 feature son cegas a eles por construción.
+
+### A.6.48 — Perfilar antes de optimizar: o culpable do drag era o panel Código
+
+**Contexto.** Informe 07 do Tester (escala): a 1500 nodos un drag tardaba
+~0,7 s e o pan caía a ~38 fps; a hipótese razoable era "React reconcilia os
+6.000 fillos do SkillTree". A sesión autónoma auto-3/auto-4 memoizou
+`SkillNode`/`SkillEdge` e as listas de elementos (drag 1.757 → 631 ms) — e
+ao PERFILAR o drag co protocolo DevTools (CDP `Profiler`) apareceu o
+verdadeiro peso pesado: **CodeMirror**. O panel Código despachaba
+`{ from: 0, to: len, insert: todo }` en cada commit do motor, reconstruíndo
+o DOM de tódalas liñas e reparseando o JSON dos 1.500 nodos por un drag que
+só cambiara un número. Ninguén o tería adiviñado mirando o canvas: o custo
+vivía nun panel que nin estaba na pestana activa. Un cambio mínimo
+(prefixo/sufixo comúns, `minimalChange`) sacouno do perfil.
+
+**Lección.** A intuición sobre onde doe é unha hipótese, non un diagnóstico.
+Sen perfil, "optimizariamos" o SkillTree ata o infinito cunha fracción do
+beneficio. O perfil custou un spec de Playwright de 30 liñas.
+
+**Regra.** Ningún briefing de rendemento sen perfil previo que nomee a
+función culpable (CDP `Profiler.start/stop` desde Playwright é o patrón da
+casa: `tools/e2e/tests/perf/profile-sel.spec.ts`). "Medir, tocar pouco,
+medir" — e o perfil é a parte de "medir" que atopa o QUE, non só o CANTO.
+
+### A.6.49 — Medir na mesma máquina e na mesma sesión (a baseline móvese)
+
+**Contexto.** A baseline de escala de xullo (informe 07) dicía drag ~725 ms a
+1500 nodos. A mesma suite, o mesmo código, o mesmo día de auto-3 pero cunha
+máquina máis cargada (dev server + navegador + builds): 1.757 ms. Un 2,4×
+de diferenza SEN cambio ningún. Comparar "despois" de hoxe con "antes" de
+xullo tería inflado (ou agochado) calquera mellora.
+
+**Lección.** Os números absolutos de rendemento non son reproducibles entre
+sesións; só as COMPARACIÓNS dentro da mesma sesión o son. Unha mellora
+crible é "antes → despois, mesma máquina, mesma sesión, mesma carga",
+idealmente cunha rolda de baseline inmediatamente antes do cambio.
+
+**Regra.** Todo informe de perf leva a baseline medida NESA sesión, non
+citada dun informe anterior; os números de informes vellos son orientación
+de tendencia, nunca termo de comparación. E no Annex e nos commits
+escríbense as dúas cifras xuntas, co contexto de máquina.
