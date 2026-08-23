@@ -1,0 +1,16 @@
+---
+title: A galería de ouro
+description: Cada documento de exemplo do repositorio, renderizado con ygg render en claro e escuro, co seu JSON.
+sidebar:
+  order: 1
+---
+
+import GalleryGrid from '../../../components/GalleryGrid.astro'
+
+Estes son os documentos de **`examples/gallery/`**: exemplos coñecidos-bos do formato, **garantidos por test** (cada ficheiro pasa `deserializeDocument` en cada CI) e usados como *few-shot* para xerar árbores con IA. As imaxes **non están gardadas no repositorio**: xéranse en cada build desta documentación con `ygg render` (claro e escuro), así que se un exemplo deixase de renderizar, esta páxina — e o build — fallarían.
+
+Cambia o tema do sitio (☀/🌙 arriba) para ver a versión clara ou escura.
+
+<GalleryGrid locale="gl" />
+
+Para usalos como punto de partida: descarga o JSON, ábreo no editor con **Ficheiro → Importar**, ou pásallo a `ygg validate` / `ygg layout` / `ygg render`. Ver [A vía do dato](../../via-do-dato/).

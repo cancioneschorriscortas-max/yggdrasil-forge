@@ -1,0 +1,43 @@
+/* Yggdrasil Forge — acentos do sitio de docs (16.1). */
+:root {
+  --sl-color-accent-low: #1d3a2a;
+  --sl-color-accent: #2e7d4f;
+  --sl-color-accent-high: #b9e4c9;
+}
+:root[data-theme="light"] {
+  --sl-color-accent-low: #d9efe1;
+  --sl-color-accent: #2e7d4f;
+  --sl-color-accent-high: #17412a;
+}
+.yf-gallery {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+.yf-gallery figure {
+  margin: 0;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+.yf-gallery img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--sl-color-bg);
+}
+.yf-gallery figcaption {
+  font-size: var(--sl-text-sm);
+  margin-top: 0.5rem;
+}
+.yf-hero-render {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin: 1rem 0 2rem;
+}
+.yf-hero-render img {
+  width: 100%;
+  height: auto;
+  display: block;
+}

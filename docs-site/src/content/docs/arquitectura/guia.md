@@ -1,6 +1,11 @@
-# 02 — Guía de arquitectura de Yggdrasil Forge
+---
+title: Guía de arquitectura
+description: Como están organizadas as pezas do editor de Yggdrasil Forge — capas, comandos, selección, historial, rexistro de propiedades e validadores.
+sidebar:
+  order: 1
+---
 
-**Para colaboradores do código que queren entender como están organizadas as pezas antes de tocalas.** Asume que xa coñeces o editor desde a [Guía 01](./01-editor-user-guide.md).
+**Para colaboradores do código que queren entender como están organizadas as pezas antes de tocalas.** Asume que xa coñeces o editor desde a [Guía do editor](../../editor/guia/).
 
 ---
 
@@ -450,61 +455,58 @@ Documentado arriba en §"Cicatriz: cache estable".
 ```
 yggdrasil-forge/
 ├── packages/
-│   ├── common/                 # tipos comúns
+│   ├── common/                 # tipos comúns, Result, LocalizedString, erros
 │   ├── core/                   # dominio + runtime
 │   │   ├── src/types/          # NodeDef, EdgeDef, Effect, Cost, ...
-│   │   ├── src/engine/         # TreeEngine, EffectsRunner, supportManifest
-│   │   └── src/layout/         # algoritmos de layout
-│   ├── react/                  # SkillTree SVG + viewport
+│   │   ├── src/engine/         # TreeEngine, EffectsRunner, supportManifest, treeDefSchema (Zod)
+│   │   └── src/engine/layouts/ # motores de layout (radial, tree, layered, clustered-radial, constellation)
+│   ├── react/                  # SkillTree SVG + viewport + temas + sets de iconas
 │   ├── editor-core/            # headless do editor
 │   │   ├── src/EditorEngine.ts
 │   │   ├── src/command/        # Command, Transaction, History
 │   │   ├── src/selection/      # SelectionEngine
 │   │   ├── src/operation/      # MoveOperation, Operation interface
-│   │   ├── src/validation/     # duros + soft + createDefaultValidators
-│   │   └── src/property/       # PropertyDescriptor, nodePropertyRegistry, authorableEffectTypes
-│   └── editor-react/           # UI React
-│       └── src/
-│           ├── EditorShell.tsx
-│           ├── canvas/         # EditorCanvas + CanvasOverlay
-│           ├── inspector/      # InspectorPanel + widgets + structured/
-│           ├── panels/         # OutlinerPanel + ProblemsPanel
-│           └── shell/          # TopBar + StatusBar
+│   │   ├── src/validation/     # duros + brandos + createDefaultValidators
+│   │   ├── src/property/       # PropertyDescriptor, nodePropertyRegistry, authorableEffectTypes
+│   │   ├── src/layout/         # applyAutoLayout (Dispor) + defaultLayoutConfigs
+│   │   └── src/document/       # serialize/deserialize, ThemeSpec, themePresets
+│   ├── editor-react/           # UI React
+│   │   └── src/
+│   │       ├── EditorShell.tsx
+│   │       ├── canvas/         # EditorCanvas, CanvasOverlay, DisporMenu, ClusterCardsView
+│   │       ├── inspector/      # InspectorPanel, TreeInspector, widgets, structured/
+│   │       ├── panels/         # OutlinerPanel, ProblemsPanel, ThemePanel, code/ (CodeMirror)
+│   │       ├── proba/          # ProbaPanel + useProbaSession
+│   │       └── shell/          # TopBar, menús, StatusBar, ShellRuntimeContext
+│   └── cli/                    # ygg: validate, layout, render, schema, new
 ├── examples/
 │   ├── editor/                 # a app runnable do editor
-│   └── oberon-panadeiro/       # demo de @react sin editor
-├── docs/
-│   ├── architecture/MASTER.md  # o documento canónico
-│   └── guides/                 # estás aquí
-└── tools/
-    └── icon-preview/           # ferramenta para previsualizar iconos
+│   ├── gallery/                # documentos de ouro (garantidos por test)
+│   └── …                       # react-demo, learn-yggdrasil, cyberware-ripperdoc, …
+├── schema/                     # JSON Schema publicado do documento
+├── docs/architecture/          # MASTER.md (canónico), EDITOR_DOMAIN_MODEL, ROADMAP
+├── docs-site/                  # esta documentación (Astro/Starlight)
+└── tools/icon-preview/         # previsualizador de iconas
 ```
 
 ---
 
-## Decisións banked (prioridade alta)
+## Decisións banked
 
-Estes son problemas/melloras coñecidas que NON están bloqueando nada agora pero que vale a pena abordar antes de que se acumulen:
+Problemas ou melloras coñecidas que NON bloquean nada pero están anotadas para cando o uso as pida (doutrina §13: a xeneralidade gáñase caso a caso):
 
-1. **★ `screenToWorld`/`worldToScreen` no `SkillTreeHandle`** (`@react`). Eliminaría a necesidade do editor de coñecer a estrutura DOM interna do SkillTree. Está banked desde a cicatriz A.6.39/40.
-2. **`createSoftValidators` rename** (de `createDefaultValidators`). O nome actual é enganoso porque os "duros" tamén son default — só os soft precisan rexistro.
-3. **`VERSION` sync entre `@core/index.ts` e `@core/package.json`** — o barrel exporta `'0.0.0'` mentres o package está en `0.4.0`.
-4. **Pantalla de bienvida / Open example / Import** — agora a app carga panadeiro hardcoded.
-5. **Locale do canvas** — non hai forma de cambiar a locale activa. O editor de LocalizedString edita `en` por defecto.
-6. **Tools/InteractionController de 7.3 latentes** ata UI de barra de tools.
-7. **dockview-react v7** quando estabilice.
+1. **`screenToWorld`/`worldToScreen` no `SkillTreeHandle`** (`@react`). Eliminaría a necesidade do editor de coñecer a estrutura DOM interna do SkillTree. O handle xa expón `fit`, `zoomIn/Out` e `centerOn` (7.18b); a conversión de coordenadas segue bancada.
+2. **`createSoftValidators` rename** (de `createDefaultValidators`): o nome actual é enganoso porque os duros tamén son por defecto.
+3. **Locale do canvas**: non hai forma de cambiar a locale activa; o editor de `LocalizedString` edita `gl` por defecto e conserva as demais.
+4. **Selector visual de iconas**: os sets `logic-*`/`norse-*` escríbense polo id (a axuda do campo lístaos).
+5. **Culling/virtualización do SVG a escala atlas** (>1.500 nodos): tras a memoización do 16.4, o que queda é o layout do navegador; post-1.0.
+6. **dockview-react v7** cando estabilice.
 
 ---
 
-## Que vén despois — fases pendentes
+## Onde estamos
 
-| Fase | Descripción |
-|---|---|
-| **7.5c-ii fase 2** | `prerequisites` editable (UnlockRule aniñada: all/any/condition). Effects `composite`/`conditional` editables. Mesmo gate aplicado a UnlockCondition. |
-| **7.5d** | Tools de creación (engadir nodo/aresta novo). Aquí entrarán InteractionController + Tools de 7.3. |
-| **7.5e** | Edición común multi-selección. Edición de GroupDef e Region. |
-| **7.6** | Pantalla de bienvida, Open example, Import/Export, multi-doc. |
-| **8.x** | Plugins de @react (themes), exporters (JSON/XML/SQL), preview interactivo avanzado. |
+O editor núcleo (Fase 14) e a maior parte do Studio (Fase 15) están feitos: ferramentas de creación, importar/exportar, panel Código con validación, vista tarxetas, auto-layout «Dispor» (cinco motores), exportación de imaxe, presets de tema con nome e sets de iconas oficiais. O estado real fronte ao roadmap mantense no repo: [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md) e [`MASTER.md`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/docs/architecture/MASTER.md) (co Annex de leccións).
 
-Para **engadir capacidades** ti mesmo, le a [Guía de extensión](./03-extension-guide.md).
-Para **usar o editor**, le a [Guía 01](./01-editor-user-guide.md).
+Para **engadir capacidades** ti mesmo, le a [Guía de extensión](../../extension/guia/).
+Para **usar o editor**, le a [Guía do editor](../../editor/guia/).

@@ -2,6 +2,8 @@ packages:
   - 'packages/*'
   - 'apps/*'
   - 'examples/*'
+  # Documentación pública (16.1). Fóra dos pipelines de packages, coma os examples.
+  - 'docs-site'
 
 # Catálogo de versións compartidas para devDependencies do monorepo.
 # Os paquetes refírense con `catalog:` no canto da versión literal.
@@ -34,4 +36,6 @@ catalog:
 allowBuilds:
   '@biomejs/biome': true
   esbuild: true
+  # Astro/Starlight (docs-site): optimización de imaxes.
+  sharp: true
   # Engadir aquí calquera novo build script aprobado.

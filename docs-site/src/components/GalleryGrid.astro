@@ -1,0 +1,41 @@
+---
+// Galería de ouro en imaxe. `src/data/gallery.json` xérao
+// scripts/render-gallery.mjs no build (nunca se commitea).
+import entries from '../data/gallery.json'
+
+interface Props {
+  locale: 'gl' | 'en'
+}
+const { locale } = Astro.props
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+const repo =
+  'https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery'
+const t =
+  locale === 'en'
+    ? { nodes: 'nodes', edges: 'edges', json: 'JSON', preset: 'preset' }
+    : { nodes: 'nodos', edges: 'arestas', json: 'JSON', preset: 'preset' }
+---
+
+<div class="yf-gallery">
+  {
+    entries.map((e) => (
+      <figure>
+        <img class="yf-light" src={`${base}/${e.light}`} alt={e.label[locale] || e.id} loading="lazy" />
+        <img class="yf-dark" src={`${base}/${e.dark}`} alt={e.label[locale] || e.id} loading="lazy" />
+        <figcaption>
+          <strong>{e.label[locale] || e.id}</strong> — {e.nodes} {t.nodes}, {e.edges} {t.edges}
+          {e.preset ? `, ${t.preset} ${e.preset}` : ''} ·{' '}
+          <a href={`${repo}/${e.file}`}>{t.json}</a>
+          {e.description[locale] ? <br /> : null}
+          {e.description[locale]}
+        </figcaption>
+      </figure>
+    ))
+  }
+</div>
+
+<style>
+  .yf-gallery .yf-dark { display: none; }
+  :global([data-theme='dark']) .yf-gallery .yf-light { display: none; }
+  :global([data-theme='dark']) .yf-gallery .yf-dark { display: block; }
+</style>

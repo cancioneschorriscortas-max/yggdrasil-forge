@@ -1,0 +1,71 @@
+# ── INICIO: docs.yml (16.1) ──
+# Constrúe e publica a documentación pública (docs-site, Astro/Starlight)
+# en GitHub Pages en cada push a main. Separado do CI e da release a
+# propósito: un workflow simple por responsabilidade. O build do site é
+# a garda de podrecemento (render da galería + tradución completa +
+# ligazóns): se algo diso falla, non se publica.
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-pages
+  cancel-in-progress: true
+
+env:
+  HUSKY: '0'
+
+jobs:
+  build:
+    name: Build docs site
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.0.9
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # O render da galería precisa o CLI compilado (e este, os paquetes
+      # dos que depende); turbo resolve a orde.
+      - name: Build docs site (render gallery + i18n check + astro build)
+        run: pnpm run docs:build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs-site/dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+# ── FIN: docs.yml ──

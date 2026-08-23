@@ -1,0 +1,44 @@
+---
+title: Inicio
+description: Motor de árbores de progresión (skill trees) para apps educativas e xogos. Datos primeiro, render despois.
+template: splash
+hero:
+  title: Yggdrasil Forge
+  tagline: Un motor de grafos de progresión — skill trees, currículos, tech trees — no que o dato é o contrato e o aspecto vén por declaración.
+  actions:
+    - text: Comeza aquí
+      link: comeza/instalacion/
+      icon: right-arrow
+    - text: Ver os exemplos
+      link: exemplos/galeria/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/cancioneschorriscortas-max/yggdrasil-forge
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+import HeroRender from '../../components/HeroRender.astro'
+
+<HeroRender
+  id="gaia-cards"
+  alt="Atlas de constelacións — 12 nodos con iconas logic-* e o preset Néon, renderizado con ygg render"
+/>
+
+*O atlas de constelacións da galería: dous campos no JSON (`icon: "logic-…"`, `preset: "neon"`) e un comando (`ygg layout`) — ningún píxel tocado á man.*
+
+<CardGrid stagger>
+  <Card title="Datos primeiro" icon="document">
+    Unha árbore é un documento JSON con schema publicado. O motor (`@yggdrasil-forge/core`) avalía desbloqueos, recursos, rangos e efectos; todo o demais lé ese dato.
+  </Card>
+  <Card title="O editor" icon="pencil">
+    Autoría visual con Inspector, validación en vivo, auto-layout con cinco motores, vista de tarxetas, modo Proba e panel de código sincronizado.
+  </Card>
+  <Card title="A vía do dato" icon="rocket">
+    `ygg validate → layout → render`: unha IA (ou calquera pipeline) xera unha árbore completa, validada e vestida sen abrir o editor.
+  </Card>
+  <Card title="Galego primeiro" icon="star">
+    Proxecto nacido en galego, documentado en galego, con inglés completo. Cliente cero: Oberón, a sección de profesións da app educativa GAIA.
+  </Card>
+</CardGrid>

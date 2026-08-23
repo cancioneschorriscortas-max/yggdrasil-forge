@@ -1,0 +1,21 @@
+---
+// Render grande da portada: o SVG claro e o escuro xéranse no build
+// (scripts/render-gallery.mjs); o CSS escolle segundo o tema do sitio.
+interface Props {
+  id: string
+  alt: string
+}
+const { id, alt } = Astro.props
+const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+---
+
+<figure class="yf-hero-render">
+  <img class="yf-light" src={`${base}/gallery/${id}.svg`} alt={alt} loading="eager" />
+  <img class="yf-dark" src={`${base}/gallery/${id}.dark.svg`} alt={alt} loading="eager" />
+</figure>
+
+<style>
+  .yf-hero-render .yf-dark { display: none; }
+  :global([data-theme='dark']) .yf-hero-render .yf-light { display: none; }
+  :global([data-theme='dark']) .yf-hero-render .yf-dark { display: block; }
+</style>

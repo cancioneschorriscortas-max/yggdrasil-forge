@@ -1,6 +1,11 @@
-# 03 — Guía de extensión de Yggdrasil Forge
+---
+title: Guía de extensión
+description: Receitas para engadir campos, sub-editores, validadores, efectos, comandos e operacións ao editor.
+sidebar:
+  order: 1
+---
 
-**Para devs que queren engadir capacidades ao editor.** Asume que xa entendes a arquitectura desde a [Guía 02](./02-architecture-guide.md).
+**Para devs que queren engadir capacidades ao editor.** Asume que xa entendes a arquitectura desde a [Guía de arquitectura](../../arquitectura/guia/).
 
 Esta guía está organizada como **receitas paso a paso**. Cada receita é independente; podes empezar pola que che interese.
 
@@ -700,7 +705,7 @@ Crea un **validator duro** en `packages/editor-core/src/validation/hard/`. Rexí
 Para widgets, usa `@testing-library/react`. Patrón estándar: render → `act(() => engine.getSession().selection.replace(...))` → `fireEvent.change` / `fireEvent.blur` → verificar `engine.getDocument().tree.nodes[...]`.
 
 ### "O meu test entra en bucle infinito"
-Probable causa: `useSyncExternalStore` cunha snapshot que devolve obxecto novo cada vez. Ver §"Cache estable" na [Guía 02](./02-architecture-guide.md#renderización-en-tempo-real--usesyncexternalstore).
+Probable causa: `useSyncExternalStore` cunha snapshot que devolve obxecto novo cada vez. Ver §"Cache estable" na [Guía de arquitectura](../../arquitectura/guia/#renderización-en-tempo-real--usesyncexternalstore).
 
 ---
 
@@ -747,7 +752,7 @@ switch (x.kind) {
 TypeScript marca erro se `x.kind` ten un valor non cuberto.
 
 ### Pattern: cache estable para useSyncExternalStore
-Ver [Guía 02 §Renderización](./02-architecture-guide.md#renderización-en-tempo-real--usesyncexternalstore).
+Ver [Guía de arquitectura §Renderización](../../arquitectura/guia/#renderización-en-tempo-real--usesyncexternalstore).
 
 ### Pattern: command on blur
 Mantén estado local; despacha `onCommit` no `onBlur`. Cancela co `Escape`. Confirma co `Enter` (`e.currentTarget.blur()`).
@@ -755,7 +760,7 @@ Mantén estado local; despacha `onCommit` no `onBlur`. Cancela co `Escape`. Conf
 ---
 
 ## Para entender o "porqué" detrás destes patróns
-Le a [Guía 02 — Arquitectura](./02-architecture-guide.md), especialmente as seccións sobre Property Registry, gate manifesto-descriptor, e o loop conciencia-voz.
+Le a [Guía de arquitectura](../../arquitectura/guia/), especialmente as seccións sobre Property Registry, gate manifesto-descriptor, e o loop conciencia-voz.
 
 ## Para usar o editor (non extendelo)
-Le a [Guía 01 — Editor](./01-editor-user-guide.md).
+Le a [Guía do editor](../../editor/guia/).

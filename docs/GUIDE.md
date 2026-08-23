@@ -297,123 +297,17 @@ separación é deliberada.
 
 ## 6. Tematización
 
-O tema aplícase por **inline style desde `useTheme()`** (alta prioridade, sen
-problemas de cascada). Provéelo cun `ThemeProvider`:
-
-```tsx
-import { ThemeProvider } from '@yggdrasil-forge/react'
-import type { Theme } from '@yggdrasil-forge/react'
-
-const dark: Theme = {
-  colors: {
-    background: '#11131a',      // fondo do canvas SVG (F10.8; opcional)
-    surface: '#1c2030',         // «tarxeta» detrás da árbore (F10.8; opcional)
-    text: '#e6d5a8',
-    nodeFill: '#2a2f3d',        // interior do orbe
-    nodeLocked: '#5b6b86',
-    nodeUnlockable: '#e0a93c',
-    nodeUnlocked: '#6fcf97',
-    nodeMaxed: '#f0c14b',
-    nodeInProgress: '#e08a3c',
-    nodeStroke: '#5b6b86',
-    edge: '#46506b',
-    edgeActive: '#00e0ff',      // edge "aceso" (opcional)
-    icon: '#e6d5a8',            // cor dos iconos (opcional; fallback a text)
-    selected: '#bb86fc',        // anel de selección/foco (opcional; fallback a nodeUnlockable)
-    mesh: 'rgba(148,163,184,0.08)',
-  },
-  sizes: { strokeWidth: 2.5, fontSize: 14, fontSizeSmall: 11, ringWidth: 3 },
-  typography: {                 // tipografía dos labels (F10.8; todo opcional)
-    fontFamily: '"Cinzel", serif',
-    fontWeight: 600,
-    letterSpacing: '0.04em',
-    // textTransform: 'uppercase',
-  },
-}
-
-<ThemeProvider theme={dark}><SkillTree engine={engine} /></ThemeProvider>
-```
-
-- Campos opcionais (`background`, `surface`, `nodeFill`, `edgeActive`, `icon`,
-  `selected`, `ringWidth`, `typography`) teñen fallback sensato → un tema
-  mínimo só precisa `text` + as cores de estado.
-- `colors.background` aplícase **inline** ao `<svg>` (vía fiable post-F10.8;
-  cero CSS vars).
-- `colors.surface` debuxa unha «tarxeta» de fondo cubrindo o viewBox (panel
-  composible completo virá en F12).
-- `typography` aplícase aos `<text>` dos labels. Lembra cargar a fonte (`@import`
-  ou `<link>` do Google Fonts, etc.) antes de pasarlla ao tema.
-- Para experimentar paletas en vivo, mira o **Theme Lab** do demo
-  (`examples/react-demo`): sliders + presets + «copiar valores».
-
-### Fill por estado (Renderer sub-fase 1)
-
-Por defecto o **anel** do nodo cambia de cor co estado pero o **corpo** é único
-(`colors.nodeFill`). Se queres que o corpo enteiro fale, declara fills por
-estado:
-
-```ts
-const dark: Theme = {
-  colors: {
-    // ...resto do tema...
-    nodeFill: '#2a2f3d',           // legado / fallback
-    nodeFillLocked: '#1d2230',     // bloqueados máis escuros
-    nodeFillUnlockable: '#2a2f3d',
-    nodeFillUnlocked: '#2a3d2f',   // tinte verde
-    nodeFillMaxed: '#3d3320',      // dourado pleno
-    nodeFillInProgress: '#3d2f20', // dourado tenue
-  },
-}
-```
-
-Tódolos `nodeFill<State>` son **opcionais**: sen declarar ningún → comportamento
-legado (`nodeFill` para todos). Con só un definido, o resto seguen caendo a
-`nodeFill`. Cero regresión.
-
-**Resolución (`fillColorForState`)**:
-1. `NodeDef.color` (override por-nodo do TreeDef) — **gaña sempre**.
-2. `colors.nodeFill<State>` se o tema o declara.
-3. `colors.nodeFill` (legado).
-4. `'#f4f4ef'` (default último recurso).
-
-**Estado visual derivado (`visualStateFor`)**: un nodo multi-tier
-(`maxTier > 1`) **a medias** (`0 < currentTier < maxTier`) píntase como
-`in_progress` aínda que o motor lle dea `unlocked`. Iso é **cosmético**: o motor
-segue actuando sobre o `NodeState` real; aquí só decidimos cor. O efecto é que
-con declarar `nodeFillInProgress` + `nodeInProgress` (anel), os tiers parciais
-acéndense automaticamente cunha cor distinta sen tocar o motor.
-
-**`NodeDef.color`** xa tinguir o corpo. Útil para nodos especiais (keystones
-con cor temática) que deben destacar independentemente do tema activo:
-
-```ts
-{ id: 'dark-pact', type: 'keystone', color: '#6b2e2e', /*...*/ }
-```
+> **Movido á documentación pública (16.1).** A guía completa de theming —
+> tema do renderer (`ThemeProvider`), recheos por estado, tema do documento
+> (`editor.theme`), presets con nome e a costura chrome↔documento — vive en
+> **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/theming/**
+> (fonte: `docs-site/src/content/docs/theming/index.md`).
 
 ## 7. Iconos (SVG recoloreables)
 
-`node.icon` é un **ID de rexistro** (con fallback a emoji/char ou URL→imaxe).
-
-```tsx
-import { registerIcons, BUILTIN_ICONS, NORSE_ICONS } from '@yggdrasil-forge/react'
-import type { IconDef } from '@yggdrasil-forge/react'
-
-// BUILTIN_ICONS auto-rexístranse. Os sets temáticos son OPT-IN:
-registerIcons(NORSE_ICONS)          // antes do primeiro render
-
-// Icona propia (recolorea co tema vía currentColor):
-const myIcon: IconDef = {
-  viewBox: '0 0 24 24',
-  paths: [{ d: 'M4 4 L20 20 M20 4 L4 20', mode: 'stroke' }], // 'stroke' | 'fill'
-}
-registerIcons({ 'my-x': myIcon })
-
-// Úsao no TreeDef:
-// { id: 'a', icon: 'my-x', ... }   // ou 'norse-mjolnir', ou '⚔' (fallback)
-```
-
-- **Por que opt-in os sets temáticos:** byte-cost; o paquete base só carga os
-  esenciais. Calquera set (norse, e os que veñan) expórtase como data pura.
+> **Movido á documentación pública (16.1).** Sets `BUILTIN`, `NORSE_ICONS` e
+> `LOGIC_ICONS` (opt-in), iconas propias con `registerIcons` e fallbacks:
+> **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/theming/#4-iconas-svg-recoloreables**.
 
 ## 8. Edges (xeometría = contrato de datos)
 

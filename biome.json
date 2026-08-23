@@ -8,7 +8,9 @@
       "**/coverage",
       "**/*.min.js",
       "**/*.min.css",
-      "pnpm-lock.yaml"
+      "pnpm-lock.yaml",
+      "docs-site/**/*.astro",
+      "docs-site/.astro"
     ]
   },
   "vcs": {
@@ -77,7 +79,7 @@
   },
   "overrides": [
     {
-      "include": ["examples/**"],
+      "include": ["examples/**", "docs-site/scripts/**"],
       "linter": {
         "rules": {
           "suspicious": {

@@ -1,0 +1,5 @@
+dist/
+.astro/
+# Renders da galería: xéranse no build (scripts/render-gallery.mjs), nunca á man.
+public/gallery/
+src/data/

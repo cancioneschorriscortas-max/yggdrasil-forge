@@ -1,0 +1,22 @@
+{
+  "name": "@yggdrasil-forge-docs/site",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Documentación pública de Yggdrasil Forge (Astro + Starlight, galego por defecto + inglés)",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "render:gallery": "node scripts/render-gallery.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
+    "build": "node scripts/render-gallery.mjs && node scripts/check-i18n.mjs && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.34.0",
+    "astro": "^5.7.0",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@yggdrasil-forge/cli": "workspace:*"
+  }
+}
