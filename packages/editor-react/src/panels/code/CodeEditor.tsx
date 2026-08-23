@@ -117,6 +117,34 @@ const jsonHighlight = HighlightStyle.define([
   { tag: tags.separator, class: 'cm-json-punct' },
 ])
 
+/**
+ * Cambio mínimo que transforma `oldText` en `newText`: recorta o prefixo
+ * e o sufixo comúns e devolve só o tramo do medio. `null` se son iguais.
+ * Puro e exportado para test.
+ */
+export function minimalChange(
+  oldText: string,
+  newText: string,
+): { readonly from: number; readonly to: number; readonly insert: string } | null {
+  if (oldText === newText) return null
+  const maxPrefix = Math.min(oldText.length, newText.length)
+  let prefix = 0
+  while (prefix < maxPrefix && oldText.charCodeAt(prefix) === newText.charCodeAt(prefix)) prefix++
+  const maxSuffix = maxPrefix - prefix
+  let suffix = 0
+  while (
+    suffix < maxSuffix &&
+    oldText.charCodeAt(oldText.length - 1 - suffix) ===
+      newText.charCodeAt(newText.length - 1 - suffix)
+  )
+    suffix++
+  return {
+    from: prefix,
+    to: oldText.length - suffix,
+    insert: newText.slice(prefix, newText.length - suffix),
+  }
+}
+
 export function CodeEditor({
   value,
   onUserEdit,
@@ -170,13 +198,20 @@ export function CodeEditor({
   }, [])
 
   // Sync do texto desde fóra (anotada como externa → non dispara onUserEdit).
+  //
+  // Fase 16.4 perf: despachar SÓ o rango que cambiou, non o documento
+  // enteiro. Substituír todo o texto a cada commit facía que CodeMirror
+  // reconstruíse o DOM de tódalas liñas visibles e reparsease o JSON
+  // completo: a 1500 nodos era máis da metade do custo dun drag (perfil
+  // CDP). Cun cambio mínimo (prefixo/sufixo comúns), o traballo é
+  // proporcional ao que cambiou — un drag toca só a posición dun nodo.
   useEffect(() => {
     const view = viewRef.current
     if (view === null) return
-    const current = view.state.doc.toString()
-    if (current === value) return
+    const change = minimalChange(view.state.doc.toString(), value)
+    if (change === null) return
     view.dispatch({
-      changes: { from: 0, to: current.length, insert: value },
+      changes: change,
       annotations: externalChange.of(true),
     })
   }, [value])

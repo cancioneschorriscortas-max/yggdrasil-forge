@@ -9,7 +9,7 @@
 'use client'
 
 import type { EdgeDef, EdgePath, NodeState } from '@yggdrasil-forge/core'
-import type { CSSProperties, JSX, MouseEvent } from 'react'
+import { type CSSProperties, type JSX, type MouseEvent, memo } from 'react'
 import { ARROW_MARKER_ID } from './SVGRenderer.js'
 import { useTheme } from './ThemeProvider.js'
 import { buildPathD } from './svg-helpers.js'
@@ -43,7 +43,7 @@ export interface SkillEdgeProps {
   readonly edgeState?: EdgeState
 }
 
-export function SkillEdge({
+function SkillEdgeImpl({
   edgeId,
   edge,
   path,
@@ -87,4 +87,12 @@ export function SkillEdge({
     />
   )
 }
+
+/**
+ * `SkillEdge` memoizado (Fase 16.4 perf): a 1500 nodos hai 4500 arestas
+ * e reconciliábanse todas en cada interacción. Props estables (edge do
+ * TreeDef, path do layout memoizado, edgeState primitivo) → `memo`.
+ */
+export const SkillEdge = memo(SkillEdgeImpl)
+SkillEdge.displayName = 'SkillEdge'
 // ── FIN: SkillEdge ──

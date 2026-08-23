@@ -47,9 +47,11 @@
   },
   "devDependencies": {
     "@testing-library/react": "catalog:",
+    "@types/jest-axe": "^3.5.9",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "jest-axe": "^10.0.0",
     "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
