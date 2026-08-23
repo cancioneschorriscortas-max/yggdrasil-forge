@@ -11,6 +11,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   type PointerEvent,
+  memo,
   useId,
   useRef,
   useState,
@@ -87,7 +88,7 @@ export interface SkillNodeProps {
 
 const DEFAULT_LONG_PRESS_MS = 700
 
-export function SkillNode({
+function SkillNodeImpl({
   node,
   instance,
   position,
@@ -481,6 +482,18 @@ export function SkillNode({
     </g>
   )
 }
+
+/**
+ * `SkillNode` memoizado (Fase 16.4 perf). Os seus props son referencias
+ * estables entre interaccións (node do TreeDef, instance do snapshot,
+ * position do layout memoizado, callbacks do consumidor), así que
+ * seleccionar ou arrastrar NON ten por que reconciliar os N nodos: a
+ * medición a 1500 nodos daba ~200 ms por selección e ~1,7 s por drag
+ * só por re-render. `memo` convérteo en N comparacións superficiais.
+ * Sen cambio de API: mesmo nome, mesmos props, mesmo tipo de compoñente.
+ */
+export const SkillNode = memo(SkillNodeImpl)
+SkillNode.displayName = 'SkillNode'
 
 /**
  * Resolve o label do nodo. Se é LocalizedString (Record), devolve un

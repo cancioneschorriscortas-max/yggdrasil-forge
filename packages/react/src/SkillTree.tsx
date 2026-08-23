@@ -294,6 +294,20 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     ],
   )
 
+  // F10.4 + Fase 16.4 perf: `buildPaths` aplícase UNHA vez por (layout,
+  // curve), non en cada render — con `curve` recreaba tódolos paths en
+  // cada interacción e anulaba a memoización de SkillEdge. Hook ANTES
+  // do return condicional (regra dos hooks).
+  const finalLayoutMemo = useMemo(
+    () =>
+      layoutResult.ok
+        ? curve !== undefined
+          ? buildPaths(layoutResult.value, curve)
+          : layoutResult.value
+        : undefined,
+    [layoutResult, curve],
+  )
+
   // Caso de erro: delegar en SVGRenderer co modo erro.
   if (!layoutResult.ok) {
     return (
@@ -308,8 +322,7 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
   // F10.4: aplicar curve (opcional). buildPaths é puro — recibe o
   // LayoutResult sen mutar; cando `curve` non se pasa, salta a
   // transformación (paths retos do layout, comportamento legacy).
-  const finalLayout =
-    curve !== undefined ? buildPaths(layoutResult.value, curve) : layoutResult.value
+  const finalLayout = finalLayoutMemo ?? layoutResult.value
 
   const { nodes: nodePositions, edges: edgePaths, bounds, mesh } = finalLayout
 
@@ -326,6 +339,74 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
     for (const n of treeDef.nodes) m.set(n.id, resolveRadius(n))
     return m
   }, [treeDef])
+
+  // Fase 16.4 perf: as listas de elementos memoízanse. Unha interacción
+  // que non toque treeDef/estado/selección (p.ex. a selección do editor,
+  // que vai pola overlay) reutiliza os MESMOS arrays: cero createElement
+  // e cero comparacións nos 6.000 fillos a 1500 nodos. Tamén corrixe
+  // que `shortenEdgeAtTarget` creaba un path novo por render nas
+  // arestas directed (anulaba o memo de SkillEdge).
+  const edgeElements = useMemo(
+    () =>
+      [...edgePaths.entries()].map(([edgeId, path]) => {
+        const edge = edgeMap.get(edgeId)
+        /* v8 ignore next 1 -- defensivo: edgePaths vén de computeLayout sobre treeDef.edges */
+        if (edge === undefined) return null
+        // F10.4: estado do edge = derivado do estado do source.
+        const sourceState = state.nodes[edge.source]?.state
+        const edgeState = edgeStateFor(sourceState)
+        // F10.4.fix-arrow: se o edge é directed, acortamos o path no
+        // extremo target o suficiente para que a frecha quede visible
+        // fóra do nodo. Gap = radio do target + pequena marxe.
+        const directed = edge.style?.directed === true
+        const targetRadius = nodeRadius.get(edge.target) ?? 0
+        const finalPath =
+          directed && targetRadius > 0 ? shortenEdgeAtTarget(path, targetRadius + 2) : path
+        return (
+          <SkillEdge
+            key={edgeId}
+            edgeId={edgeId}
+            edge={edge}
+            path={finalPath}
+            edgeState={edgeState}
+            {...(onEdgeClick !== undefined && { onClick: onEdgeClick })}
+          />
+        )
+      }),
+    [edgePaths, edgeMap, state, nodeRadius, onEdgeClick],
+  )
+  const nodeElements = useMemo(
+    () =>
+      treeDef.nodes.map((node) => {
+        const position = nodePositions.get(node.id)
+        /* v8 ignore next 1 -- defensivo: computeLayout produce posicións para tódolos treeDef.nodes */
+        if (position === undefined) return null
+        const isSelected = selectedNodeId !== undefined && node.id === selectedNodeId
+        return (
+          <SkillNode
+            key={node.id}
+            node={node}
+            instance={state.nodes[node.id]}
+            position={position}
+            {...(onNodeClick !== undefined && { onClick: onNodeClick })}
+            {...(onNodeLongPress !== undefined && { onLongPress: onNodeLongPress })}
+            {...(isSelected && { selected: true })}
+            {...(onNodeHover !== undefined && { onHover: onNodeHover })}
+            {...(showTierBadge !== undefined && { showTierBadge })}
+          />
+        )
+      }),
+    [
+      treeDef,
+      nodePositions,
+      state,
+      onNodeClick,
+      onNodeLongPress,
+      selectedNodeId,
+      onNodeHover,
+      showTierBadge,
+    ],
+  )
 
   return (
     <SVGRenderer
@@ -348,54 +429,8 @@ export const SkillTree = forwardRef<SkillTreeHandle, SkillTreeProps>(function Sk
           regionShape={regionShape}
         />
       )}
-      <g className="yf-skill-edges">
-        {[...edgePaths.entries()].map(([edgeId, path]) => {
-          const edge = edgeMap.get(edgeId)
-          /* v8 ignore next 1 -- defensivo: edgePaths vén de computeLayout sobre treeDef.edges */
-          if (edge === undefined) return null
-          // F10.4: estado do edge = derivado do estado do source.
-          const sourceState = state.nodes[edge.source]?.state
-          const edgeState = edgeStateFor(sourceState)
-          // F10.4.fix-arrow: se o edge é directed, acortamos o path no
-          // extremo target o suficiente para que a frecha quede visible
-          // fóra do nodo. Gap = radio do target + pequena marxe.
-          const directed = edge.style?.directed === true
-          const targetRadius = nodeRadius.get(edge.target) ?? 0
-          const finalPath =
-            directed && targetRadius > 0 ? shortenEdgeAtTarget(path, targetRadius + 2) : path
-          return (
-            <SkillEdge
-              key={edgeId}
-              edgeId={edgeId}
-              edge={edge}
-              path={finalPath}
-              edgeState={edgeState}
-              {...(onEdgeClick !== undefined && { onClick: onEdgeClick })}
-            />
-          )
-        })}
-      </g>
-      <g className="yf-skill-nodes">
-        {treeDef.nodes.map((node) => {
-          const position = nodePositions.get(node.id)
-          /* v8 ignore next 1 -- defensivo: computeLayout produce posicións para tódolos treeDef.nodes */
-          if (position === undefined) return null
-          const isSelected = selectedNodeId !== undefined && node.id === selectedNodeId
-          return (
-            <SkillNode
-              key={node.id}
-              node={node}
-              instance={state.nodes[node.id]}
-              position={position}
-              {...(onNodeClick !== undefined && { onClick: onNodeClick })}
-              {...(onNodeLongPress !== undefined && { onLongPress: onNodeLongPress })}
-              {...(isSelected && { selected: true })}
-              {...(onNodeHover !== undefined && { onHover: onNodeHover })}
-              {...(showTierBadge !== undefined && { showTierBadge })}
-            />
-          )
-        })}
-      </g>
+      <g className="yf-skill-edges">{edgeElements}</g>
+      <g className="yf-skill-nodes">{nodeElements}</g>
       {/* Interactivo Capa B: controis ➕/➖ no nodo seleccionado. Renderízanse
           dentro do <g transform> do viewport (móvense co pan/zoom). Cero
           chamada ao motor; o consumidor cablea via onNodeTierIncrease /
