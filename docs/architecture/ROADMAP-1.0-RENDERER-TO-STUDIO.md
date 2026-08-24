@@ -349,16 +349,27 @@ que F15 o extenda.
 **Obxectivo.** A experiencia das imaxes 13/14 (ou mellor), sobre o núcleo
 aberto de F14. Aquí **paga o design-wide**.
 
-- **15.1 — Undo/redo (command stack) + auto-save** *(M)*.
-- **15.2 — Vista código (Monaco) YAML/JSON** *(L)*.
-- **15.3 — Sync bidireccional (Código ↔ Árbore) + Split view** *(L)* — *a
-  peza máis dura do Studio*.
+- **15.1 — Undo/redo (command stack) + auto-save** *(M)*. **SATISFEITO**:
+  undo/redo desde 7.5 (History/Transaction); o autosave que faltaba
+  entregouse en 15.6 (supervivencia + banner de recuperación).
+- **15.2 — Vista código (Monaco) YAML/JSON** *(L)*. **SATISFEITO** polo
+  panel Código (7.15b, CodeMirror — máis lixeiro ca Monaco e abondo).
+- **15.3 — Sync bidireccional (Código ↔ Árbore) + Split view** *(L)*.
+  **SATISFEITO**: sincronizado/borrador + Validar/Aplicar É a sync
+  bidireccional; o split é o dockview libre (a vitoria do dono:
+  «conservar o formato como me sae da gana»).
 - **15.4 — Vista validación + panel de diagnósticos** *(M)*.
-  Usa `@validators` (Fase 8). Overlay visual + lista de issues +
-  "view in code".
-- **15.5 — Icon picker UI + editor i18n + builder de prerequisites** *(M)*.
-- **15.6 — Sistema de tabs (Preview/Edit/Code/Split/Validate) + PWA** *(M)*.
-  Integración baixo o chrome de tabs. PWA/offline (MASTER §62).
+  **SATISFEITO**: Problemas (7.5c) + clic-que-centra (7.18b) + «Ver no
+  código» (15.6).
+- **15.5 — Icon picker UI** *(M)*. **FEITO** (15.5): selector visual con
+  busca e grella por sets, compartido nodo/recurso. (O editor i18n e o
+  builder de prerequisites xa existían: LocalizedText + editor de
+  condicións de 7.5c-ii.)
+- **15.6 — Sistema de tabs + PWA** *(M)*. Tabs de fluxo **SUPERSEDED**
+  (decisión do Director, 15.6): a realidade construída — modos
+  Autoría/Proba, paneis dockview libres — xa entrega cada tab mellor;
+  impor un chrome fixo sería regresión. O resto honesto entregouse:
+  **PWA/offline (MASTER §62) + autosave/recuperación + «Ver no código»**.
 
 **Aceptación F15:** edición visual + código + split + validación, todo
 aberto e extensible, ao nivel (ou mellor) das imaxes 13/14.

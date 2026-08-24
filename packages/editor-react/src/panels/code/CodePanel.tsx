@@ -31,6 +31,7 @@ import {
   serializeDocument,
 } from '@yggdrasil-forge/editor-core'
 import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useShellRuntime } from '../../shell/ShellRuntimeContext.js'
 import { CodeEditor } from './CodeEditor.js'
 import { SECTION_LEGEND, computeSectionRanges } from './sections.js'
 
@@ -83,6 +84,12 @@ export function CodePanel({ editorEngine }: CodePanelProps): JSX.Element {
   const [validation, setValidation] = useState<ValidationState | null>(null)
   const [docChangedBehind, setDocChangedBehind] = useState(false)
   const [stale, setStale] = useState(false)
+  // 15.6 «Ver no código»: Problemas pide revelar un nodo; buscamos
+  // `"id": "<nodeId>"` no texto ACTUAL (a mesma técnica honesta que a
+  // liña de erro do Validar) e pedímoslle o salto ao CodeEditor.
+  const { registerCodeReveal } = useShellRuntime()
+  const [reveal, setReveal] = useState<{ line: number; nonce: number } | undefined>(undefined)
+  const textRef = useRef('')
 
   // Refs para que a subscrición (montada unha vez) vexa o estado vivo.
   const modeRef = useRef(mode)
@@ -176,6 +183,18 @@ export function CodePanel({ editorEngine }: CodePanelProps): JSX.Element {
 
   // ── Derivados ──
   const text = mode === 'synced' ? syncedText : draftText
+  textRef.current = text
+
+  useEffect(() => {
+    registerCodeReveal((nodeId: string) => {
+      const needle = `"id": "${nodeId}"`
+      const idx = textRef.current.indexOf(needle)
+      if (idx === -1) return
+      const line = textRef.current.slice(0, idx).split('\n').length
+      setReveal((prev) => ({ line, nonce: (prev?.nonce ?? 0) + 1 }))
+    })
+    return () => registerCodeReveal(null)
+  }, [registerCodeReveal])
   const sections = useMemo(() => computeSectionRanges(text), [text])
 
   return (
@@ -255,6 +274,7 @@ export function CodePanel({ editorEngine }: CodePanelProps): JSX.Element {
       </header>
       <CodeEditor
         value={text}
+        {...(reveal !== undefined && { reveal })}
         onUserEdit={handleUserEdit}
         sections={sections}
         {...(validation?.ok === false &&

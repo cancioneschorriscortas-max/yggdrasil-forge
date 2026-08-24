@@ -28,6 +28,10 @@ Na esquina superior dereita hai dous botóns: **Autoría** e **Proba**.
 
 Comeza en Autoría. Cambia a Proba para ver como se sente. Volve a Autoría para axustar. A disposición dos paneis consérvase ao cambiar de modo.
 
+### Supervivencia e instalación
+
+O documento **autogárdase** (con ~1 s de demora tras cada cambio): se pechas ou recargas sen exportar, ao volver aparece un banner — *«Recuperouse traballo sen exportar (data) — Continuar / Descartar»*. *Novo* empeza de cero (sen recuperación); **Exportar segue sendo o gardado real**. E o editor é unha **PWA**: funciona enteiro sen conexión e Chrome/Edge ofrecen instalalo como app de escritorio.
+
 ## Os paneis
 
 A pantalla divídese en paneis redimensionables. Podes pechalos coa ✕ da pestana e reabrilos desde o menú **Paneis** da barra superior, que tamén ten **Restaurar disposición**. A disposición gárdase entre sesións.

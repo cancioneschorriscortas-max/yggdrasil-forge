@@ -22,6 +22,7 @@ import {
   createDefaultValidators,
   createEditorDocument,
   deserializeDocument,
+  serializeDocument,
   standaloneSvg,
   toJson,
 } from '@yggdrasil-forge/editor-core'
@@ -73,6 +74,40 @@ function clearLayout(): void {
 // claro; se o localStorage falla (cota/privado) cae en claro tamén.
 type EditorTheme = 'light' | 'dark'
 const THEME_STORAGE_KEY = 'ygg-editor-theme'
+
+// ── 15.6 — Supervivencia: autosave do documento ──
+// O último «come-traballo» do produto: ata agora F5 perdía todo o non
+// exportado. Clave versionada (doutrina 7.7). Envoltura {savedAt, json}
+// para poder dicir DE CANDO é o traballo recuperado.
+const AUTOSAVE_STORAGE_KEY = 'ygg-editor-autosave@v1'
+/** Límite de tamaño serializado (~4MB): por riba, degradación honesta. */
+const AUTOSAVE_SIZE_LIMIT = 4_000_000
+const AUTOSAVE_DEBOUNCE_MS = 1000
+
+interface AutosavePayload {
+  readonly savedAt: string
+  readonly json: string
+}
+
+function readAutosave(): AutosavePayload | null {
+  try {
+    const raw = window.localStorage.getItem(AUTOSAVE_STORAGE_KEY)
+    if (raw === null) return null
+    const parsed = JSON.parse(raw) as Partial<AutosavePayload>
+    if (typeof parsed.savedAt !== 'string' || typeof parsed.json !== 'string') return null
+    return { savedAt: parsed.savedAt, json: parsed.json }
+  } catch {
+    return null
+  }
+}
+
+function clearAutosave(): void {
+  try {
+    window.localStorage.removeItem(AUTOSAVE_STORAGE_KEY)
+  } catch {
+    // Cota/privado — silencio.
+  }
+}
 
 function loadTheme(): EditorTheme {
   if (typeof window === 'undefined') return 'light'
@@ -134,6 +169,41 @@ function buildEngine(doc: EditorDocument): EditorEngine {
   return new EditorEngine(doc, { validators: createDefaultValidators() })
 }
 
+// 15.6: estilos dos banners de supervivencia (a app de exemplo non ten
+// CSS propio; tokens do chrome para respectar claro/escuro).
+const bannerStyle: React.CSSProperties = {
+  position: 'fixed',
+  top: 8,
+  left: '50%',
+  transform: 'translateX(-50%)',
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  padding: '8px 14px',
+  background: 'var(--editor-bg-elevated)',
+  color: 'var(--editor-text-primary)',
+  border: '1px solid var(--editor-border-strong)',
+  borderRadius: 8,
+  boxShadow: 'var(--editor-shadow-elev1)',
+  font: '13px var(--editor-font-ui)',
+}
+const noticeStyle: React.CSSProperties = {
+  ...bannerStyle,
+  top: 'auto',
+  bottom: 8,
+  color: 'var(--editor-text-secondary)',
+}
+const bannerButtonStyle: React.CSSProperties = {
+  border: '1px solid var(--editor-border-strong)',
+  background: 'var(--editor-bg-panel)',
+  color: 'var(--editor-text-primary)',
+  borderRadius: 6,
+  padding: '3px 10px',
+  cursor: 'pointer',
+  font: 'inherit',
+}
+
 function App(): JSX.Element {
   const initialLayout = useMemo(() => loadLayout(), [])
   const onLayoutChange = useCallback((layout: SerializedDockview) => saveLayout(layout), [])
@@ -180,8 +250,72 @@ function App(): JSX.Element {
     if (!window.confirm('Substituír o documento actual? O que non exportaras perderase.')) {
       return
     }
+    // Novo = folla en branco: nada que recuperar (o autosave volverá
+    // en canto haxa un primeiro commit de edición).
+    clearAutosave()
     replaceDocument(createEditorDocument(emptyTreeDef(), emptyDocumentMeta))
   }, [replaceDocument])
+
+  // ── 15.6 — autosave: subscrición ao motor con debounce ──
+  // Se o documento excede o límite (ou localStorage rebenta de cota),
+  // desactívase o autosave DESTA sesión cun aviso discreto único —
+  // degradación honesta, nunca crashear.
+  const autosaveDisabledRef = useRef(false)
+  const [autosaveNotice, setAutosaveNotice] = useState<string | null>(null)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const save = (): void => {
+      if (autosaveDisabledRef.current) return
+      const json = serializeDocument(engine.getDocument())
+      if (json.length > AUTOSAVE_SIZE_LIMIT) {
+        autosaveDisabledRef.current = true
+        setAutosaveNotice('Documento grande de máis para o autogardado — exporta a man.')
+        return
+      }
+      try {
+        window.localStorage.setItem(
+          AUTOSAVE_STORAGE_KEY,
+          JSON.stringify({ savedAt: new Date().toISOString(), json }),
+        )
+      } catch {
+        autosaveDisabledRef.current = true
+        setAutosaveNotice('Non se puido autogardar (almacenamento cheo) — exporta a man.')
+      }
+    }
+    const unsubscribe = engine.subscribe(() => {
+      if (timer !== null) clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = null
+        save()
+      }, AUTOSAVE_DEBOUNCE_MS)
+    })
+    return () => {
+      if (timer !== null) clearTimeout(timer)
+      unsubscribe()
+    }
+  }, [engine])
+
+  // ── 15.6 — recuperación no arranque ──
+  // Se hai autosave, banner ANTES de nada. Continuar → deserializar (a
+  // proba de balas de sempre; corrupto → descártase con mensaxe e
+  // arranque normal). Descartar → limpar a clave.
+  const [recovery, setRecovery] = useState<AutosavePayload | null>(() => readAutosave())
+  const handleRecoveryContinue = useCallback(() => {
+    if (recovery === null) return
+    const restored = deserializeDocument(recovery.json)
+    if (!restored.ok) {
+      window.alert(`O autogardado estaba corrupto e descartouse: ${restored.error.message}`)
+      clearAutosave()
+      setRecovery(null)
+      return
+    }
+    replaceDocument(restored.value)
+    setRecovery(null)
+  }, [recovery, replaceDocument])
+  const handleRecoveryDiscard = useCallback(() => {
+    clearAutosave()
+    setRecovery(null)
+  }, [])
 
   const handleExport = useCallback(() => {
     const doc = engine.getDocument()
@@ -300,6 +434,15 @@ function App(): JSX.Element {
         if (!window.confirm('Substituír o documento actual? O que non exportaras perderase.')) {
           return
         }
+        // 15.6: o importado é o documento activo — o autosave sígueo.
+        try {
+          window.localStorage.setItem(
+            AUTOSAVE_STORAGE_KEY,
+            JSON.stringify({ savedAt: new Date().toISOString(), json: text }),
+          )
+        } catch {
+          // Cota — o efecto de autosave xa avisará se persiste.
+        }
         replaceDocument(restored.value)
       }
       reader.onerror = () => {
@@ -312,6 +455,32 @@ function App(): JSX.Element {
 
   return (
     <>
+      {recovery !== null && (
+        <div role="alertdialog" aria-label="Recuperación de traballo" style={bannerStyle}>
+          <span>
+            Recuperouse traballo sen exportar ({new Date(recovery.savedAt).toLocaleString()}).
+          </span>
+          <button type="button" style={bannerButtonStyle} onClick={handleRecoveryContinue}>
+            Continuar
+          </button>
+          <button type="button" style={bannerButtonStyle} onClick={handleRecoveryDiscard}>
+            Descartar
+          </button>
+        </div>
+      )}
+      {autosaveNotice !== null && (
+        <output style={noticeStyle}>
+          <span>{autosaveNotice}</span>
+          <button
+            type="button"
+            style={bannerButtonStyle}
+            aria-label="Pechar o aviso"
+            onClick={() => setAutosaveNotice(null)}
+          >
+            ✕
+          </button>
+        </output>
+      )}
       <input
         ref={fileInputRef}
         type="file"
