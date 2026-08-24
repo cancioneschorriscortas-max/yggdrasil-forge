@@ -66,6 +66,8 @@ o usemos para Oberón non cambia iso. **Sen design-wide non hai post-1.0.**
 
 1. **Renderer 2.0** — átomo visual real + viewport + sistema de temas.
 2. **Importador** GAIA-shaped → `TreeDef`, e o campo `descriptionPerTier`.
+   *(Emenda 16.5: `descriptionPerTier`/`NodeDef.tiers` queda post-1.0 co
+   tipo xa preparado — dique `UNIMPLEMENTED_NODEDEF_FIELDS`, 7.5c-T2.)*
 3. **Layouts** que Oberón usa (radial-por-clusters + manual + auto).
 4. **Panel composible** (slots) para que a app meta o seu cromo.
 5. **1 tema educativo pulido** + sistema de temas aberto (+1 tema escuro
@@ -398,6 +400,11 @@ aberto e extensible, ao nivel (ou mellor) das imaxes 13/14.
 **Aceptación F16:** 1.0 publicado; os **tres** exemplos (Oberón + xogo +
 Duolingo) renderizan ben; as docs permiten a un descoñecido crear unha
 árbore.
+
+> ✅ **CUMPRIDA — 2026-08-24 (16.5).** Auditoría formal dos 8 puntos da
+> liña de §2 en `.github/RELEASE_NOTES_v1.0.0.md` (cunha emenda honesta
+> no punto 2). Docs site vivo; exemplos verificados; release en bloque:
+> common/core/react/editor-core/editor-react/cli a 1.0.0.
 
 ---
 

@@ -1,7 +1,24 @@
-# Workflow de release.
+# Workflow de release — AUDITADO en 16.5 (release 1.0).
 #
-# Estado actual: XERA PRs DE VERSION + PUBLICA en npm cando o PR
-# se mergea (activado en sub-fase release-prep).
+# QUE fai: en cada push a main, changesets/action mira .changeset/:
+#   - Se hai changesets pendentes → abre/actualiza o PR «chore: version
+#     packages» (corre `pnpm changeset:version`: bumps + CHANGELOGs +
+#     lockfile + format).
+#   - Se NON hai changesets pendentes (é dicir, tras fusionar ese PR) →
+#     PUBLICA en npm (`pnpm changeset:publish` = build:packages +
+#     changeset publish) cada paquete público cuxa versión non estea
+#     xa no registry, e crea UN TAG POR PAQUETE (p.ex.
+#     @yggdrasil-forge/core@1.0.0) + GitHub Release por tag.
+#   - Os paquetes `private: true` (editor-core/editor-react)
+#     versiónanse pero NIN se publican NIN se etiquetan
+#     (privatePackages.tag=false).
+# O tag ANOTADO global v1.0.0 e a Release consolidada NON os crea este
+# workflow: créaos o dono (ver .github/RELEASE_NOTES_v1.0.0.md).
+#
+# CREDENCIAL: secret NPM_TOKEN (npm Granular Token, ámbito
+# «All packages» + «Bypass 2FA» — os paquetes a versión nova poden
+# contar como novos aos ollos de npm). Sen el, o PR de versión
+# xérase igual pero o publish falla.
 #
 # Setup require (acción humana en npmjs.com + GitHub UI):
 # 1. Reservar @yggdrasil-forge en npmjs.com (se non está xa).

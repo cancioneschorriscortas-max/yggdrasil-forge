@@ -4928,3 +4928,19 @@ idealmente cunha rolda de baseline inmediatamente antes do cambio.
 citada dun informe anterior; os números de informes vellos son orientación
 de tendencia, nunca termo de comparación. E no Annex e nos commits
 escríbense as dúas cifras xuntas, co contexto de máquina.
+
+### A.6.50 — A liña de «feito» audítase, non se declara (peche do ciclo 1.0)
+
+**Contexto.** Para a release 1.0 (16.5), os 8 puntos da liña de §2 do
+ROADMAP verificáronse un a un con evidencia nomeable (fase, ficheiro,
+test) en vez de marcarse por memoria — e a auditoría atopou exactamente
+o que unha declaración tería agochado: `descriptionPerTier` estaba na
+liña pero só existe como tipo (dique UNIMPLEMENTED de 7.5c-T2), e o
+README do CLI aínda dicía «scaffold» a piques de ser a portada de npm.
+Ambos arranxados/emendados ANTES de publicar, coa emenda escrita no
+propio §2 e na táboa pública das release notes.
+
+**Regra.** Unha liña de «feito» péchase cunha táboa punto-a-punto con
+evidencia e coas emendas á vista — nunca cun «cumprido» global. Se un
+punto non aguanta a evidencia: parar e emendar a liña ou o produto,
+non a verdade.
