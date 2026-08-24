@@ -1,31 +1,40 @@
 # @yggdrasil-forge/cli
 
-Command-line tooling for Yggdrasil Forge.
+`ygg` — command-line tools for [Yggdrasil Forge](https://github.com/cancioneschorriscortas-max/yggdrasil-forge), the progression-tree (skill tree) engine. The headless **data path**: everything the visual editor can do with a document, scriptable for pipelines and AIs.
 
-## Status
+```bash
+pnpm add -D @yggdrasil-forge/cli
+npx ygg --help
+```
 
-🚧 **Scaffold package** — planned for a future phase of the
-Yggdrasil Forge roadmap.
+## Commands
 
-This package currently contains only a placeholder. Active
-implementation will be tracked in the
-[architecture document](../../docs/architecture/MASTER.md).
+| Command | What it does |
+|---|---|
+| `ygg validate [file \| -] [--json]` | Schema + hard validators — the exact same validation as the editor's import. `--json` emits `{ ok, issues[] }` (errors as data, for closed-loop generation). |
+| `ygg layout <file \| -> --algo <a> [--out f]` | Places **every** node with a layout engine (`radial`, `tree`, `layered` for DAGs, `clustered-radial`, `constellation`) and bakes the framing. Deterministic. |
+| `ygg render <file \| -> --out f.svg [--dark] [--locale gl] [--width N]` | Renders the tree to a **self-contained SVG** (theme, states and icons included — no external CSS). |
+| `ygg schema [--out f]` | Emits the published JSON Schema of the document format. |
+| `ygg new [--id x] [--label "…"]` | Emits a valid empty document to start from. |
 
-## Purpose
+Exit codes: `0` ok · `1` validation failed or error · `2` usage.
 
-Provide a CLI for validating, transforming, importing, exporting,
-and managing Yggdrasil Forge skill tree definitions. Will include
-commands to scaffold new trees, run validators, batch-import from
-external formats, and inspect tree statistics.
+## The AI loop
+
+```bash
+# generate a tree with an AI (schema + gallery as few-shot), then:
+npx ygg validate tree.json --json     # fix → repeat
+npx ygg layout tree.json --algo layered --out tree.json
+npx ygg render tree.json --out tree.svg
+```
+
+Docs (Galician first, full English): **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/**
+Gold gallery of known-good documents: [`examples/gallery`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/gallery).
 
 ## Related packages
 
-- [@yggdrasil-forge/common](../common): Shared types and utilities.
-- [@yggdrasil-forge/core](../core): TreeEngine and core APIs.
-- [@yggdrasil-forge/validators](../validators): Pedagogical
-  validators usable from CLI.
-- [@yggdrasil-forge/importers](../importers): Import adapters.
-- [@yggdrasil-forge/exporters](../exporters): Export adapters.
+- [@yggdrasil-forge/core](https://www.npmjs.com/package/@yggdrasil-forge/core): TreeEngine, domain types, layout engines.
+- [@yggdrasil-forge/react](https://www.npmjs.com/package/@yggdrasil-forge/react): the SVG renderer.
 
 ## License
 
