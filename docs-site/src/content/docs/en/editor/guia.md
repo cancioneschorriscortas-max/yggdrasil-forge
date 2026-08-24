@@ -30,6 +30,10 @@ In the top-right corner there are two buttons: **Autoría** (authoring) and **Pr
 
 Start in Autoría. Switch to Proba to feel it. Go back to Autoría to adjust. The panel layout is kept across mode switches.
 
+### Survival and installation
+
+The document **autosaves** (about 1 s after each change): if you close or reload without exporting, a banner appears on return — *"Recuperouse traballo sen exportar" (unexported work was recovered) — Continuar / Descartar*. *Novo* starts clean (nothing to recover); **exporting remains the real save**. And the editor is a **PWA**: it works fully offline and Chrome/Edge offer to install it as a desktop app.
+
 ## The panels
 
 The screen is split into resizable panels. You can close them with the tab's ✕ and reopen them from the **Paneis** (panels) menu in the top bar, which also has **Restaurar disposición** (restore layout). The layout is saved between sessions.
