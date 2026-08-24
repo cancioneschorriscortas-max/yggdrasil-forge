@@ -1,6 +1,7 @@
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // Resolución dos paquetes do workspace desde `src/` (non `dist/`).
 // **Por que**: en dev, queremos editar @yggdrasil-forge/editor-react ou
@@ -15,7 +16,35 @@ import { defineConfig } from 'vite'
 const root = resolve(__dirname, '../..')
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // ── 15.6 — PWA / offline (MASTER §62) ──
+    // O editor é 100% client-side: co shell precacheado funciona
+    // enteiro sen rede (importar/exportar/autosave incluídos) e o
+    // navegador ofrece instalalo. Iconas xeradas UNHA vez por
+    // scripts/gen-pwa-icons.mjs desde logic-seedling (commiteadas).
+    VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'Yggdrasil Editor',
+        short_name: 'Yggdrasil',
+        description: 'Editor visual de árbores de progresión (skill trees) — Yggdrasil Forge.',
+        lang: 'gl',
+        start_url: '.',
+        display: 'standalone',
+        background_color: '#f4f4f1',
+        theme_color: '#fbfbfa',
+        icons: [
+          { src: 'icons/pwa-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/pwa-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+      },
+    }),
+  ],
   server: { port: 5180 },
   resolve: {
     alias: {
