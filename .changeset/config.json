@@ -8,11 +8,17 @@
       "@yggdrasil-forge/common",
       "@yggdrasil-forge/core",
       "@yggdrasil-forge/react",
-      "@yggdrasil-forge/themes"
+      "@yggdrasil-forge/editor-core",
+      "@yggdrasil-forge/editor-react",
+      "@yggdrasil-forge/cli"
     ]
   ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [],
+  "privatePackages": {
+    "version": true,
+    "tag": false
+  }
 }

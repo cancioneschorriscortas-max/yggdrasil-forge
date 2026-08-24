@@ -9,7 +9,7 @@ import * as core from '../../src/index.js'
 describe('@yggdrasil-forge/core public exports', () => {
   describe('1.2 — foundations', () => {
     it('exports VERSION', () => {
-      expect(core.VERSION).toBe('0.0.0')
+      expect(core.VERSION).toBe('1.0.0')
     })
 
     it('exports Result helpers', () => {

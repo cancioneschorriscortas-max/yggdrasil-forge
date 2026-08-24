@@ -1,5 +1,234 @@
 # @yggdrasil-forge/react
 
+## 1.0.0
+
+### Major Changes
+
+- Yggdrasil Forge 1.0 — motor de árbores de progresión, completo de punta a punta
+
+  - **Renderer tematizable**: SkillTree SVG accesible con viewport, temas
+    claro/escuro, recheos por estado, rexións, e tres sets de iconas
+    recoloreables (builtin, norse, logic).
+  - **Editor completo**: autoría visual (crear/mover/conectar), Inspector
+    co rexistro de propiedades, validación en vivo, auto-layout con cinco
+    motores, vista de tarxetas, presets de tema con nome, selector de
+    iconas, modo Proba, exportación SVG/PNG, autosave e PWA offline.
+  - **A vía do dato**: JSON Schema publicado, galería de ouro garantida
+    por test, e o CLI `ygg` (validate · layout · render · schema · new) —
+    unha IA xera unha árbore completa sen abrir o editor.
+  - **Docs públicas bilingües** (galego primeiro): guías, contrato,
+    layouts, theming e exemplos renderizados en cada build.
+
+### Minor Changes
+
+- 7a12ac7: feat(react): listRegisteredIcons — enumeración do rexistro de iconas
+
+  Instantánea ordenada (por id) do rexistro actual, como copia de só
+  lectura. A peza que faltaba para construír selectores visuais de
+  iconas (o picker do editor, 15.5). Nota de contrato: nunca é baleira
+  nun realm que cargase o módulo — os BUILTIN_ICONS auto-rexístranse.
+
+- 2a7aafc: feat(core): LayeredLayout — motor de capas para DAGs (Sugiyama-lite)
+
+  Novo `LayoutEngine` tipo `'layered'`: capa = camiño máis longo desde as
+  raíces (tódolos pais quedan arriba), orde intra-capa por baricentro con
+  3 pasadas e desempates deterministas por orde de declaración. Para
+  nodos con varios pais evita as arestas diagonais cruzadas do tree
+  (que só usa o "primary parent"). Ciclos → `err(CYCLE_DETECTED)` cos
+  nodos culpables no context — nunca colga nin coloca lixo.
+  `parseLayeredConfig` + `LayeredLayoutConfig` (espello da config de
+  tree). Rexistrado en `createDefaultLayoutRegistry` de @react.
+
+- 2a526c9: feat(react): SkillTreeHandle.centerOn — navegación programática ao nodo
+
+  `centerOn(nodeId, opts?)` centra a vista nun nodo: salto directo
+  (coherente con `fit()`, que tampouco anima), `opts.zoom` opcional co
+  clamp de sempre, pan resultante polo MESMO `clampPan` do pan manual.
+  `nodeId` inexistente ou sen posición → no-op silencioso documentado (o
+  handle non lanza). Novo helper puro `centerOnTransform` exportado do
+  hook para tests sen DOM.
+
+- be15bc0: feat(react): LOGIC_ICONS — set oficial de 19 iconos de prerequisitos
+
+  Promoción da arte do dono (iterada en tools/icon-preview) a set
+  oficial: estados (lock/unlock/key), operadores (AND/OR/NOT), marcas
+  estruturais (crown/gate/scroll) e progresión (star/rune/seedling…).
+  Opt-in como NORSE_ICONS (`registerIcons(LOGIC_ICONS)`), prefixo
+  `logic-*` sen colisións, stroke 24×24 recoloreable.
+
+- 30ce28f: feat(react): `coordinateBounds` and `backgroundImage` props on `SkillTree`
+
+  Two new optional props on `SkillTree` (and `SVGRenderer`) for consumers
+  that need to align the tree with a background image deterministically.
+
+  **`coordinateBounds`** fixes the SVG coordinate space instead of
+  deriving it from the layout nodes. The `viewBox` becomes exactly the
+  provided box (plus `padding`, default 0), without the auto-fit
+  inflation (`maxRadius + 28`). Nodes written at `(x, y)` in the fixture
+  map 1:1 to `(x, y)` on screen. Recommended combination:
+  `coordinateBounds={...} padding={0} fitOnMount={false}`.
+
+  **`backgroundImage`** renders an `<image>` inside the pan/zoom group of
+  the SVG (so it moves and scales with the nodes, unlike a CSS background
+  layer). The image occupies the bounds box with
+  `preserveAspectRatio="xMidYMid meet"`. Typically combined with
+  `coordinateBounds` set to the image's pixel box.
+
+  Both props are purely additive: omitting them keeps the legacy
+  behaviour intact (zero regression). Exercised by the upcoming refactor
+  of the `cyberware-ripperdoc` example, where the cyberpunk body image
+  needs to align with anatomically-placed nodes.
+
+- e2e9df4: feat: imaxes en nodos — recorte á forma real + zoom regulable con barra
+
+  Pedido do dono mentres probaba o Paladín: cargar unha foto nun nodo
+  xa funcionaba a medias (`node.icon` xa soportaba URLs), pero a imaxe
+  nunca se axustaba "dentro" da esfera/cadrado/hexágono real do nodo —
+  quedaba coma un cadrado centrado con marxes baleiras
+  (`preserveAspectRatio="meet"`), sen recortar á forma.
+
+  **`@yggdrasil-forge/core`** — novo campo `NodeDef.iconScale?: number`
+  (1–3, validado no schema Zod). 1 = a imaxe cobre a forma enteira sen
+  zoom extra (comportamento por defecto); ata 3 = achega moito máis
+  (recorta máis) para encadrar a parte interesante dunha foto non
+  cadrada. Só ten efecto sobre iconas de imaxe (URL); glyphs/emoji
+  ignórano.
+
+  **`@yggdrasil-forge/react`** — `SkillNode` recorta agora a imaxe á
+  forma REAL do nodo (círculo/hexágono/diamante/...) vía `<clipPath>`
+  que reutiliza a mesma xeometría de `renderNodeShape` (cero duplicación
+  de lóxica de forma). `preserveAspectRatio` pasa de `"meet"` (cabe con
+  marxes) a `"slice"` (cobre e recorta). O clip usa sempre o `radius`
+  real do nodo, así que a imaxe NUNCA escapa do contorno por moito zoom
+  que se lle poña — mesmo cun `iconScale` de datos importados á man que
+  saltase o límite do schema.
+
+  **`@yggdrasil-forge/editor-core`** — novo `PropertyType.kind: 'range'`
+  (barra de axuste continuo, min/max obrigatorios). Descriptor
+  `iconScale` no `nodePropertyRegistry` (grupo `appearance`, avanzado).
+  Engadido a `USED_NODEDEF_FIELDS` (uso real xa confirmado no
+  renderer).
+
+  **`@yggdrasil-forge/editor-react`** — novo `RangeWidget` (slider con
+  valor numérico ao carón, commit inmediato en cada arrastre, coma
+  `CheckboxWidget`). Dispatch de `kind:'range'` engadido a
+  `InspectorPanel`.
+
+  Tests: schema (5, incl. límites 1/3), `SkillNode` clip-path + slice +
+  iconScale (10 novos, +cero regresión nos 26 existentes de iconas),
+  Inspector (3 novos: render en Avanzado, dispatch inmediato, límites
+  min/max). Dous contadores exactos preexistentes actualizados
+  (campos avanzados 7→8, tamaño total do registry 14→15) — cambio
+  lexítimo, non regresión.
+
+- 416df9a: feat(react,editor): base de tema `minimalDark` + arranxo de raíz da costura chrome↔documento (briefing 7.9)
+
+  **Contexto:** o tema `minimal` (base por defecto cando o documento non
+  opina) asume fondo claro en TODAS as súas cores. O editor agora pode
+  poñer fondo escuro (7.8) — cada cor fixa de `minimal` era un bug
+  latente en escuro, xa detectado dúas veces (texto en 7.8.1/7.8.2,
+  arestas/malla pendentes segundo o informe de sesión).
+
+  **`@yggdrasil-forge/react`** — novo tema `minimalDark`, exportado
+  xunto a `minimal`. Mesma forma (`Theme`), `sizes` idénticos a
+  propósito (non hai motivo para que radios/font-sizes cambien só por
+  mudar de fondo). Cores de estado (`nodeMaxed`, `nodeInProgress`)
+  comparten valor con `minimal` — xa funcionan en ambos fondos; o resto
+  (`text`, `nodeStroke`, `edge`, `edgeActive`, `mesh`, `nodeFill`,
+  `nodeLocked`, `nodeUnlockable`) ten valores propios para fondo escuro.
+
+  **`@yggdrasil-forge/editor-react`** — `EditorCanvas` xa non aplica
+  unha heurística ad-hoc só para o campo `text` (a que se engadira en
+  7.8.1/7.8.2). Agora escolle a BASE ENTEIRA do tema segundo
+  `chromeTheme`: `minimalDark` en escuro, `minimal` en claro/sen
+  definir. Arestas, malla, trazos e recheo base tamén len ben en escuro
+  agora, non só o texto. Os overrides explícitos do documento
+  (`ThemeSpec.textColor`, `nodeFills`) seguen gañando sempre sobre a
+  base escollida — comportamento visible idéntico ao anterior para
+  quen xa usaba `textColor`.
+
+  Verificado que é o único punto de construción de tema en todo
+  `editor-react` (ningunha outra rama usaba `minimal` a pelo). Tests
+  adaptados (non borrados) para cubrir o mesmo contrato: base correcta
+  segundo chrome, override do documento gaña, arestas confirman que o
+  arranxo é da base enteira e non un parche de campo.
+
+### Patch Changes
+
+- bf704d0: perf(react): SkillNode/SkillEdge memoizados + listas de elementos memoizadas
+
+  A 1500 nodos (4500 arestas) cada interacción reconciliaba os 6.000
+  fillos do SkillTree: drag ~1,7 s, pan ~24 fps. Agora `SkillNode` e
+  `SkillEdge` son `memo` (mesmo nome, mesmos props), as listas de
+  elementos van en `useMemo`, e `buildPaths` (con `curve`) aplícase unha
+  vez por layout en vez de por render. Medido na mesma máquina: drag
+  ~0,6 s (−64 %), pan ~41 fps, selección −27 %. Sen cambio de API.
+
+- 885aebc: fix(editor): adendo iconScale — undo limpo + clipPath por instancia
+
+  - **`@yggdrasil-forge/editor-react`** (`RangeWidget`): o slider commitea
+    o valor unha soa vez ao rematar o xesto (pointerup / keyup / blur), non
+    en cada `onChange`. Arrastrar a barra deixaba decenas de entradas no
+    historial; agora respéctase «un xesto do usuario = UN undo». O valor
+    segue actualizándose en vivo na UI. Test actualizado ao novo contrato.
+  - **`@yggdrasil-forge/react`** (`SkillNode`): o `id` do `clipPath` da
+    icona-imaxe pasa a ser único por instancia (`useId`, mesmo precedente
+    que o `SVGRenderer`) e sanéase o `node.id` (só `[A-Za-z0-9_-]`). Evita
+    colisións de id DOM cando hai varios `SkillTree` na mesma páxina co
+    mesmo `node.id`, e a rotura de `url(#…)` con ids que teñan espazos,
+    comiñas ou unicode.
+  - Decisión 3 (anel do 10% con `iconScale === 1`): resólvese como
+    intencionado (opción A) — só aclaración na redacción; sen cambio de
+    comportamento.
+
+- 2a11e25: fix(react): `fit on mount` disparaba en cada cambio de `bounds`, non só ao montar
+
+  **Reportado polo dono**: engadir nodos co editor producía un "zoom
+  raro" — a vista reencadraba a cada nodo novo, e calquera pan/zoom
+  manual perdíase.
+
+  **Causa raíz**: o efecto "fit on mount" en `useViewport` tiña deps
+  `[bounds, fitOnMount]`, así que se re-disparaba cada vez que `bounds`
+  cambiaba de referencia — non só ao montar, coma o seu propio nome e
+  comentario prometían. En consumidores sen `coordinateBounds` explícito
+  (onde `bounds` = layout bounds, recalculados en cada edición
+  estrutural), iso resetaba o pan/zoom interactivo a cada cambio.
+
+  **Fix**: `hasFittedRef` garante que `fit()` se chama COMO MOITO unha
+  vez na vida do hook. Se `bounds` non está dispoñible aínda no primeiro
+  render, o efecto agarda a transición inicial undefined→definido (as
+  deps seguen a incluír `bounds` para iso), pero unha vez fitted (con
+  éxito OU por bounds dexenerados), nunca máis volve chamar `fit()`.
+  Para reencadrar baixo demanda, o contrato xa existía:
+  `SkillTreeHandle.fit()`.
+
+  **Garda engadida — bounds dexenerados**: unha árbore baleira produce
+  bounds `{minX:0,minY:0,maxX:0,maxY:0}` (largo/alto 0). A garda
+  existente en `fitTransform` só detecta isto cando `padding=0`; no uso
+  real (`effectivePadding = padding + maxRadius + 28`, sempre > 0), esa
+  garda NUNCA se activaba. Engadida unha garda adicional no propio
+  efecto (antes de padding) que salta o fit por completo se
+  `bounds` é dexenerado, deixando o viewport por defecto (identidade)
+  en vez de encadrar un box de tamaño cero (zoom extremo).
+
+  **Tests**: 4 tests novos — cambiar `bounds` tras montar non volve
+  agendar `requestAnimationFrame`; bounds dexenerados ao montar non
+  agendan fit; state queda en identidade con bounds dexenerados; `fit()`
+  manual segue funcionando. 29 tests existentes (incluíndo os de
+  `fitTransform`) pasan sen cambios.
+
+- Updated dependencies [25dae47]
+- Updated dependencies [5e55e2d]
+- Updated dependencies [2a7aafc]
+- Updated dependencies [27b9f61]
+- Updated dependencies [e2e9df4]
+- Updated dependencies [8597e50]
+- Updated dependencies
+- Updated dependencies [99d0d44]
+- Updated dependencies [5f41960]
+  - @yggdrasil-forge/core@1.0.0
+  - @yggdrasil-forge/common@1.0.0
+
 ## 0.4.0
 
 ### Minor Changes
@@ -17,12 +246,10 @@
   - `shape: 'line'` — only value implemented in v1 (`curve`/`spiral` future,
     parser rejects them today).
   - `innerRadius` (default 90) and `outerRadius` (default 320).
-  - `lengthMode: 'equal-span' | 'fixed-step'`:
-    - `equal-span` (default) — every strand spans the full `[innerRadius,
+  - `lengthMode: 'equal-span' | 'fixed-step'`: - `equal-span` (default) — every strand spans the full `[innerRadius,
 outerRadius]` regardless of member count; clusters with fewer members have
-      more spacing.
-    - `fixed-step` — constant radial step across all strands; shorter clusters
-      finish before reaching `outerRadius`.
+    more spacing. - `fixed-step` — constant radial step across all strands; shorter clusters
+    finish before reaching `outerRadius`.
   - `startAngle` (default `-π/2`) to rotate the whole constellation.
 
   This layout only positions; the visible strands come from `treeDef.edges`

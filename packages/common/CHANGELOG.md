@@ -1,5 +1,24 @@
 # @yggdrasil-forge/common
 
+## 1.0.0
+
+### Major Changes
+
+- Yggdrasil Forge 1.0 — motor de árbores de progresión, completo de punta a punta
+
+  - **Renderer tematizable**: SkillTree SVG accesible con viewport, temas
+    claro/escuro, recheos por estado, rexións, e tres sets de iconas
+    recoloreables (builtin, norse, logic).
+  - **Editor completo**: autoría visual (crear/mover/conectar), Inspector
+    co rexistro de propiedades, validación en vivo, auto-layout con cinco
+    motores, vista de tarxetas, presets de tema con nome, selector de
+    iconas, modo Proba, exportación SVG/PNG, autosave e PWA offline.
+  - **A vía do dato**: JSON Schema publicado, galería de ouro garantida
+    por test, e o CLI `ygg` (validate · layout · render · schema · new) —
+    unha IA xera unha árbore completa sen abrir o editor.
+  - **Docs públicas bilingües** (galego primeiro): guías, contrato,
+    layouts, theming e exemplos renderizados en cada build.
+
 ## 0.4.0
 
 ### Minor Changes

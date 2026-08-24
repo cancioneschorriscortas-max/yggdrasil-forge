@@ -4,7 +4,7 @@
 /**
  * Versión actual de @yggdrasil-forge/core.
  */
-export const VERSION = '0.0.0'
+export const VERSION = '1.0.0'
 
 // Tipos públicos
 export * from './types/index.js'

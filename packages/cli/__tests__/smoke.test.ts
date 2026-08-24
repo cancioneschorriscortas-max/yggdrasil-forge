@@ -4,7 +4,7 @@ import { VERSION } from '../src/index.js'
 
 describe('@yggdrasil-forge/cli', () => {
   it('should export VERSION', () => {
-    expect(VERSION).toBe('0.0.0')
+    expect(VERSION).toBe('1.0.0')
   })
 })
 // ── FIN: smoke test ──

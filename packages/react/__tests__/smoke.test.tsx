@@ -5,7 +5,7 @@ import { VERSION } from '../src/index.js'
 
 describe('@yggdrasil-forge/react — smoke', () => {
   it('exporta VERSION', () => {
-    expect(VERSION).toBe('0.0.0')
+    expect(VERSION).toBe('1.0.0')
   })
 
   it('React 19 está dispoñible (renderToString funciona)', () => {

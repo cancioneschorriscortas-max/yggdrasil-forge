@@ -6,7 +6,7 @@
 /**
  * Versión actual do paquete.
  */
-export const VERSION = '0.0.0'
+export const VERSION = '1.0.0'
 
 // SkillTree exportado como wrapper con autoload de tema minimal.
 // O core SkillTree (sen wrapper) está dispoñible vía /headless.

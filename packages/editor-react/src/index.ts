@@ -3,7 +3,7 @@
 // (PanelHost + tres zonas + barra superior + status bar + theme
 // tokens). O canvas real, overlay e inspector reais virán en 7.5b/c.
 
-export const VERSION = '0.0.0'
+export const VERSION = '1.0.0'
 
 // Shell principal — punto de entrada para o consumidor.
 export { EditorShell, type EditorShellProps } from './EditorShell.js'

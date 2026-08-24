@@ -6,7 +6,7 @@
 /**
  * Versión actual do paquete.
  */
-export const VERSION = '0.0.0'
+export const VERSION = '1.0.0'
 
 export { type CliIO, run } from './cli.js'
 export {

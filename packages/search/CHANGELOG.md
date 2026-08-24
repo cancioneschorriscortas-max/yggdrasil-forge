@@ -1,5 +1,21 @@
 # @yggdrasil-forge/search
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [25dae47]
+- Updated dependencies [5e55e2d]
+- Updated dependencies [2a7aafc]
+- Updated dependencies [27b9f61]
+- Updated dependencies [e2e9df4]
+- Updated dependencies [8597e50]
+- Updated dependencies
+- Updated dependencies [99d0d44]
+- Updated dependencies [5f41960]
+  - @yggdrasil-forge/core@1.0.0
+  - @yggdrasil-forge/common@1.0.0
+
 ## 0.1.3
 
 ### Patch Changes

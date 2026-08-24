@@ -3,7 +3,7 @@
 // cero UI. Provisto para que un wrapper (@editor-react, futuro) lle
 // poña cara.
 
-export const VERSION = '0.0.0'
+export const VERSION = '1.0.0'
 
 // Documento (modelo + metadatos)
 export {
