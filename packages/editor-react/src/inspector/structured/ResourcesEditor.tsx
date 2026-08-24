@@ -16,9 +16,9 @@ import { AdvancedSection } from '../AdvancedSection.js'
 import { CheckboxWidget } from '../widgets/CheckboxWidget.js'
 import { ColorWidget } from '../widgets/ColorWidget.js'
 import { FieldHelp, FieldLabel } from '../widgets/FieldLabel.js'
+import { IconWidget } from '../widgets/IconWidget.js'
 import { LocalizedTextWidget } from '../widgets/LocalizedTextWidget.js'
 import { NumberWidget } from '../widgets/NumberWidget.js'
-import { TextWidget } from '../widgets/TextWidget.js'
 
 export interface ResourcesEditorProps {
   readonly value: readonly Resource[] | undefined
@@ -30,6 +30,16 @@ export function ResourcesEditor({ value, onCommit }: ResourcesEditorProps): JSX.
 
   const updateAt = (idx: number, patch: Partial<Resource>): void => {
     const next = list.map((r, i) => (i === idx ? { ...r, ...patch } : r))
+    onCommit(next)
+  }
+  // 15.5: «Sen icona» quita a CLAVE (exactOptionalPropertyTypes non
+  // permite `icon: undefined` nun Partial; a omisión é o dato honesto).
+  const setIconAt = (idx: number, icon: string | undefined): void => {
+    const next = list.map((r, i) => {
+      if (i !== idx) return r
+      const { icon: _omit, ...rest } = r
+      return icon === undefined ? rest : { ...rest, icon }
+    })
     onCommit(next)
   }
   const removeAt = (idx: number): void => {
@@ -53,6 +63,7 @@ export function ResourcesEditor({ value, onCommit }: ResourcesEditorProps): JSX.
               key={resource.id}
               resource={resource}
               onChange={(patch) => updateAt(idx, patch)}
+              onIconChange={(icon) => setIconAt(idx, icon)}
               onRemove={() => removeAt(idx)}
             />
           ))}
@@ -70,10 +81,16 @@ export function ResourcesEditor({ value, onCommit }: ResourcesEditorProps): JSX.
 interface ResourceRowProps {
   readonly resource: Resource
   readonly onChange: (patch: Partial<Resource>) => void
+  readonly onIconChange: (icon: string | undefined) => void
   readonly onRemove: () => void
 }
 
-function ResourceRow({ resource, onChange, onRemove }: ResourceRowProps): JSX.Element {
+function ResourceRow({
+  resource,
+  onChange,
+  onIconChange,
+  onRemove,
+}: ResourceRowProps): JSX.Element {
   return (
     <li className="editor-resources-editor__row">
       <div className="editor-resources-editor__row-header">
@@ -133,10 +150,10 @@ function ResourceRow({ resource, onChange, onRemove }: ResourceRowProps): JSX.El
               gl: 'Unha icona ou emoji (opcional).',
             }}
           />
-          <TextWidget
+          <IconWidget
             id={`res-${resource.id}-icon`}
             value={resource.icon}
-            onCommit={(v) => onChange({ icon: v })}
+            onCommit={onIconChange}
           />
           <FieldHelp
             describe={{

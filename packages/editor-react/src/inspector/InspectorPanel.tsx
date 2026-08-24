@@ -27,6 +27,7 @@ import { CheckboxWidget } from './widgets/CheckboxWidget.js'
 import { ColorWidget } from './widgets/ColorWidget.js'
 import { EnumWidget } from './widgets/EnumWidget.js'
 import { FieldHelp, FieldLabel } from './widgets/FieldLabel.js'
+import { IconWidget } from './widgets/IconWidget.js'
 import { LocalizedTextWidget } from './widgets/LocalizedTextWidget.js'
 import { NumberWidget } from './widgets/NumberWidget.js'
 import { RangeWidget } from './widgets/RangeWidget.js'
@@ -196,6 +197,16 @@ function renderWidget(
     case 'text':
       return (
         <TextWidget
+          id={widgetId}
+          value={value as string | undefined}
+          disabled={disabled}
+          onCommit={(v) => commit(d, v)}
+        />
+      )
+    case 'icon':
+      // 15.5: texto libre + preview + selector visual (o banco cobra).
+      return (
+        <IconWidget
           id={widgetId}
           value={value as string | undefined}
           disabled={disabled}

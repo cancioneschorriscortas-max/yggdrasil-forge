@@ -137,7 +137,7 @@ describe('descriptors escalares — get + set producen Command correcto', () => 
 
   it('icon: get lee, set produce setNodeField', () => {
     const desc = findDescriptor('icon')
-    expect(desc.type.kind).toBe('text')
+    expect(desc.type.kind).toBe('icon')
     expect(desc.get(sampleNode)).toBe('🍞')
     const cmd = desc.set('pan_basico', '🥖' as never)
     expect(cmd.type).toBe('setNodeField')

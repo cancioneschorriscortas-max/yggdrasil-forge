@@ -48,6 +48,11 @@ export type PropertyType =
   /** Lista pechada de valores. As opcións dáas o descriptor (deriva da unión do tipo de @core). */
   | { readonly kind: 'enum'; readonly options: readonly string[] }
   | { readonly kind: 'color' }
+  /**
+   * Id de icona (15.5): coma 'text' no dato, pero a UI resolve un
+   * selector visual sobre o rexistro de @react ademais do texto libre.
+   */
+  | { readonly kind: 'icon' }
   | { readonly kind: 'boolean' }
   /**
    * **Campo estruturado** (effects, prerequisites, exclusions, cost,
