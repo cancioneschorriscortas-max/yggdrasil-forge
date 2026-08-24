@@ -53,3 +53,7 @@ npx ygg new --id demo --label "Demo" # a valid empty document to start from
 ## Two minimal documents
 
 The smallest useful one is in the gallery: [`minimal.json`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/minimal.json) — two nodes, one resource, one prerequisite, a per-tier cost, bilingual labels and framing. And the "friendly" reference, the baker tree, with groups, tiers and a theme.
+
+## How far the promise goes
+
+What this file describes is the **stable contract** of 1.x: additive schema, intact unlock semantics and guaranteed round-trip. The detail — which layer promises what, and under which versioning policy — lives in [the stable contract](../contrato-estable/).

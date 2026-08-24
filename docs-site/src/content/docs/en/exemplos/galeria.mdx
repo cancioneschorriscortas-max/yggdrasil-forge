@@ -14,3 +14,7 @@ Switch the site theme (☀/🌙 at the top) to see the light or dark version.
 <GalleryGrid locale="en" />
 
 To use them as a starting point: download the JSON, open it in the editor with **File → Import**, or feed it to `ygg validate` / `ygg layout` / `ygg render`. See [The data path](../../via-do-dato/).
+
+## The agnosticism proof: vanilla JS
+
+The React renderer is **one** option, not the architecture. [`examples/vanilla-js`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/vanilla-js) loads the baker tree from the gallery using only `@yggdrasil-forge/core` and the bare DOM — `canUnlock`, `unlock`, `grantResource` and painting states, without a single line of React. If your stack is Vue, Svelte, Phaser or a hand-rolled `<canvas>`, the engine and the format are the same: [the stable contract](../../contrato/contrato-estable/).
