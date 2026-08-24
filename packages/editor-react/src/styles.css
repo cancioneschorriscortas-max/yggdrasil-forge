@@ -790,6 +790,31 @@
   flex-direction: column;
   gap: 4px;
 }
+/* 15.6: fila con acción secundaria «Ver no código» á esquerda. */
+.editor-problems__row {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+.editor-problems__code-btn {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--editor-text-muted);
+  font-family: var(--editor-font-mono);
+  font-size: var(--editor-font-size-sm);
+  padding: 0 6px;
+  border-radius: var(--editor-radius-sm);
+  cursor: pointer;
+}
+.editor-problems__code-btn:hover {
+  background: var(--editor-bg-hover);
+  color: var(--editor-text-primary);
+}
+.editor-problems__btn {
+  flex: 1;
+  min-width: 0;
+}
 .editor-problems__row {
   background: var(--editor-bg-elevated);
   border-left: 3px solid var(--editor-border);

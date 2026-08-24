@@ -229,6 +229,34 @@ export function EditorShell({
   const handleZoomIn = useCallback(() => viewportControlsRef.current?.zoomIn(), [])
   const handleZoomOut = useCallback(() => viewportControlsRef.current?.zoomOut(), [])
 
+  // 15.6 «Ver no código»: Problemas → abrir/activar o panel Código →
+  // revelar o nodo no texto. Se o panel estaba pechado, o CodePanel
+  // monta e rexístrase nun tick posterior: a petición queda pendente e
+  // flúshase no rexistro (cero carreiras, cero timeouts).
+  const codeRevealRef = useRef<((nodeId: string) => void) | null>(null)
+  const pendingRevealRef = useRef<string | null>(null)
+  const registerCodeReveal = useCallback((reveal: ((nodeId: string) => void) | null) => {
+    codeRevealRef.current = reveal
+    if (reveal !== null && pendingRevealRef.current !== null) {
+      const pending = pendingRevealRef.current
+      pendingRevealRef.current = null
+      reveal(pending)
+    }
+  }, [])
+  const modeRef = useRef(mode)
+  modeRef.current = mode
+  const onViewInCode = useCallback((nodeId: string) => {
+    // En Proba non existe o panel Código (paneis de Autoría) — no-op.
+    if (modeRef.current !== 'authoring') return
+    const handle = handleRef.current
+    if (handle === null) return
+    handle.showPanel('code')
+    handle.activatePanel('code')
+    const reveal = codeRevealRef.current
+    if (reveal !== null) reveal(nodeId)
+    else pendingRevealRef.current = nodeId
+  }, [])
+
   // Estado volátil que os paneis leen en vivo desde o contexto.
   const runtime = useMemo<ShellRuntime>(
     () => ({
@@ -239,6 +267,8 @@ export function EditorShell({
       onNavigateToNode,
       registerNodeNavigator,
       registerViewportControls,
+      onViewInCode,
+      registerCodeReveal,
     }),
     [
       probaSession,
@@ -247,6 +277,8 @@ export function EditorShell({
       onNavigateToNode,
       registerNodeNavigator,
       registerViewportControls,
+      onViewInCode,
+      registerCodeReveal,
     ],
   )
 

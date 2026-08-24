@@ -58,6 +58,17 @@ export interface ShellRuntime {
    * vive FÓRA do provider, así que o shell reenvíaos por props.
    */
   readonly registerViewportControls: (controls: ViewportControls | null) => void
+  /**
+   * 15.6 «Ver no código»: abre/activa o panel Código e salta á liña do
+   * nodo. Os paneis (Problemas) chámano; no-op en Proba (o Código non
+   * existe nese modo) — nunca lanza.
+   */
+  readonly onViewInCode: (nodeId: string) => void
+  /**
+   * 15.6: o CodePanel rexistra aquí a función que de verdade revela o
+   * nodo no texto; `null` ao desmontar. Mesmo taboleiro có navegador.
+   */
+  readonly registerCodeReveal: (reveal: ((nodeId: string) => void) | null) => void
 }
 
 /** Controis de viewport que o canvas ofrece ao chrome do editor. */
@@ -73,6 +84,8 @@ const ShellRuntimeContext = createContext<ShellRuntime>({
   onNavigateToNode: () => undefined,
   registerNodeNavigator: () => undefined,
   registerViewportControls: () => undefined,
+  onViewInCode: () => undefined,
+  registerCodeReveal: () => undefined,
 })
 
 export const ShellRuntimeProvider = ShellRuntimeContext.Provider

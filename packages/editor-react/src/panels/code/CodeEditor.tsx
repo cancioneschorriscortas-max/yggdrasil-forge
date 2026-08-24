@@ -30,6 +30,11 @@ export interface CodeEditorProps {
   readonly sections: readonly SectionRange[]
   /** Liña (1-based) coa marca de erro de sintaxe, se a hai. */
   readonly errorLine?: number
+  /**
+   * 15.6 «Ver no código»: petición de saltar a unha liña (1-based).
+   * O `nonce` distingue peticións consecutivas á MESMA liña.
+   */
+  readonly reveal?: { readonly line: number; readonly nonce: number }
 }
 
 /** Anotación que marca transaccións programáticas (sync externa). */
@@ -150,6 +155,7 @@ export function CodeEditor({
   onUserEdit,
   sections,
   errorLine,
+  reveal,
 }: CodeEditorProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const viewRef = useRef<EditorView | null>(null)
@@ -225,6 +231,22 @@ export function CodeEditor({
   useEffect(() => {
     viewRef.current?.dispatch({ effects: setErrorLine.of(errorLine ?? null) })
   }, [errorLine])
+
+  // 15.6: saltar á liña pedida — cursor ao inicio da liña, centrada no
+  // viewport, e foco no editor (o usuario chega desde Problemas).
+  useEffect(() => {
+    if (reveal === undefined) return
+    const view = viewRef.current
+    if (view === null) return
+    const lineCount = view.state.doc.lines
+    const line = view.state.doc.line(Math.max(1, Math.min(lineCount, reveal.line)))
+    view.dispatch({
+      selection: { anchor: line.from },
+      effects: EditorView.scrollIntoView(line.from, { y: 'center' }),
+      annotations: externalChange.of(true),
+    })
+    view.focus()
+  }, [reveal])
 
   return <div ref={containerRef} className="editor-code-editor" />
 }

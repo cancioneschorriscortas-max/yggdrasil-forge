@@ -36,7 +36,7 @@ export function ProblemsPanel({ engine }: ProblemsPanelProps): JSX.Element {
     (cb) => engine.subscribe(cb),
     () => engine.getIssues(),
   )
-  const { onNavigateToNode } = useShellRuntime()
+  const { onNavigateToNode, onViewInCode } = useShellRuntime()
 
   if (issues.length === 0) {
     return (
@@ -65,6 +65,19 @@ export function ProblemsPanel({ engine }: ProblemsPanelProps): JSX.Element {
             key={`${issue.code}-${idx}`}
             className={`editor-problems__row editor-problems__row--${issue.severity}`}
           >
+            {/* 15.6: acción secundaria — abrir o panel Código na liña
+                do nodo. Complementa (non substitúe) o clic-que-centra. */}
+            {issue.nodeId !== undefined && (
+              <button
+                type="button"
+                className="editor-problems__code-btn"
+                title="Ver no código"
+                aria-label={`Ver no código: ${issue.nodeId}`}
+                onClick={() => onViewInCode(issue.nodeId as string)}
+              >
+                <span aria-hidden="true">{'{}'}</span>
+              </button>
+            )}
             <button
               type="button"
               className="editor-problems__btn"

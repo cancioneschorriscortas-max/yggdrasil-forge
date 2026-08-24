@@ -63,6 +63,12 @@ export interface PanelHostHandle {
   readonly hidePanel: (id: string) => void
   /** Devolve os ids dos paneis actualmente montados. */
   readonly getVisiblePanelIds: () => readonly string[]
+  /**
+   * Activa (trae a primeiro plano) un panel xa montado — p.ex. unha
+   * pestana inactiva dun grupo (15.6: «Ver no código»). No-op se non
+   * está montado; combínase con `showPanel` para abrir+activar.
+   */
+  readonly activatePanel: (id: string) => void
 }
 
 export interface PanelHostProps {
@@ -397,6 +403,9 @@ export function PanelHost({
           if (p !== undefined) event.api.removePanel(p)
         },
         getVisiblePanelIds: () => event.api.panels.map((p) => p.id),
+        activatePanel: (id: string) => {
+          event.api.getPanel(id)?.api.setActive()
+        },
       }
     }
 

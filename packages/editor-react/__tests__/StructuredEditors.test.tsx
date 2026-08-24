@@ -204,12 +204,14 @@ describe('ProblemsPanel — voz da conciencia', () => {
     expect(issues.length).toBeGreaterThan(0)
     // O panel renderiza o issue.
     render(<ProblemsPanel engine={engine} />)
-    // Cada issue debería ser clickable (botón).
-    const buttons = screen.getAllByRole('button')
-    expect(buttons.length).toBeGreaterThan(0)
-    // Clic no primeiro → selección do nodo referenciado.
+    // Cada issue debería ser clickable (botón). 15.6: a fila ten agora
+    // unha acción secundaria («Ver no código») ANTES do botón principal,
+    // así que localizamos o principal polo seu nome accesible.
     const nodeIdReferenced = issues[0]?.nodeId
-    const firstBtn = buttons[0]
+    const firstBtn =
+      nodeIdReferenced !== undefined
+        ? screen.getByRole('button', { name: new RegExp(`en ${nodeIdReferenced}`) })
+        : undefined
     if (nodeIdReferenced !== undefined && firstBtn !== undefined) {
       act(() => {
         fireEvent.click(firstBtn)
