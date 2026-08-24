@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge-examples/oberon-panadeiro",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "Oberón panadeiro spike v2 (GAIA + regions + ThemeLab embebido)",
   "type": "module",
