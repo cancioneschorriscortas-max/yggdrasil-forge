@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "build:packages": "turbo run build --filter='!./examples/*' --filter='!./docs-site'",
+    "build:packages": "turbo run build --filter=\"!./examples/*\" --filter=\"!./docs-site\"",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:ui": "vitest --ui",
@@ -22,7 +22,7 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "typecheck": "turbo run typecheck",
-    "typecheck:packages": "turbo run typecheck --filter='!./examples/*' --filter='!./docs-site'",
+    "typecheck:packages": "turbo run typecheck --filter=\"!./examples/*\" --filter=\"!./docs-site\"",
     "docs:dev": "pnpm --filter @yggdrasil-forge-docs/site run dev",
     "docs:build": "turbo run build --filter @yggdrasil-forge/cli && pnpm --filter @yggdrasil-forge-docs/site run build",
     "docs:preview": "pnpm --filter @yggdrasil-forge-docs/site run preview",
