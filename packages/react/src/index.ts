@@ -56,7 +56,7 @@ export type { SkillTreeErrorBoundaryProps } from './SkillTreeErrorBoundary.js'
 // builtins vive en `registry.ts` (top-level), execútase cando
 // `SkillNode` importa `getIcon` — non require side-effect import aquí
 // (que sería tree-shaken por `package.json` `"sideEffects": false`).
-export { registerIcon, registerIcons, getIcon, hasIcon } from './icons/registry.js'
+export { registerIcon, registerIcons, getIcon, hasIcon, listRegisteredIcons } from './icons/registry.js'
 export type { IconDef, IconPath } from './icons/registry.js'
 export { IconGlyph } from './icons/IconGlyph.js'
 export type { IconGlyphProps } from './icons/IconGlyph.js'

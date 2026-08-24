@@ -123,4 +123,19 @@ export function getIcon(id: string): IconDef | undefined {
 export function hasIcon(id: string): boolean {
   return registry.has(id)
 }
+
+/**
+ * Instantánea ordenada (por id) do rexistro actual (15.5). Só lectura:
+ * devolve unha copia — o Map interno non se expón nin se pode mutar a
+ * través do resultado. Nota de contrato: nunca é baleira nun realm que
+ * cargase este módulo, porque os BUILTIN_ICONS auto-rexístranse arriba.
+ */
+export function listRegisteredIcons(): ReadonlyArray<{
+  readonly id: string
+  readonly def: IconDef
+}> {
+  return [...registry.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, def]) => ({ id, def }))
+}
 // ── FIN: icons/registry ──
