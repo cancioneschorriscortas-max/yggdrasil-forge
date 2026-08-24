@@ -23,6 +23,7 @@ import {
   standaloneSvg,
   themeOverridesFromSpec,
 } from '@yggdrasil-forge/editor-core'
+import { LOGIC_ICONS, NORSE_ICONS, registerIcons } from '@yggdrasil-forge/react'
 import {
   type RegionSpec,
   SkillTree,
@@ -33,6 +34,12 @@ import {
 } from '@yggdrasil-forge/react'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+
+// Os sets oficiais rexístranse coma no editor (7.19): un documento con
+// `icon: "logic-key"` renderiza a ICONA, non o id como texto de
+// fallback (informe do dono na portada 1.0).
+registerIcons(NORSE_ICONS)
+registerIcons(LOGIC_ICONS)
 
 export interface RenderTextOptions {
   readonly dark?: boolean
