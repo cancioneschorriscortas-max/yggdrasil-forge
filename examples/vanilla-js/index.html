@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="gl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yggdrasil Forge — vanilla JS</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background: #16171b;
+        color: #e8e9ed;
+        max-width: 40rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      button {
+        font: inherit;
+        margin: 0.25rem 0;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        border: 1px solid #3a3d46;
+        background: #23252c;
+        color: inherit;
+        cursor: pointer;
+        display: block;
+        width: 100%;
+        text-align: left;
+      }
+      button:disabled { opacity: 0.45; cursor: default; }
+      button[data-state='unlocked'],
+      button[data-state='maxed'] { border-color: #4caf7d; }
+      button[data-state='unlockable'] { border-color: #e8c35a; }
+      small { color: #9aa0ab; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

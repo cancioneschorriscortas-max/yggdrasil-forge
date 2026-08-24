@@ -53,3 +53,7 @@ npx ygg new --id demo --label "Demo"   # un documento baleiro válido para empez
 ## Dous documentos mínimos
 
 O máis pequeno útil está na galería: [`minimal.json`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/minimal.json) — dous nodos, un recurso, un prerrequisito, un custo por rango, etiquetas bilingües e encadre. E o de referencia «amable», o panadeiro, con grupos, rangos e tema.
+
+## Ata onde chega a promesa
+
+O que este ficheiro describe é o **contrato estable** do 1.x: schema aditivo, semántica de desbloqueo intacta e round-trip garantido. O detalle — que capa promete que, e con que política de versións — está en [o contrato estable](../contrato-estable/).
