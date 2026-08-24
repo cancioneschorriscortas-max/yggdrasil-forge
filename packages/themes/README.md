@@ -1,5 +1,7 @@
 # @yggdrasil-forge/themes
 
+> **Reservado / Reserved.** Este paquete é un oco planificado (ROADMAP §6, post-1.0); aínda non contén implementación. — This package is a planned placeholder; it contains no implementation yet.
+
 Pre-built themes for the React skill tree renderer.
 
 ## Status

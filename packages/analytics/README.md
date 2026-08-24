@@ -1,5 +1,7 @@
 # @yggdrasil-forge/analytics
 
+> **Reservado / Reserved.** Este paquete é un oco planificado (ROADMAP §6, post-1.0); aínda non contén implementación. — This package is a planned placeholder; it contains no implementation yet.
+
 Analytics adapters for skill tree usage tracking.
 
 ## Status

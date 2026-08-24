@@ -124,8 +124,8 @@ eventually need:
   resource-gated unlocks, mutual exclusions. Yggdrasil Forge ships
   `UnlockRule` — a discriminated union for composable rules.
 - **State management**: efficient diffing so React only re-renders
-  what changed. We use `StateStore` + `ChangeTracker` (2195 tests
-  worth of edge cases handled).
+  what changed. We use `StateStore` + `ChangeTracker`, with a
+  test suite in the thousands covering the edge cases.
 - **Persistence + migrations**: 6 storage backends, snapshot
   system, share-via-URL — plus a migration framework so stored
   data survives schema changes.
@@ -213,35 +213,45 @@ if (result.ok) {
 See [`examples/node-basics`](./examples/node-basics) for the
 complete annotated walkthrough.
 
+The core doesn't know React exists — proof:
+[`examples/vanilla-js`](./examples/vanilla-js), the baker tree driven
+with `@yggdrasil-forge/core` and the bare DOM (`canUnlock`, `unlock`,
+`grantResource`, paint states), zero framework.
+
 ## Packages
 
-This is a monorepo. The following packages are published to npm:
+This is a monorepo of 22 packages. The table tells the truth about
+every one of them — three hard tiers, no blur:
 
-### Active
+### Stable 1.0 (released in lockstep; semver contract applies)
 
 | Package | Description |
 |---------|-------------|
-| [`@yggdrasil-forge/common`](packages/common) | Shared types, errors, `Result<T>`, `LocalizedString`, `StorageAdapter` interface. |
-| [`@yggdrasil-forge/core`](packages/core) | `TreeEngine`, state management, layouts, federation. |
+| [`@yggdrasil-forge/common`](packages/common) | Shared types, errors, `Result<T>`, `LocalizedString`. |
+| [`@yggdrasil-forge/core`](packages/core) | `TreeEngine`, domain types, unlock semantics, layout engines, Zod schema. |
+| [`@yggdrasil-forge/react`](packages/react) | SVG renderer: SkillTree, viewport, themes, icon sets. |
+| [`@yggdrasil-forge/editor-core`](packages/editor-core) | Headless editor engine (commands, undo/redo, validation, auto-layout, presets). *Versioned with the group; not published yet (private).* |
+| [`@yggdrasil-forge/editor-react`](packages/editor-react) | The editor UI. Runnable via [`examples/editor`](examples/editor). *Versioned with the group; not published yet (private).* |
+| [`@yggdrasil-forge/cli`](packages/cli) | `ygg` — `validate`, `layout`, `render`, `schema`, `new`: the headless data path. |
+
+### Functional (built in phases 3–9; published, pre-1.0 API)
+
+| Package | Description |
+|---------|-------------|
 | [`@yggdrasil-forge/storage`](packages/storage) | 6 storage adapter implementations. |
-| [`@yggdrasil-forge/react`](packages/react) | React renderer + hooks + themes. |
 | [`@yggdrasil-forge/plugins`](packages/plugins) | Official plugins: History, Debug. |
 | [`@yggdrasil-forge/search`](packages/search) | Search engine + SearchPlugin. |
 | [`@yggdrasil-forge/validators`](packages/validators) | 9 built-in pedagogical rules. |
-| [`@yggdrasil-forge/cli`](packages/cli) | `ygg` — `validate`, `layout`, `render`, `schema`, `new`: the headless data path for pipelines and AIs. |
+| [`@yggdrasil-forge/importers`](packages/importers) | GAIA-shaped / canonical / generic importers → `TreeDef`. |
+| [`@yggdrasil-forge/exporters`](packages/exporters) | `TreeDef` → JSON / YAML serialization (small but real). |
 
-### In the repo, not yet published
+### Reserved (stubs — a name and a plan, zero implementation)
 
-| Package | Description |
-|---------|-------------|
-| [`@yggdrasil-forge/editor-core`](packages/editor-core) | Headless editor engine: document, commands, undo/redo, validation, auto-layout, theme presets. Zero React. |
-| [`@yggdrasil-forge/editor-react`](packages/editor-react) | The editor UI (dockview shell, canvas, inspector, theme, code panel). Runnable via [`examples/editor`](examples/editor). |
-
-### Scaffold (reserved for future phases)
-
-`@yggdrasil-forge/{analytics, devtools, diff, exporters, heatmap, i18n,
-importers, multitenancy, neo4j, stats, themes, webhooks}` — see each
-package's README for planned scope.
+`@yggdrasil-forge/{analytics, devtools, diff, heatmap, i18n,
+multitenancy, neo4j, stats, themes, webhooks}` — deliberate
+placeholders for post-1.0 phases (see the roadmap's §6). Each one's
+README says exactly that, first line. **They contain no code**; don't
+install them expecting behaviour.
 
 ## Documentation
 
@@ -263,8 +273,8 @@ Requires **Node.js ≥ 22** and **pnpm 11**.
 git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge
 cd yggdrasil-forge
 pnpm install
-pnpm typecheck   # 24/24
-pnpm test        # 2195 tests
+pnpm typecheck
+pnpm test
 pnpm build       # all packages
 ```
 
@@ -276,16 +286,21 @@ pnpm --filter @yggdrasil-forge-examples/node-basics start
 
 ## Roadmap
 
-The project follows a phased development plan documented in
-[MASTER.md](docs/architecture/MASTER.md). Phases 0–8 are complete
-(58+ sub-phases without rollback). Phase 9 (Visual Editor + Wizards
-+ Templates) is next.
+**1.0 is shipped** — the audited line of done lives in
+[`ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md)
+(§2, point by point, with evidence), and post-1.0 work is banked in its
+§6 with the types already in place. The full design history is in
+[MASTER.md](docs/architecture/MASTER.md).
 
 ## Contributing
 
-The project is in active alpha development. Issues and feedback
-welcome via GitHub. PR contributions accepted after 0.1.0 is
-stable.
+Issues and feedback welcome via GitHub. The project is 1.0: PRs are
+accepted — read the
+[architecture guide](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/arquitectura/guia/)
+and the
+[extension guide](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/extension/guia/)
+first; the quality gates (lint, format, typecheck, tests) are
+non-negotiable.
 
 ## License
 

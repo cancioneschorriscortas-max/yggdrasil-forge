@@ -395,6 +395,9 @@ aberto e extensible, ao nivel (ou mellor) das imaxes 13/14.
   Teclado/ARIA (moito vén de Fase 7) + reduced-motion; perf para ~centos
   de nodos (escala atlas = post-1.0 canvas).
 - **16.5 — Release 1.0** *(S)*.
+  *(Regra de release desde 17.0, para o 1.1 e seguintes: o README raíz
+  lese DE ARRIBA A ABAIXO antes de cada release — unha cabeceira pulida
+  cunha cola rancia é peor ca nada. Lección das críticas externas.)*
   Changesets, CHANGELOG, bump, npm publish, README/branding.
 
 **Aceptación F16:** 1.0 publicado; os **tres** exemplos (Oberón + xogo +
