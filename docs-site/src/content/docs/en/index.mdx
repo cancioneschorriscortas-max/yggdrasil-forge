@@ -4,7 +4,7 @@ description: A progression-tree (skill tree) engine for educational apps and gam
 template: splash
 hero:
   title: Yggdrasil Forge
-  tagline: A progression-graph engine — skill trees, curricula, tech trees — where the data is the contract and the looks come by declaration.
+  tagline: "1.0 — A progression-graph engine: skill trees, curricula, tech trees. The data is the contract; the looks come by declaration."
   actions:
     - text: Start here
       link: comeza/instalacion/
@@ -27,6 +27,11 @@ import HeroRender from '../../../components/HeroRender.astro'
 />
 
 *The constellation atlas from the gallery: two fields in the JSON (`icon: "logic-…"`, `preset: "neon"`) and one command (`ygg layout`) — not a single pixel touched by hand.*
+
+```bash
+pnpm add @yggdrasil-forge/core @yggdrasil-forge/react   # renderer
+pnpm add -D @yggdrasil-forge/cli                        # ygg (the data path)
+```
 
 <CardGrid stagger>
   <Card title="Data first" icon="document">

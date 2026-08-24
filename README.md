@@ -4,18 +4,21 @@
 > trees — engine, storage, React renderer, plugins, search, and
 > validators.
 
+[![npm](https://img.shields.io/npm/v/%40yggdrasil-forge%2Fcore?label=%40yggdrasil-forge%2Fcore)](https://www.npmjs.com/package/@yggdrasil-forge/core)
+[![CI](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-galego%20%2B%20english-2e7d4f)](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## ⚠️ Status: Alpha (0.1.0)
+## Status: 1.0
 
-This is an **alpha release**. Public APIs may change before 1.0.0.
-Use for evaluation, prototyping, and feedback. **Pin exact versions
-in production environments.**
+The 1.0 line is shipped: themable renderer, complete editor (with
+autosave and offline PWA), the data path (published JSON Schema +
+`ygg` CLI: validate · layout · render), and bilingual public docs.
 
-> 🗺️ **Roadmap a 1.0:** ver
-> [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md).
+> 📚 **Docs:** **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/** (Galician first, full English) ·
+> 🗺️ Roadmap and the audited line of done: [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md).
 
 
 ## What is Yggdrasil Forge?
