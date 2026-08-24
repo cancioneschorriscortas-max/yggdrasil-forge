@@ -38,6 +38,17 @@ function pick(loc, locale) {
   return loc[locale] ?? loc.gl ?? loc.en ?? Object.values(loc)[0] ?? ''
 }
 
+/** Luminancia aproximada dun #rrggbb: true se é cor CLARA (>0.6). */
+function isLightColor(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex.trim())
+  if (m === null) return false
+  const n = Number.parseInt(m[1], 16)
+  const r = (n >> 16) & 255
+  const g = (n >> 8) & 255
+  const b = n & 255
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.6
+}
+
 const files = readdirSync(galleryDir)
   .filter((f) => f.endsWith('.json'))
   .sort()
@@ -47,8 +58,15 @@ for (const file of files) {
   const src = join(galleryDir, file)
   const doc = JSON.parse(readFileSync(src, 'utf8'))
   const tree = doc.tree
+  // Documentos que PIDEN chan escuro (textColor claro cocido no
+  // documento, p.ex. o preset neon): a variante «clara» renderízase
+  // tamén con --dark — o SVG leva o seu propio fondo, así que na
+  // páxina clara vese como tarxeta escura lexible, nunca texto branco
+  // sobre branco (informe do dono na portada 1.0).
+  const textColor = doc.editor?.theme?.textColor
+  const wantsDarkGround = typeof textColor === 'string' && isLightColor(textColor)
   for (const [suffix, extra] of [
-    ['.svg', []],
+    ['.svg', wantsDarkGround ? ['--dark'] : []],
     ['.dark.svg', ['--dark']],
   ]) {
     const out = join(outDir, `${id}${suffix}`)
