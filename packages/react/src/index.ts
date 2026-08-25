@@ -81,6 +81,12 @@ export { NORSE_ICONS } from './icons/norse.js'
 //   registerIcons(LOGIC_ICONS)
 export { LOGIC_ICONS } from './icons/logic.js'
 
+// 17.1: iconset Forge (opt-in, mesmo patrón). 25 iconos industriais/
+// mecánicos — taller, carga, puntería, oficio, loxística.
+//   import { registerIcons, FORGE_ICONS } from '@yggdrasil-forge/react'
+//   registerIcons(FORGE_ICONS)
+export { FORGE_ICONS } from './icons/forge.js'
+
 // F10.6: vistas alternativas + inspector (promovidas desde
 // examples/oberon-panadeiro tras ser pedidas por GAIA como segundo
 // consumidor real).
