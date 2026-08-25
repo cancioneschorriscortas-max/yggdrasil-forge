@@ -53,7 +53,12 @@ Thumbs.db
 # Tester scratch — suite E2E do rol Tester (Playwright, informes,
 # fixtures sintéticas). Nunca se commitea; ademais mantense fóra do
 # gate de biome (useIgnoreFile) por non ser código de produto.
-/tools/e2e/
+# E2E do Tester: NON se commitea… agás capturas/ (17.5): o xerador
+# das capturas da guía visual é documentación e commitéase.
+/tools/e2e/*
+!/tools/e2e/capturas/
+/tools/e2e/capturas/node_modules/
+/tools/e2e/capturas/resultados/
 
 # 17.4: referencia de API xerada no build do site (typedoc) — nunca commiteada
 docs-site/src/content/docs/api/

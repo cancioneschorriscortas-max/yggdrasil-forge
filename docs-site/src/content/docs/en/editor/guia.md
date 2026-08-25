@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-**For whoever opens the editor and wants to build a skill tree without necessarily knowing the code.** Editor state: arc 7.19 (named presets and official icon sets).
+**For whoever opens the editor and wants to build a skill tree without necessarily knowing the code.** Editor state: 1.x — the Studio shipped with 1.0.
 
 > The editor's interface is in **Galician**. This guide gives each label as it appears on screen, with its English meaning in parentheses the first time.
 
@@ -32,9 +32,15 @@ Start in Autoría. Switch to Proba to feel it. Go back to Autoría to adjust. Th
 
 ### Survival and installation
 
-The document **autosaves** (about 1 s after each change): if you close or reload without exporting, a banner appears on return — *"Recuperouse traballo sen exportar" (unexported work was recovered) — Continuar / Descartar*. *Novo* starts clean (nothing to recover); **exporting remains the real save**. And the editor is a **PWA**: it works fully offline and Chrome/Edge offer to install it as a desktop app.
+The document **autosaves** (about 1 s after each change): if you close or reload without exporting, a banner appears on return — *"Recuperouse traballo sen exportar" (unexported work was recovered) — Continuar / Descartar*. *Novo* starts clean (nothing to recover); **exporting remains the real save**.
+![The recovery banner after a reload: unexported work recovered, with Continuar and Descartar](../../../../assets/capturas/13-recuperacion.png)
+
+![The Ficheiro menu with the export entries: JSON, SVG image and PNG image](../../../../assets/capturas/12-exportar.png)
+ And the editor is a **PWA**: it works fully offline and Chrome/Edge offer to install it as a desktop app.
 
 ## The panels
+
+![The full editor with the baker tree: Estrutura on the left, Canvas in the centre, Inspector on the right, Problemas below and the status bar](../../../../assets/capturas/01-editor.png)
 
 The screen is split into resizable panels. You can close them with the tab's ✕ and reopen them from the **Paneis** (panels) menu in the top bar, which also has **Restaurar disposición** (restore layout). The layout is saved between sessions.
 
@@ -59,6 +65,8 @@ The **status bar** at the bottom shows nodes, edges, mode and world size (`World
 - **☀ / 🌙** → light/dark theme of the editor *chrome* (not of the document — see [Theming](../../theming/)).
 - **Autoría / Proba** → the mode.
 
+![The Ficheiro menu open: Novo, Importar JSON, Exportar JSON and image export](../../../../assets/capturas/02-ficheiro.png)
+
 ## The canvas
 
 ### Tools (floating canvas bar, Autoría + graph view only)
@@ -70,6 +78,10 @@ The **status bar** at the bottom shows nodes, edges, mode and world size (`World
 | **Conectar** (connect) | `C` | Drag from one node to another to create an edge. With the option *"Ao conectar, o destino pasa a requirir a orixe"* ("when connecting, the target starts requiring the source") enabled (the default), the edge also adds the prerequisite; untick it for a purely visual connection. |
 
 `Delete` removes the selection. `Escape` cancels the ongoing interaction without touching the document.
+
+![With the Engadir tool active, one click on empty space creates a new node, born selected](../../../../assets/capturas/03-engadir.png)
+
+![With the Conectar tool, the dashed ghost line follows the mouse from the source node to wherever you will drop](../../../../assets/capturas/04-conexion.png)
 
 ### Move, pan and zoom
 
@@ -89,21 +101,32 @@ The **✥ Dispor** (arrange) button opens a menu with five algorithms; each carr
 | **Radial por grupos** — clustered radial | you have groups defined; loose nodes get their own slot. |
 | **Constelación** — constellation | the graph is loose, with no clear hierarchy. |
 
+
+![The Dispor menu open with the five algorithms, each with its usage condition underneath](../../../../assets/capturas/08-dispor.png)
+
 Dispor **bakes** the positions into the document (it is not a "live" layout): afterwards you can tweak by dragging, and **a single undo** restores all previous positions and framing. If you import a tree without positions, the canvas offers the algorithms in an invitation bar. More in [Layouts](../../layouts/).
 
 ### Graph / cards view
 
 The corner toggle switches between the **graph** (classic SVG) and the **cards**: each group is a card and each member node a row with icon, label and tier. Cards are a structural view (selecting and deleting work; moving and connecting belong to the graph).
 
+![The cards view: each group a card, each node a row with icon, label and tier](../../../../assets/capturas/10-tarxetas.png)
+
 ## Inspector — editing properties
 
 With **one** node selected, the Inspector shows its fields in two blocks: **Básico** (basic, visible) and **Avanzado** (advanced, collapsed). With nothing selected, it shows the **tree** fields (label, description, author, version) and the **Recursos** (resources) editor.
 
+
+![The Inspector with a node selected: Básico and Avanzado blocks with identity, appearance and logic fields](../../../../assets/capturas/05-inspector.png)
+
 ### Node fields
 
 - **Identity**: `id` (read-only), **Tipo** (type: `small`, `notable`, `keystone`, `mastery`, `ascendancy`, `root`, `cluster`, `gateway`, `milestone`, `subtree_anchor`, `custom`), **Etiqueta** (label) and **Descrición** (description) — localizable; the `gl` locale is edited and the others are preserved.
-- **Appearance**: **Cor** (color), **Icona** (icon: an emoji, an image URL or an id from the bundled sets `logic-*` and `norse-*`), **Zoom da imaxe** (image zoom, image icons only), **Forma** (shape: `circle`, `square`, `diamond`, `hexagon`, `octagon`) and **Tamaño** (size).
+- **Appearance**: **Cor** (color), **Icona** (icon: an emoji, an image URL or an id from the bundled sets `logic-*`, `norse-*` and `forge-*` — the **Escoller icona** button opens the visual picker), **Zoom da imaxe** (image zoom, image icons only), **Forma** (shape: `circle`, `square`, `diamond`, `hexagon`, `octagon`) and **Tamaño** (size).
 - **Logic**: **Rangos** (tiers, `maxTier`), **Custo** (cost: resource/amount pairs), **Custo por rango** (cost per tier), **Efectos** (effects), **Prerrequisitos** (prerequisites) and **Exclusións** (exclusions).
+
+
+![The visual icon picker with the search filtering the logic set](../../../../assets/capturas/06-iconas.png)
 
 ### Prerequisites
 
@@ -129,19 +152,28 @@ The **Tema** tab acts on the whole tree and is saved **with the document** (it t
 - **Rexións** (regions): tints by tag (create, color, assign to / remove from the selection).
 - **Fondo** (background): URL of a canvas background image.
 
+
+![The Tema tab: named presets, per-state fills, text colour, regions and background](../../../../assets/capturas/07-tema.png)
+
 More in [Theming](../../theming/).
 
 ## Código — the live JSON
 
 The **Código** tab shows the serialized document. As long as you don't touch the text it is **synchronized** (it reflects every canvas change). As soon as you type it becomes a **draft**: synchronization pauses and the **Validar · Aplicar · Descartar** (validate · apply · discard) banner appears. *Validar* runs exactly the same validation as importing and marks the error line; *Aplicar* replaces the whole document as **a single undo step**. Section colors (nodes, edges, resources…) help you find your way. This is where you paste a tree generated by an AI — see [The data path](../../via-do-dato/).
 
+![The Código panel with the live JSON, the per-section colour legend and the side stripes](../../../../assets/capturas/11-codigo.png)
+
 ## Problemas — the voice of conscience
 
 **Soft validators** warn without blocking: asymmetric exclusions, prerequisite cycles, nodes outside the world bounds, references to non-existent resources, effects the runtime doesn't support… Each row carries severity, message, reference (`node: …`) and technical code. **Click a row = the node is selected and the view centers on it.** The tree saves with warnings; **hard errors** (duplicate ids, broken references) are rejected on import or apply.
 
+![The Problemas panel with an asymmetric-exclusion warning and the Ver no código button](../../../../assets/capturas/14-problemas.png)
+
 ## Proba — playing the tree
 
 In Proba mode the right panel shows the **session resources** (you can grant yourself more), and for the selected node the **unlock / remove one tier** buttons and its state. The canvas fills follow the live states. **Reiniciar** returns to a clean session. Exporting an image in Proba captures the session states.
+
+![Proba mode: session resources on the right, the selected node card with its cost and the Desbloquear button](../../../../assets/capturas/09-proba.png)
 
 ## Shortcuts
 
@@ -159,7 +191,6 @@ In Proba mode the right panel shows the **session resources** (you can grant you
 ## Current limitations
 
 - **Multi-selection editing**: with several nodes selected the Inspector doesn't edit (moving and deleting do work).
-- **Visual icon picker**: none; you type the id (the field's help lists the available sets).
 - **Canvas locale**: labels are edited in the `gl` locale; the others are preserved but not editable from the UI.
 - **Group editing**: from the Código panel.
 

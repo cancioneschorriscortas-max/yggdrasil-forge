@@ -25,6 +25,7 @@
     "typecheck:packages": "turbo run typecheck --filter=\"!./examples/*\" --filter=\"!./docs-site\"",
     "docs:dev": "pnpm --filter @yggdrasil-forge-docs/site run dev",
     "docs:build": "turbo run build --filter @yggdrasil-forge/cli && pnpm --filter @yggdrasil-forge-docs/site run build",
+    "capturas": "cd tools/e2e/capturas && npx playwright test",
     "docs:preview": "pnpm --filter @yggdrasil-forge-docs/site run preview",
     "dev": "turbo run dev",
     "clean": "turbo run clean && rm -rf node_modules",

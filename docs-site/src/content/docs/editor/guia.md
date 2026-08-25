@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-**Para quen abre o editor e quere construír un skill tree sen necesariamente coñecer o código.** Estado do editor: arco 7.19 (presets con nome e sets de iconas oficiais).
+**Para quen abre o editor e quere construír un skill tree sen necesariamente coñecer o código.** Estado do editor: 1.x — o Studio publicado co 1.0.
 
 ## Que é o editor
 
@@ -30,9 +30,16 @@ Comeza en Autoría. Cambia a Proba para ver como se sente. Volve a Autoría para
 
 ### Supervivencia e instalación
 
-O documento **autogárdase** (con ~1 s de demora tras cada cambio): se pechas ou recargas sen exportar, ao volver aparece un banner — *«Recuperouse traballo sen exportar (data) — Continuar / Descartar»*. *Novo* empeza de cero (sen recuperación); **Exportar segue sendo o gardado real**. E o editor é unha **PWA**: funciona enteiro sen conexión e Chrome/Edge ofrecen instalalo como app de escritorio.
+O documento **autogárdase** (con ~1 s de demora tras cada cambio): se pechas ou recargas sen exportar, ao volver aparece un banner — *«Recuperouse traballo sen exportar (data) — Continuar / Descartar»*. *Novo* empeza de cero (sen recuperación); **Exportar segue sendo o gardado real**.
+
+![O banner de recuperación tras recargar: Recuperouse traballo sen exportar, con Continuar e Descartar](../../../assets/capturas/13-recuperacion.png)
+![O menú Ficheiro coas entradas de exportación: JSON, imaxe SVG e imaxe PNG](../../../assets/capturas/12-exportar.png)
+
+E o editor é unha **PWA**: funciona enteiro sen conexión e Chrome/Edge ofrecen instalalo como app de escritorio.
 
 ## Os paneis
+
+![O editor completo co panadeiro: Estrutura á esquerda, Canvas no centro, Inspector á dereita, Problemas abaixo e a barra de estado](../../../assets/capturas/01-editor.png)
 
 A pantalla divídese en paneis redimensionables. Podes pechalos coa ✕ da pestana e reabrilos desde o menú **Paneis** da barra superior, que tamén ten **Restaurar disposición**. A disposición gárdase entre sesións.
 
@@ -57,6 +64,8 @@ A **barra de estado** de abaixo mostra nodos, arestas, modo e tamaño do mundo (
 - **☀ / 🌙** → tema claro/escuro do *chrome* do editor (non do documento — ver [Theming](../../theming/)).
 - **Autoría / Proba** → o modo.
 
+![O menú Ficheiro aberto: Novo, Importar JSON, Exportar JSON e Exportar imaxe](../../../assets/capturas/02-ficheiro.png)
+
 ## O canvas
 
 ### Ferramentas (barra flotante do canvas, só en Autoría + vista grafo)
@@ -68,6 +77,10 @@ A **barra de estado** de abaixo mostra nodos, arestas, modo e tamaño do mundo (
 | **Conectar** | `C` | Arrastra dun nodo a outro para crear unha aresta. Coa opción *«Ao conectar, o destino pasa a requirir a orixe»* activa (por defecto), a aresta tamén engade o prerrequisito; desmárcaa para unha conexión só visual. |
 
 `Supr` elimina a selección. `Escape` cancela a interacción en curso sen tocar o documento.
+
+![Coa ferramenta Engadir activa, un clic no baleiro crea un nodo novo que nace seleccionado](../../../assets/capturas/03-engadir.png)
+
+![Coa ferramenta Conectar, a liña fantasma descontinua segue o rato desde o nodo de orixe ata onde vaias soltar](../../../assets/capturas/04-conexion.png)
 
 ### Mover, pan e zoom
 
@@ -87,21 +100,29 @@ O botón **✥ Dispor** abre un menú con cinco algoritmos; cada un leva a súa 
 | **Radial por grupos** | tes grupos definidos; os nodos soltos van a un oco propio. |
 | **Constelación** | o grafo é solto, sen xerarquía clara. |
 
+![O menú Dispor aberto cos cinco algoritmos e a condición de uso de cada un debaixo](../../../assets/capturas/08-dispor.png)
+
 Dispor **coce** as posicións no documento (non é un layout «vivo»): despois podes retocar arrastrando, e **un só desfacer** devolve todas as posicións e o encadre anteriores. Se importas unha árbore sen posicións, o canvas ofréceche os algoritmos nunha barra-convite. Máis detalle en [Layouts](../../layouts/).
 
 ### Vista grafo / tarxetas
 
 O toggle da esquina cambia entre o **grafo** (SVG clásico) e as **tarxetas**: cada grupo é unha tarxeta e cada nodo membro unha fila con icona, etiqueta e rango. As tarxetas son unha vista estrutural (seleccionar e borrar funcionan; mover e conectar son do grafo).
 
+![A vista de tarxetas: cada grupo unha tarxeta, cada nodo unha fila con icona, etiqueta e rango](../../../assets/capturas/10-tarxetas.png)
+
 ## Inspector — editar propiedades
 
 Con **un** nodo seleccionado, o Inspector mostra os seus campos en dous bloques: **Básico** (visible) e **Avanzado** (pregado). Sen selección, mostra os campos da **árbore** (etiqueta, descrición, autor, versión) e o editor de **Recursos**.
 
+![O Inspector cun nodo seleccionado: bloques Básico e Avanzado cos campos de identidade, aparencia e lóxica](../../../assets/capturas/05-inspector.png)
+
 ### Campos do nodo
 
 - **Identidade**: `id` (só lectura), **Tipo** (`small`, `notable`, `keystone`, `mastery`, `ascendancy`, `root`, `cluster`, `gateway`, `milestone`, `subtree_anchor`, `custom`), **Etiqueta** e **Descrición** (localizables; edítase a locale `gl` e as outras consérvanse).
-- **Aparencia**: **Cor**, **Icona** (un emoji, unha URL de imaxe ou un id dos sets incluídos: `logic-*` e `norse-*`), **Zoom da imaxe** (só para iconas de imaxe), **Forma** (`circle`, `square`, `diamond`, `hexagon`, `octagon`) e **Tamaño**.
+- **Aparencia**: **Cor**, **Icona** (un emoji, unha URL de imaxe ou un id dos sets incluídos: `logic-*`, `norse-*` e `forge-*` — co botón **Escoller icona** ábrese o selector visual), **Zoom da imaxe** (só para iconas de imaxe), **Forma** (`circle`, `square`, `diamond`, `hexagon`, `octagon`) e **Tamaño**.
 - **Lóxica**: **Rangos** (`maxTier`), **Custo** (pares recurso/cantidade), **Custo por rango**, **Efectos**, **Prerrequisitos** e **Exclusións**.
+
+![O selector visual de iconas co buscador filtrando o set lóxico](../../../assets/capturas/06-iconas.png)
 
 ### Prerrequisitos
 
@@ -127,19 +148,27 @@ A pestana **Tema** actúa sobre a árbore enteira e gárdase **co documento** (v
 - **Rexións**: tintes por tag (crear, colorear, asignar/quitar da selección).
 - **Fondo**: URL dunha imaxe de fondo do canvas.
 
+![A pestana Tema: presets con nome, recheos por estado, cor do texto, rexións e fondo](../../../assets/capturas/07-tema.png)
+
 Máis en [Theming](../../theming/).
 
 ## Código — o JSON en vivo
 
 A pestana **Código** mostra o documento serializado. Mentres non tocas o texto está **sincronizado** (reflicte cada cambio do canvas). En canto escribes pasa a **borrador**: a sincronización pausa e aparece o banner **Validar · Aplicar · Descartar**. *Validar* corre exactamente a mesma validación ca Importar e marca a liña do erro; *Aplicar* substitúe o documento enteiro como **un único paso de desfacer**. As cores por sección (nodos, arestas, recursos…) axudan a orientarse. Aquí é onde pegas unha árbore xerada por unha IA — ver [A vía do dato](../../via-do-dato/).
 
+![O panel Código co JSON en vivo, a lenda de cores por sección e as franxas laterais](../../../assets/capturas/11-codigo.png)
+
 ## Problemas — a voz da conciencia
 
 Os **validadores brandos** avisan sen bloquear: exclusións asimétricas, ciclos de prerrequisitos, nodos fóra dos límites do mundo, referencias a recursos inexistentes, efectos que o runtime non soporta… Cada fila leva severidade, mensaxe, referencia (`node: …`) e código técnico. **Clic nunha fila = o nodo selecciónase e a vista céntrase nel.** A árbore gárdase con avisos; os **erros duros** (ids duplicados, referencias rotas) rexéitanse ao importar ou aplicar.
 
+![O panel Problemas cun aviso de exclusión asimétrica e o botón Ver no código](../../../assets/capturas/14-problemas.png)
+
 ## Proba — xogar a árbore
 
 En modo Proba o panel da dereita mostra os **recursos da sesión** (podes concederte máis), e para o nodo seleccionado os botóns de **desbloquear / retirar un rango** e o seu estado. Os recheos do canvas seguen os estados en vivo. **Reiniciar** volve á sesión limpa. A exportación de imaxe en Proba captura os estados da sesión.
+
+![O modo Proba: recursos da sesión á dereita, a ficha do nodo seleccionado co custo e o botón Desbloquear](../../../assets/capturas/09-proba.png)
 
 ## Atallos
 
@@ -157,7 +186,6 @@ En modo Proba o panel da dereita mostra os **recursos da sesión** (podes conced
 ## Limitacións actuais
 
 - **Edición común multi-selección**: con varios nodos seleccionados o Inspector non edita (mover e borrar si funcionan).
-- **Selector visual de iconas**: non hai; escríbese o id (a axuda do campo lista os sets dispoñibles).
 - **Locale do canvas**: as etiquetas edítanse na locale `gl`; as demais consérvanse pero non se editan desde a UI.
 - **Edición de grupos**: desde o panel Código.
 
