@@ -23,7 +23,7 @@ import {
   standaloneSvg,
   themeOverridesFromSpec,
 } from '@yggdrasil-forge/editor-core'
-import { LOGIC_ICONS, NORSE_ICONS, registerIcons } from '@yggdrasil-forge/react'
+import { FORGE_ICONS, LOGIC_ICONS, NORSE_ICONS, registerIcons } from '@yggdrasil-forge/react'
 import {
   type RegionSpec,
   SkillTree,
@@ -40,6 +40,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 // fallback (informe do dono na portada 1.0).
 registerIcons(NORSE_ICONS)
 registerIcons(LOGIC_ICONS)
+registerIcons(FORGE_ICONS)
 
 export interface RenderTextOptions {
   readonly dark?: boolean

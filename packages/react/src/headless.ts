@@ -76,4 +76,6 @@ export { BUILTIN_ICONS } from './icons/registry.js'
 export { NORSE_ICONS } from './icons/norse.js'
 // 7.19: iconset Logic (opt-in, mesmo patrón que /index).
 export { LOGIC_ICONS } from './icons/logic.js'
+// 17.1: iconset Forge (opt-in, mesmo patrón que /index).
+export { FORGE_ICONS } from './icons/forge.js'
 // ── FIN: headless entry point ──

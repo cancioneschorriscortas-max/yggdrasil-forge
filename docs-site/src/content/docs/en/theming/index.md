@@ -107,16 +107,17 @@ The ☀/🌙 switch in the top bar changes the **chrome** (the editor panels), *
 `node.icon` is a **registry id**, with fallback to emoji/character or to URL → image (with `iconScale` for the crop).
 
 ```tsx
-import { registerIcons, BUILTIN_ICONS, NORSE_ICONS, LOGIC_ICONS } from '@yggdrasil-forge/react'
+import { registerIcons, BUILTIN_ICONS, NORSE_ICONS, LOGIC_ICONS, FORGE_ICONS } from '@yggdrasil-forge/react'
 import type { IconDef } from '@yggdrasil-forge/react'
 
 // BUILTIN_ICONS register themselves. Themed sets are OPT-IN (byte cost):
 registerIcons(NORSE_ICONS)   // 26 norse icons: norse-world-tree, norse-wolf, …
 registerIcons(LOGIC_ICONS)   // 19 prerequisite icons: logic-lock, logic-key, logic-fork, …
+registerIcons(FORGE_ICONS)   // 25 industrial icons: forge-nut, forge-wrench, forge-crosshair, …
 
 // Your own icon — recolors with the theme via currentColor:
 const myIcon: IconDef = { viewBox: '0 0 24 24', paths: [{ d: 'M4 4 L20 20 M20 4 L4 20', mode: 'stroke' }] }
 registerIcons({ 'my-x': myIcon })
 ```
 
-The editor registers both sets at startup, so `logic-key` in the *Icona* field works out of the box. The full list of ids is in the [gallery README](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/README.md#icon-sets-nodeicon).
+The editor registers all three sets at startup, so `logic-key` or `forge-wrench` in the *Icona* field works out of the box. The full list of ids is in the [gallery README](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/README.md#icon-sets-nodeicon).

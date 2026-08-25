@@ -132,7 +132,7 @@ in the editor's Theme tab.
 ### Icon sets (`node.icon`)
 
 `node.icon` accepts an emoji, an image URL, or a **registered icon id**.
-Two official opt-in sets ship with `@yggdrasil-forge/react`:
+Three official opt-in sets ship with `@yggdrasil-forge/react`:
 
 - **`logic-*`** — 19 icons for prerequisite/progression semantics
   (see them all on `gaia-cards.json`): `logic-lock`, `logic-unlock`,
@@ -144,10 +144,19 @@ Two official opt-in sets ship with `@yggdrasil-forge/react`:
 - **`norse-*`** — 26 norse-flavoured icons (world tree, runes, mythic
   beasts…); full list in
   [`packages/react/src/icons/norse.ts`](../../packages/react/src/icons/norse.ts).
+- **`forge-*`** — 25 industrial/mechanical icons (workshop-blueprint
+  stroke style): `forge-nut`, `forge-spring`, `forge-plate`,
+  `forge-scope`, `forge-rivet`, `forge-assembly`, `forge-cart`,
+  `forge-weight`, `forge-guard`, `forge-wall`, `forge-breach`,
+  `forge-crosshair`, `forge-cadence`, `forge-arc`, `forge-range`,
+  `forge-mortar`, `forge-eye`, `forge-wrench`, `forge-hook`,
+  `forge-weld`, `forge-revive`, `forge-nameplate`, `forge-barcode`,
+  `forge-link`, `forge-shelf`.
 
-The bundled editor registers both sets at startup, so these ids work
-out of the box; other consumers opt in with
-`registerIcons(LOGIC_ICONS)` / `registerIcons(NORSE_ICONS)`.
+The bundled editor registers the three sets at startup, so these ids
+work out of the box; other consumers opt in with
+`registerIcons(LOGIC_ICONS)` / `registerIcons(NORSE_ICONS)` /
+`registerIcons(FORGE_ICONS)`.
 
 ## Regenerating
 
