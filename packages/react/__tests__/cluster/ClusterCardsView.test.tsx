@@ -117,3 +117,90 @@ describe('ClusterCardsView — render', () => {
   })
 })
 // ── FIN: tests ClusterCardsView ──
+
+// ── 17.2: paridade de iconas — os tres camiños da cela ──
+describe('17.2 — RowIcon: IconDef | string, nunca descarte silencioso', () => {
+  const DATA_URI = 'data:image/svg+xml;base64,PHN2Zy8+'
+
+  function makeIconGroups(): ClusterGroup[] {
+    return [
+      {
+        id: 'g1',
+        label: 'ICONAS',
+        color: '#aabbcc',
+        members: [
+          {
+            id: 'glyph',
+            label: 'Glyph',
+            icon: { viewBox: '0 0 24 24', paths: [{ d: 'M4 4L20 20', mode: 'stroke' as const }] },
+            currentTier: 0,
+            maxTier: 1,
+          },
+          { id: 'foto', label: 'Foto', icon: DATA_URI, currentTier: 0, maxTier: 1 },
+          { id: 'emoji', label: 'Emoji', icon: '🔥', currentTier: 0, maxTier: 1 },
+        ],
+      },
+    ]
+  }
+
+  it('IconDef → glyph SVG (como sempre)', () => {
+    const { container } = render(
+      <ClusterCardsView groups={makeIconGroups()} onRowClick={vi.fn()} />,
+    )
+    const cell = container.querySelectorAll('.yf-cluster-row__icon')[0]
+    expect(cell?.querySelector('svg path')?.getAttribute('d')).toBe('M4 4L20 20')
+  })
+
+  it('string-imaxe (data-URI) → <img> con src, alt da label e lazy', () => {
+    const { container } = render(
+      <ClusterCardsView groups={makeIconGroups()} onRowClick={vi.fn()} />,
+    )
+    const img = container.querySelectorAll('.yf-cluster-row__icon')[1]?.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img?.getAttribute('src')).toBe(DATA_URI)
+    expect(img?.getAttribute('alt')).toBe('Foto')
+    expect(img?.getAttribute('loading')).toBe('lazy')
+  })
+
+  it('string-URL http(s) → <img> (mesmo criterio F11.3 có SkillNode)', () => {
+    const groups: ClusterGroup[] = [
+      {
+        id: 'g1',
+        label: 'URL',
+        color: '#aabbcc',
+        members: [
+          {
+            id: 'u',
+            label: 'Retrato',
+            icon: 'https://example.test/cara.png',
+            currentTier: 0,
+            maxTier: 1,
+          },
+        ],
+      },
+    ]
+    const { container } = render(<ClusterCardsView groups={groups} onRowClick={vi.fn()} />)
+    expect(container.querySelector('.yf-cluster-row__icon img')?.getAttribute('src')).toBe(
+      'https://example.test/cara.png',
+    )
+  })
+
+  it('calquera outro string → texto/emoji (nunca null silencioso)', () => {
+    const { container } = render(
+      <ClusterCardsView groups={makeIconGroups()} onRowClick={vi.fn()} />,
+    )
+    const cell = container.querySelectorAll('.yf-cluster-row__icon')[2]
+    expect(cell?.textContent).toBe('🔥')
+    expect(cell?.querySelector('img')).toBeNull()
+    expect(cell?.querySelector('svg')).toBeNull()
+  })
+
+  it('snapshot da fila cos tres camiños', () => {
+    const { container } = render(
+      <ClusterCardsView groups={makeIconGroups()} onRowClick={vi.fn()} />,
+    )
+    const cells = [...container.querySelectorAll('.yf-cluster-row__icon')].map((c) => c.innerHTML)
+    expect(cells).toMatchSnapshot()
+  })
+})
+// ── FIN 17.2 ──

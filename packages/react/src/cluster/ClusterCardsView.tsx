@@ -16,13 +16,19 @@
 import type { CSSProperties, JSX, MouseEvent as ReactMouseEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useTheme } from '../ThemeProvider.js'
+import { isImageRef } from '../icons/imageRef.js'
 import type { IconDef, IconPath } from '../icons/registry.js'
 import { rowBadge, rowState } from './logic.js'
 
 export interface ClusterMember {
   readonly id: string
   readonly label: string
-  readonly icon?: IconDef
+  /**
+   * 17.2: o mesmo contrato ca `node.icon` no grafo — un `IconDef`
+   * resolto, ou un string cru (data-URI/URL → imaxe; calquera outro →
+   * texto/emoji). A vista nunca descarta unha icona en silencio.
+   */
+  readonly icon?: IconDef | string
   readonly currentTier: number
   readonly maxTier: number
 }
@@ -120,6 +126,43 @@ function InlineIcon({ def, size }: { def: IconDef; size: number }): JSX.Element 
         return <path key={`p-${String(i)}`} d={p.d} fill="currentColor" />
       })}
     </svg>
+  )
+}
+
+// ── RowIcon ──
+// 17.2: paridade de iconas co grafo. A cela da fila renderiza por caso
+// co MESMO criterio de imaxe do SkillNode (icons/imageRef.ts):
+//   - IconDef → InlineIcon (glyph recoloreable, como sempre)
+//   - string-imaxe (data:/URL/ruta/extensión) → <img> do tamaño da fila
+//   - calquera outro string → texto/emoji
+// Nunca `null` silencioso: se hai `icon`, algo se pinta.
+function RowIcon({
+  icon,
+  label,
+  size,
+}: {
+  readonly icon: IconDef | string
+  readonly label: string
+  readonly size: number
+}): JSX.Element {
+  if (typeof icon !== 'string') return <InlineIcon def={icon} size={size} />
+  if (isImageRef(icon)) {
+    return (
+      <img
+        src={icon}
+        alt={label}
+        loading="lazy"
+        width={size}
+        height={size}
+        style={{ objectFit: 'cover', borderRadius: 4, display: 'block' }}
+      />
+    )
+  }
+  // Emoji/carácter: mesma rama de fallback có <text> do SkillNode.
+  return (
+    <span aria-hidden="true" style={{ fontSize: size * 0.8, lineHeight: 1 }}>
+      {icon}
+    </span>
   )
 }
 
@@ -377,7 +420,9 @@ export function ClusterCardsView({
                             color: g.color,
                           }}
                         >
-                          {m.icon !== undefined ? <InlineIcon def={m.icon} size={20} /> : null}
+                          {m.icon !== undefined ? (
+                            <RowIcon icon={m.icon} label={m.label} size={20} />
+                          ) : null}
                         </span>
                         <span
                           className="yf-cluster-row__label"
