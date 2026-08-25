@@ -75,6 +75,16 @@ export interface TickResult {
 }
 // ── FIN: 2.3.b — TickResult ──
 
+/**
+ * O motor de árbores de progresión: carga unha `TreeDef`, avalía
+ * desbloqueos (prerequisitos, custos, exclusións, rangos), executa as
+ * mutacións (`unlock`/`lock`/`respec`/`grantResource`) de forma
+ * atómica, e notifica os subscritores en cada cambio de estado.
+ *
+ * Todas as mutacións devolven `Result<T>` (erro como dato, nunca
+ * throw); as lecturas son síncronas e puras. O render (React ou
+ * calquera outro) lé `getSnapshot()` e subscríbese con `subscribe()`.
+ */
 export class TreeEngine {
   private readonly store: StateStore
   private readonly locale: Locale
@@ -151,6 +161,12 @@ export class TreeEngine {
   private readonly reverseExclusions: ReadonlyMap<string, ReadonlySet<string>>
   // ── FIN: Exclusións bidireccionais ──
 
+  /**
+   * Valida a `TreeDef` (schema + invariantes duras; lanza
+   * `YggdrasilError` se é inválida) e constrúe o motor co estado
+   * inicial: recursos a `initial`, nodos a `locked` (o desbloqueable
+   * pregúntase con `canUnlock`, non se garda).
+   */
   constructor(treeDef: TreeDef, options?: TreeEngineOptions) {
     this.locale = options?.locale ?? 'gl'
     this.readOnly = options?.readOnly ?? false
@@ -367,16 +383,19 @@ export class TreeEngine {
 
   // ── Getters síncronos (T3.c) ──
 
+  /** Estado runtime dun nodo (`state`, `currentTier`…); `null` se non existe. */
   getNodeState(nodeId: string): NodeInstance | null {
     const state = this.store.getState()
     return state.nodes[nodeId] ?? null
   }
 
+  /** Mapa nodeId → estado runtime de todos os nodos (copia; mutala non toca o motor). */
   getAllNodeStates(): ReadonlyMap<string, NodeInstance> {
     const state = this.store.getState()
     return new Map(Object.entries(state.nodes))
   }
 
+  /** Orzamento actual: `resources[resourceId]` → cantidade dispoñible. */
   getBudget(): Readonly<Budget> {
     return this.store.getState().budget
   }
@@ -391,10 +410,12 @@ export class TreeEngine {
     return this.progressManager.getProgress(nodeId)
   }
 
+  /** A definición da árbore que o motor está a executar (readonly). */
   getTreeDef(): Readonly<TreeDef> {
     return this.store.getTreeDef()
   }
 
+  /** Locale activa para mensaxes e resolución de `LocalizedString`. */
   getLocale(): Locale {
     return this.locale
   }
@@ -507,18 +528,29 @@ export class TreeEngine {
   }
   // ── FIN: 2.4.b ──
 
+  /** `true` se o motor se construíu con `readOnly` (as mutacións devolven erro). */
   isReadOnly(): boolean {
     return this.readOnly
   }
 
+  /**
+   * Instantánea inmutable do estado completo (nodos + orzamento).
+   * Referencia estable entre mutacións: apta para
+   * `useSyncExternalStore` e para comparación por identidade.
+   */
   getSnapshot(): TreeState {
     return this.store.getSnapshot()
   }
 
+  /** Variante SSR de `getSnapshot` (render estático sen efectos). */
   getServerSnapshot(): TreeState {
     return this.store.getServerSnapshot()
   }
 
+  /**
+   * Subscríbete aos cambios de estado; o listener chámase tras cada
+   * mutación con éxito. Devolve a función de baixa.
+   */
   subscribe(listener: () => void): () => void {
     return this.store.subscribe(listener)
   }
@@ -761,10 +793,13 @@ export class TreeEngine {
   }
   // ── FIN: Exclusións bidireccionais ──
 
-  // ── canUnlock: comprobación síncrona pura (T3) ──
-  // Decisión: nodo xa unlocked/maxed → ok({ allowed: false, reason }) non err,
-  // porque é información válida da comprobación, non un fallo do sistema.
-  // err resérvase para nodo non encontrado (non se puido evaluar de ningún modo).
+  /**
+   * Comprobación síncrona e pura: pódese desbloquear este nodo agora?
+   * Cero mutación. Un nodo xa unlocked/maxed devolve
+   * `ok({ allowed: false, reason })` — é información válida da
+   * comprobación, non un fallo; `err` resérvase para nodo non
+   * encontrado (non se puido avaliar de ningún modo).
+   */
   canUnlock(nodeId: string): Result<UnlockCheck> {
     const treeDef = this.store.getTreeDef()
     const state = this.store.getState()
@@ -975,7 +1010,12 @@ export class TreeEngine {
     return ok(this.resolver.explain(nodeDef.prerequisites, ctx))
   }
 
-  // ── unlock: mutación async (T4) ──
+  /**
+   * Desbloquea un nodo (ou sube un rango se xa está `unlocked` con
+   * `maxTier > 1`): comproba prerequisitos e exclusións, cobra o custo
+   * do rango, aplica efectos e notifica os subscritores. Atómico:
+   * ou todo ou nada. Os hooks `beforeUnlock` dos plugins poden vetar.
+   */
   async unlock(nodeId: string): Promise<Result<UnlockResult>> {
     if (this.readOnly) {
       return err(
@@ -1328,9 +1368,11 @@ export class TreeEngine {
   }
   // ── FIN: 2.1.b ──
 
-  // ── lock: mutación async (T4) ──
-  // Limitación coñecida (1.13): non fai cascada de dependentes.
-  // A cascada é responsabilidade de respec/applyChanges (1.14+).
+  /**
+   * Bloquea un nodo desbloqueado e devolve (refund) o gastado nel.
+   * Limitación coñecida e documentada: NON fai cascada de dependentes
+   * — a cascada é responsabilidade de `respec`.
+   */
   async lock(nodeId: string): Promise<Result<LockResult>> {
     if (this.readOnly) {
       return err(
@@ -1655,15 +1697,17 @@ export class TreeEngine {
     return ok({ resourceId, previous, current })
   }
 
-  // ── respec: mutación async (T5, extendido en 8.3) ──
-  // Con string: lock dese nodo + cascada de dependentes.
-  // Con array: lock dos nodos especificados (filter non-unlocked) +
-  //   cascada.
-  // Sen primeiro arg: respec total (todos unlocked/maxed → locked).
-  // opts.costPercent ∈ [0, 100]: penalty model. Default 0 = full refund.
-  //   Fórmula: refunded = floor(original * (1 - costPercent / 100)).
-  // Hooks beforeRespec/afterRespec integrados en 8.4.c (via HookRunner).
-  // Atómico: unha soa StateStore.update para todo.
+  /**
+   * Reinicia investimento con cascada de dependentes, atómico (unha
+   * soa actualización do store para todo):
+   * - con `string`: bloquea ese nodo + cascada de dependentes;
+   * - con `array`: bloquea os especificados (ignora os non-unlocked) + cascada;
+   * - sen argumento: respec total (todo unlocked/maxed → locked).
+   *
+   * `opts.costPercent` ∈ [0, 100] é o modelo de penalización (default
+   * 0 = refund completo): `refunded = floor(original * (1 - costPercent / 100))`.
+   * Os hooks `beforeRespec`/`afterRespec` dos plugins intégranse aquí.
+   */
   async respec(
     nodeIdOrIds?: string | readonly string[],
     opts?: RespecOptions,
@@ -1881,10 +1925,12 @@ export class TreeEngine {
     return ok({ nodeIds: nodeIdsToLock, refunded: allCosts })
   }
 
-  // ── INICIO: applyChanges (sub-fase 1.14) ──
-  // Modifica a TreeDef en runtime de forma atómica (todo-ou-nada) e
-  // reconcilia as NodeInstances afectadas. Detección de conflitos
-  // internos delegada en analyzeChanges (NON se reimplementa aquí).
+  /**
+   * Modifica a `TreeDef` en runtime de forma atómica (todo-ou-nada) e
+   * reconcilia as instancias afectadas (un nodo borrado desaparece do
+   * estado; un custo cambiado reavalíase). A detección de conflitos
+   * internos delégase en `analyzeChanges`.
+   */
   async applyChanges(changes: readonly TreeChange[]): Promise<Result<ApplyChangesResult>> {
     // T3: modo só lectura → erro sen tocar nada.
     if (this.readOnly) {
