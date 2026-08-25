@@ -1,8 +1,7 @@
 {
   "name": "@yggdrasil-forge/editor-react",
   "version": "1.0.0",
-  "description": "React UI shell for Yggdrasil Forge editor — chrome (PanelHost + dockview + tres zonas). Cero canvas/inspector aínda (van en 7.5b/7.5c).",
-  "private": true,
+  "description": "The Yggdrasil Forge Studio — full visual editor UI for progression trees: canvas, inspector, cards view, play mode, synchronized code panel. The application layer over @yggdrasil-forge/editor-core.",
   "license": "MIT",
   "author": "Agarfal",
   "type": "module",
@@ -18,7 +17,7 @@
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "LICENSE"],
   "sideEffects": ["**/*.css"],
   "scripts": {
     "build": "tsup",
@@ -61,5 +60,14 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git",
+    "directory": "packages/editor-react"
+  },
+  "homepage": "https://cancioneschorriscortas-max.github.io/yggdrasil-forge/",
+  "publishConfig": {
+    "access": "public"
   }
 }

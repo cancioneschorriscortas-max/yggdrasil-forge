@@ -398,6 +398,12 @@ aberto e extensible, ao nivel (ou mellor) das imaxes 13/14.
   *(Regra de release desde 17.0, para o 1.1 e seguintes: o README raíz
   lese DE ARRIBA A ABAIXO antes de cada release — unha cabeceira pulida
   cunha cola rancia é peor ca nada. Lección das críticas externas.)*
+  *(Regra de release desde 17.3: tras publicar, `npm view
+  @yggdrasil-forge/<p> version` para CADA paquete do grupo linked — a
+  AUSENCIA tamén é un erro. O dry-run só ve o que existe; esta
+  comprobación ve o que falta. Lección: o 16.5 publicou o motor pero
+  deixou `editor-core`/`editor-react` en 404 sen que ningunha porta
+  saltase.)*
   Changesets, CHANGELOG, bump, npm publish, README/branding.
 
 **Aceptación F16:** 1.0 publicado; os **tres** exemplos (Oberón + xogo +
