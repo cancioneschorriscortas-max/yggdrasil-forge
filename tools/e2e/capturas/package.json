@@ -1,0 +1,12 @@
+{
+  "name": "ygg-capturas",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Xerador de capturas da guía visual do editor (17.5) — Playwright, nunca á man",
+  "scripts": {
+    "capturas": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
