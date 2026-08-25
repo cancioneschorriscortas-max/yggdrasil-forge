@@ -1,0 +1,26 @@
+---
+// 17.4: inlinea un SVG commiteado (importado con `?raw`) para que
+// herde `currentColor` e os tokens de Starlight — o mesmo diagrama
+// lese nos dous temas sen duplicar ficheiros.
+interface Props {
+  readonly html: string
+  readonly alt: string
+}
+const { html, alt } = Astro.props
+---
+
+<figure class="yf-diagrama" role="img" aria-label={alt} set:html={html} />
+
+<style>
+  .yf-diagrama {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+  .yf-diagrama :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 56rem;
+    margin-inline: auto;
+  }
+</style>

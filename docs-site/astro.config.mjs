@@ -5,6 +5,36 @@
 // scripts/check-i18n.mjs: unha páxina sen tradución tira o build).
 import starlight from '@astrojs/starlight'
 import { defineConfig } from 'astro/config'
+import { createStarlightTypeDocPlugin } from 'starlight-typedoc'
+
+// 17.4: referencia de API XERADA do TSDoc (colleitar, non transcribir;
+// mesmo patrón anti-drift ca render-gallery: prodúcese no build, non se
+// commitea, e se typedoc falla o build do site falla). Unha instancia
+// por paquete público para que cada un teña o seu grupo na sidebar.
+// Decisión de lingua (pinada no briefing): a referencia vai NUNHA soa
+// lingua, a do TSDoc fonte; a nota en referencia-api.md explícao.
+const [commonTypeDoc, commonSidebar] = createStarlightTypeDocPlugin()
+const [coreTypeDoc, coreSidebar] = createStarlightTypeDocPlugin()
+const [reactTypeDoc, reactSidebar] = createStarlightTypeDocPlugin()
+const [editorCoreTypeDoc, editorCoreSidebar] = createStarlightTypeDocPlugin()
+const [cliTypeDoc, cliSidebar] = createStarlightTypeDocPlugin()
+
+/** Config común dunha instancia typedoc (entry + tsconfig por paquete). */
+function typeDocInstance(plugin, pkg, options = {}) {
+  return plugin({
+    entryPoints: [`../packages/${pkg}/src/index.ts`],
+    tsconfig: `../packages/${pkg}/tsconfig.json`,
+    output: `api/${pkg}`,
+    sidebar: { collapsed: true, label: `@yggdrasil-forge/${pkg}` },
+    typeDoc: {
+      // Sen README dos paquetes dentro da referencia (xa teñen páxina en npm).
+      readme: 'none',
+      excludePrivate: true,
+      excludeInternal: true,
+      ...options,
+    },
+  })
+}
 
 // GitHub Pages: <usuario>.github.io/<repo>/ — sobrescribible con
 // DOCS_BASE / DOCS_SITE para previsualizar noutro lugar.
@@ -35,6 +65,13 @@ export default defineConfig({
         baseUrl:
           'https://github.com/cancioneschorriscortas-max/yggdrasil-forge/edit/main/docs-site/',
       },
+      plugins: [
+        typeDocInstance(commonTypeDoc, 'common'),
+        typeDocInstance(coreTypeDoc, 'core'),
+        typeDocInstance(reactTypeDoc, 'react'),
+        typeDocInstance(editorCoreTypeDoc, 'editor-core'),
+        typeDocInstance(cliTypeDoc, 'cli'),
+      ],
       sidebar: [
         {
           label: 'Comeza aquí',
@@ -80,6 +117,22 @@ export default defineConfig({
           label: 'Arquitectura',
           translations: { en: 'Architecture' },
           autogenerate: { directory: 'arquitectura' },
+        },
+        {
+          label: 'API',
+          translations: { en: 'API' },
+          items: [
+            {
+              label: 'Sobre a referencia',
+              translations: { en: 'About the reference' },
+              slug: 'referencia-api',
+            },
+            commonSidebar,
+            coreSidebar,
+            reactSidebar,
+            editorCoreSidebar,
+            cliSidebar,
+          ],
         },
       ],
       customCss: ['./src/styles/custom.css'],

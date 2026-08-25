@@ -1,0 +1,41 @@
+<svg viewBox="0 0 1000 210" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="14" role="img" aria-label="Pipeline dunha edición no editor">
+  <!-- 17.4: fonte editable do pipeline real dunha edición
+       (EditorEngine.transaction). Etiquetas gl + subtítulo en. -->
+  <defs>
+    <marker id="fp" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0 0L10 4L0 8z" fill="currentColor" />
+    </marker>
+  </defs>
+  <g fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="16" y="40" width="140" height="56" rx="10" />
+    <rect x="180" y="40" width="150" height="56" rx="10" />
+    <rect x="354" y="40" width="150" height="56" rx="10" stroke="var(--sl-color-accent, #d98a2b)" stroke-width="2.2" />
+    <rect x="528" y="40" width="150" height="56" rx="10" />
+    <rect x="702" y="40" width="150" height="56" rx="10" />
+    <rect x="876" y="40" width="108" height="56" rx="10" />
+    <path d="M156 68h20" marker-end="url(#fp)" />
+    <path d="M330 68h20" marker-end="url(#fp)" />
+    <path d="M504 68h20" marker-end="url(#fp)" />
+    <path d="M678 68h20" marker-end="url(#fp)" />
+    <path d="M852 68h20" marker-end="url(#fp)" />
+    <!-- rexeite: candidato á papeleira, documento intacto -->
+    <rect x="330" y="140" width="200" height="46" rx="10" stroke-dasharray="6 4" />
+    <path d="M429 96v40" marker-end="url(#fp)" stroke-dasharray="6 4" />
+  </g>
+  <g fill="currentColor" text-anchor="middle">
+    <text x="86" y="64" font-weight="600">Comando</text>
+    <text x="86" y="82" font-size="11" opacity="0.75">Command</text>
+    <text x="255" y="64" font-weight="600">Transacción</text>
+    <text x="255" y="82" font-size="11" opacity="0.75">immer produce()</text>
+    <text x="429" y="64" font-weight="600" fill="var(--sl-color-accent, #d98a2b)">Validación</text>
+    <text x="429" y="82" font-size="11" opacity="0.75">validators.run()</text>
+    <text x="603" y="64" font-weight="600">Commit</text>
+    <text x="603" y="82" font-size="11" opacity="0.75">history.push + snapshot</text>
+    <text x="777" y="64" font-weight="600">Subscrición</text>
+    <text x="777" y="82" font-size="11" opacity="0.75">notify()</text>
+    <text x="930" y="64" font-weight="600">Render</text>
+    <text x="930" y="82" font-size="11" opacity="0.75">React / SVG</text>
+    <text x="430" y="164" font-weight="600" font-size="13">REXEITA · rejected</text>
+    <text x="430" y="180" font-size="11" opacity="0.75">documento e history intactos</text>
+  </g>
+</svg>

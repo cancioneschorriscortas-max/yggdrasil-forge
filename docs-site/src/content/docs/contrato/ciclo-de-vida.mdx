@@ -1,0 +1,48 @@
+---
+title: O ciclo de vida dun nodo
+description: Os sete estados dun nodo, que move cada transición, e o pipeline interno dunha edición.
+sidebar:
+  order: 4
+---
+
+import InlineSvg from '../../../components/InlineSvg.astro'
+import ciclo from '../../../assets/diagramas/ciclo-de-vida.svg?raw'
+import pipeline from '../../../assets/diagramas/pipeline-edicion.svg?raw'
+
+Un nodo está sempre en exactamente un destes estados (`NodeState`). Os nomes son os do código — o que ves aquí é o que devolve `engine.getNodeState(id).state`:
+
+<InlineSvg html={ciclo} alt="Diagrama de estados: locked, unlockable, in_progress, unlocked, maxed; laterais disabled e expired" />
+
+## Dúas capas: o estado gardado e a pregunta
+
+O detalle que máis confunde a un dev novo, dito de fronte: **o `state` gardado só o mutan `unlock` / `lock` / `respec` / `tick` / `applyChanges`** (decisión 2.4.b do MASTER — responsabilidade exclusiva). Os outros dous estados do vocabulario son **derivados**:
+
+- **`unlockable` é unha pregunta, non un dato**: pregúntase con `canUnlock(id)` (síncrono e puro), que devolve `{ allowed, reason }` avaliando prerrequisitos, exclusións, recursos e stats no momento. Un nodo sen tocar lese `locked` no estado; se `canUnlock` di que si, a UI píntao desbloqueable.
+- **`in_progress` derívase**: o renderer amósao para nodos multi-rango a medio camiño (`0 < currentTier < maxTier`), e o dato `progress` (0–100, via `setProgress`) leva o progreso educativo. `setProgress(id, 100)` **non** desbloquea só (cero auto-unlock, tamén 2.4.b): o consumidor combina `setProgress` + `canUnlock` + `unlock` — o desbloqueo é sempre unha decisión explícita.
+
+## Que move cada transición
+
+- **`unlockable` → `unlocked`**: `engine.unlock(id)`. Comproba prerrequisitos e exclusións, **cobra o custo** do rango 1 (`costPerTier[0]`), aplica os `effects` e notifica. Atómico: ou todo ou nada.
+- **`unlocked` → … → `maxed`**: máis chamadas a `unlock(id)` soben rangos ata `maxTier`; cada rango cobra o seu custo.
+- **De volta**: `lock(id)` resetea o nodo e **devolve** o gastado (refund); `respec()` fai o mesmo **con cascada de dependentes** e penalización opcional (`costPercent`). `grantResource(id, delta)` move o orzamento directamente (XP, niveis).
+- **`disabled`**: o nodo está vetado por unha **exclusión mutua** (escolliches a rama incompatible) ou por un efecto (`modify_node_state`).
+- **`expired`**: mecánica temporal — `tick()` avalía caducidades.
+
+## A doutrina: portas, non invariantes
+
+Regra de deseño pinada (MASTER A.6.28): **os prerrequisitos son portas no momento do desbloqueo, non invariantes continuos**. Se desbloqueas B (que require A) e despois baixas A, B **non** se re-bloquea só. Queres cascada? Pídela explícitamente con `respec()` ou `applyChanges()`, que a manexan de forma atómica. Isto fai o comportamento predicible: nada cambia de estado sen unha chamada que o explique.
+
+## O pipeline dunha edición (por dentro)
+
+No editor, cada cambio percorre sempre o mesmo camiño (`EditorEngine.transaction`):
+
+<InlineSvg html={pipeline} alt="Pipeline: comando, transacción con immer, validación que pode rexeitar, commit con history e snapshot, subscrición, render" />
+
+1. **Comando** — cada edición é un `Command` con `mutate(draft)`.
+2. **Transacción** — o comando aplícase sobre un *candidato* (immer `produce`: o documento actual nunca se muta).
+3. **Validación** — os validadores corren sobre o candidato completo. **Se hai erros, REXEITA**: o candidato esquécese e documento e history quedan intactos. É imposible gardar un documento inválido.
+4. **Commit** — o documento previo vai á history (undo), o candidato pasa a ser o documento activo.
+5. **Subscrición** — `notify()` esperta os subscritores.
+6. **Render** — React (ou quen sexa) lé o snapshot novo e pinta.
+
+O mesmo patrón, a outra escala, é o do motor: as mutacións do `TreeEngine` (`unlock`/`respec`/`applyChanges`) tamén son atómicas — comprobar, aplicar todo nunha soa actualización do store, notificar.

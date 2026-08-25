@@ -5,9 +5,18 @@ sidebar:
   order: 1
 ---
 
+import InlineSvg from '../../../../components/InlineSvg.astro'
+import arquitectura from '../../../../assets/diagramas/arquitectura.svg?raw'
+
 **For code contributors who want to understand how the pieces are organized before touching them.** Assumes you already know the editor from the [Editor guide](../../editor/guia/).
 
 ---
+
+## The map at a glance
+
+<InlineSvg html={arquitectura} alt="Architecture: the JSON document validates and loads into core (TreeEngine), and the snapshot feeds the React renderer, the Studio and the CLI; common underneath; the editor produces the document" />
+
+The data is the centre: the **JSON document** validates and loads into `core` (`TreeEngine`), and the resulting snapshot feeds the React renderer, the Studio and the CLI alike — three consumers, one truth. The Studio also **produces** the document (the arrow back). For the concrete methods, see the [API reference](../../referencia-api/) generated from the TSDoc.
 
 ## Guiding principles
 

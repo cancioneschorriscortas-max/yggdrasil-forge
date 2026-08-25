@@ -1,0 +1,48 @@
+---
+title: The lifecycle of a node
+description: The seven node states, what drives each transition, and the internal pipeline of an edit.
+sidebar:
+  order: 4
+---
+
+import InlineSvg from '../../../../components/InlineSvg.astro'
+import ciclo from '../../../../assets/diagramas/ciclo-de-vida.svg?raw'
+import pipeline from '../../../../assets/diagramas/pipeline-edicion.svg?raw'
+
+A node is always in exactly one of these states (`NodeState`). The names are the ones in the code — what you see here is what `engine.getNodeState(id).state` returns:
+
+<InlineSvg html={ciclo} alt="State diagram: locked, unlockable, in_progress, unlocked, maxed; side states disabled and expired" />
+
+## Two layers: the stored state and the question
+
+The detail that most confuses a new dev, said upfront: **the stored `state` is only ever mutated by `unlock` / `lock` / `respec` / `tick` / `applyChanges`** (MASTER decision 2.4.b — exclusive responsibility). The other two states in the vocabulary are **derived**:
+
+- **`unlockable` is a question, not a datum**: you ask with `canUnlock(id)` (synchronous and pure), which returns `{ allowed, reason }` evaluating prerequisites, exclusions, resources and stats on the spot. An untouched node reads `locked` in the state; if `canUnlock` says yes, the UI paints it unlockable.
+- **`in_progress` is derived**: the renderer shows it for multi-tier nodes midway (`0 < currentTier < maxTier`), and the `progress` datum (0–100, via `setProgress`) carries educational progress. `setProgress(id, 100)` does **not** unlock by itself (zero auto-unlock, also 2.4.b): the consumer combines `setProgress` + `canUnlock` + `unlock` — unlocking is always an explicit decision.
+
+## What drives each transition
+
+- **`unlockable` → `unlocked`**: `engine.unlock(id)`. Checks prerequisites and exclusions, **charges the cost** of tier 1 (`costPerTier[0]`), applies the `effects` and notifies. Atomic: all or nothing.
+- **`unlocked` → … → `maxed`**: further `unlock(id)` calls raise tiers up to `maxTier`; each tier charges its own cost.
+- **The way back**: `lock(id)` resets the node and **refunds** what was spent; `respec()` does the same **with a cascade of dependents** and an optional penalty (`costPercent`). `grantResource(id, delta)` moves the budget directly (XP, levels).
+- **`disabled`**: the node is vetoed by a **mutual exclusion** (you picked the incompatible branch) or by an effect (`modify_node_state`).
+- **`expired`**: time-based mechanics — `tick()` evaluates expirations.
+
+## The doctrine: gates, not invariants
+
+Pinned design rule (MASTER A.6.28): **prerequisites are gates at unlock time, not continuous invariants**. If you unlock B (which requires A) and later lower A, B does **not** re-lock by itself. Want the cascade? Ask for it explicitly with `respec()` or `applyChanges()`, which handle it atomically. This keeps behaviour predictable: nothing changes state without a call that explains it.
+
+## The pipeline of an edit (from the inside)
+
+In the editor, every change walks the exact same path (`EditorEngine.transaction`):
+
+<InlineSvg html={pipeline} alt="Pipeline: command, transaction with immer, validation that can reject, commit with history and snapshot, subscription, render" />
+
+1. **Command** — every edit is a `Command` with `mutate(draft)`.
+2. **Transaction** — the command applies to a *candidate* (immer `produce`: the current document is never mutated).
+3. **Validation** — the validators run over the complete candidate. **If there are errors, it REJECTS**: the candidate is forgotten and document and history stay intact. Saving an invalid document is impossible.
+4. **Commit** — the previous document goes to history (undo), the candidate becomes the active document.
+5. **Subscription** — `notify()` wakes the subscribers.
+6. **Render** — React (or whoever) reads the new snapshot and paints.
+
+The same pattern, at another scale, is the engine's: `TreeEngine` mutations (`unlock`/`respec`/`applyChanges`) are also atomic — check, apply everything in a single store update, notify.

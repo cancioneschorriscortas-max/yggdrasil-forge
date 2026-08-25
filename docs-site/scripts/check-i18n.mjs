@@ -11,21 +11,24 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const docs = resolve(here, '..', 'src', 'content', 'docs')
 const enDir = join(docs, 'en')
+// 17.4: a referencia de API xerada (typedoc) vai NUNHA soa lingua por
+// decisión pinada (referencia-api.md explica por que) — fóra do garda.
+const apiDir = join(docs, 'api')
 
-function walk(dir, skip) {
+function walk(dir, skips) {
   const out = []
   for (const name of readdirSync(dir)) {
     const p = join(dir, name)
-    if (skip !== undefined && resolve(p) === resolve(skip)) continue
-    if (statSync(p).isDirectory()) out.push(...walk(p, skip))
+    if (skips.some((s) => resolve(p) === resolve(s))) continue
+    if (statSync(p).isDirectory()) out.push(...walk(p, skips))
     else if (/\.(md|mdx)$/.test(name)) out.push(p)
   }
   return out
 }
 
 const norm = (p, base) => relative(base, p).split(sep).join('/')
-const gl = new Set(walk(docs, enDir).map((p) => norm(p, docs)))
-const en = new Set(walk(enDir).map((p) => norm(p, enDir)))
+const gl = new Set(walk(docs, [enDir, apiDir]).map((p) => norm(p, docs)))
+const en = new Set(walk(enDir, [apiDir]).map((p) => norm(p, enDir)))
 
 const missingEn = [...gl].filter((p) => !en.has(p))
 const orphanEn = [...en].filter((p) => !gl.has(p))
