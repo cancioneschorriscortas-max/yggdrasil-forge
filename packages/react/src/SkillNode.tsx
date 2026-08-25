@@ -18,6 +18,7 @@ import {
 } from 'react'
 import { useTheme } from './ThemeProvider.js'
 import { IconGlyph } from './icons/IconGlyph.js'
+import { isImageRef } from './icons/imageRef.js'
 import { getIcon } from './icons/registry.js'
 import { renderNodeShape, resolveRadius, resolveShape } from './nodeGeometry.js'
 import type { Theme } from './theme-types.js'
@@ -162,16 +163,11 @@ function SkillNodeImpl({
   // (b) URL (http/https/// relativa) → <image>; (c) calquera outro →
   // <text> (emoji/char, fallback retrocompatible).
   const iconDef = icon !== undefined ? getIcon(icon) : undefined
-  // F11.3: imaxe se NON é glyph e parece recurso de imaxe:
-  //   http(s):// · // · data: · ruta (/ ./ ../) · ou remata en extensión
-  //   de imaxe (webp/avif/png/jpg/jpeg/gif/svg). Calquera outra cadea
-  //   (incluído emoji ou texto curto) cae á rama <text>.
-  const iconIsUrl =
-    icon !== undefined &&
-    (/^(?:https?:)?\/\//.test(icon) ||
-      /^data:/i.test(icon) ||
-      /^\.{0,2}\//.test(icon) ||
-      /\.(?:webp|avif|png|jpe?g|gif|svg)$/i.test(icon))
+  // F11.3: imaxe se NON é glyph e parece recurso de imaxe. O criterio
+  // vive en icons/imageRef.ts (compartido coa vista de tarxetas desde
+  // o 17.2); calquera outra cadea (emoji, texto curto) cae á rama
+  // <text>.
+  const iconIsUrl = icon !== undefined && isImageRef(icon)
   // Tamaño do icono SVG: proporcional ao raio. Mantén o oco do emoji
   // anterior (radius=26 daba ~26px de glyph), e escala ao redor diso.
   const iconSize = radius * 1.0

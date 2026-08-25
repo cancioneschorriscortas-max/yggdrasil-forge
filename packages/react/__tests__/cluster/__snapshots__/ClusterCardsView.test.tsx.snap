@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`17.2 — RowIcon: IconDef | string, nunca descarte silencioso > snapshot da fila cos tres camiños 1`] = `
+[
+  "<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false" role="img"><title>icon</title><path d="M4 4L20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>",
+  "<img alt="Foto" loading="lazy" width="20" height="20" style="object-fit: cover; border-radius: 4px; display: block;" src="data:image/svg+xml;base64,PHN2Zy8+">",
+  "<span aria-hidden="true" style="font-size: 16px; line-height: 1;">🔥</span>",
+]
+`;

@@ -62,13 +62,16 @@ function toClusterGroups(derived: readonly DerivedClusterGroup[]): readonly Clus
     label: group.label,
     color: group.color,
     members: group.members.map((member): ClusterMember => {
-      const iconDef = member.icon !== undefined ? getIcon(member.icon) : undefined
+      // 17.2: id rexistrado → IconDef; calquera outro string (data-URI,
+      // URL, emoji) pásase tal cal — a vista xa sabe pintalo. Fóra o
+      // descarte silencioso: grafo e tarxetas contan a mesma verdade.
+      const icon = member.icon !== undefined ? (getIcon(member.icon) ?? member.icon) : undefined
       return {
         id: member.id,
         label: member.label,
         currentTier: member.currentTier,
         maxTier: member.maxTier,
-        ...(iconDef !== undefined && { icon: iconDef }),
+        ...(icon !== undefined && { icon }),
       }
     }),
   }))

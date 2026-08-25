@@ -103,3 +103,65 @@ describe('7.15c — contido e selección', () => {
   })
 })
 // ── FIN: tests vista tarxetas ──
+
+// ── 17.2: a derivación deixa de comer iconas ──
+// Id rexistrado → IconDef (glyph); calquera outro string (data-URI,
+// URL, emoji) pásase tal cal á vista, que o pinta. O caso TUERCA.
+import { LOGIC_ICONS, registerIcons } from '@yggdrasil-forge/react'
+
+describe('17.2 — paridade de iconas nas tarxetas', () => {
+  const DATA_URI = 'data:image/svg+xml;base64,PHN2Zy8+'
+
+  function buildIconEngine(): EditorEngine {
+    registerIcons(LOGIC_ICONS)
+    const tree: TreeDef = {
+      id: 'cards-icons',
+      schemaVersion: '1.0.0',
+      version: '1.0.0',
+      label: { gl: 'Iconas', en: 'Icons' },
+      groups: [
+        { id: 'g1', label: { gl: 'Grupo' }, color: '#c8875f', nodeIds: ['glyph', 'foto', 'emoji'] },
+      ],
+      nodes: [
+        {
+          id: 'glyph',
+          type: 'small',
+          label: { gl: 'Glyph' },
+          icon: 'logic-key',
+          position: { x: 0, y: 0 },
+        },
+        {
+          id: 'foto',
+          type: 'small',
+          label: { gl: 'Foto' },
+          icon: DATA_URI,
+          position: { x: 50, y: 0 },
+        },
+        {
+          id: 'emoji',
+          type: 'small',
+          label: { gl: 'Emoji' },
+          icon: '🔥',
+          position: { x: 100, y: 0 },
+        },
+      ],
+      edges: [],
+      layout: { type: 'custom' },
+    } as TreeDef
+    return new EditorEngine(createEditorDocument(tree))
+  }
+
+  it('data-URI chega á tarxeta como <img>; emoji como texto; id logic-* como glyph', () => {
+    const engine = buildIconEngine()
+    const { container } = render(<EditorCanvas editorEngine={engine} view="cards" />)
+    const cells = container.querySelectorAll('.yf-cluster-row__icon')
+    expect(cells.length).toBe(3)
+    // logic-key resolveuse a IconDef → glyph SVG
+    expect(cells[0]?.querySelector('svg path')).not.toBeNull()
+    // data-URI xa non se descarta: <img> co src intacto
+    expect(cells[1]?.querySelector('img')?.getAttribute('src')).toBe(DATA_URI)
+    // emoji → texto
+    expect(cells[2]?.textContent).toBe('🔥')
+  })
+})
+// ── FIN 17.2 ──
