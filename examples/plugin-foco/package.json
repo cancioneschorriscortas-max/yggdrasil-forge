@@ -1,0 +1,25 @@
+{
+  "name": "@yggdrasil-forge-examples/plugin-foco",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Tutorial: un plugin real do motor — «remata o que empezaches» (foco pedagóxico)",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yggdrasil-forge/common": "workspace:*",
+    "@yggdrasil-forge/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,41 @@
+<svg viewBox="0 0 880 430" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="14" role="img" aria-label="Arquitectura de Yggdrasil Forge">
+  <!-- 17.4: fonte editable do diagrama de arquitectura. O dato é o
+       centro: JSON → schema/engine → snapshot → consumidores; o
+       editor devolve o documento. -->
+  <defs>
+    <marker id="fa" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0 0L10 4L0 8z" fill="currentColor" />
+    </marker>
+  </defs>
+  <g fill="none" stroke="currentColor" stroke-width="1.6">
+    <rect x="310" y="16" width="260" height="48" rx="10" stroke="var(--sl-color-accent, #d98a2b)" stroke-width="2.2" />
+    <rect x="250" y="120" width="380" height="72" rx="10" />
+    <rect x="40" y="260" width="230" height="60" rx="10" />
+    <rect x="325" y="260" width="230" height="60" rx="10" />
+    <rect x="610" y="260" width="230" height="60" rx="10" />
+    <rect x="40" y="370" width="800" height="40" rx="10" stroke-dasharray="6 4" />
+    <!-- fluxo do dato -->
+    <path d="M440 64v48" marker-end="url(#fa)" />
+    <path d="M330 192l-140 60" marker-end="url(#fa)" />
+    <path d="M440 192v60" marker-end="url(#fa)" />
+    <path d="M550 192l140 60" marker-end="url(#fa)" />
+    <!-- o editor produce o documento -->
+    <path d="M555 275C700 230 640 80 578 44" marker-end="url(#fa)" stroke-dasharray="6 4" />
+  </g>
+  <g fill="currentColor" text-anchor="middle">
+    <text x="440" y="38" font-weight="600" fill="var(--sl-color-accent, #d98a2b)">documento JSON</text>
+    <text x="440" y="56" font-size="12" opacity="0.75">{ tree, editor } — o contrato</text>
+    <text x="440" y="146" font-weight="600">@yggdrasil-forge/core</text>
+    <text x="440" y="166" font-size="12" opacity="0.75">schema (zod) → TreeEngine → TreeState</text>
+    <text x="440" y="182" font-size="12" opacity="0.75">layouts · plugins · efectos</text>
+    <text x="155" y="284" font-weight="600">@react</text>
+    <text x="155" y="303" font-size="12" opacity="0.75">SkillTree — renderer SVG</text>
+    <text x="440" y="284" font-weight="600">@editor-core → @editor-react</text>
+    <text x="440" y="303" font-size="12" opacity="0.75">o Studio (editor visual)</text>
+    <text x="725" y="284" font-weight="600">@cli — ygg</text>
+    <text x="725" y="303" font-size="12" opacity="0.75">validate · layout · render</text>
+    <text x="440" y="395" font-size="13" opacity="0.85">@yggdrasil-forge/common — tipos compartidos · Result&lt;T&gt; · LocalizedString</text>
+    <text x="300" y="230" font-size="12">snapshot + subscribe</text>
+    <text x="690" y="150" font-size="12">produce o documento</text>
+  </g>
+</svg>

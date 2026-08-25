@@ -18,6 +18,10 @@
     "sharp": "^0.33.5"
   },
   "devDependencies": {
-    "@yggdrasil-forge/cli": "workspace:*"
+    "@yggdrasil-forge/cli": "workspace:*",
+    "starlight-typedoc": "^0.21.5",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.12.0",
+    "typescript": "catalog:"
   }
 }

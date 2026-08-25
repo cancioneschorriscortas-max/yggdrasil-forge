@@ -54,3 +54,6 @@ Thumbs.db
 # fixtures sintéticas). Nunca se commitea; ademais mantense fóra do
 # gate de biome (useIgnoreFile) por non ser código de produto.
 /tools/e2e/
+
+# 17.4: referencia de API xerada no build do site (typedoc) — nunca commiteada
+docs-site/src/content/docs/api/

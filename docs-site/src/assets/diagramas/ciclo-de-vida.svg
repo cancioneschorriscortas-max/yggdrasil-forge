@@ -1,0 +1,53 @@
+<svg viewBox="0 0 880 410" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, sans-serif" font-size="14" role="img" aria-label="Diagrama de estados dun nodo">
+  <!-- 17.4: fonte editable do diagrama do ciclo de vida. currentColor
+       para trazos/texto (herda o tema do sitio); acentos cos tokens
+       de Starlight con fallback. Os nomes de estado son os do código
+       (NodeState), idénticos nas dúas linguas. -->
+  <defs>
+    <marker id="fr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0 0L10 4L0 8z" fill="currentColor" />
+    </marker>
+  </defs>
+  <g fill="none" stroke="currentColor" stroke-width="1.6">
+    <!-- fluxo principal (unlockable: derivado → trazo descontinuo) -->
+    <rect x="30" y="70" width="140" height="46" rx="10" />
+    <rect x="245" y="70" width="150" height="46" rx="10" stroke-dasharray="6 4" />
+    <rect x="470" y="70" width="140" height="46" rx="10" stroke="var(--sl-color-accent, #d98a2b)" stroke-width="2.2" />
+    <rect x="690" y="70" width="140" height="46" rx="10" />
+    <!-- in_progress (derivado: tiers intermedios / progreso) -->
+    <rect x="320" y="190" width="150" height="46" rx="10" stroke-dasharray="6 4" />
+    <!-- estados laterais -->
+    <rect x="30" y="310" width="190" height="46" rx="10" stroke-dasharray="6 4" />
+    <rect x="260" y="310" width="190" height="46" rx="10" stroke-dasharray="6 4" />
+    <!-- frechas do fluxo -->
+    <path d="M170 93h68" marker-end="url(#fr)" />
+    <path d="M395 93h68" marker-end="url(#fr)" />
+    <path d="M610 93h73" marker-end="url(#fr)" />
+    <!-- setProgress: unlockable → in_progress → unlocked -->
+    <path d="M330 116l30 68" marker-end="url(#fr)" />
+    <path d="M460 230l60 -108" marker-end="url(#fr)" />
+    <!-- volta: lock()/respec() con refund -->
+    <path d="M755 70C755 24 110 24 102 64" marker-end="url(#fr)" />
+  </g>
+  <g fill="currentColor" text-anchor="middle">
+    <text x="100" y="98" font-weight="600">locked</text>
+    <text x="320" y="98" font-weight="600">unlockable</text>
+    <text x="540" y="98" font-weight="600" fill="var(--sl-color-accent, #d98a2b)">unlocked</text>
+    <text x="760" y="98" font-weight="600">maxed</text>
+    <text x="395" y="218" font-weight="600">in_progress</text>
+    <text x="125" y="332" font-weight="600">disabled</text>
+    <text x="125" y="350" font-size="12" opacity="0.75">exclusión mutua</text>
+    <text x="355" y="332" font-weight="600">expired</text>
+    <text x="355" y="350" font-size="12" opacity="0.75">tick() — time-based</text>
+    <!-- etiquetas de transición (termos da API: iguais en gl/en) -->
+    <text x="204" y="66" font-size="12">canUnlock() ✓</text>
+    <text x="429" y="66" font-size="12">unlock()</text>
+    <text x="429" y="82" font-size="11" opacity="0.75">custo −</text>
+    <text x="648" y="66" font-size="12">unlock() × maxTier</text>
+    <text x="322" y="162" font-size="12">setProgress()</text>
+    <text x="530" y="162" font-size="12">0 &lt; tier &lt; maxTier</text>
+    <text x="428" y="22" font-size="12">lock() / respec() — refund +</text>
+    <text x="640" y="345" font-size="12" opacity="0.75">trazo continuo = estado gardado</text>
+    <text x="640" y="363" font-size="12" opacity="0.75">descontinuo = derivado ou lateral</text>
+  </g>
+</svg>

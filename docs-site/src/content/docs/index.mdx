@@ -20,6 +20,8 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components'
 import HeroRender from '../../components/HeroRender.astro'
+import InlineSvg from '../../components/InlineSvg.astro'
+import arquitectura from '../../assets/diagramas/arquitectura.svg?raw'
 
 <HeroRender
   id="gaia-cards"
@@ -47,3 +49,7 @@ pnpm add -D @yggdrasil-forge/cli                        # ygg (a vía do dato)
     Proxecto nacido en galego, documentado en galego, con inglés completo. Cliente cero: Oberón, a sección de profesións da app educativa GAIA.
   </Card>
 </CardGrid>
+
+<InlineSvg html={arquitectura} alt="Arquitectura: documento JSON → core → renderer React, Studio e CLI" />
+
+*Como encaixa todo: [a guía de arquitectura](arquitectura/guia/) · [o ciclo de vida dun nodo](contrato/ciclo-de-vida/) · [a referencia de API](referencia-api/) xerada do TSDoc · [crea o teu plugin do motor](extension/plugin-motor/).*
