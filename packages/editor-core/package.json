@@ -1,8 +1,7 @@
 {
   "name": "@yggdrasil-forge/editor-core",
   "version": "1.0.0",
-  "description": "Editor Engine for Yggdrasil Forge — headless edit-side core (document, session, persistence). Cero UI, cero React.",
-  "private": true,
+  "description": "Headless editor engine for Yggdrasil Forge — documents, commands with undo/redo, live validation, auto-layout, presets and serialization. Zero UI, zero React.",
   "license": "MIT",
   "author": "Agarfal",
   "type": "module",
@@ -17,7 +16,7 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md"],
+  "files": ["dist", "README.md", "LICENSE"],
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
@@ -40,5 +39,14 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git",
+    "directory": "packages/editor-core"
+  },
+  "homepage": "https://cancioneschorriscortas-max.github.io/yggdrasil-forge/",
+  "publishConfig": {
+    "access": "public"
   }
 }

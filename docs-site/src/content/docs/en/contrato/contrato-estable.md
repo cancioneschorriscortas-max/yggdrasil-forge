@@ -27,7 +27,11 @@ sidebar:
 
 ## 4. The application layer — moves faster
 
-`@yggdrasil-forge/editor-core` and `@yggdrasil-forge/editor-react` are the **application** layer (the editor): they version with the group but are still private, and their surface may move faster while the Studio grows. If you build on them, pin versions. What the editor **produces** — the document — is covered by the hard promise in section 1: nothing the editor evolves can break your files.
+`@yggdrasil-forge/editor-core` and `@yggdrasil-forge/editor-react` are the **application** layer (the editor): they are published and version with the group, but their surface may move faster while the Studio grows. If you build on them, pin versions. What the editor **produces** — the document — is covered by the hard promise in section 1: nothing the editor evolves can break your files.
+
+## When NOT to use Yggdrasil
+
+Honestly: if you have **five static nodes that never change**, a hand-made SVG is enough and lighter — don't mount an engine for that. Yggdrasil pays off when there are **rules** (unlocks, resources, exclusions, tiers), when the tree **scales** or changes often, when **two consumers** read the same data (the app and the editor; the game and the CLI), or when you want to **generate and validate** trees automatically (AI, pipelines). The honest footprint figure: `core` has **two dependencies** (`immer`, `zod`); the React renderer and the editor bring their own.
 
 ## What to trust, in short
 

@@ -27,7 +27,11 @@ sidebar:
 
 ## 4. A capa de aplicación — evoluciona máis rápido
 
-`@yggdrasil-forge/editor-core` e `@yggdrasil-forge/editor-react` son a capa de **aplicación** (o editor): versiónanse co grupo pero aínda son privados, e a súa superficie pode moverse máis rápido mentres o Studio medra. Se constrúes sobre eles, ancora versións. O que o editor **produce** — o documento — está coberto pola promesa dura da sección 1: nada do que o editor evolucione pode romper os teus ficheiros.
+`@yggdrasil-forge/editor-core` e `@yggdrasil-forge/editor-react` son a capa de **aplicación** (o editor): publícanse e versiónanse co grupo, pero a súa superficie pode moverse máis rápido mentres o Studio medra. Se constrúes sobre eles, ancora versións. O que o editor **produce** — o documento — está coberto pola promesa dura da sección 1: nada do que o editor evolucione pode romper os teus ficheiros.
+
+## Cando NON usar Yggdrasil
+
+Con sinceridade: se tes **cinco nodos estáticos que non cambian**, un SVG feito á man chégache e é máis lixeiro — non montes un motor para iso. Yggdrasil paga cando hai **regras** (desbloqueos, recursos, exclusións, rangos), cando a árbore **escala** ou cambia a miúdo, cando **dous consumidores** len o mesmo dato (a app e o editor; o xogo e o CLI), ou cando queres **xerar e validar** árbores automaticamente (IA, pipelines). A cifra honesta do footprint: o `core` ten **dúas dependencias** (`immer`, `zod`); o renderer React e o editor traen as súas.
 
 ## En que confiar, en resumo
 

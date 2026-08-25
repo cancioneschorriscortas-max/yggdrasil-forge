@@ -230,8 +230,8 @@ every one of them — three hard tiers, no blur:
 | [`@yggdrasil-forge/common`](packages/common) | Shared types, errors, `Result<T>`, `LocalizedString`. |
 | [`@yggdrasil-forge/core`](packages/core) | `TreeEngine`, domain types, unlock semantics, layout engines, Zod schema. |
 | [`@yggdrasil-forge/react`](packages/react) | SVG renderer: SkillTree, viewport, themes, icon sets. |
-| [`@yggdrasil-forge/editor-core`](packages/editor-core) | Headless editor engine (commands, undo/redo, validation, auto-layout, presets). *Versioned with the group; not published yet (private).* |
-| [`@yggdrasil-forge/editor-react`](packages/editor-react) | The editor UI. Runnable via [`examples/editor`](examples/editor). *Versioned with the group; not published yet (private).* |
+| [`@yggdrasil-forge/editor-core`](packages/editor-core) | Headless editor engine (commands, undo/redo, validation, auto-layout, presets). |
+| [`@yggdrasil-forge/editor-react`](packages/editor-react) | The Studio — the full editor UI. Runnable via [`examples/editor`](examples/editor). |
 | [`@yggdrasil-forge/cli`](packages/cli) | `ygg` — `validate`, `layout`, `render`, `schema`, `new`: the headless data path. |
 
 ### Functional (built in phases 3–9; published, pre-1.0 API)
