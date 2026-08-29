@@ -254,7 +254,12 @@ function SelectedNodeCard({
 
   // Determinar custo do próximo unlock/rango.
   const nextTier = currentTier + 1
-  const cost = nextTier <= maxTier ? costForTier(nodeDef, nextTier) : []
+  // 17.9: o custo pregúntase ao FUNIL do motor (getEffectiveCostForTier),
+  // non ao nodeDef cru — así a ficha ensina o custo cos hooks computeCost
+  // dos plugins aplicados (o rebaixado, se hai desconto): explica e
+  // cobra coinciden.
+  const cost =
+    nextTier <= maxTier ? session.treeEngine.getEffectiveCostForTier(nodeId, nextTier) : []
 
   const budget = session.treeEngine.getBudget()
 
@@ -355,13 +360,4 @@ function CostRow({ cost, have }: { cost: Cost; have: number }): JSX.Element {
   )
 }
 
-// ── Custo do rango N (con fallback ao Custo global) ──
-function costForTier(nodeDef: NodeDef, tier: number): readonly Cost[] {
-  const perTier = nodeDef.costPerTier
-  if (perTier !== undefined) {
-    const entry = perTier[tier - 1]
-    if (entry !== undefined) return entry
-  }
-  return nodeDef.cost ?? []
-}
 // ── FIN: ProbaPanel ──

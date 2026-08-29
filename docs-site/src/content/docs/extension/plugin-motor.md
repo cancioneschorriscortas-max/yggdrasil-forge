@@ -105,4 +105,4 @@ O exemplo leva un [test mínimo](https://github.com/cancioneschorriscortas-max/y
 
 ## O mapa honesto dos hooks (1.x)
 
-Cableados no motor: `beforeUnlock`/`afterUnlock`, `beforeLock`/`afterLock`, `beforeRespec`/`afterRespec` e `computeUnlockability` (en `canUnlock`). O hook `computeCost` está **declarado na interface pero aínda sen cablear** ao cobro de custos — non constrúas sobre el en 1.x. Os erros dun hook non tiran o motor: captúranse e o fluxo continúa cos demais handlers.
+Cableados no motor: `beforeUnlock`/`afterUnlock`, `beforeLock`/`afterLock`, `beforeRespec`/`afterRespec`, `computeUnlockability` (en `canUnlock`) e, desde 17.9, `computeCost` — cableado por un **funil único** (`getEffectiveCostForTier`, tamén público para as UIs) que atravesan `canUnlock`, os cobros de `unlock` e os refunds de `lock`/`respec`. Contrato do refund: **recomputa co estado actual** — un hook determinista respecto de (nodo, rango) dá refunds exactos; un dependente de estado dá refunds ao valor actual, non ao histórico. Os erros dun hook non tiran o motor: captúranse e o fluxo continúa cos demais handlers.
