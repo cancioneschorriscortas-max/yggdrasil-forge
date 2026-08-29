@@ -57,24 +57,30 @@ function useTiers(treeEngine: TreeEngine): ReadonlyMap<string, number> {
 
 /** DerivedClusterGroup (icon cru) → ClusterGroup (IconDef resolto). */
 function toClusterGroups(derived: readonly DerivedClusterGroup[]): readonly ClusterGroup[] {
-  return derived.map((group) => ({
-    id: group.id,
-    label: group.label,
-    color: group.color,
-    members: group.members.map((member): ClusterMember => {
-      // 17.2: id rexistrado → IconDef; calquera outro string (data-URI,
-      // URL, emoji) pásase tal cal — a vista xa sabe pintalo. Fóra o
-      // descarte silencioso: grafo e tarxetas contan a mesma verdade.
-      const icon = member.icon !== undefined ? (getIcon(member.icon) ?? member.icon) : undefined
-      return {
-        id: member.id,
-        label: member.label,
-        currentTier: member.currentTier,
-        maxTier: member.maxTier,
-        ...(icon !== undefined && { icon }),
-      }
-    }),
-  }))
+  return derived.map((group) => {
+    // 17.8: a icona do GRUPO resólvese igual cá dos membros — id
+    // rexistrado → IconDef; calquera outro string pásase tal cal.
+    const groupIcon = group.icon !== undefined ? (getIcon(group.icon) ?? group.icon) : undefined
+    return {
+      id: group.id,
+      label: group.label,
+      color: group.color,
+      ...(groupIcon !== undefined && { icon: groupIcon }),
+      members: group.members.map((member): ClusterMember => {
+        // 17.2: id rexistrado → IconDef; calquera outro string (data-URI,
+        // URL, emoji) pásase tal cal — a vista xa sabe pintalo. Fóra o
+        // descarte silencioso: grafo e tarxetas contan a mesma verdade.
+        const icon = member.icon !== undefined ? (getIcon(member.icon) ?? member.icon) : undefined
+        return {
+          id: member.id,
+          label: member.label,
+          currentTier: member.currentTier,
+          maxTier: member.maxTier,
+          ...(icon !== undefined && { icon }),
+        }
+      }),
+    }
+  })
 }
 
 export function CanvasCardsView({

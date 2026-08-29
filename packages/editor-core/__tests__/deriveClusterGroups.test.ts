@@ -147,3 +147,20 @@ describe('deriveClusterGroups — fixture adversarial (pertenza dual real)', () 
   })
 })
 // ── FIN: tests deriveClusterGroups ──
+
+// ── 17.8: a icona do grupo transpórtase (crua) ──
+describe('17.8 — DerivedClusterGroup.icon', () => {
+  it('a icona do GroupDef viaxa tal cal; sen icona, o campo non existe', () => {
+    const tree = baseTree({
+      groups: [
+        { id: 'con', label: { gl: 'Con' }, icon: 'data:image/svg+xml;base64,PHN2Zy8+' },
+        { id: 'sen', label: { gl: 'Sen' } },
+      ],
+      nodes: [node('a', { group: 'con' }), node('b', { group: 'sen' })],
+    })
+    const [con, sen] = deriveClusterGroups(tree, { locale: 'gl' })
+    expect(con?.icon).toBe('data:image/svg+xml;base64,PHN2Zy8+')
+    expect(sen !== undefined && 'icon' in sen).toBe(false)
+  })
+})
+// ── FIN 17.8 ──
