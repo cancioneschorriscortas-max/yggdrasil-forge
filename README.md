@@ -92,7 +92,7 @@ The workflow:
    (*Dispor*) and invites you to use it when a pasted tree has no positions.
 4. **Dress** — two plain strings make it look finished: a named theme
    preset (`"preset": "neon"` — five curated presets) and bundled icon ids
-   (`"icon": "logic-key"`, 19 `logic-*` + 26 `norse-*`). See
+   (`"icon": "logic-key"`, 19 `logic-*` + 26 `norse-*` + 25 `forge-*`). See
    [aesthetics by declaration](examples/gallery/README.md#aesthetics-by-declaration).
 5. **Paste** — drop the JSON into the editor's live **Code panel** → *Validar*
    → *Aplicar*. The whole document replaces the canvas as a single undo step.
@@ -217,6 +217,14 @@ The core doesn't know React exists — proof:
 [`examples/vanilla-js`](./examples/vanilla-js), the baker tree driven
 with `@yggdrasil-forge/core` and the bare DOM (`canUnlock`, `unlock`,
 `grantResource`, paint states), zero framework.
+
+And it doesn't know the web exists either: the **embeddable bundle**
+(`@yggdrasil-forge/core/global`, a self-contained IIFE — zero DOM,
+zero imports) runs in the JS interpreters engines embed (Jint, puerts,
+GodotJS), smoke-tested against real QuickJS on every CI run. Ingestion
+examples for Godot and Unity live in
+[`examples/engines`](./examples/engines) — same document, same
+decisions, wherever it lands.
 
 ## Packages
 

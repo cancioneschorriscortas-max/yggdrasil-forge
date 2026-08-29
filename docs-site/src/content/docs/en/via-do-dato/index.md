@@ -55,3 +55,5 @@ Every step is **deterministic** (same input, same output) and **idempotent** (yo
 - **One single validation**: `ygg validate` and *Importar* are the same function. If one passes, so does the other.
 - **Optional positions**: a generator has no business knowing geometry; the engines do.
 - **Self-contained render**: the SVG from `ygg render` works without the site, without CSS, without external fonts — you can email it or put it in a PDF.
+
+And the data path doesn't end at the web: [Yggdrasil in your engine](motores/) — how to consume the document in Godot, Unity and Unreal, and how to make the semantics travel with the embeddable bundle.

@@ -20,6 +20,7 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./global": "./dist/yggdrasil-core.global.js",
     "./package.json": "./package.json"
   },
   "files": ["dist", "README.md", "LICENSE"],
@@ -41,6 +42,7 @@
   "devDependencies": {
     "@vitest/coverage-v8": "catalog:",
     "@yggdrasil-forge/storage": "workspace:*",
+    "quickjs-emscripten": "^0.32.0",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
