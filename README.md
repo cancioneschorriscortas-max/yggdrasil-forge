@@ -11,11 +11,13 @@
 
 ---
 
-## Status: 1.0
+## Status: 1.x — shipped
 
-The 1.0 line is shipped: themable renderer, complete editor (with
-autosave and offline PWA), the data path (published JSON Schema +
-`ygg` CLI: validate · layout · render), and bilingual public docs.
+The 1.0 line is shipped and the 1.x line evolves on top of it:
+themable renderer, complete editor (with autosave and offline PWA),
+the data path (published JSON Schema + `ygg` CLI: validate · layout ·
+render), the embeddable core bundle for game engines, and bilingual
+public docs.
 
 > 📚 **Docs:** **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/** (Galician first, full English) ·
 > 🗺️ Roadmap and the audited line of done: [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md).
@@ -268,8 +270,8 @@ install them expecting behaviour.
   tree step by step, with diagrams and gotchas. Best starting point.
 - **[Architecture MASTER document](docs/architecture/MASTER.md)** —
   full design rationale + roadmap.
-- **[Development briefings](docs/briefings/)** — complete
-  per-sub-phase history (~85 briefings).
+- **[Development briefings](docs/briefings/)** — the complete
+  per-sub-phase history, one briefing per increment.
 - **Per-package READMEs** — installation + API summary for each
   package.
 
