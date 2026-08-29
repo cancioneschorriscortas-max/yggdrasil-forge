@@ -10,4 +10,4 @@
 
 - Campos usados polo script: **verificados contra o schema publicado en cada CI** (`packages/core/__tests__/engines-snippets.test.ts`) — se o contrato cambia, o test berra e este exemplo revísase.
 - Sintaxe: revisada contra a API de Json.NET (`JObject`/`JArray`/`JToken`) e C# 9; sen APIs de UnityEngine (a clase é engine-agnóstica a propósito — chámaa desde onde queiras).
-- Execución manual: **pendente** — cando o corras, anota aquí versión e data (p.ex. «Unity 6000.0 LTS + Newtonsoft 3.2.1, 2026-08-29, saída correcta co panadeiro»).
+- Execución manual: ✅ **Unity 6000.5.10f1 + `com.unity.nuget.newtonsoft-json` 3.2.1, win64, 2026-08-29** — batchmode (`-executeMethod`) co panadeiro da galería: compilou e deu a saída correcta á primeira (árbore, recurso, 5 nodos con rangos e custos, 4 arestas; os enteiros consérvanse como enteiros — `JToken` preserva os tipos do JSON, a diferenza do `JSON.parse_string` de Godot).
