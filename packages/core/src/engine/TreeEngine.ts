@@ -25,6 +25,7 @@ import type {
   HookContext,
   Loadout,
   LockResult,
+  NodeDef,
   NodeInstance,
   NodeState,
   Plugin,
@@ -793,6 +794,55 @@ export class TreeEngine {
   }
   // ── FIN: Exclusións bidireccionais ──
 
+  // ── INICIO: 17.9 — o funil da economía (computeCost cableado) ──
+
+  /**
+   * O punto de estrangulamento ÚNICO da economía de cara ao usuario:
+   * custo base do rango (`getCostForTier`) transformado polos hooks
+   * `computeCost` dos plugins (cadea síncrona). TODO consumidor de
+   * custos pasa por aquí — `canUnlock`, os dous cobros de `unlock`,
+   * os refunds de `lock`/`lockOneTier`/`respec`, e as UIs a través
+   * deste método público (a ficha de Proba pregunta aquí, non le o
+   * `nodeDef` cru): un só sitio que auditar.
+   *
+   * **Contrato do refund (pinado en 17.9):** o refund recomputa o
+   * custo co estado ACTUAL. Un hook de custo determinista respecto de
+   * (nodo, rango) produce refunds exactos; un hook dependente de
+   * estado dinámico (desconto por nº de desbloqueados, por orzamento
+   * actual…) produce refunds ao valor actual, non ao histórico. Se
+   * necesitas refund histórico exacto, iso require persistir o
+   * cobrado por rango — material de major (2.x), non deste hook.
+   *
+   * Nodo inexistente → `[]` (defensivo; as mutacións xa validan antes).
+   */
+  getEffectiveCostForTier(nodeId: string, tier: number): readonly Cost[] {
+    const nodeDef = this.store.getTreeDef().nodes.find((n) => n.id === nodeId)
+    if (nodeDef === undefined) return []
+    return this.effectiveCost(nodeDef, tier)
+  }
+
+  /** O funil, coa def xa resolta (evita dobre lookup nos camiños internos). */
+  private effectiveCost(nodeDef: NodeDef, tier: number): readonly Cost[] {
+    return this.hookRunner.runComputeCost(nodeDef.id, this.resources.getCostForTier(nodeDef, tier))
+  }
+
+  /**
+   * Total acumulado de rangos (fromTier, toTier], polo funil — mesma
+   * fusión por recurso ca `ResourceManager.getTotalCost`, pero cada
+   * rango pasa polos hooks. Úsano o refund total de `lock` e `respec`.
+   */
+  private effectiveTotalCost(nodeDef: NodeDef, fromTier: number, toTier: number): readonly Cost[] {
+    if (fromTier >= toTier) return []
+    const accumulated = new Map<string, number>()
+    for (let tier = fromTier + 1; tier <= toTier; tier++) {
+      for (const cost of this.effectiveCost(nodeDef, tier)) {
+        accumulated.set(cost.resourceId, (accumulated.get(cost.resourceId) ?? 0) + cost.amount)
+      }
+    }
+    return [...accumulated.entries()].map(([resourceId, amount]) => ({ resourceId, amount }))
+  }
+  // ── FIN: 17.9 — o funil da economía ──
+
   /**
    * Comprobación síncrona e pura: pódese desbloquear este nodo agora?
    * Cero mutación. Un nodo xa unlocked/maxed devolve
@@ -930,7 +980,7 @@ export class TreeEngine {
 
     // Comprobar custo con ResourceManager
     const currentTier = instance?.currentTier ?? 0
-    const costs = this.resources.getCostForTier(nodeDef, currentTier + 1)
+    const costs = this.effectiveCost(nodeDef, currentTier + 1)
     if (costs.length > 0) {
       const budget = state.budget
       const affordable = this.resources.canAfford(costs, budget)
@@ -1094,7 +1144,7 @@ export class TreeEngine {
 
       // Comprobar se é por recursos
       const currentTier = instance?.currentTier ?? 0
-      const costs = this.resources.getCostForTier(nodeDef, currentTier + 1)
+      const costs = this.effectiveCost(nodeDef, currentTier + 1)
       if (costs.length > 0) {
         const affordable = this.resources.canAfford(costs, state.budget)
         if (!affordable) {
@@ -1131,7 +1181,7 @@ export class TreeEngine {
     // ── FIN: 2.1.b ──
     const currentTier = instance?.currentTier ?? 0
     const targetTier = currentTier + 1
-    const costs = this.resources.getCostForTier(nodeDef, targetTier)
+    const costs = this.effectiveCost(nodeDef, targetTier)
 
     const budgetResult = this.resources.applyCost(costs, state.budget)
     if (!budgetResult.ok) {
@@ -1414,7 +1464,7 @@ export class TreeEngine {
     }
 
     const currentTier = instance?.currentTier ?? 1
-    const costs = this.resources.getTotalCost(nodeDef, 0, currentTier)
+    const costs = this.effectiveTotalCost(nodeDef, 0, currentTier)
     const oldBudget = state.budget
     const newBudget = this.resources.refund(costs, oldBudget)
     const now = Date.now()
@@ -1555,7 +1605,7 @@ export class TreeEngine {
     }
 
     // Refund só do tier que se retira (non o total).
-    const refundedCosts = this.resources.getCostForTier(nodeDef, currentTier)
+    const refundedCosts = this.effectiveCost(nodeDef, currentTier)
     const oldBudget = state.budget
     const newBudget = this.resources.refund(refundedCosts, oldBudget)
     const now = Date.now()
@@ -1845,7 +1895,7 @@ export class TreeEngine {
       if (inst === undefined) continue
       const def = treeDef.nodes.find((n) => n.id === id)
       if (def === undefined) continue
-      const tierCosts = this.resources.getTotalCost(def, 0, inst.currentTier)
+      const tierCosts = this.effectiveTotalCost(def, 0, inst.currentTier)
       // Aplicar costPercent factor só se costPercent > 0 (preserva
       // referencia tierCosts orixinal para backward-compatibility):
       const adjustedCosts =

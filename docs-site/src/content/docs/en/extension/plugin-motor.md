@@ -105,4 +105,4 @@ The example ships a [minimal test](https://github.com/cancioneschorriscortas-max
 
 ## The honest hook map (1.x)
 
-Wired in the engine: `beforeUnlock`/`afterUnlock`, `beforeLock`/`afterLock`, `beforeRespec`/`afterRespec` and `computeUnlockability` (in `canUnlock`). The `computeCost` hook is **declared in the interface but not yet wired** into cost charging — do not build on it in 1.x. A hook's errors do not crash the engine: they are captured and the flow continues with the other handlers.
+Wired in the engine: `beforeUnlock`/`afterUnlock`, `beforeLock`/`afterLock`, `beforeRespec`/`afterRespec`, `computeUnlockability` (in `canUnlock`) and, since 17.9, `computeCost` — wired through a **single funnel** (`getEffectiveCostForTier`, also public for UIs) crossed by `canUnlock`, the `unlock` charges and the `lock`/`respec` refunds. Refund contract: it **recomputes with the current state** — a hook deterministic with respect to (node, tier) yields exact refunds; a state-dependent one yields refunds at the current value, not the historical one. A hook's errors do not crash the engine: they are captured and the flow continues with the other handlers.
