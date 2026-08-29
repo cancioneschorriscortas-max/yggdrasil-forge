@@ -165,3 +165,44 @@ describe('17.2 — paridade de iconas nas tarxetas', () => {
   })
 })
 // ── FIN 17.2 ──
+
+// ── 17.8: aceptación TUERCA — a icona do GRUPO chega á cabeceira ──
+// A definición de pechado do Director: o script de iconas de TUERCA
+// (nodos E grupos con data-URI) deixa de ter partes inertes.
+describe('17.8 — icona de grupo de punta a punta', () => {
+  const DATA_URI = 'data:image/svg+xml;base64,PHN2Zy8+'
+
+  it('grupo con data-URI → <img> na cabeceira; logic-* → glyph', () => {
+    registerIcons(LOGIC_ICONS)
+    const tree: TreeDef = {
+      id: 'cards-group-icons',
+      schemaVersion: '1.0.0',
+      version: '1.0.0',
+      label: { gl: 'Grupos', en: 'Groups' },
+      groups: [
+        { id: 'g-uri', label: { gl: 'Clase' }, color: '#cfd8cf', icon: DATA_URI, nodeIds: ['a'] },
+        {
+          id: 'g-id',
+          label: { gl: 'Rexistrada' },
+          color: '#b0c8e8',
+          icon: 'logic-key',
+          nodeIds: ['b'],
+        },
+      ],
+      nodes: [
+        { id: 'a', type: 'small', label: { gl: 'A' }, position: { x: 0, y: 0 } },
+        { id: 'b', type: 'small', label: { gl: 'B' }, position: { x: 50, y: 0 } },
+      ],
+      edges: [],
+      layout: { type: 'custom' },
+    } as TreeDef
+    const engine = new EditorEngine(createEditorDocument(tree))
+    const { container } = render(<EditorCanvas editorEngine={engine} view="cards" />)
+
+    const cabeceiras = container.querySelectorAll('.yf-cluster-card__title')
+    expect(cabeceiras.length).toBe(2)
+    expect(cabeceiras[0]?.querySelector('img')?.getAttribute('src')).toBe(DATA_URI)
+    expect(cabeceiras[1]?.querySelector('svg path')).not.toBeNull()
+  })
+})
+// ── FIN 17.8 ──

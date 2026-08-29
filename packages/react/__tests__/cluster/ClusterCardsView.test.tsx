@@ -204,3 +204,50 @@ describe('17.2 — RowIcon: IconDef | string, nunca descarte silencioso', () => 
   })
 })
 // ── FIN 17.2 ──
+
+// ── 17.8: a icona do GRUPO na cabeceira — os tres camiños ──
+describe('17.8 — icona de grupo na cabeceira da tarxeta', () => {
+  const DATA_URI = 'data:image/svg+xml;base64,PHN2Zy8+'
+  const membro = { id: 'm', label: 'M', currentTier: 0, maxTier: 1 }
+
+  function grupoCon(icon: ClusterGroup['icon']): ClusterGroup[] {
+    return [{ id: 'g', label: 'GRUPO', color: '#aabbcc', icon, members: [membro] }]
+  }
+
+  it('IconDef → glyph SVG na cabeceira', () => {
+    const { container } = render(
+      <ClusterCardsView
+        groups={grupoCon({
+          viewBox: '0 0 24 24',
+          paths: [{ d: 'M2 2L22 22', mode: 'stroke' as const }],
+        })}
+        onRowClick={vi.fn()}
+      />,
+    )
+    expect(container.querySelector('.yf-cluster-card__icon svg path')?.getAttribute('d')).toBe(
+      'M2 2L22 22',
+    )
+  })
+
+  it('data-URI → <img> na cabeceira (o caso TUERCA)', () => {
+    const { container } = render(
+      <ClusterCardsView groups={grupoCon(DATA_URI)} onRowClick={vi.fn()} />,
+    )
+    const img = container.querySelector('.yf-cluster-card__icon img')
+    expect(img?.getAttribute('src')).toBe(DATA_URI)
+  })
+
+  it('emoji → texto; e sen icona, cabeceira sen oco', () => {
+    const { container } = render(<ClusterCardsView groups={grupoCon('🍞')} onRowClick={vi.fn()} />)
+    expect(container.querySelector('.yf-cluster-card__icon')?.textContent).toBe('🍞')
+
+    const { container: sen } = render(
+      <ClusterCardsView
+        groups={[{ id: 'g', label: 'G', color: '#abc', members: [membro] }]}
+        onRowClick={vi.fn()}
+      />,
+    )
+    expect(sen.querySelector('.yf-cluster-card__icon')).toBeNull()
+  })
+})
+// ── FIN 17.8 ──

@@ -38,6 +38,12 @@ export interface ClusterGroup {
   readonly label: string
   /** Cor de acento (título da tarxeta + icona de fila). Dato do consumidor. */
   readonly color: string
+  /**
+   * 17.8: icona da cabeceira da tarxeta — mesmo contrato ca
+   * `ClusterMember.icon` (IconDef → glyph; data-URI/URL → imaxe;
+   * calquera outro string → texto/emoji). Nunca descarte silencioso.
+   */
+  readonly icon?: IconDef | string
   readonly members: readonly ClusterMember[]
 }
 
@@ -366,6 +372,9 @@ export function ClusterCardsView({
               <div
                 className="yf-cluster-card__title"
                 style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
                   padding: '8px 14px',
                   fontWeight: 700,
                   letterSpacing: '0.06em',
@@ -375,6 +384,14 @@ export function ClusterCardsView({
                   background: g.color,
                 }}
               >
+                {g.icon !== undefined ? (
+                  <span
+                    className="yf-cluster-card__icon"
+                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    <RowIcon icon={g.icon} label={g.label} size={16} />
+                  </span>
+                ) : null}
                 {g.label}
               </div>
               <ul

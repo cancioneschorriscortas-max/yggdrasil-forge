@@ -37,6 +37,8 @@ export interface DerivedClusterGroup {
   readonly id: string
   readonly label: string
   readonly color: string
+  /** Icona do GroupDef, CRUA (17.8) — resólvese na capa react, coma a dos membros. */
+  readonly icon?: string
   readonly members: readonly DerivedClusterMember[]
 }
 
@@ -118,6 +120,7 @@ export function deriveClusterGroups(
       label: resolveLocalized(def.label, locale),
       color:
         def.color ?? GROUP_COLOR_ROTATION[index % GROUP_COLOR_ROTATION.length] ?? UNGROUPED_COLOR,
+      ...(typeof def.icon === 'string' && def.icon.length > 0 && { icon: def.icon }),
       members,
     })
   })
