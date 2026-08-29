@@ -55,3 +55,5 @@ Cada paso é **determinista** (mesma entrada, mesma saída) e **idempotente** (p
 - **Unha soa validación**: `ygg validate` e *Importar* son a mesma función. Se pasa un, pasa o outro.
 - **Posicións opcionais**: un xerador non ten por que saber xeometría; os motores si.
 - **Render autocontido**: o SVG de `ygg render` funciona sen o sitio, sen CSS, sen fontes externas — pódese mandar por correo ou metelo nun PDF.
+
+E a vía do dato non remata na web: [Yggdrasil no teu motor](motores/) — como consumir o documento en Godot, Unity e Unreal, e como facer que a semántica viaxe co bundle embebible.
