@@ -79,7 +79,7 @@ export default defineConfig({
         {
           label: '🌳 Editor en vivo',
           translations: { en: '🌳 Live editor' },
-          link: 'https://cancioneschorriscortas-max.github.io/yggdrasil-forge/editor/',
+          link: 'https://cancioneschorriscortas-max.github.io/yggdrasil-forge/app/',
         },
         {
           label: 'Comeza aquí',

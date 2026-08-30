@@ -52,26 +52,34 @@ jobs:
       - name: Build docs site (render gallery + i18n check + astro build)
         run: pnpm run docs:build
 
-      # ── 18.0: o editor vivo como subcamiño /editor/ do MESMO artefacto ──
+      # ── 18.0: o editor vivo como subcamiño /app/ do MESMO artefacto ──
       # Pages = un site por repo (xa ocupado polas docs), así que o
       # editor constrúese co base do subcamiño e cópiase dentro. O
       # vite.config le VITE_BASE; os alias a src/ fan que non precise
       # turbo build previo. O service worker da PWA queda con scope
-      # estrito a /editor/ (non toca as docs).
-      - name: Build editor (public, base /editor/)
+      # estrito a /app/ (non toca as docs).
+      #
+      # Por que /app/ e non /editor/: a sección de docs «Guía do
+      # editor» XA ocupa a ruta /editor/ (dist/editor/guia/) — o
+      # primeiro run fallou exactamente aí (a aserción parou o deploy)
+      # e, aínda fusionando ficheiros, o scope do SW cubriría as docs.
+      - name: Assert /app/ route is free in the docs build
+        run: test ! -e docs-site/dist/app
+
+      - name: Build editor (public, base /app/)
         run: pnpm --filter @yggdrasil-forge-examples/editor exec vite build
         env:
-          VITE_BASE: /yggdrasil-forge/editor/
+          VITE_BASE: /yggdrasil-forge/app/
 
       - name: Copy editor into the Pages artifact
-        run: cp -r examples/editor/dist docs-site/dist/editor
+        run: cp -r examples/editor/dist docs-site/dist/app
 
       # Se a copia falla, o deploy falla — nunca publicar un botón roto.
       - name: Assert editor is present in the artifact
         run: |
-          test -f docs-site/dist/editor/index.html
-          test -f docs-site/dist/editor/sw.js
-          test -f docs-site/dist/editor/manifest.webmanifest
+          test -f docs-site/dist/app/index.html
+          test -f docs-site/dist/app/sw.js
+          test -f docs-site/dist/app/manifest.webmanifest
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
