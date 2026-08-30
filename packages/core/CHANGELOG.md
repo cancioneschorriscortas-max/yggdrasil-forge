@@ -1,5 +1,12 @@
 # @yggdrasil-forge/core
 
+## 1.1.0
+
+### Minor Changes
+
+- 55b8902: `computeCost` cableado (17.9): o hook deixa de estar «declarado pero sen cablear». Un funil único — `getEffectiveCostForTier` (público) — atravesado por `canUnlock`, os dous cobros de `unlock` e os refunds de `lock`/`lockOneTier`/`respec`; a ficha de Proba pregunta ao funil en vez de ler o `nodeDef` cru, así que explica e cobra coinciden. Contrato do refund pinado e testado: recomputa co estado actual (hooks deterministas → refunds exactos; hooks dependentes de estado → refund ao valor actual, non ao histórico).
+- 3025f17: Bundle embebible (17.7): novo formato de distribución `dist/yggdrasil-core.global.js` (export estable `@yggdrasil-forge/core/global`) — IIFE autocontido (`YggdrasilCore`, immer+zod dentro, cero DOM, cero imports) para intérpretes JS incrustados en motores: Jint (.NET/Unity), puerts (Unreal/Unity), GodotJS, QuickJS. Garantido por test de fume en CI contra QuickJS real: a mesma árbore da galería toma as mesmas decisións dentro dun intérprete sen DOM. Cero cambios de API.
+
 ## 1.0.0
 
 ### Major Changes

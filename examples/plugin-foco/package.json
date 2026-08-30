@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge-examples/plugin-foco",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Tutorial: un plugin real do motor — «remata o que empezaches» (foco pedagóxico)",
   "type": "module",

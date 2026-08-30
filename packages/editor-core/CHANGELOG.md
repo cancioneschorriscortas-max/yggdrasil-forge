@@ -1,5 +1,14 @@
 # @yggdrasil-forge/editor-core
 
+## 1.1.0
+
+### Patch Changes
+
+- 7ac906b: Icona do grupo na vista de tarxetas (17.8): `ClusterGroup.icon` acepta `IconDef | string` co mesmo contrato cás filas (glyph / imaxe / texto, nunca descarte silencioso); a derivación transporta `GroupDef.icon` e a ponte do editor resólvea. A metade final do caso TUERCA deixa de estar inerte.
+- Updated dependencies [55b8902]
+- Updated dependencies [3025f17]
+  - @yggdrasil-forge/core@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

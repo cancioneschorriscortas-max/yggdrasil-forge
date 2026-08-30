@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/editor-core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Headless editor engine for Yggdrasil Forge — documents, commands with undo/redo, live validation, auto-layout, presets and serialization. Zero UI, zero React.",
   "license": "MIT",
   "author": "Agarfal",

@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/plugins",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Official plugins for Yggdrasil Forge",
   "license": "MIT",
   "author": "Agarfal",

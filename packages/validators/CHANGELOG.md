@@ -1,5 +1,13 @@
 # @yggdrasil-forge/validators
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [55b8902]
+- Updated dependencies [3025f17]
+  - @yggdrasil-forge/core@1.1.0
+
 ## 0.1.4
 
 ### Patch Changes

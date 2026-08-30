@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge/editor-react",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The Yggdrasil Forge Studio — full visual editor UI for progression trees: canvas, inspector, cards view, play mode, synchronized code panel. The application layer over @yggdrasil-forge/editor-core.",
   "license": "MIT",
   "author": "Agarfal",

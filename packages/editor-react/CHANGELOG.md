@@ -1,5 +1,21 @@
 # @yggdrasil-forge/editor-react
 
+## 1.1.0
+
+### Patch Changes
+
+- 55b8902: `computeCost` cableado (17.9): o hook deixa de estar «declarado pero sen cablear». Un funil único — `getEffectiveCostForTier` (público) — atravesado por `canUnlock`, os dous cobros de `unlock` e os refunds de `lock`/`lockOneTier`/`respec`; a ficha de Proba pregunta ao funil en vez de ler o `nodeDef` cru, así que explica e cobra coinciden. Contrato do refund pinado e testado: recomputa co estado actual (hooks deterministas → refunds exactos; hooks dependentes de estado → refund ao valor actual, non ao histórico).
+- 7ac906b: Icona do grupo na vista de tarxetas (17.8): `ClusterGroup.icon` acepta `IconDef | string` co mesmo contrato cás filas (glyph / imaxe / texto, nunca descarte silencioso); a derivación transporta `GroupDef.icon` e a ponte do editor resólvea. A metade final do caso TUERCA deixa de estar inerte.
+- 9d80a42: Paridade de iconas nas tarxetas (17.2): `ClusterMember.icon` acepta `IconDef | string` co mesmo criterio có grafo (id → glyph, data-URI/URL → `<img>`, calquera outro → texto/emoji) — nunca descarte silencioso. O criterio de imaxe F11.3 extráese a un helper único compartido co SkillNode, e a derivación do editor pasa os strings sen rexistrar tal cal en vez de comelos.
+- Updated dependencies [55b8902]
+- Updated dependencies [3025f17]
+- Updated dependencies [0fb6056]
+- Updated dependencies [7ac906b]
+- Updated dependencies [9d80a42]
+  - @yggdrasil-forge/core@1.1.0
+  - @yggdrasil-forge/react@1.1.0
+  - @yggdrasil-forge/editor-core@1.1.0
+
 ## 1.0.0
 
 ### Major Changes
