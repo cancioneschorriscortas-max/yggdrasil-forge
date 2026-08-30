@@ -2,7 +2,7 @@
 
 Interactive React skill tree demo for Yggdrasil Forge.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/react-demo)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/fraga-labs/yggdrasil-forge/tree/main/examples/react-demo)
 
 ## What it demonstrates
 
@@ -25,7 +25,7 @@ dependencies installed from npm.
 ## Run locally
 
 ```bash
-git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git
+git clone https://github.com/fraga-labs/yggdrasil-forge.git
 cd yggdrasil-forge/examples/react-demo
 pnpm install
 pnpm dev

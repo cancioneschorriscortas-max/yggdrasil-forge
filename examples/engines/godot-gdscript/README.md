@@ -8,7 +8,7 @@
 godot --headless --path . --script res://le_arbore.gd
 ```
 
-**O que este exemplo NON che dá**: a semántica de desbloqueo (`canUnlock`, custos por rango, exclusións, cascadas). Dúas opcións: reimplementala en GDScript lendo [o contrato estable](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/contrato/contrato-estable/), ou correr o motor REAL co bundle embebible `@yggdrasil-forge/core/global` via [GodotJS](https://github.com/godotjs/GodotJS) — receita na páxina [Yggdrasil no teu motor](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/via-do-dato/motores/).
+**O que este exemplo NON che dá**: a semántica de desbloqueo (`canUnlock`, custos por rango, exclusións, cascadas). Dúas opcións: reimplementala en GDScript lendo [o contrato estable](https://fraga-labs.github.io/yggdrasil-forge/contrato/contrato-estable/), ou correr o motor REAL co bundle embebible `@yggdrasil-forge/core/global` via [GodotJS](https://github.com/godotjs/GodotJS) — receita na páxina [Yggdrasil no teu motor](https://fraga-labs.github.io/yggdrasil-forge/via-do-dato/motores/).
 
 ## Verificación (honestidade A.6.43: a CI non corre Godot)
 

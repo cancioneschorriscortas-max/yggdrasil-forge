@@ -40,10 +40,10 @@ const packageJson = {
   description: pkgDescription,
   license: 'MIT',
   author: 'Agarfal',
-  homepage: 'https://github.com/cancioneschorriscortas-max/yggdrasil-forge#readme',
+  homepage: 'https://github.com/fraga-labs/yggdrasil-forge#readme',
   repository: {
     type: 'git',
-    url: 'https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git',
+    url: 'https://github.com/fraga-labs/yggdrasil-forge.git',
     directory: `packages/${pkgName}`,
   },
   type: 'module',

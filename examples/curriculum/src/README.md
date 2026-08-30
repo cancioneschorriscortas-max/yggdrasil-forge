@@ -214,7 +214,7 @@ webhooks}` — see each package's README for planned scope.
 Requires **Node.js ≥ 22** and **pnpm 11**.
 
 ```bash
-git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge
+git clone https://github.com/fraga-labs/yggdrasil-forge
 cd yggdrasil-forge
 pnpm install
 pnpm typecheck   # 24/24

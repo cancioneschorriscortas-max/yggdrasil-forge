@@ -13,7 +13,7 @@ And honesty as the structure: **reading it is trivial** (it is JSON with a [publ
 
 ### Godot
 
-`JSON.parse_string` is native GDScript — zero dependencies. Complete example (~40 lines): [`examples/engines/godot-gdscript`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/engines/godot-gdscript).
+`JSON.parse_string` is native GDScript — zero dependencies. Complete example (~40 lines): [`examples/engines/godot-gdscript`](https://github.com/fraga-labs/yggdrasil-forge/tree/main/examples/engines/godot-gdscript).
 
 ```gdscript
 var doc: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://arbore.json"))
@@ -23,7 +23,7 @@ for nodo: Dictionary in doc["tree"]["nodes"]:
 
 ### Unity
 
-With **Newtonsoft Json.NET** (official package: `com.unity.nuget.newtonsoft-json`). The built-in `JsonUtility` **is not enough**: it supports neither dictionaries nor union types, and `label` is `string | { gl, en, … }`. Complete example: [`examples/engines/unity-csharp`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/engines/unity-csharp).
+With **Newtonsoft Json.NET** (official package: `com.unity.nuget.newtonsoft-json`). The built-in `JsonUtility` **is not enough**: it supports neither dictionaries nor union types, and `label` is `string | { gl, en, … }`. Complete example: [`examples/engines/unity-csharp`](https://github.com/fraga-labs/yggdrasil-forge/tree/main/examples/engines/unity-csharp).
 
 ```csharp
 var doc = JObject.Parse(File.ReadAllText(path));
@@ -66,7 +66,7 @@ var can = js.Evaluate("JSON.stringify(engine.canUnlock('masa_dulce'))").AsString
 
 [GodotJS](https://github.com/godotjs/GodotJS) adds V8/QuickJS to Godot 4. Load the bundle as a global script and `YggdrasilCore.TreeEngine` becomes available from your scripts.
 
-**Verification honesty, here too**: what CI guarantees is that the bundle runs in QuickJS — the same interpreter puerts and GodotJS use as their lightweight backend. The concrete per-engine integrations are not verified in our CI; if you build one, [tell us](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/issues).
+**Verification honesty, here too**: what CI guarantees is that the bundle runs in QuickJS — the same interpreter puerts and GodotJS use as their lightweight backend. The concrete per-engine integrations are not verified in our CI; if you build one, [tell us](https://github.com/fraga-labs/yggdrasil-forge/issues).
 
 ## What there is NOT (banked, by name)
 

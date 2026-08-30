@@ -24,7 +24,7 @@ Yggdrasil Forge is a monorepo. Pick your entry point:
 ## The editor (from the repo)
 
 ```bash
-git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git
+git clone https://github.com/fraga-labs/yggdrasil-forge.git
 cd yggdrasil-forge
 corepack pnpm install
 corepack pnpm --filter @yggdrasil-forge-examples/editor run dev

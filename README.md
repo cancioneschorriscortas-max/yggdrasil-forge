@@ -4,10 +4,10 @@
 > trees — engine, storage, React renderer, plugins, search, and
 > validators.
 
-[![Try it live](https://img.shields.io/badge/%F0%9F%8C%B3%20try%20it-live%20editor-2e7d4f)](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/app/)
+[![Try it live](https://img.shields.io/badge/%F0%9F%8C%B3%20try%20it-live%20editor-2e7d4f)](https://fraga-labs.github.io/yggdrasil-forge/app/)
 [![npm](https://img.shields.io/npm/v/%40yggdrasil-forge%2Fcore?label=%40yggdrasil-forge%2Fcore)](https://www.npmjs.com/package/@yggdrasil-forge/core)
-[![CI](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-galego%20%2B%20english-2e7d4f)](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/)
+[![CI](https://github.com/fraga-labs/yggdrasil-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/fraga-labs/yggdrasil-forge/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-galego%20%2B%20english-2e7d4f)](https://fraga-labs.github.io/yggdrasil-forge/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -20,8 +20,8 @@ the data path (published JSON Schema + `ygg` CLI: validate · layout ·
 render), the embeddable core bundle for game engines, and bilingual
 public docs.
 
-> 🌳 **Try it now — the live editor:** **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/app/** (runs entirely in your browser; no account, no install) ·
-> 📚 **Docs:** **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/** (Galician first, full English) ·
+> 🌳 **Try it now — the live editor:** **https://fraga-labs.github.io/yggdrasil-forge/app/** (runs entirely in your browser; no account, no install) ·
+> 📚 **Docs:** **https://fraga-labs.github.io/yggdrasil-forge/** (Galician first, full English) ·
 > 🗺️ Roadmap and the audited line of done: [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md).
 
 
@@ -282,7 +282,7 @@ install them expecting behaviour.
 Requires **Node.js ≥ 22** and **pnpm 11**.
 
 ```bash
-git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge
+git clone https://github.com/fraga-labs/yggdrasil-forge
 cd yggdrasil-forge
 pnpm install
 pnpm typecheck
@@ -308,9 +308,9 @@ pnpm --filter @yggdrasil-forge-examples/node-basics start
 
 Issues and feedback welcome via GitHub. The project is 1.0: PRs are
 accepted — read the
-[architecture guide](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/arquitectura/guia/)
+[architecture guide](https://fraga-labs.github.io/yggdrasil-forge/arquitectura/guia/)
 and the
-[extension guide](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/extension/guia/)
+[extension guide](https://fraga-labs.github.io/yggdrasil-forge/extension/guia/)
 first; the quality gates (lint, format, typecheck, tests) are
 non-negotiable.
 

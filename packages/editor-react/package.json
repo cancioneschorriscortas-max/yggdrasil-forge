@@ -63,10 +63,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git",
+    "url": "https://github.com/fraga-labs/yggdrasil-forge.git",
     "directory": "packages/editor-react"
   },
-  "homepage": "https://cancioneschorriscortas-max.github.io/yggdrasil-forge/",
+  "homepage": "https://fraga-labs.github.io/yggdrasil-forge/",
   "publishConfig": {
     "access": "public"
   }

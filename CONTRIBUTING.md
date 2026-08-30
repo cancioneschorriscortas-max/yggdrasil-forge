@@ -13,7 +13,7 @@ For now, please open an issue to discuss any contribution before submitting a pu
 ## Setup
 
 ```bash
-git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git
+git clone https://github.com/fraga-labs/yggdrasil-forge.git
 cd yggdrasil-forge
 pnpm install
 pnpm check-env   # Verifica o entorno

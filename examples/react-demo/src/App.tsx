@@ -347,7 +347,7 @@ export function App(): JSX.Element {
           <p>
             Powered by <code>@yggdrasil-forge</code> —{' '}
             <a
-              href="https://github.com/cancioneschorriscortas-max/yggdrasil-forge"
+              href="https://github.com/fraga-labs/yggdrasil-forge"
               target="_blank"
               rel="noopener noreferrer"
               className="rune-link"

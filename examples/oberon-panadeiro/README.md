@@ -9,7 +9,7 @@ exercises layouts, theming, recolorable icons, multi-tier
 progression, an Inspector panel, scene backgrounds and label
 legibility, all driven from one GAIA profession fixture.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/oberon-panadeiro)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/fraga-labs/yggdrasil-forge/tree/main/examples/oberon-panadeiro)
 
 ## What it demonstrates
 
@@ -56,7 +56,7 @@ Built with **Vite + React 19 + TypeScript** (strict).
 ## Run locally
 
 ```bash
-git clone https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git
+git clone https://github.com/fraga-labs/yggdrasil-forge.git
 cd yggdrasil-forge/examples/oberon-panadeiro
 pnpm install
 pnpm dev

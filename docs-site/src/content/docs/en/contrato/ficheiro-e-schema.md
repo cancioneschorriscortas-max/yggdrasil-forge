@@ -25,7 +25,7 @@ This separation is an architectural decision (MASTER A.6): the editor is a tool 
 
 The schema lives in the repository and is generated from the real (Zod) types of the engine and the editor, with a drift test that fails if they diverge:
 
-**[`schema/yggdrasil-document.schema.json`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/schema/yggdrasil-document.schema.json)**
+**[`schema/yggdrasil-document.schema.json`](https://github.com/fraga-labs/yggdrasil-forge/blob/main/schema/yggdrasil-document.schema.json)**
 
 The CLI emits it too — handy for pipelines that don't want to depend on a URL:
 
@@ -52,7 +52,7 @@ npx ygg new --id demo --label "Demo" # a valid empty document to start from
 
 ## Two minimal documents
 
-The smallest useful one is in the gallery: [`minimal.json`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/minimal.json) — two nodes, one resource, one prerequisite, a per-tier cost, bilingual labels and framing. And the "friendly" reference, the baker tree, with groups, tiers and a theme.
+The smallest useful one is in the gallery: [`minimal.json`](https://github.com/fraga-labs/yggdrasil-forge/blob/main/examples/gallery/minimal.json) — two nodes, one resource, one prerequisite, a per-tier cost, bilingual labels and framing. And the "friendly" reference, the baker tree, with groups, tiers and a theme.
 
 ## How far the promise goes
 

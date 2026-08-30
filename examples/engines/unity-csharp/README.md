@@ -4,7 +4,7 @@
 
 **Por que non `JsonUtility`**: o serializador de serie de Unity non soporta dicionarios nin union types, e o campo `label` é `string | { gl, en, … }` (`LocalizedString`). Con Newtonsoft (`JObject`) trágase enteiro.
 
-**O que este exemplo NON che dá**: a semántica de desbloqueo (`canUnlock`, custos por rango, exclusións, cascadas). Dúas opcións: reimplementala en C# lendo [o contrato estable](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/contrato/contrato-estable/), ou correr o motor REAL co bundle embebible `@yggdrasil-forge/core/global` via [Jint](https://github.com/sebastienros/jint) ou [puerts](https://github.com/Tencent/puerts) — receita na páxina [Yggdrasil no teu motor](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/via-do-dato/motores/).
+**O que este exemplo NON che dá**: a semántica de desbloqueo (`canUnlock`, custos por rango, exclusións, cascadas). Dúas opcións: reimplementala en C# lendo [o contrato estable](https://fraga-labs.github.io/yggdrasil-forge/contrato/contrato-estable/), ou correr o motor REAL co bundle embebible `@yggdrasil-forge/core/global` via [Jint](https://github.com/sebastienros/jint) ou [puerts](https://github.com/Tencent/puerts) — receita na páxina [Yggdrasil no teu motor](https://fraga-labs.github.io/yggdrasil-forge/via-do-dato/motores/).
 
 ## Verificación (honestidade A.6.43: a CI non corre Unity)
 

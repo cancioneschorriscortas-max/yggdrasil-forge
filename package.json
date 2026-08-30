@@ -5,10 +5,10 @@
   "description": "Comprehensive skill tree engine and visual editor for the web",
   "license": "MIT",
   "author": "Agarfal",
-  "homepage": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge",
+  "homepage": "https://github.com/fraga-labs/yggdrasil-forge",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cancioneschorriscortas-max/yggdrasil-forge.git"
+    "url": "https://github.com/fraga-labs/yggdrasil-forge.git"
   },
   "scripts": {
     "build": "turbo run build",

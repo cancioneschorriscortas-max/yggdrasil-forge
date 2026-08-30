@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-**Para quen abre o editor e quere construír un skill tree sen necesariamente coñecer o código.** E abrilo é un clic: [**o editor vivo**](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/app/) corre enteiro no navegador, sen conta e sen instalar nada. Estado do editor: 1.x — o Studio publicado co 1.0.
+**Para quen abre o editor e quere construír un skill tree sen necesariamente coñecer o código.** E abrilo é un clic: [**o editor vivo**](https://fraga-labs.github.io/yggdrasil-forge/app/) corre enteiro no navegador, sen conta e sen instalar nada. Estado do editor: 1.x — o Studio publicado co 1.0.
 
 ## Que é o editor
 

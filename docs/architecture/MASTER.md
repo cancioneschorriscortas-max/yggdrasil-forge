@@ -197,10 +197,10 @@ Se unha sub-fase é demasiado grande, divídese máis. Se é demasiado pequena, 
 
 ### 1.1 Repositorio
 
-- **GitHub:** https://github.com/cancioneschorriscortas-max/yggdrasil-forge
+- **GitHub:** https://github.com/fraga-labs/yggdrasil-forge
 - **Visibilidade:** público desde o inicio
 - **Licencia:** MIT
-- **Owner:** cancioneschorriscortas-max (Agarfal)
+- **Owner:** fraga-labs (Agarfal)
 - **Path local de desenvolvemento:** `C:\Users\tajes\proxectos\yggdrasil-forge` (Windows, Git Bash: `/c/Users/tajes/proxectos/yggdrasil-forge`)
 
 ### 1.1.1 Restricións de entorno

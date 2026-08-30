@@ -18,7 +18,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema'
 
 /** $id público do schema (raw de GitHub, rama main). */
 export const SCHEMA_ID =
-  'https://raw.githubusercontent.com/cancioneschorriscortas-max/yggdrasil-forge/main/schema/yggdrasil-document.schema.json'
+  'https://raw.githubusercontent.com/fraga-labs/yggdrasil-forge/main/schema/yggdrasil-document.schema.json'
 
 /**
  * Documento completo en Zod. `editor` é opcional — un TreeDef pelado

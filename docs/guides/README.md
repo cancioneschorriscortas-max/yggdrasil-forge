@@ -4,9 +4,9 @@ As guías 01 (editor), 02 (arquitectura) e 03 (extensión) **viven agora no
 sitio de documentación** (Astro/Starlight, galego por defecto + inglés),
 fonte única en `docs-site/src/content/docs/`:
 
-- Guía do editor → https://cancioneschorriscortas-max.github.io/yggdrasil-forge/editor/guia/
-- Guía de arquitectura → https://cancioneschorriscortas-max.github.io/yggdrasil-forge/arquitectura/guia/
-- Guía de extensión → https://cancioneschorriscortas-max.github.io/yggdrasil-forge/extension/guia/
+- Guía do editor → https://fraga-labs.github.io/yggdrasil-forge/editor/guia/
+- Guía de arquitectura → https://fraga-labs.github.io/yggdrasil-forge/arquitectura/guia/
+- Guía de extensión → https://fraga-labs.github.io/yggdrasil-forge/extension/guia/
 
 En local: `corepack pnpm run docs:dev`.
 
