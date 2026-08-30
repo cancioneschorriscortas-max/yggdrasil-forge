@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-**For whoever opens the editor and wants to build a skill tree without necessarily knowing the code.** Editor state: 1.x — the Studio shipped with 1.0.
+**For whoever opens the editor and wants to build a skill tree without necessarily knowing the code.** And opening it is one click: [**the live editor**](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/editor/) runs entirely in your browser, no account, nothing to install. Editor state: 1.x — the Studio shipped with 1.0.
 
 > The editor's interface is in **Galician**. This guide gives each label as it appears on screen, with its English meaning in parentheses the first time.
 

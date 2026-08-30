@@ -15,7 +15,15 @@ import { VitePWA } from 'vite-plugin-pwa'
 // do exemplo.
 const root = resolve(__dirname, '../..')
 
+// ── 18.0: base por env para o deploy público ──
+// En Pages o editor vive como SUBCAMIÑO do site de docs
+// (…github.io/yggdrasil-forge/editor/): o workflow exporta
+// VITE_BASE=/yggdrasil-forge/editor/ antes do build. En dev local
+// queda '/' — cero cambio de comportamento.
+const base = process.env.VITE_BASE ?? '/'
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     // ── 15.6 — PWA / offline (MASTER §62) ──
@@ -30,7 +38,11 @@ export default defineConfig({
         short_name: 'Yggdrasil',
         description: 'Editor visual de árbores de progresión (skill trees) — Yggdrasil Forge.',
         lang: 'gl',
+        // 18.0: start_url e scope RELATIVOS ao base — o service worker
+        // do editor queda estrito a /editor/ e NON pode secuestrar as
+        // docs que viven no mesmo dominio de Pages.
         start_url: '.',
+        scope: '.',
         display: 'standalone',
         background_color: '#f4f4f1',
         theme_color: '#fbfbfa',
