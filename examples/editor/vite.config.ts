@@ -17,8 +17,8 @@ const root = resolve(__dirname, '../..')
 
 // ── 18.0: base por env para o deploy público ──
 // En Pages o editor vive como SUBCAMIÑO do site de docs
-// (…github.io/yggdrasil-forge/editor/): o workflow exporta
-// VITE_BASE=/yggdrasil-forge/editor/ antes do build. En dev local
+// (…github.io/yggdrasil-forge/app/): o workflow exporta
+// VITE_BASE=/yggdrasil-forge/app/ antes do build. En dev local
 // queda '/' — cero cambio de comportamento.
 const base = process.env.VITE_BASE ?? '/'
 
@@ -39,7 +39,7 @@ export default defineConfig({
         description: 'Editor visual de árbores de progresión (skill trees) — Yggdrasil Forge.',
         lang: 'gl',
         // 18.0: start_url e scope RELATIVOS ao base — o service worker
-        // do editor queda estrito a /editor/ e NON pode secuestrar as
+        // do editor queda estrito a /app/ e NON pode secuestrar as
         // docs que viven no mesmo dominio de Pages.
         start_url: '.',
         scope: '.',
