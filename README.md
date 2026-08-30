@@ -4,6 +4,7 @@
 > trees — engine, storage, React renderer, plugins, search, and
 > validators.
 
+[![Try it live](https://img.shields.io/badge/%F0%9F%8C%B3%20try%20it-live%20editor-2e7d4f)](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/editor/)
 [![npm](https://img.shields.io/npm/v/%40yggdrasil-forge%2Fcore?label=%40yggdrasil-forge%2Fcore)](https://www.npmjs.com/package/@yggdrasil-forge/core)
 [![CI](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-galego%20%2B%20english-2e7d4f)](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/)
@@ -19,6 +20,7 @@ the data path (published JSON Schema + `ygg` CLI: validate · layout ·
 render), the embeddable core bundle for game engines, and bilingual
 public docs.
 
+> 🌳 **Try it now — the live editor:** **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/editor/** (runs entirely in your browser; no account, no install) ·
 > 📚 **Docs:** **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/** (Galician first, full English) ·
 > 🗺️ Roadmap and the audited line of done: [`docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md`](docs/architecture/ROADMAP-1.0-RENDERER-TO-STUDIO.md).
 

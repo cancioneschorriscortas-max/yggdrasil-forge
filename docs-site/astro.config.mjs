@@ -73,6 +73,14 @@ export default defineConfig({
         typeDocInstance(cliTypeDoc, 'cli'),
       ],
       sidebar: [
+        // 18.0: o editor vivo, sempre á vista. Starlight non ten navbar
+        // de ligazóns sen override de compoñente (criterio do Executor:
+        // primeira entrada fixa da sidebar + botón primario do hero).
+        {
+          label: '🌳 Editor en vivo',
+          translations: { en: '🌳 Live editor' },
+          link: 'https://cancioneschorriscortas-max.github.io/yggdrasil-forge/editor/',
+        },
         {
           label: 'Comeza aquí',
           translations: { en: 'Start here' },
