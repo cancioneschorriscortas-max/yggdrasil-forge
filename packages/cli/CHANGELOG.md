@@ -1,5 +1,25 @@
 # @yggdrasil-forge/cli
 
+## 1.1.0
+
+### Patch Changes
+
+- f92cabd: fix(cli): ygg render debuxa as iconas dos sets oficiais
+
+  O render non rexistraba NORSE_ICONS/LOGIC_ICONS, así que un documento
+  con `icon: "logic-key"` mostraba o id como texto de fallback en vez da
+  icona. Agora rexístranse coma no editor.
+
+- 0fb6056: Iconset Forge (17.1): 25 iconas industriais/mecánicas opt-in (`FORGE_ICONS`, ids `forge-*`) — o terceiro rexistro semántico xunto a `logic-*` e `norse-*`. Arte do dono debuxada para TUERCA e convertida ao formato da casa (24×24, stroke, recoloreable via currentColor). `ygg render` e o editor rexístrano de serie.
+- Updated dependencies [55b8902]
+- Updated dependencies [3025f17]
+- Updated dependencies [0fb6056]
+- Updated dependencies [7ac906b]
+- Updated dependencies [9d80a42]
+  - @yggdrasil-forge/core@1.1.0
+  - @yggdrasil-forge/react@1.1.0
+  - @yggdrasil-forge/editor-core@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

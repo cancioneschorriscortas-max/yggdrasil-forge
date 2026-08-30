@@ -1,5 +1,13 @@
 # @yggdrasil-forge-examples/node-basics
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies [55b8902]
+- Updated dependencies [3025f17]
+  - @yggdrasil-forge/core@1.1.0
+
 ## 0.0.5
 
 ### Patch Changes

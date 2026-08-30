@@ -1,5 +1,17 @@
 # @yggdrasil-forge-examples/react-demo
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [55b8902]
+- Updated dependencies [3025f17]
+- Updated dependencies [0fb6056]
+- Updated dependencies [7ac906b]
+- Updated dependencies [9d80a42]
+  - @yggdrasil-forge/core@1.1.0
+  - @yggdrasil-forge/react@1.1.0
+
 ## 0.0.4
 
 ### Patch Changes

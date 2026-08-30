@@ -1,6 +1,6 @@
 {
   "name": "@yggdrasil-forge-examples/vanilla-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Framework-free example: TreeEngine + plain DOM, zero React",
   "type": "module",
