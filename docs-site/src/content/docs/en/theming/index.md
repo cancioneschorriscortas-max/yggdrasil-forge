@@ -120,4 +120,4 @@ const myIcon: IconDef = { viewBox: '0 0 24 24', paths: [{ d: 'M4 4 L20 20 M20 4 
 registerIcons({ 'my-x': myIcon })
 ```
 
-The editor registers all three sets at startup, so `logic-key` or `forge-wrench` in the *Icona* field works out of the box. The full list of ids is in the [gallery README](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/README.md#icon-sets-nodeicon).
+The editor registers all three sets at startup, so `logic-key` or `forge-wrench` in the *Icona* field works out of the box. The full list of ids is in the [gallery README](https://github.com/fraga-labs/yggdrasil-forge/blob/main/examples/gallery/README.md#icon-sets-nodeicon).

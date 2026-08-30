@@ -1372,5 +1372,5 @@
   "description": "Skill-tree document for Yggdrasil Forge: `tree` is the engine data (nodes, edges, resources, unlock rules), `editor` is editor-level presentation metadata (theme, background, coordinate bounds). Generated from the Zod schemas in @yggdrasil-forge/core and @yggdrasil-forge/editor-core — do not edit by hand; regenerate with `pnpm --filter @yggdrasil-forge/cli run gen:schema`.",
   "title": "Yggdrasil Forge document",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://raw.githubusercontent.com/cancioneschorriscortas-max/yggdrasil-forge/main/schema/yggdrasil-document.schema.json"
+  "$id": "https://raw.githubusercontent.com/fraga-labs/yggdrasil-forge/main/schema/yggdrasil-document.schema.json"
 }

@@ -34,7 +34,7 @@ Os erros son **dato**: cun `--json` o modelo ou o script sabe exactamente que ar
 | `adversarial.json` | O caso incómodo (nodos sen posición, referencias límite) para probar robustez. |
 | `escola-de-gaita.json`, `congoxa-netrunner.json` | Dous temas máis (educativo e cyberpunk) para variedade de few-shot. |
 
-Todos renderizados en [Exemplos](../exemplos/galeria/). README detallado (en inglés, para audiencia externa): [`examples/gallery/README.md`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/README.md).
+Todos renderizados en [Exemplos](../exemplos/galeria/). README detallado (en inglés, para audiencia externa): [`examples/gallery/README.md`](https://github.com/fraga-labs/yggdrasil-forge/blob/main/examples/gallery/README.md).
 
 ## O fluxo completo
 

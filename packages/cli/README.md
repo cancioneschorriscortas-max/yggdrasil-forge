@@ -1,6 +1,6 @@
 # @yggdrasil-forge/cli
 
-`ygg` — command-line tools for [Yggdrasil Forge](https://github.com/cancioneschorriscortas-max/yggdrasil-forge), the progression-tree (skill tree) engine. The headless **data path**: everything the visual editor can do with a document, scriptable for pipelines and AIs.
+`ygg` — command-line tools for [Yggdrasil Forge](https://github.com/fraga-labs/yggdrasil-forge), the progression-tree (skill tree) engine. The headless **data path**: everything the visual editor can do with a document, scriptable for pipelines and AIs.
 
 ```bash
 pnpm add -D @yggdrasil-forge/cli
@@ -28,8 +28,8 @@ npx ygg layout tree.json --algo layered --out tree.json
 npx ygg render tree.json --out tree.svg
 ```
 
-Docs (Galician first, full English): **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/**
-Gold gallery of known-good documents: [`examples/gallery`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/gallery).
+Docs (Galician first, full English): **https://fraga-labs.github.io/yggdrasil-forge/**
+Gold gallery of known-good documents: [`examples/gallery`](https://github.com/fraga-labs/yggdrasil-forge/tree/main/examples/gallery).
 
 ## Related packages
 

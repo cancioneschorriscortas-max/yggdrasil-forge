@@ -39,7 +39,7 @@ function typeDocInstance(plugin, pkg, options = {}) {
 // GitHub Pages: <usuario>.github.io/<repo>/ — sobrescribible con
 // DOCS_BASE / DOCS_SITE para previsualizar noutro lugar.
 const base = process.env.DOCS_BASE ?? '/yggdrasil-forge'
-const site = process.env.DOCS_SITE ?? 'https://cancioneschorriscortas-max.github.io'
+const site = process.env.DOCS_SITE ?? 'https://fraga-labs.github.io'
 
 export default defineConfig({
   site,
@@ -58,12 +58,11 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/cancioneschorriscortas-max/yggdrasil-forge',
+          href: 'https://github.com/fraga-labs/yggdrasil-forge',
         },
       ],
       editLink: {
-        baseUrl:
-          'https://github.com/cancioneschorriscortas-max/yggdrasil-forge/edit/main/docs-site/',
+        baseUrl: 'https://github.com/fraga-labs/yggdrasil-forge/edit/main/docs-site/',
       },
       plugins: [
         typeDocInstance(commonTypeDoc, 'common'),
@@ -79,7 +78,7 @@ export default defineConfig({
         {
           label: '🌳 Editor en vivo',
           translations: { en: '🌳 Live editor' },
-          link: 'https://cancioneschorriscortas-max.github.io/yggdrasil-forge/app/',
+          link: 'https://fraga-labs.github.io/yggdrasil-forge/app/',
         },
         {
           label: 'Comeza aquí',

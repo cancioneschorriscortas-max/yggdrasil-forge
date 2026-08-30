@@ -1,6 +1,6 @@
 # @yggdrasil-forge/editor-core
 
-Headless editor engine for [Yggdrasil Forge](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/), the progression-tree (skill tree) engine. Everything the visual editor does, without a pixel of UI: documents, commands with undo/redo, live validation, auto-layout, theme presets and serialization. Zero React.
+Headless editor engine for [Yggdrasil Forge](https://fraga-labs.github.io/yggdrasil-forge/), the progression-tree (skill tree) engine. Everything the visual editor does, without a pixel of UI: documents, commands with undo/redo, live validation, auto-layout, theme presets and serialization. Zero React.
 
 ```bash
 pnpm add @yggdrasil-forge/editor-core
@@ -18,7 +18,7 @@ The edit-side core that [@yggdrasil-forge/editor-react](https://www.npmjs.com/pa
 
 ## Where it sits in the stability contract
 
-This package is the **application layer**: it versions with the stable group, but its surface may move faster than `core` while the Studio grows. **Pin versions** if you build on it. What it *produces* — the document — is covered by the hard 1.x promise (additive schema, intact unlock semantics, guaranteed round-trip). Details: [the stable contract](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/contrato/contrato-estable/).
+This package is the **application layer**: it versions with the stable group, but its surface may move faster than `core` while the Studio grows. **Pin versions** if you build on it. What it *produces* — the document — is covered by the hard 1.x promise (additive schema, intact unlock semantics, guaranteed round-trip). Details: [the stable contract](https://fraga-labs.github.io/yggdrasil-forge/contrato/contrato-estable/).
 
 ## Related packages
 
@@ -26,7 +26,7 @@ This package is the **application layer**: it versions with the stable group, bu
 - [@yggdrasil-forge/editor-react](https://www.npmjs.com/package/@yggdrasil-forge/editor-react): the Studio UI over this engine.
 - [@yggdrasil-forge/cli](https://www.npmjs.com/package/@yggdrasil-forge/cli): `ygg` — the same data path, scriptable.
 
-Docs (Galician first, full English): **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/**
+Docs (Galician first, full English): **https://fraga-labs.github.io/yggdrasil-forge/**
 
 ## License
 

@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-The [extension guide](../guia/) is a set of **editor** recipes. This is its **engine** sibling: we will build a real `TreeEngine` plugin, runnable and tested. The complete code lives in [`examples/plugin-foco`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/plugin-foco) — clone it and run `pnpm --filter @yggdrasil-forge-examples/plugin-foco start`.
+The [extension guide](../guia/) is a set of **editor** recipes. This is its **engine** sibling: we will build a real `TreeEngine` plugin, runnable and tested. The complete code lives in [`examples/plugin-foco`](https://github.com/fraga-labs/yggdrasil-forge/tree/main/examples/plugin-foco) — clone it and run `pnpm --filter @yggdrasil-forge-examples/plugin-foco start`.
 
 ## The rule we will build
 
@@ -101,7 +101,7 @@ Note: for `setProgress`, the node declares `supportsProgress: true` and `progres
 
 ## 5. The test (tutorials rot too)
 
-The example ships a [minimal test](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/plugin-foco/__tests__/focoPlugin.test.ts) with the three cases: without focus everything flows, with focus it explains AND vetoes, and finishing frees the focus. It runs on every CI: if the engine changes and breaks the tutorial, we know.
+The example ships a [minimal test](https://github.com/fraga-labs/yggdrasil-forge/blob/main/examples/plugin-foco/__tests__/focoPlugin.test.ts) with the three cases: without focus everything flows, with focus it explains AND vetoes, and finishing frees the focus. It runs on every CI: if the engine changes and breaks the tutorial, we know.
 
 ## The honest hook map (1.x)
 

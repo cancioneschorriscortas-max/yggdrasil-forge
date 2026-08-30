@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-A [guía de extensión](../guia/) son receitas do **editor**. Esta é a irmá do **motor**: imos construír un plugin real do `TreeEngine`, executable e testado. O código completo vive en [`examples/plugin-foco`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/plugin-foco) — clónao e corre `pnpm --filter @yggdrasil-forge-examples/plugin-foco start`.
+A [guía de extensión](../guia/) son receitas do **editor**. Esta é a irmá do **motor**: imos construír un plugin real do `TreeEngine`, executable e testado. O código completo vive en [`examples/plugin-foco`](https://github.com/fraga-labs/yggdrasil-forge/tree/main/examples/plugin-foco) — clónao e corre `pnpm --filter @yggdrasil-forge-examples/plugin-foco start`.
 
 ## A regra que imos construír
 
@@ -101,7 +101,7 @@ Nota: para `setProgress`, o nodo declara `supportsProgress: true` e `progressSou
 
 ## 5. O test (os tutoriais tamén podrecen)
 
-O exemplo leva un [test mínimo](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/plugin-foco/__tests__/focoPlugin.test.ts) cos tres casos: sen foco todo flúe, con foco explica E veta, e ao rematar libérase. Corre en cada CI: se o motor cambia e rompe o tutorial, sabémolo.
+O exemplo leva un [test mínimo](https://github.com/fraga-labs/yggdrasil-forge/blob/main/examples/plugin-foco/__tests__/focoPlugin.test.ts) cos tres casos: sen foco todo flúe, con foco explica E veta, e ao rematar libérase. Corre en cada CI: se o motor cambia e rompe o tutorial, sabémolo.
 
 ## O mapa honesto dos hooks (1.x)
 

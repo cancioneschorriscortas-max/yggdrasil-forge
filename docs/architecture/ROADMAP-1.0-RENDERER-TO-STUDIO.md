@@ -23,7 +23,7 @@
   **sen North Star visual** — saltou a regra *mockup → arquitectura →
   código*. É literalmente un `<circle>` + `<text>` centrado. Non serve.
 - **Cliente cero.** **Oberón**, a sección de profesións da app educativa
-  **GAIA** (repo aparte: `github.com/cancioneschorriscortas-max/gaia-frontend`).
+  **GAIA** (repo aparte: `github.com/fraga-labs/gaia-frontend`).
   Oberón **consome** a librería; non vive neste repo.
 - **A decisión desta sesión.** Reorganizar todo arredor dunha meta
   **finita e alcanzable**: chegar a 1.0 sen scope infinito. Este

@@ -1,6 +1,6 @@
 # @yggdrasil-forge/editor-react
 
-The **Yggdrasil Forge Studio** — the full visual editor for progression trees (skill trees), as a React component library. This is the application layer of [Yggdrasil Forge](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/): canvas with pan/zoom, inspector, live validation, auto-layout with five engines, cards view, play mode, icon picker, autosave with recovery, and a synchronized code panel.
+The **Yggdrasil Forge Studio** — the full visual editor for progression trees (skill trees), as a React component library. This is the application layer of [Yggdrasil Forge](https://fraga-labs.github.io/yggdrasil-forge/): canvas with pan/zoom, inspector, live validation, auto-layout with five engines, cards view, play mode, icon picker, autosave with recovery, and a synchronized code panel.
 
 ```bash
 pnpm add @yggdrasil-forge/editor-react @yggdrasil-forge/editor-core react react-dom
@@ -25,12 +25,12 @@ Everything renders the same document the rest of the toolchain speaks: what you 
 
 ## Where it sits in the stability contract
 
-This package is the **application layer**: it versions with the stable group, but its surface may move faster than `core` while the Studio grows. **Pin versions** if you build on it. What it *produces* — the document — is covered by the hard 1.x promise. Details: [the stable contract](https://cancioneschorriscortas-max.github.io/yggdrasil-forge/contrato/contrato-estable/).
+This package is the **application layer**: it versions with the stable group, but its surface may move faster than `core` while the Studio grows. **Pin versions** if you build on it. What it *produces* — the document — is covered by the hard 1.x promise. Details: [the stable contract](https://fraga-labs.github.io/yggdrasil-forge/contrato/contrato-estable/).
 
 ## Docs
 
-Galician first, full English: **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/**
-A runnable editor app lives in the repository: [`examples/editor`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/tree/main/examples/editor).
+Galician first, full English: **https://fraga-labs.github.io/yggdrasil-forge/**
+A runnable editor app lives in the repository: [`examples/editor`](https://github.com/fraga-labs/yggdrasil-forge/tree/main/examples/editor).
 
 ## License
 

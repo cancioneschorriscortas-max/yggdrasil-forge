@@ -25,7 +25,7 @@ Esta separación é unha decisión de arquitectura (MASTER A.6): o editor é unh
 
 O schema vive no repositorio e xérase a partir dos tipos reais (Zod) do motor e do editor, cun test de deriva que falla se diverxen:
 
-**[`schema/yggdrasil-document.schema.json`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/schema/yggdrasil-document.schema.json)**
+**[`schema/yggdrasil-document.schema.json`](https://github.com/fraga-labs/yggdrasil-forge/blob/main/schema/yggdrasil-document.schema.json)**
 
 Tamén o emite o CLI — útil para pipelines que non queren depender dunha URL:
 
@@ -52,7 +52,7 @@ npx ygg new --id demo --label "Demo"   # un documento baleiro válido para empez
 
 ## Dous documentos mínimos
 
-O máis pequeno útil está na galería: [`minimal.json`](https://github.com/cancioneschorriscortas-max/yggdrasil-forge/blob/main/examples/gallery/minimal.json) — dous nodos, un recurso, un prerrequisito, un custo por rango, etiquetas bilingües e encadre. E o de referencia «amable», o panadeiro, con grupos, rangos e tema.
+O máis pequeno útil está na galería: [`minimal.json`](https://github.com/fraga-labs/yggdrasil-forge/blob/main/examples/gallery/minimal.json) — dous nodos, un recurso, un prerrequisito, un custo por rango, etiquetas bilingües e encadre. E o de referencia «amable», o panadeiro, con grupos, rangos e tema.
 
 ## Ata onde chega a promesa
 

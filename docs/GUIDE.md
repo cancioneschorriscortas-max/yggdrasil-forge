@@ -300,14 +300,14 @@ separación é deliberada.
 > **Movido á documentación pública (16.1).** A guía completa de theming —
 > tema do renderer (`ThemeProvider`), recheos por estado, tema do documento
 > (`editor.theme`), presets con nome e a costura chrome↔documento — vive en
-> **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/theming/**
+> **https://fraga-labs.github.io/yggdrasil-forge/theming/**
 > (fonte: `docs-site/src/content/docs/theming/index.md`).
 
 ## 7. Iconos (SVG recoloreables)
 
 > **Movido á documentación pública (16.1).** Sets `BUILTIN`, `NORSE_ICONS` e
 > `LOGIC_ICONS` (opt-in), iconas propias con `registerIcons` e fallbacks:
-> **https://cancioneschorriscortas-max.github.io/yggdrasil-forge/theming/#4-iconas-svg-recoloreables**.
+> **https://fraga-labs.github.io/yggdrasil-forge/theming/#4-iconas-svg-recoloreables**.
 
 ## 8. Edges (xeometría = contrato de datos)
 
